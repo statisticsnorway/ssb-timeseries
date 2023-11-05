@@ -1,5 +1,3 @@
-# from typing import Self
-# import datetime
 import pandas as pd
 
 from timeseries import io
@@ -15,15 +13,6 @@ class Dataset:
         self.type: prop.SeriesType = prop.SeriesType(type=datatype)
         self.series: dict = kwargs.get("series", {})
         self.io = io.DatasetDirectory(set_name=self.name, set_type=self.type)
-
-        """  included in type
-        match type.versioning:
-            case prop.SeriesVersioning.AS_OF:
-                self.version = kwargs.get("as_of")
-            case prop.SeriesVersioning.NAME:
-                self.version = kwargs.get("version")
-            case _:
-                self.version = None"""
 
         kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
         if not kwarg_data.empty:
@@ -44,9 +33,6 @@ class Dataset:
     def save(self) -> None:
         log.info(f"dataset {self.name}: save")
         self.io.save(data=self.data, meta=self.tags)
-
-    # def update_metadata(self, column_name, metadata_tag) -> None:
-    #    self.tags[column_name] = metadata_tag
 
     def get_series_tags(self, series_name=None):
         return self.tags.get(series_name, "No metadata found")

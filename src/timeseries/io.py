@@ -2,9 +2,6 @@ import os
 import json
 import pandas
 
-# import pyarrow
-# import enum
-
 from timeseries import logging as log, properties
 from datetime import datetime
 
@@ -19,7 +16,6 @@ class DatasetDirectory:
         set_type: properties.SeriesType,
     ) -> None:
         self.set_name: str = set_name
-        # self.set_type: properties.SeriesType = set_type
         self.type_path: str = self.datatype_path(set_type)
         self.data_dir: str = f"{self.type_path}/{set_name}"
         self.data_file: str = self.__datafile_name(set_name)
@@ -60,7 +56,6 @@ class DatasetDirectory:
         return df
 
     def write_data(self, data: pandas.DataFrame, as_of: datetime = datetime.now()):
-        # self.makedirs()
         os.makedirs(self.data_dir, exist_ok=True)
         if not data.empty:
             try:
@@ -91,11 +86,8 @@ class DatasetDirectory:
                 meta = json.load(file)
         log.debug(meta)
         return meta
-        # except FileNotFoundError:
-        #    log.debug(f"Read metadata {self.set_name}: Metadata file not found: {self.metadata_fullpath}")
 
     def write_metadata(self, meta) -> None:
-        # self.makedirs()
         os.makedirs(self.metadata_dir, exist_ok=True)
         if meta:
             try:
@@ -114,21 +106,21 @@ class DatasetDirectory:
         return os.path.isfile(self.metadata_fullpath)
 
     def save(self, data: pandas.DataFrame, meta: dict) -> None:
-        # self.makedirs()
         if not data.empty:
             self.write_data(data)
         if meta:
             self.write_metadata(meta)
-        # return self.datafile_exists() and self.metadatafile_exists()
 
     def purge(self):
-        # remove both data and metadata files first, in case datadir == metadatadir
+        # method added to make testing easier, remove for "real" library?
+        # # in case datadir == metadatadir, remove both data and metadata files first
         if os.path.isfile(self.data_fullpath):
             os.remove(self.data_fullpath)
 
         if os.path.isfile(self.metadata_fullpath):
             os.remove(self.metadata_fullpath)
 
+        # remove datadir and metadatadir
         if os.path.isdir(self.data_dir):
             os.removedirs(self.data_dir)
 

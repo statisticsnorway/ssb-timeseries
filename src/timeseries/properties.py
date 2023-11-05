@@ -15,7 +15,6 @@ class SeriesTemporality(Enum):
     FROM_TO = (2, "Duration from-to expressed with 'valid_from' and 'valid_to' dates.")
 
 
-# class SeriesType(metaclass=MultipleMeta):
 class SeriesType:
     def __init__(
         self,

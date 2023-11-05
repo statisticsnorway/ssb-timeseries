@@ -1,6 +1,6 @@
 import os.path
 
-from timeseries import io
+from timeseries import io, logging as log
 from timeseries.properties import SeriesType
 
 
@@ -14,8 +14,8 @@ def test_dataset_datadir_path_as_expected() -> None:
     set_type = SeriesType(type="SIMPLE")
     dirs = io.DatasetDirectory(set_name=set_name, set_type=set_type)
     expected: str = f"{dirs.type_path}/{set_name}"
-    print(expected)
-    print(dirs.data_dir)
+    log.debug(expected)
+    log.debug(dirs.data_dir)
     assert dirs.data_dir == expected
 
 
@@ -24,8 +24,8 @@ def test_dataset_metadir_path_as_expected() -> None:
     set_type = SeriesType(type="SIMPLE")
     dirs = io.DatasetDirectory(set_name=set_name, set_type=set_type)
     expected: str = f"{dirs.type_path}/{set_name}"
-    print(expected)
-    print(dirs.metadata_dir)
+    log.debug(expected)
+    log.debug(dirs.metadata_dir)
     assert dirs.metadata_dir == expected
 
 
@@ -38,6 +38,6 @@ def test_dataset_directories_created_() -> None:
     assert os.path.isdir(dirs.metadata_dir)
 
 
-def cleanup() -> None:
+def cleanup(dir: io.DatasetDirectory) -> None:
     pass
     # os.path.del(f"{dirs.type_path}/{set_type}/{set_name}")
