@@ -112,6 +112,7 @@ def create_df(
 def create_dataset(
     name: str,
     series_tags: dict,
+    datatype: str = "SIMPLE",
     dataset_tags: dict = {},
     start_date=None,
     end_date=None,
@@ -155,7 +156,7 @@ def create_dataset(
     ```
     """
 
-    x = ds.Dataset(name=name)
+    x = ds.Dataset(name=name, datatype=datatype)
     lists = [value for value in series_tags.values()]
     # lists = [['a', 'b'], ['x', 'y', 'z']]
 
