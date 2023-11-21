@@ -8,7 +8,7 @@ from timeseries import dates
 import datetime
 
 
-TIMESERIES_ROOT = "/home/bernhard/code/arkitektur-poc-tidsserier/sample-data"
+TIMESERIES_ROOT: str = os.environ.get("TIMESERIES_ROOT", "/home/jovyan/sample-data")
 
 
 class DatasetDirectory:

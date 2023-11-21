@@ -11,26 +11,25 @@ from pyclbr import Function
 from typing import Callable
 
 import logging
+import os
 
 ts_logger = logging.getLogger("TIMESERIES")
-log_string = logging.Formatter(
-    "%(name)s | %(levelname)s | %(asctime)s | %(message)s \n"
-)
+log_string = logging.Formatter("%(name)s | %(levelname)s | %(asctime)s | %(message)s")
 log_json = logging.Formatter(
     '{"level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" "name": "%(name)s" }'
 )
 
 # log to file
-LOG_LOCATION = "sample-data"
+LOG_LOCATION: str = os.environ.get("TIMESERIES_ROOT", "/home/jovyan/sample-data")
 file_handler = logging.FileHandler(f"{LOG_LOCATION}/timeseries.log")
 file_handler.setFormatter(log_string)
-file_handler.setLevel(logging.INFO)
+file_handler.setLevel(logging.DEBUG)
 ts_logger.addHandler(file_handler)
 
 # Also log to console.
 console = logging.StreamHandler()
 console.setFormatter(log_string)
-console.setLevel(logging.DEBUG)
+# console.setLevel(logging.INFO)
 ts_logger.addHandler(console)
 
 # Google Cloud logging:
