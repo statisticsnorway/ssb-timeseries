@@ -1,5 +1,8 @@
 # from pandas import DataFrame as df
 from timeseries.sample_data import create_df
+import logging
+
+# from timeseries.logging import ts_logger
 
 
 def test_create_sample_from_single_string() -> None:
@@ -8,14 +11,18 @@ def test_create_sample_from_single_string() -> None:
     # expected 3 days x (1 date column + 1 variable columns) = 6 values
 
 
-def test_create_sample_from_single_multichar_string() -> None:
+def test_create_sample_from_single_multichar_string(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+
     df = create_df("abc", start_date="2022-01-01", end_date="2022-01-03", freq="D")
     # FIXED known issue: if passing strings rather than lists, permutes over chars in string"
     assert df.size == 6
     # expected 3 days x (1 date column + 1 variable columns) = 6 values
 
 
-def test_create_sample_from_one_list() -> None:
+def test_create_sample_from_one_list(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+
     df = create_df(
         ["a", "bb", "cc"], start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
@@ -24,7 +31,9 @@ def test_create_sample_from_one_list() -> None:
     # expected 1 years x (1 date column + 3 variable columns) = 4 values
 
 
-def test_create_sample_from_two_lists() -> None:
+def test_create_sample_from_two_lists(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+
     df = create_df(
         ["a", "b"],
         ["x", "y", "z"],
@@ -44,7 +53,7 @@ def test_create_df() -> None:
         start_date="2022-01-01",
         end_date="2022-01-05",
         freq="D",
-        separator=",",
+        separator="___",
         midpoint=50,
         variance=5,
     )

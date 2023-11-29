@@ -1,57 +1,73 @@
-from timeseries import configuration
-import json
-#import dapla as dp
+import random
 
-class Meta:
-    def __init__(self, str: dataset_name, str: dataset_type, dict: dataset_tags=None, dict: series_tags=None, str:metadata_file=None):
-        """
-        Meta class
-        """
+# import json
 
-        self.dataset_name = dataset_name
-        self.dataset_type = dataset_type
-        self.dataset_tags = dataset_tags
-        self.series_tags = series_tags
-        self.metadata_file = metadata_file
-        self.load_metadata()
+from klass import get_classification  # Import the utility-function
 
-    def tag(self, attr, value):
-        self.dataset_tags[attr] = value
 
-    def get_tag(self, series_name):
-        return self.metadata.get(column_name, "No metadata found")
+def words() -> list[str]:
+    return [
+        "apple",
+        "book",
+        "desk",
+        "pen",
+        "cat",
+        "dog",
+        "tree",
+        "house",
+        "car",
+        "phone",
+        "computer",
+        "laptop",
+        "keyboard",
+        "mouse",
+        "chair",
+        "table",
+        "door",
+        "window",
+        "wall",
+        "floor",
+    ]
 
-    def list_columns(self):
-        return self.data.columns
 
-"""def create_meta(separator: str = '_', **kwargs):"""
-def create_meta(dataset: str = '<new sample dataset>', series, **tags) -> Meta:
-    """
-    Generate sample data with specified date range and lists.
+def aggregates() -> list[str]:
+    return [
+        "count",
+        "sum",
+        "avg",
+        "min",
+        "max",
+        "perc01",
+        "perc05",
+        "perc10",
+        "perc15",
+        "perc20",
+        "perc25",
+        "perc30",
+        "perc35",
+        "perc40",
+        "perc45",
+        "perc50",
+        "perc55",
+        "perc60",
+        "perc65",
+        "perc70",
+        "perc75",
+        "perc80",
+        "perc85",
+        "perc90",
+        "perc95",
+        "perc99",
+    ]
 
-    Parameters:
-    - lists.
-    Returns:
-    - Object.
 
-    Example:
-    ```
-    # Generate sample data with no specified start or end date (defaults to +/- infinity)
-    sample_data = generate_sample_df(List1, List2, freq='D')
-    ```
-    """
+def random_word():
+    return random.choice(words)
 
-    meta = Meta{dataset}
 
-    
-    return meta
+def tags_string(lists):
+    return "_".join([random.choice(L) for L in lists])
 
-""" 
-    def load_metadata(self):
-        with open(self.metadata_file, 'r') as file:
-            self.metadata = json.load(file)
 
-    def save_metadata(self):
-        with open(self.metadata_file, 'w') as file:
-            json.dump(self, file, indent=4) 
-    """
+def nus():
+    return get_classification(36)

@@ -5,31 +5,30 @@
 # client = google.cloud.logging.Client()
 # client.setup_logging()
 
-from functools import wraps
-import datetime
-from pyclbr import Function
-from typing import Callable
-
+import functools
 import logging
 import os
+
+from datetime import datetime
 
 ts_logger = logging.getLogger("TIMESERIES")
 log_string = logging.Formatter("%(name)s | %(levelname)s | %(asctime)s | %(message)s")
 log_json = logging.Formatter(
-    '{"level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" "name": "%(name)s" }'
+    '{"name": "%(name)s"; "level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" }'
 )
 
 # log to file
 LOG_LOCATION: str = os.environ.get("TIMESERIES_ROOT", "/home/jovyan/sample-data")
+
 file_handler = logging.FileHandler(f"{LOG_LOCATION}/timeseries.log")
-file_handler.setFormatter(log_string)
-file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(log_json)
+file_handler.setLevel(logging.INFO)
 ts_logger.addHandler(file_handler)
 
 # Also log to console.
 console = logging.StreamHandler()
 console.setFormatter(log_string)
-# console.setLevel(logging.INFO)
+console.setLevel(logging.WARNING)
 ts_logger.addHandler(console)
 
 # Google Cloud logging:
@@ -55,27 +54,51 @@ ts_logger.addHandler(console)
 
 class EnterExitLog:
     def __init__(self, name: str):
-        self.name: str = name
+        self.name = name
 
     def __enter__(self):
-        self.init_time = datetime.datetime.now()
-        ts_logger.info("Finished: {self.name}.")
+        self.init_time = datetime.now()
+        ts_logger.info(f"START: {self.name}.")
         return self
 
     def __exit__(self, type, value, tb):
-        self.end_time = datetime.datetime.now()
+        self.end_time = datetime.now()
         self.elapsed_time = self.end_time - self.init_time
-        ts_logger.info("Finished: {self.name} in: {self.elapsed_time} seconds.")
+        ts_logger.info(
+            f"FINISH: {self.name}. Completed in: {self.elapsed_time} seconds."
+        )
 
 
-@wraps
-def log_start_stop(func) -> Callable[..., Function]:
-    def func_wrapper(*args, **kwargs) -> Function:
+def log_start_stop(func):
+    """log start and stop of decorated function"""
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
         with EnterExitLog(func.__name__):
-            return func(*args, **kwargs)
+            out = func(*args, **kwargs)
 
-    return func_wrapper
+        return out
 
+    return wrapper
+
+
+def debug(func):
+    """Print the function signature and return value"""
+
+    @functools.wraps(func)
+    def wrapper_debug(*args, **kwargs):
+        args_repr = [repr(a) for a in args]  # 1
+        kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]  # 2
+        signature = ", ".join(args_repr + kwargs_repr)  # 3
+        print(f"Calling {func.__name__}({signature})")
+        value = func(*args, **kwargs)
+        print(f"{func.__name__!r} returned {value!r}")  # 4
+        return value
+
+    return wrapper_debug
+
+
+"""
 
 # @wraps??
 class Timer:
@@ -83,20 +106,23 @@ class Timer:
         self.name: str = name
 
     def __enter__(self):
-        self.init_time = datetime.datetime.now()
+        self.init_time = datetime.now()
         ts_logger.info("Started: {self.name}.")
         return self
 
     def __exit__(self, type, value, tb):
-        self.end_time = datetime.datetime.now()
+        self.end_time = datetime.now()
         self.elapsed_time = self.end_time - self.init_time
         ts_logger.info("Finished: {self.name} in: {self.elapsed_time} seconds.")
 
 
-@wraps
 def funcion_timer(func) -> Callable[..., Function]:
-    def func_wrapper(*args, **kwargs) -> Function:
-        with EnterExitLog(func.__name__):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs) -> Function:
+        with Timer(func.__name__):
             return func(*args, **kwargs)
 
-    return func_wrapper
+    return wrapper
+
+
+"""

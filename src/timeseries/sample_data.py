@@ -1,21 +1,25 @@
 import numpy as np
 import pandas as pd
+import itertools
 
 from datetime import datetime  # , timedelta
-import itertools
-from timeseries import dataset as ds
+from timeseries import dates
+from timeseries.dataset import Dataset
+from timeseries.properties import SeriesType
+from timeseries.logging import ts_logger
 
-# import pyarrow as pa
-# import os
 
+def series_names(*args, **kwargs) -> list[str]:
+    separator = kwargs.get("separator", "_")
 
-def _str_to_list(*args) -> list:
     if isinstance(args, dict):
         return [value for value in args.values()]
-    else:
-        final_args = []
+
+    final_args = []
 
     for arg in args:
+        if arg is None:
+            return ""
         if isinstance(arg, str):
             final_args.append([arg])
         elif isinstance(arg, list):
@@ -25,7 +29,11 @@ def _str_to_list(*args) -> list:
         else:
             raise ValueError(f"Invalid argument type: {type(arg)}")
 
-    return final_args
+    names = [
+        separator.join(combination) for combination in itertools.product(*final_args)
+    ]
+
+    return names
 
 
 def create_df(
@@ -39,7 +47,7 @@ def create_df(
     variance: int = 10,
 ) -> pd.DataFrame:
     """
-    Generate sample data with specified date range and lists.
+    Generate sample data for specified date range and permutations over lists.
 
     Parameters:
     - start_date (datetime, optional): The start date of the date range. Defaults to negative infinity.
@@ -86,12 +94,13 @@ def create_df(
     # BUGFIX: If *lists receives strings, permutations will be over chars by chars
     # Kombiner listene til en enkelt liste av lister
     # list = list(lists)
-    name_parts = _str_to_list(*lists)
 
+    # name_parts = series_names(*lists)
     # Generer alle mulige kombinasjoner av listene med separator
-    series = [
-        separator.join(combination) for combination in itertools.product(*name_parts)
-    ]
+    # series = [
+    #     separator.join(combination) for combination in itertools.product(*name_parts)
+    # ]
+    series = series_names(*lists, separator=separator)
 
     # Opprett DataFrame med tilfeldige tall
     rows = len(dates)
@@ -108,70 +117,69 @@ def create_df(
     return some_data
 
 
-# def create_dataset(name:str, series_tags:dict, dataset_tags:dict={}, **kwargs) -> pd.DataFrame:
-def create_dataset(
-    name: str,
-    series_tags: dict,
-    datatype: str = "SIMPLE",
-    dataset_tags: dict = {},
-    start_date=None,
-    end_date=None,
-    freq: str = "D",
-    interval: int = 1,
-    separator: str = "_",
-    midpoint: int = 100,
-    variance: int = 10,
-) -> ds.Dataset:
-    """
-    For a specified date range, generate sample data for permutations of series metadata in dictionary.
+# # def create_dataset(name:str, series_tags:dict, dataset_tags:dict={}, **kwargs) -> pd.DataFrame:
+# def create_dataset(
+#     name: str,
+#     series_tags: dict,
+#     data_type: SeriesType = SeriesType.simple(),
+#     dataset_tags: dict = {},
+#     as_of_tz: datetime = dates.now_utc(),
+#     start_date=None,
+#     end_date=None,
+#     **kwargs
+#     # freq: str = "D",
+#     # interval: int = 1,
+#     # separator: str = "_",
+#     # midpoint: int = 100,
+#     # variance: int = 10,
+# ) -> Dataset:
+#     """
+#     For a specified date range, generate sample data for permutations of series metadata in dictionary.
 
-    Parameters:
-    - series_tags: dictionary of attribute names and lists of values to generate series metadata and data columns from.
-    - start_date (datetime, optional): The start date of the date range. Defaults to negative infinity.
-    - end_date (datetime, optional): The end date of the date range. Defaults to positive infinity.
-    - freq (str, optional): The frequency of date generation:
-        'Y' for yearly at last day of year,
-        'YS' for yearly at first day of year,
-        'M' for monthly at last day of month,
-        'MS' for monthly at first day of month,
-        'W' for weekly on Sundays,
-        'D' for daily,
-        'H' for hourly,
-        'T' for minutely,
-        'S' for secondly,
-        etc.
-      Default is 'D'.
-    - interval (int, optional): The interval between dates. Default is 1.
-    - separator (str, optional): The separator used to join combinations. Default is '_'.
-    - midpoint (float, optional): The midpoint value for generating random data. Default is 100.
-    - variance (float, optional): The variance value for generating random data. Default is 10.
+#     Parameters:
+#     - series_tags: dictionary of attribute names and lists of values to generate series metadata and data columns from.
+#     - start_date (datetime, optional): The start date of the date range. Defaults to negative infinity.
+#     - end_date (datetime, optional): The end date of the date range. Defaults to positive infinity.
+#     - freq (str, optional): The frequency of date generation:
+#         'Y' for yearly at last day of year,
+#         'YS' for yearly at first day of year,
+#         'M' for monthly at last day of month,
+#         'MS' for monthly at first day of month,
+#         'W' for weekly on Sundays,
+#         'D' for daily,
+#         'H' for hourly,
+#         'T' for minutely,
+#         'S' for secondly,
+#         etc.
+#       Default is 'D'.
+#     - interval (int, optional): The interval between dates. Default is 1.
+#     - separator (str, optional): The separator used to join combinations. Default is '_'.
+#     - midpoint (float, optional): The midpoint value for generating random data. Default is 100.
+#     - variance (float, optional): The variance value for generating random data. Default is 10.
 
-    Returns:
-    - DataFrame: A DataFrame containing sample data.
+#     Returns:
+#     - DataFrame: A DataFrame containing sample data.
 
-    Example:
-    ```
-    # Generate sample data with no specified start or end date (defaults to +/- infinity)
-    sample_data = generate_sample_df(List1, List2, freq='D')
-    ```
-    """
+#     Example:
+#     ```
+#     # Generate sample data with no specified start or end date (defaults to +/- infinity)
+#     sample_data = generate_sample_df(List1, List2, freq='D')
+#     ```
+#     """
 
-    x = ds.Dataset(name=name, datatype=datatype)
-    lists = [value for value in series_tags.values()]
-    # lists = [['a', 'b'], ['x', 'y', 'z']]
+#     x = Dataset(name=name, data_type=data_type, as_of_tz=as_of_tz)
+#     lists = [value for value in series_tags.values()]
 
-    # x.data = create_df(lists, *kwargs)
-    # x.data = create_df( [series_tags.values()], \
-    x.data = create_df(
-        *lists,
-        start_date=start_date,
-        end_date=end_date,
-        freq=freq,
-        interval=interval,
-        separator=separator,
-        midpoint=midpoint,
-        variance=variance,
-    )
-    # x.series
+#     x.data = create_df(
+#         *lists,
+#         start_date=start_date,
+#         end_date=end_date,
+#         **kwargs
+#         # freq=freq,
+#         # interval=interval,
+#         # separator=separator,
+#         # midpoint=midpoint,
+#         # variance=variance,
+#     )
 
-    return x
+#     return x
