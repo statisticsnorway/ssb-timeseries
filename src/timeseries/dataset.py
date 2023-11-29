@@ -110,8 +110,8 @@ class Dataset:
     def plot(self, *args, **kwargs):
         return self.data.plot(
             "valid_at",
-            legend=len(x.data.columns) < 9,
-            title=x.name,
+            legend=len(self.data.columns) < 9,
+            title=self.name,
             figsize=(12, 4),
             *args,
             **kwargs,
