@@ -26,6 +26,9 @@ class SuperEnum(Enum):
         # return list(cls._value2member_map_.keys())
         return [item.value[1] for item in cls]
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}.{self.name}"
+
     def __str__(self):
         return self.name
 
@@ -80,8 +83,12 @@ class SeriesType:
         """
 
     @classmethod
-    def simple(cls):
+    def none_at(cls):
         return cls(versioning=Versioning.NONE, temporality=Temporality.AT)
+
+    @classmethod
+    def simple(cls):
+        return cls.none_at()
 
     @classmethod
     def from_to(cls):
@@ -109,6 +116,9 @@ class SeriesType:
     @classmethod
     def permutations(cls) -> list[str]:
         return ["_".join(c) for c in product(Versioning.keys(), Temporality.keys())]
+
+    def __repr__(self):
+        return f"SeriesType({repr(self.versioning)},{repr(self.temporality)})"
 
 
 def estimate_types() -> list[str]:

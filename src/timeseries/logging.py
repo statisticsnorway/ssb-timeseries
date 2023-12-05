@@ -21,7 +21,7 @@ log_json = logging.Formatter(
 LOG_LOCATION: str = os.environ.get("TIMESERIES_ROOT", "/home/jovyan/sample-data")
 
 file_handler = logging.FileHandler(f"{LOG_LOCATION}/timeseries.log")
-file_handler.setFormatter(log_json)
+file_handler.setFormatter(log_string)
 file_handler.setLevel(logging.INFO)
 ts_logger.addHandler(file_handler)
 

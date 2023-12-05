@@ -1,8 +1,10 @@
 # from datetime import datetime, timedelta
 import datetime
-from timeseries.logging import ts_logger
+from dateutil import parser
 import pytz
 from functools import wraps
+
+from timeseries.logging import ts_logger
 
 MAX_TIME_PRECISION = "Min"
 
@@ -31,7 +33,8 @@ def date_utc(d, **kwargs) -> dt:
         d = now_utc()
 
     if not isinstance(d, dt):
-        d: dt = dt.strptime(d, "%Y-%m-%d")
+        # d = dt.strptime(d, "%Y-%m-%d")
+        d = parser.parse(d)
 
     return d.astimezone(tz=pytz.utc)
 
