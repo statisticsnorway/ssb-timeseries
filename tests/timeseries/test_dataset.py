@@ -291,9 +291,6 @@ def test_read_existing_estimate_data(caplog) -> None:
         assert False
 
 
-# TO DO: -----------------------------
-
-
 @log_start_stop
 def test_load_existing_set_without_loading_data(caplog) -> None:
     caplog.set_level(logging.DEBUG)
@@ -351,11 +348,120 @@ def test_dataset_math(caplog) -> None:
     ts_logger.debug(f"matrix:\n{a * a}")
     ts_logger.debug(f"matrix:\n{a / a}")
 
-    assert all(a + a == a + a_data)
-    assert all(a - a == a - a_data)
-    assert all(a * a == a * a_data)
-    assert all(a / a == a / a_data)
-    assert False
+    assert all((a + a) == (a + a_data))
+    assert all((a - a) == (a - a_data))
+    assert all((a * a) == (a * a_data))
+    assert all((a / a) == (a / a_data))
+
+
+@log_start_stop
+def test_dataset_groupby_sum(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(name="test-groupby-sum", data_type=SeriesType.simple(), load_data=False)
+
+    tag_values = [["p", "q", "r"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2023-02-28", freq="D"
+    )
+    assert x.data.shape == (424, 4)
+    ts_logger.warning(f'groupby:\n{x.groupby("M", "sum")}')
+    assert x.groupby("M", "sum").shape == (14, 3)
+
+
+@log_start_stop
+def test_dataset_groupby_mean(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(
+        name="test-groupby-mean", data_type=SeriesType.simple(), load_data=False
+    )
+
+    tag_values = [["p", "q", "r"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2023-02-28", freq="D"
+    )
+    assert x.data.shape == (424, 4)
+    df1 = x.groupby("M", "mean")
+    ts_logger.warning(f"groupby:\n{df1}")
+    assert df1.shape == (14, 3)
+
+
+@log_start_stop
+def test_dataset_resample(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(name="test-resample", data_type=SeriesType.simple(), load_data=False)
+    tag_values = [["p", "q", "r"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+    )
+    assert x.data.shape == (1, 4)
+    # df = x.data.resample("M").mean()
+    df = x.resample("M", "mean")
+    ts_logger.warning(f"resample:\n{df}")
+    assert df.shape == (12, 3)
+
+
+@log_start_stop
+def test_dataset_vectors(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(
+        name="test-vectors",
+        data_type=SeriesType.estimate(),
+        load_data=False,
+        as_of_tz=date_utc("2022-01-01"),
+        series_tags={},
+    )
+    assert x.data.empty
+    tag_values = [["p", "q", "r"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2022-10-03", freq="MS"
+    )
+    x.vectors()
+    ts_logger.debug(f"matrix:\n{eval('p') == x.data['p']}")
+
+    # variables should be defined for all columns
+    assert "valid_at" in locals()
+    assert "p" in locals()
+    assert "q" in locals()
+    assert "r" in locals()
+
+    # and should evaluate to x.data[column_name]
+    assert all(eval("valid_at") == x.data["valid_at"])
+    assert all(eval("p") == x.data["p"])
+    assert all(eval("q") == x.data["q"])
+    assert all(eval("r") == x.data["r"])
+
+
+@log_start_stop
+def test_dataset_vectors_with_filter(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(
+        name="test-vectors",
+        data_type=SeriesType.estimate(),
+        load_data=False,
+        as_of_tz=date_utc("2022-01-01"),
+        series_tags={},
+    )
+    assert x.data.empty
+    tag_values = [["px", "qx", "r"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2022-10-03", freq="MS"
+    )
+    x.vectors("x")
+
+    # variables should be defined only for some columns
+    assert not "valid_at" in locals()
+    assert "px" in locals()
+    assert "qx" in locals()
+    assert not "r" in locals()
+
+    # and should evaluate to x.data[column_name] for the defined ones
+    assert all(eval("px") == x.data["px"])
+    assert all(eval("qx") == x.data["qx"])
 
 
 @log_start_stop

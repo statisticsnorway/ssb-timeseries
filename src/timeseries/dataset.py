@@ -118,6 +118,96 @@ class Dataset:
             **kwargs,
         )
 
+    def vectors(self, filter: str = ""):
+        """_summary_
+
+        Args:
+            filter (str, optional): _description_. Defaults to "".
+
+        be warned: messing with variables by way of stack inspection is a dirty trick
+        this runs the risk of reassigning objects, functions, or variables within the scope of the calling function
+        """
+
+        import inspect
+
+        stack = inspect.stack()
+        ts_logger.warning(f"vectors: {__name__}")
+        locals_ = stack[1][0].f_locals
+
+        for col in self.data.columns:
+            if col.__contains__(filter):
+                cmd = f"{col} = self.data['{col}']"
+                ts_logger.warning(cmd)
+                # exec(cmd)
+                locals_[col] = self.data[col]
+
+        # ts_logger.warning(eval("x"))
+
+    def groupby(self, freq: str, func: str = "auto", *args, **kwargs):
+        # candidate for refactoring: repeats code of resample
+        datetime_columns = list(
+            set(self.data.columns) & {"valid_at", "valid_to", "valid_from"}
+        )
+        datetime_columns = "valid_at"
+        ts_logger.debug(f"DATASET {self.name}: datetime columns: {datetime_columns}.")
+
+        period_index = pd.PeriodIndex(self.data[datetime_columns], freq=freq)
+        ts_logger.debug(f"DATASET {self.name}: period index\n{period_index}.")
+
+        match func:
+            case "mean":
+                out = self.data.groupby(period_index).mean(
+                    numeric_only=True, *args, **kwargs
+                )
+            case "sum":
+                out = self.data.groupby(period_index).sum(
+                    numeric_only=True, *args, **kwargs
+                )
+            case "auto":
+                # TO DO: check meta data and blend d1 and df2 values as appropriate
+                df1 = self.data.groupby(period_index).mean(
+                    numeric_only=True, *args, **kwargs
+                )
+                df2 = self.data.groupby(period_index).sum(
+                    numeric_only=True, *args, **kwargs
+                )
+                out = df1
+
+        return out
+
+    def resample(self, freq: str, func: str = "auto", *args, **kwargs):
+        # candidate for refactoring: repeats code of groupby
+        datetime_columns = list(
+            set(self.data.columns) & {"valid_at", "valid_to", "valid_from"}
+        )
+        datetime_columns = "valid_at"
+        ts_logger.debug(f"DATASET {self.name}: datetime columns: {datetime_columns}.")
+
+        period_index = pd.PeriodIndex(self.data[datetime_columns], freq=freq)
+        ts_logger.debug(f"DATASET {self.name}: period index\n{period_index}.")
+
+        match func:
+            case "mean":
+                out = self.data.resample(period_index).mean(
+                    numeric_only=True, *args, **kwargs
+                )
+            case "sum":
+                out = self.data.resample(period_index).sum(
+                    numeric_only=True, *args, **kwargs
+                )
+            case "auto":
+                # TO DO: check meta data and blend d1 and df2 values as appropriate
+                # ... not sure this will apply to resample in same way as groupby?
+                df1 = self.data.resample(period_index).mean(
+                    numeric_only=True, *args, **kwargs
+                )
+                df2 = self.data.resample(period_index).sum(
+                    numeric_only=True, *args, **kwargs
+                )
+                out = df1
+
+        return out
+
     def _numeric_columns(self):
         return self.data.select_dtypes(include=np.number).columns
 
