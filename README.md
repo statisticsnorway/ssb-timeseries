@@ -1,19 +1,22 @@
-# arkitektur-poc-tidsserier
+# Time Series
 
+## Background
 
+Statistics Norway is building a new procuction system in the cloud.
 
-Created by:
-Bernhard Ryeng <'rye@ssb.no
+In a move towards open source technologies, we attempt to shift the responsibilities for technical solution closer to the teams that own the statistical processes.
 
----
+In the spirit of that: 
+ * Python is replacing SAS for production 
+ * Oracle databases and ODI for ETL are largely to be replaced with Python code and Parquet files a data lake architecture.
 
-statisticsnorway/arkitektur-poc-tidsserier
+While databases are not completely banned, thourough consideration is required to apply them.  the time series solution FAME needs to a replacement. 
 
 Basic read/write functionality, calculations, time aggregation and plotting was demonstrated Friday December 8. See `src/demo.ipynb` for demo content and `tests/test_*.py` for more examples of what works and in some cases what does not.
 
 Note that
- * filepaths are linux spesific, so Windows without WSL is nmot supported (yet).
- the solutionm relies on env vars  TIMESERIES_ROOT and LOG_LOCATION. They *must* be set if `/home/jovyan/sample-data` is not reachable, but *should* be set anyway.
+ * linux spesific filepaths have been rewritten, *but not tested in a Windows environment*.
+ * the solutionm relies on env vars  TIMESERIES_ROOT and LOG_LOCATION. They *must* be set if `/home/jovyan/sample-data` is not reachable, but *should* be set anyway.
 * with env variables set and the code on python path `poetry run pytest` should succeed. If not, let me know that I ****** something up. ;) 
 
 ## To get started
@@ -40,4 +43,6 @@ export LOG_LOCATION=${PWD}/series
 # (A couple of them will fail if the expected directory structure does not exist. # They should succeed the second time.) 
 poetry run pytest
 ```
+
+
 

@@ -9,7 +9,7 @@ from timeseries.dates import Interval, date_round
 import datetime
 
 
-TIMESERIES_ROOT: str = os.environ.get("TIMESERIES_ROOT", "/home/jovyan/sample-data")
+TIMESERIES_ROOT: str = os.environ.get("TIMESERIES_ROOT", "/home/jovyan/series")
 
 
 class DatasetDirectory:
@@ -19,9 +19,9 @@ class DatasetDirectory:
         set_type: properties.SeriesType,
         as_of_utc: datetime,
     ) -> None:
-        self.set_name: str = set_name
-        self.set_type_dir = f"{set_type.versioning}_{set_type.temporality}"
-        self.type_path: str = self.datatype_path()
+        self.set_name = set_name
+        self.data_type = set_type
+
         if as_of_utc is None:
             pass
             # ecxception if not
@@ -29,19 +29,21 @@ class DatasetDirectory:
             rounded_utc = as_of_utc
             self.as_of_utc: datetime = rounded_utc.isoformat()
 
-        self.data_dir: str = f"{self.type_path}/{set_name}"
-        # self.data_file: str = self._datafile_name()
-        self.data_fullpath: str = f"{self.data_dir}/{self.data_file}"
-        self.metadata_dir: str = f"{self.type_path}/{set_name}"
-        self.metadata_file: str = f"{self.set_name}-metadata.json"
-        self.metadata_fullpath: str = f"{self.metadata_dir}/{self.metadata_file}"
-
-    def datatype_path(self) -> str:
-        return f"{TIMESERIES_ROOT}/{self.set_type_dir}"
-
     @property
     def root(self) -> str:
         return TIMESERIES_ROOT
+
+    @property
+    def set_type_dir(self) -> str:
+        return f"{self.data_type.versioning}_{self.data_type.temporality}"
+
+    @property
+    def type_path(self) -> str:
+        return os.path.join(TIMESERIES_ROOT, self.set_type_dir)
+
+    @property
+    def metadata_file(self) -> str:
+        return f"{self.set_name}-metadata.json"
 
     @property
     def data_file(self) -> str:
@@ -57,6 +59,22 @@ class DatasetDirectory:
 
         ts_logger.debug(file_name)
         return file_name
+
+    @property
+    def data_dir(self) -> str:
+        return os.path.join(self.type_path, self.set_name)
+
+    @property
+    def data_fullpath(self) -> str:
+        return os.path.join(self.data_dir, self.data_file)
+
+    @property
+    def metadata_dir(self) -> str:
+        return os.path.join(self.type_path, self.set_name)
+
+    @property
+    def metadata_fullpath(self) -> str:
+        return os.path.join(self.metadata_dir, self.metadata_file)
 
     def makedirs(self) -> None:
         os.makedirs(self.data_dir, exist_ok=True)
@@ -170,8 +188,8 @@ class DatasetDirectory:
 
         # dir = glob(f"{TIMESERIES_ROOT}/NONE_AT/*/")
         dir = []
-        with os.scandir(TIMESERIES_ROOT) as it:
-            for entry in it:
+        with os.scandir(TIMESERIES_ROOT) as root:
+            for entry in root:
                 if not entry.name.startswith(".") and entry.is_file():
                     dir.append(entry.name)
 
