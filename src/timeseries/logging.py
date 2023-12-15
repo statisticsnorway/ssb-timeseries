@@ -1,5 +1,4 @@
 # import uuid
-
 # automatic cloud logging config
 # import google.cloud.logging
 # client = google.cloud.logging.Client()
@@ -18,9 +17,9 @@ log_json = logging.Formatter(
 )
 
 # log to file
-LOG_LOCATION: str = os.environ.get("TIMESERIES_ROOT", "/home/jovyan/sample-data")
+LOG_LOCATION: str = os.environ.get("LOG_LOCATION", "/home/jovyan/logs")
 
-file_handler = logging.FileHandler(f"{LOG_LOCATION}/timeseries.log")
+file_handler = logging.FileHandler(os.path.join(LOG_LOCATION, "timeseries.log"))
 file_handler.setFormatter(log_string)
 file_handler.setLevel(logging.INFO)
 ts_logger.addHandler(file_handler)
