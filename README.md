@@ -30,9 +30,6 @@ git clone https://github.com/statisticsnorway/arkitektur-poc-tidsserier.git
 # To run inside a poetry controlled venv:
 poetry shell
 
-# add ./arkitektur-poc-tidsserier/src/ to the python path:
-export PYTHONPATH=${PYTHONPATH}:${PWD}/arkitektur-poc-tidsserier/src/
-
 # to create and set a location for data and log files 
 # it does not really matter where, although separated from the code is preferrable 
 mkdir series
