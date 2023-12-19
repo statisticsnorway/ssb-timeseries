@@ -34,24 +34,31 @@ class SuperEnum(Enum):
 
 
 class Versioning(SuperEnum):
-    NONE = ("NONE", "Version control only. Versions are not accessible through API.")
-    AS_OF = (
-        "AS_OF",
-        "Version identified by dates allows date arithemetic ('equals' | 'greater than'  | 'smaller than' | 'between').",
-    )
-    NAMES = (
-        "NAMES",
-        "Consider adding support for: Versions identified by free text names.",
-    )
-    SEMANTIC = (
-        "SEMANTIC",
-        "Consider adding support for: Versions identified by numbers on form X.Y.Z, ie. Major.Minor.Patch.",
-    )
+    NONE = 0
+    # ("NONE", "Version control only. Versions are not accessible through API.")
+    AS_OF = 1
+    # (
+    #     "AS_OF",
+    #     "Version identified by dates allows date arithemetic ('equals' | 'greater than'  | 'smaller than' | 'between').",
+    # )
+    NAMES = 2
+    # (
+    #     "NAMES",
+    #     "Consider adding support for: Versions identified by free text names.",
+    # )
+    SEMANTIC = 3
+    # (
+    #     "SEMANTIC",
+    #     "Consider adding support for: Versions identified by numbers on form X.Y.Z, ie. Major.Minor.Patch.",
+    # )
 
 
 class Temporality(SuperEnum):
-    AT = (1, "Single points in time expressed with 'valid_at' dates.")
-    FROM_TO = (2, "Duration from-to expressed with 'valid_from' and 'valid_to' dates.")
+    NONE = 0
+    AT = 1  # (1, "Single points in time expressed with 'valid_at' dates.")
+    FROM_TO = (
+        2  # (2, "Duration from-to expressed with 'valid_from' and 'valid_to' dates.")
+    )
 
 
 class SeriesType:
