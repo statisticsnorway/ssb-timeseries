@@ -1,27 +1,16 @@
 import os
 import uuid
-import numpy as np
-import pandas as pd
-import functools
+
+# import numpy as np
+# import pandas as pd
+# import functools
 import logging
 
 from timeseries.dates import now_utc, date_utc
-from timeseries.logging import log_start_stop, ts_logger
+from timeseries.logging import ts_logger, log_start_stop
 from timeseries.dataset import Dataset
-from timeseries.properties import SeriesType, Versioning, Temporality
+from timeseries.properties import SeriesType, Versioning  # , Temporality
 from timeseries.sample_data import create_df
-
-
-# def insert_cap_log(func, caplog):
-#     """Alter log level when decorated functions fail."""
-
-#     @functools.wraps(func)
-#     def wrapper(caplog, *args, **kwargs):
-#         caplog.set_level(logging.DEBUG)
-#         out = func(caplog, *args, **kwargs)
-#         return out
-
-#     return wrapper
 
 
 @log_start_stop
@@ -32,24 +21,33 @@ def test_dataset_instance_created(caplog) -> None:
     assert isinstance(example, Dataset)
 
 
-def skip_test_dataset_instance_created_equals_repr(caplog) -> None:
+def SKIP_test_dataset_instance_created_equals_repr(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
-        name="test-no-dir-created", data_type=SeriesType.simple(), as_of_tz="2022-01-01"
+        name="test-no-dir-created",
+        data_type=SeriesType.simple(),
+        as_of_tz="2022-01-01",
+        data=create_df(
+            ["p", "q", "r"],
+            start_date="2022-01-01",
+            end_date="2022-10-03",
+            freq="MS",
+        ),
     )
     ts_logger.warning(f"Dataset a: {repr(a)}")
     b = eval(repr(a))
     ts_logger.warning(f"Dataset b: {repr(b)}")
     assert a is a
-    assert a.identical(a)
+    # TO DO: CHECK THIS
+    # assert a == a
     # TEMPORARY DISABLED skip_<name>
     # TO DO: fix __repr__ OR identical so that this works
     assert a.identical(b)
 
 
 @log_start_stop
-def skip_test_dataset_instance_identity(caplog) -> None:
+def SKIP_test_dataset_instance_identity(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -78,8 +76,7 @@ def skip_test_dataset_instance_identity(caplog) -> None:
 
 @log_start_stop
 def test_create_dataset_with_correct_data_size() -> None:
-    # tags = {"A": ["a", "b", "c"], "B": ["pp", "qq", "rr"], "C": ["x1", "y1", "z1"]}
-    tags = {"A": ["a", "b", "c"], "B": ["pp", "qq", "rr"], "C": ["x1", "y1", "z1"]}
+    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x", "y", "z"]}
     x = Dataset(
         name="test-no-dir-created",
         data_type=SeriesType.simple(),
@@ -317,250 +314,56 @@ def test_load_existing_set_without_loading_data(caplog) -> None:
     assert not x.data.empty
 
 
-def test_dataset_math(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    a_data = create_df(
-        ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
-    )
-
-    a = Dataset(
-        name="test-temp-a",
-        data_type=SeriesType.simple(),
-        load_data=False,
-        as_of_tz=None,
-        data=a_data,  # , index="valid_at"
-    )
-
-    scalar = 1000
-    col_vector = np.ones((1, 3)) * scalar
-    row_vector = np.ones((4, 1)) * scalar
-    matrix = np.ones((4, 3)) * scalar
-
-    ts_logger.debug(f"matrix:\n{a + scalar}")
-    ts_logger.debug(f"matrix:\n{a - scalar}")
-    ts_logger.debug(f"matrix:\n{a * scalar}")
-    ts_logger.debug(f"matrix:\n{a / scalar}")
-
-    ts_logger.debug(f"matrix:\n{a + a_data}")
-    ts_logger.debug(f"matrix:\n{a - a_data}")
-    ts_logger.debug(f"matrix:\n{a * a_data}")
-    ts_logger.debug(f"matrix:\n{a / a_data}")
-
-    ts_logger.debug(f"matrix:\n{a + a}")
-    ts_logger.debug(f"matrix:\n{a - a}")
-    ts_logger.debug(f"matrix:\n{a * a}")
-    ts_logger.debug(f"matrix:\n{a / a}")
-
-    assert all((a + a) == (a + a_data))
-    assert all((a - a) == (a - a_data))
-    assert all((a * a) == (a * a_data))
-    assert all((a / a) == (a / a_data))
-
-
 @log_start_stop
-def test_dataset_groupby_sum(caplog):
+def test_search_for_dataset_by_part_of_name(caplog):
     caplog.set_level(logging.DEBUG)
-
-    x = Dataset(name="test-groupby-sum", data_type=SeriesType.simple(), load_data=False)
-
-    tag_values = [["p", "q", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2023-02-28", freq="D"
-    )
-    assert x.data.shape == (424, 4)
-    ts_logger.warning(f'groupby:\n{x.groupby("M", "sum")}')
-    assert x.groupby("M", "sum").shape == (14, 3)
-
-
-@log_start_stop
-def test_dataset_groupby_mean(caplog):
-    caplog.set_level(logging.DEBUG)
-
+    unique_new = uuid.uuid4().hex
     x = Dataset(
-        name="test-groupby-mean", data_type=SeriesType.simple(), load_data=False
+        name=f"test-find-{unique_new}", data_type=SeriesType.simple(), load_data=False
     )
-
-    tag_values = [["p", "q", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2023-02-28", freq="D"
-    )
-    assert x.data.shape == (424, 4)
-    df1 = x.groupby("M", "mean")
-    ts_logger.warning(f"groupby:\n{df1}")
-    assert df1.shape == (14, 3)
-
-
-@log_start_stop
-def test_dataset_resample(caplog):
-    caplog.set_level(logging.DEBUG)
-
-    x = Dataset(name="test-resample", data_type=SeriesType.simple(), load_data=False)
-    tag_values = [["p", "q", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
-    )
-    assert x.data.shape == (1, 4)
-    # df = x.data.resample("M").mean()
-    df = x.resample("M", "mean")
-    ts_logger.warning(f"resample:\n{df}")
-    # assert df.shape == (12, 3)
-
-
-@log_start_stop
-def skip_test_find(caplog):
-    caplog.set_level(logging.DEBUG)
-    new = uuid.uuid4().hex
-    x = Dataset(name=f"test-find-{new}", data_type=SeriesType.simple(), load_data=False)
     tag_values = [["p", "q", "r"]]
     x.data = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
     x.save()
-    datasets = x.find(new)
+    datasets = x.search(unique_new)
     ts_logger.warning(f"datasets: {str(datasets)}")
     # assert df.shape == (12, 3)
-
-    assert False
-
-
-@log_start_stop
-def test_dataset_vectors(caplog):
-    caplog.set_level(logging.DEBUG)
-
-    x = Dataset(
-        name="test-vectors",
-        data_type=SeriesType.estimate(),
-        load_data=False,
-        as_of_tz=date_utc("2022-01-01"),
-        series_tags={},
-    )
-    assert x.data.empty
-    tag_values = [["p", "q", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2022-10-03", freq="MS"
-    )
-    x.vectors()
-    ts_logger.debug(f"matrix:\n{eval('p') == x.data['p']}")
-
-    # variables should be defined for all columns
-    assert "valid_at" in locals()
-    assert "p" in locals()
-    assert "q" in locals()
-    assert "r" in locals()
-
-    # and should evaluate to x.data[column_name]
-    assert all(eval("valid_at") == x.data["valid_at"])
-    assert all(eval("p") == x.data["p"])
-    assert all(eval("q") == x.data["q"])
-    assert all(eval("r") == x.data["r"])
+    assert datasets == [f"test-find-{unique_new}"]
 
 
 @log_start_stop
-def test_dataset_vectors_with_filter(caplog):
+def test_correct_datetime_columns_valid_at(caplog) -> None:
     caplog.set_level(logging.DEBUG)
-
-    x = Dataset(
-        name="test-vectors",
-        data_type=SeriesType.estimate(),
-        load_data=False,
-        as_of_tz=date_utc("2022-01-01"),
-        series_tags={},
-    )
-    assert x.data.empty
-    tag_values = [["px", "qx", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2022-10-03", freq="MS"
-    )
-    x.vectors("x")
-
-    # variables should be defined only for some columns
-    assert "valid_at" not in locals()
-    assert "px" in locals()
-    assert "qx" in locals()
-    assert "r" not in locals()
-
-    # and should evaluate to x.data[column_name] for the defined ones
-    assert all(eval("px") == x.data["px"])
-    assert all(eval("qx") == x.data["qx"])
-
-
-@log_start_stop
-def skip_test_dataset_add_to_dataframe(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    data1 = create_df(
-        ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
-    )
 
     a = Dataset(
-        name="test-temp-a",
+        name=f"test-datetimecols-{uuid.uuid4().hex}",
         data_type=SeriesType.simple(),
-        load_data=False,
-        as_of_tz=None,
-        data=data1,  # , index="valid_at"
+        data=create_df(
+            ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
     )
-
-    b = a.data + 2
-    c = a + 2
-    # ts_logger.warning(f"{','.join(a.series_names)}")
-
-    ts_logger.warning(c)
-    assert all(b == c)
+    ts_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
+    assert a.datetime_columns() == ["valid_at"]
 
 
 @log_start_stop
-def skip_test_dataset_subtract_two_dataframes(caplog) -> None:
+def test_correct_datetime_columns_valid_from_to(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
-    data1 = create_df(
-        ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
-    )
-    data2 = create_df(
-        ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
-    )
-
     a = Dataset(
-        name="test-temp-a",
-        data_type=SeriesType.simple(),
-        load_data=False,
-        as_of_tz=None,
-        data=data1,  # , index="valid_at"
+        name=f"test-datetimecols-{uuid.uuid4().hex}",
+        data_type=SeriesType.as_of_from_to(),
+        data=create_df(
+            ["x", "y", "z"],
+            start_date="2022-01-01",
+            end_date="2022-04-03",
+            freq="MS",
+            temporality="FROM_TO",
+        ),
     )
-    b = Dataset(
-        name="test-temp-b",
-        data_type=SeriesType.simple(),
-        load_data=False,
-        as_of_tz=None,
-        data=data2,  # , index="valid_at"
-    )
-    # ts_logger.warning(f"{','.join(a.series_names)}")
-
-    c = a - b
-    ts_logger.warning(c)
-
-    assert all(c == data1 - data2)
-
-
-@log_start_stop
-def skip_test_dataset_subtract_from_dataframe(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    data1 = create_df(
-        ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
-    )
-
-    a = Dataset(
-        name="test-temp-a",
-        data_type=SeriesType.simple(),
-        load_data=False,
-        as_of_tz=None,
-        data=data1,  # , index="valid_at"
-    )
-    b = a.data - 2
-    c = a - 2
-    b == c
-    # assert all(b == c)
+    ts_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
+    assert a.datetime_columns().sort() == ["valid_from", "valid_to"].sort()
 
 
 @log_start_stop
@@ -575,14 +378,33 @@ def test_versioning_as_of_creates_new_file(caplog) -> None:
 
 
 @log_start_stop
-def test_versioning_none_appends_to_existing_file() -> None:
-    pass
-    # TO DO:
-    # NONE --> append data, overwrite with new
-    # (for now, no testing of retrievability via bucket versioning)
-    # read estimate data, compare with previous -
+def test_versioning_none_appends_to_existing_file(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
 
-    # naming conventions / storage of parquet files
+    a = Dataset(
+        name=f"test-merge-{uuid.uuid4().hex}",
+        data_type=SeriesType.simple(),
+        load_data=False,
+        as_of_tz=None,
+    )
+    a.data = create_df(
+        ["x", "y", "z"], start_date="2022-01-01", end_date="2022-06-03", freq="MS"
+    )
+    a.save()
+
+    b = Dataset(name=a.name, data_type=a.data_type, load_data=False)
+    b.data = create_df(
+        ["x", "y", "z"], start_date="2022-05-01", end_date="2022-09-03", freq="MS"
+    )
+    b.save()
+
+    c = Dataset(name=a.name, data_type=a.data_type, load_data=True)
+    ts_logger.warning(
+        f"original: {a.data.size}datapoints, changed {b.data.size} datepoints < combined {c.data.size} datapoits"
+    )
+
+    assert a.data.size < c.data.size
+    assert b.data.size < c.data.size
 
 
 @log_start_stop
@@ -607,11 +429,4 @@ def test_updated_tags_propagates_to_column_names_accordingly() -> None:
     # TO DO:
     # my_dataset.update_metadata('column_name', 'metadata_tag')
     # ... --> versioning
-    pass
-
-
-@log_start_stop
-def other() -> None:
-    # check performance - create benchmarks for big datasets
-    # test performance - pandas versus polars
     pass

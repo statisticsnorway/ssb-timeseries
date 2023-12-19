@@ -1,4 +1,5 @@
 import os
+import glob
 import json
 import pandas
 from timeseries import dates
@@ -80,7 +81,9 @@ class DatasetDirectory:
         os.makedirs(self.data_dir, exist_ok=True)
         os.makedirs(self.metadata_dir, exist_ok=True)
 
-    def read_data(self, interval: Interval = Interval.all) -> pandas.DataFrame:
+    def read_data(
+        self, interval: Interval = Interval.all, *args, **kwargs
+    ) -> pandas.DataFrame:
         ts_logger.debug(interval)
         if os.path.isfile(self.data_fullpath):
             ts_logger.debug(
@@ -101,14 +104,32 @@ class DatasetDirectory:
         ts_logger.debug(f"DATASET {self.set_name}: read data:\n{df}")
         return df
 
-    def write_data(self, data: pandas.DataFrame):
+    def write_data(self, new: pandas.DataFrame):
         ts_logger.info(
             f"DATASET {self.set_name}: write data to file {self.data_fullpath}."
         )
         os.makedirs(self.data_dir, exist_ok=True)
+        if self.data_type.versioning == properties.Versioning.AS_OF:
+            df = new
+        else:
+            old = self.read_data(self.set_name)
+            if old.empty:
+                df = new
+            else:
+                date_cols = list(
+                    set(new.columns)
+                    & set(old.columns)
+                    & {"valid_at", "valid_from", "valid_to"}
+                )
+                df = pandas.concat(
+                    [old, new],
+                    axis=0,
+                    ignore_index=True,
+                ).drop_duplicates(date_cols, keep="last")
+
         try:
-            ts_logger.debug(data)
-            data.to_parquet(self.data_fullpath)
+            ts_logger.debug(df)
+            df.to_parquet(self.data_fullpath)
         except Exception as e:
             ts_logger.exception(
                 f"DATASET {self.set_name}: writing data to {self.data_fullpath} returned exception: {e}."
@@ -116,9 +137,6 @@ class DatasetDirectory:
         ts_logger.info(
             f"DATASET {self.set_name}: writing data to file {self.data_fullpath}."
         )
-
-        # TO DO: test for polars / do we need typed argument?
-        # pq.write_table(table, 'file_name.parquet', compression='BROTLI')
 
     def read_metadata(self) -> dict:
         meta: dict = {"name": self.set_name}
@@ -181,20 +199,19 @@ class DatasetDirectory:
         if os.path.isdir(self.metadata_dir):
             os.removedirs(self.metadata_dir)
 
-    def find(self, pattern="*", *args, **kwargs):
-        dir = [d[1] for d in os.walk(f"{TIMESERIES_ROOT}")]
+    def search(self, pattern="", *args, **kwargs):
+        if pattern:
+            pattern = f"*{pattern}*"
+        else:
+            pattern = "*"
 
-        from glob import glob
+        search_str = os.path.join(TIMESERIES_ROOT, "*", pattern)
+        dirs = glob.glob(search_str)
+        search_results = [
+            d.replace(TIMESERIES_ROOT, "root").split(os.path.sep) for d in dirs
+        ]
 
-        # dir = glob(f"{TIMESERIES_ROOT}/NONE_AT/*/")
-        dir = []
-        with os.scandir(TIMESERIES_ROOT) as root:
-            for entry in root:
-                if not entry.name.startswith(".") and entry.is_file():
-                    dir.append(entry.name)
-
-        ts_logger.debug(f"{dir}")
-        return os.scandir(TIMESERIES_ROOT)
+        return [f[2] for f in search_results]
 
 
 def validate_date_str(d: datetime) -> str:

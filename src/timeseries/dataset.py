@@ -1,5 +1,5 @@
+# from typing import Optional, Dict
 from dataclasses import dataclass, field
-from typing import Optional, Dict
 
 import pandas as pd
 import numpy as np
@@ -9,8 +9,6 @@ from timeseries import dates
 from timeseries import io
 from timeseries import properties as prop
 from timeseries.logging import ts_logger
-
-# import create_sample_data
 
 
 class Dataset:
@@ -131,17 +129,15 @@ class Dataset:
         import inspect
 
         stack = inspect.stack()
-        ts_logger.warning(f"vectors: {__name__}")
         locals_ = stack[1][0].f_locals
 
         for col in self.data.columns:
             if col.__contains__(filter):
                 cmd = f"{col} = self.data['{col}']"
-                ts_logger.warning(cmd)
+                ts_logger.debug(cmd)
+                # the original idea was running (in caller scope)
                 # exec(cmd)
                 locals_[col] = self.data[col]
-
-        # ts_logger.warning(eval("x"))
 
     def groupby(self, freq: str, func: str = "auto", *args, **kwargs):
         datetime_columns = list(
@@ -176,16 +172,52 @@ class Dataset:
 
     def resample(self, freq: str, func: str = "auto", *args, **kwargs):
         # TO DO
+        # monthly_max = x.resample("M").max()
         pass
 
-    def find(self, pattern: str = "*", *args, **kwargs):
-        return self.io.find(pattern=pattern, *args, **kwargs)
+    def search(self, pattern: str = "*", *args, **kwargs):
+        return self.io.search(pattern=pattern, *args, **kwargs)
+
+    def filter(self, pattern: str = "", tags: dict = {}, **kwargs):
+        """Filter dataset.data by textual pattern or metadata tag dictionary.
+
+        Args:
+            pattern (str, optional): Text or regex to search for in column names. Defaults to ''.
+            tags (dict, optional): Dictionary with tags to search for. Defaults to {}.
+            **kwargs: if provided, goes into the init of a new Dataset. If not provided, the function returns a dataframe.
+        """
+        df = self.data
+        if kwargs:
+            out = Dataset(**kwargs)
+            out.data = df
+        else:
+            out = df
+        return out
+
+        # TBD: the most natural behaviour is probably not to filter on self.data,
+        # but to return a (new) Dataset or DataFrame. Which one should it be?
 
     def _numeric_columns(self):
         return self.data.select_dtypes(include=np.number).columns
 
+    def datetime_columns(self, *comparisons):
+        """
+        Returns: (Common) datetime column names as a list of strings.
+        """
+        intersect = set(self.data.columns) & {"valid_at", "valid_from", "valid_to"}
+        for c in comparisons:
+            if isinstance(c, Dataset):
+                intersect = set(c.data.columns) & intersect
+            elif isinstance(c, pd.DataFrame):
+                intersect = set(c.columns) & intersect
+
+        return list(intersect)
+
     def math(self, other, func):
-        """Generic helper for implementing math functions, working on numeric, non date columns. It differentiates between linear algebra operations dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar. Although the purpose was to limit "boilerplate" for core linear algebra functions, it also extend to other operations that follow the same differentiation pattern.
+        """
+        Generic helper making math functions work on numeric, non date columns of dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar.
+
+        Although the purpose was to limit "boilerplate" for core linear algebra functions, it also extend to other operations that follow the same differentiation pattern.
 
         Args:
             other (dataframe | series | matrix | vector | scalar ): One (or more?) pandas (polars to come) datframe or series, numpy matrix or vector or a scalar value.
@@ -205,24 +237,16 @@ class Dataset:
             ts_logger.debug(
                 f"DATASET {self.name}: .math({self.name},{other.name}) redirect to operating on {other.name}.data."
             )
-            # result_data = func(self, other.data)
             result_data = self.math(other.data, func)
-            # ts_logger.debug(result_data)
 
-            return result_data
+            # return result_data
         elif isinstance(other, pd.DataFrame):
             # element-wise matrix operation
             ts_logger.debug(
                 f"DATASET {self.name}: .math({self.name}.{func.__name__}(pd.dataframe)."
             )
 
-            # find common datetime column --> exclude from calculation
-            datetime_columns = list(
-                set(self.data.columns)
-                & set(other.columns)
-                & {"valid_at", "valid_to", "valid_from"}
-            )
-
+            datetime_columns = self.datetime_columns(other)
             if not datetime_columns:
                 raise ValueError("No common datetime column found.")
 
@@ -230,11 +254,11 @@ class Dataset:
             df1_values = self.data.drop(columns=datetime_columns)
             df2_values = other.drop(columns=datetime_columns)
 
-            # Perform element-wise addition
             result_values = func(df1_values, df2_values)
 
-            # Combine datetime columns back with the result
-            return pd.concat([self.data[list(datetime_columns)], result_values], axis=1)
+            result_data = pd.concat(
+                [self.data[list(datetime_columns)], result_values], axis=1
+            )
 
         elif isinstance(other, (int, float)):
             numeric_columns = self._numeric_columns()
@@ -243,7 +267,12 @@ class Dataset:
             for col in numeric_columns:
                 result_data[col] = func(result_data[col], other)
 
-            return result_data
+            # datetime_columns = self.datetime_columns(other)
+            # self.data[:, ~list(datetime_columns)] = func(
+            #     self.data[:, ~list(datetime_columns)], other
+            # )
+
+            # return result_data
         elif isinstance(other, np.ndarray):
             # Compare shape of the ndarray against the numeric_columns of self.data. There are up to 3 accepted cases (depending on the operation):
             #  * matrix;         shape = (data.numeric.rows, data.numeric.columns)
@@ -259,13 +288,16 @@ class Dataset:
                 for col in self._numeric_columns():
                     result_data[col] = func(result_data[col], other)
 
-                return result_data
+                # return result_data
             else:
                 raise ValueError(
                     f"Incompatible shapes for element-wise {func.__name__}"
                 )
         else:
             raise ValueError("Unsupported operand type")
+
+        # TO DO: CONSIDER returning a (new) Dataset object instead?
+        return result_data
 
     def __add__(self, other):
         return self.math(other, np.add)
@@ -280,7 +312,6 @@ class Dataset:
         return self.math(other, np.divide)
 
     def __eq__(self, other):
-        # return self._perform_comparison(other, np.equal)
         return self.math(other, np.equal)
 
     def __gt__(self, other):
@@ -291,8 +322,6 @@ class Dataset:
         # return self._perform_comparison(other, np.less)
         return self.math(other, np.less)
 
-    # monthly_max = no_2.resample("M").max()
-
     def identical(self, other) -> bool:
         # check_data = self.__eq__(other)
 
@@ -300,7 +329,6 @@ class Dataset:
         return self.__dict__ == other.__dict__
 
     def __repr__(self) -> str:
-        # return f"DATASET: '{self.name}' TYPE: {set_type} | TAGS | {self.tags} SERIES: {self.data.columns}"
         return f'Dataset(name="{self.name}", data_type={repr(self.data_type)}, as_of_tz="{self.as_of_utc.isoformat()}")'
 
     def __str__(self) -> str:
