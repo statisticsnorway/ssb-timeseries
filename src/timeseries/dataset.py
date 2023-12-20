@@ -1,5 +1,5 @@
 # from typing import Optional, Dict
-from dataclasses import dataclass, field
+# from dataclasses import dataclass, field
 
 import pandas as pd
 import numpy as np
@@ -23,10 +23,13 @@ class Dataset:
         """
         Load existing dataset or create a new one of specified type.
         The type defines
-         * versioning (NONE, AS_OF, NAMED) and
-         * temporality (Valid AT point in time, or FROM and TO for duration).
-        If data_type versioning is specified as AS_OF, a datetime with timezone should be provided.
-        If no AS_OF-date is provided, but data is passed, AS_OF defaults to current time.
+         * versioning (NONE, AS_OF, NAMED)
+         * temporality (Valid AT point in time, or FROM and TO for duration)
+         * value (for now only scalars)
+
+        If data_type versioning is specified as AS_OF, a datetime *with timezone* should be provided.
+        If it is not, but data is passed, AS_OF defaults to current time. Providing an AS_OF date has no effect if versioning is NONE.
+
         When loading existing sets, load_data = false can be set in order to suppress reading large amounts of data.
         For data_types with AS_OF versioning, not providing the AS_OF date will have the same effect.
 
@@ -78,8 +81,13 @@ class Dataset:
 
         kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
         if not kwarg_data.empty:
+            # TO DO: if kwarg_data overlap data from file, overwrite with kwarg_data
+            # ... for all versioning types? Think it through!
             self.data = kwarg_data
-            ts_logger.info(
+            # self.data.set_index(self.datetime_columns())
+            # will not work for valid_from_to
+            # self.data.set_index(self.datetime_columns()).to_period()
+            ts_logger.debug(
                 f"DATASET {self.name}: Merged {kwarg_data.size} datapoints:\n{self.data}"
             )
 
@@ -114,6 +122,83 @@ class Dataset:
 
     def series_tags(self, series_name=None):
         return self.tags[series_name]
+
+    def search(self, pattern: str = "*", *args, **kwargs):
+        return self.io.search(pattern=pattern, *args, **kwargs)
+
+    def filter(self, pattern: str = "", tags: dict = {}, regex: str = "", **kwargs):
+        """Filter dataset.data by textual pattern, regex or metadata tag dictionary. Or a combination.
+
+        Args:
+            pattern (str, optional): Text pattern for search 'like' in column names. Defaults to ''.
+            regex (str, optional): Expression for regex search in column names. Defaults to ''.
+            tags (dict, optional): Dictionary with tags to search for. Defaults to {}.
+            **kwargs: if provided, goes into the init of a new Dataset.
+
+        Returns: A new Dataset if kwargs are provided to initialise it, otherwise, a dataframe.
+        """
+
+        df = self.data
+        if regex:
+            df = df.filter(regex=regex)
+
+        if pattern:
+            df = df.filter(like=pattern)
+
+        if tags:
+            # TO DO: handle meta dict
+            pass
+
+        df = pd.concat([self.data[self.datetime_columns()], df], axis=1)
+        # TO DO: add interval parameter to filter on datetime? Similar to:
+        # if interval:
+        #    df = df[interval, :]
+
+        if kwargs:
+            # or just some kind of self.copy?
+            out = Dataset(**kwargs)
+            out.data = df
+        else:
+            out = df
+
+        return out
+
+        # TBD: the most natural behaviour is probably not to apply filter to self.data,
+        # but to return a (new) Dataset or DataFrame. Which one should it be?
+
+    def __getitem__(self, key):
+        # pattern: str = "", regex: str = "", tags: dict = {}):
+        """Access Dataset.data.columns via Dataset[ list[column_names] | regex | tags].
+
+        Args:
+            regex (str, optional): Expression for regex search in column names. Defaults to ''.
+            tags (dict, optional): Dictionary with tags to search for. Defaults to {}.
+        """
+
+        # Dataset[...] should return a Dataset object (?) with only the requested items (columns).
+        # but should not mutate the original object, ie "self",
+        # so that if x is a Dataset and x[a] a columnwise subset of x
+        # x[a] *= 100 should update x[a] "inside" the original x, without "setting" x to z[a]
+        # that later references to x should return the entire x, not only x[a].
+        # Is this possible, or do we need to return a copy?
+        # (Then the original x is not affected by updates to x[a])?
+        # Or, is there a trick using dataframe views?
+        # --->
+        if isinstance(key, str):
+            return self.filter(
+                pattern=key,
+                # name=self.name,
+                # data_type=self.data_type,
+                # as_of_tz=self.as_of_utc,
+            )
+        elif isinstance(key, dict):
+            return self.filter(
+                tags=key,
+                # name=self.name,
+                # data_type=self.data_type,
+                # as_of_tz=self.as_of_utc,
+            )
+        # regex=regex, tags=tags)
 
     def plot(self, *args, **kwargs):
         return self.data.plot(
@@ -168,14 +253,27 @@ class Dataset:
                     numeric_only=True, *args, **kwargs
                 )
             case "auto":
-                # TO DO: check meta data and blend d1 and df2 values as appropriate
+                # TO DO: QA on exact logic / use "real" metadata
+                # in particular, how to check meta data and blend d1 and df2 values as appropriate
+                # (this implementation is just to show how it can be done)
+                # QUESTION: do we need a default for "other" series / what should it be?
                 df1 = self.data.groupby(period_index).mean(
                     numeric_only=True, *args, **kwargs
                 )
-                df2 = self.data.groupby(period_index).sum(
-                    numeric_only=True, *args, **kwargs
+                ts_logger.debug(f"groupby\n{df1}.")
+
+                df2 = (
+                    self.data.groupby(period_index)
+                    .sum(numeric_only=True, *args, **kwargs)
+                    .filter(regex="mendgde|volum|vekt")
                 )
+                ts_logger.warning(f"groupby\n{df2}.")
+
+                df1[df2.columns] = df2[df2.columns]
+
                 out = df1
+                ts_logger.warning(f"groupby\n{out}.")
+                ts_logger.warning(f"DATASET {self.name}: groupby\n{out}.")
 
         return out
 
@@ -184,34 +282,15 @@ class Dataset:
         # monthly_max = x.resample("M").max()
         pass
 
-    def search(self, pattern: str = "*", *args, **kwargs):
-        return self.io.search(pattern=pattern, *args, **kwargs)
-
-    def filter(self, pattern: str = "", tags: dict = {}, **kwargs):
-        """Filter dataset.data by textual pattern or metadata tag dictionary.
-
-        Args:
-            pattern (str, optional): Text or regex to search for in column names. Defaults to ''.
-            tags (dict, optional): Dictionary with tags to search for. Defaults to {}.
-            **kwargs: if provided, goes into the init of a new Dataset. If not provided, the function returns a dataframe.
-        """
-        df = self.data
-        if kwargs:
-            out = Dataset(**kwargs)
-            out.data = df
-        else:
-            out = df
-        return out
-
-        # TBD: the most natural behaviour is probably not to filter on self.data,
-        # but to return a (new) Dataset or DataFrame. Which one should it be?
-
     def _numeric_columns(self):
         return self.data.select_dtypes(include=np.number).columns
 
     def datetime_columns(self, *comparisons):
         """
-        Returns: (Common) datetime column names as a list of strings.
+        Arguments:
+            *comparisons (optional) Objects to compare with.
+
+        Returns: The (common) datetime column names of self (and comparisons) as a list of strings.
         """
         intersect = set(self.data.columns) & {"valid_at", "valid_from", "valid_to"}
         for c in comparisons:
@@ -307,6 +386,9 @@ class Dataset:
 
         # TO DO: CONSIDER returning a (new) Dataset object instead?
         return result_data
+        # out = Dataset(name=self.name, data_type=self.data_type, as_of_tz=self.as_of_utc)
+        # out.data = result_data
+        # return out
 
     def __add__(self, other):
         return self.math(other, np.add)

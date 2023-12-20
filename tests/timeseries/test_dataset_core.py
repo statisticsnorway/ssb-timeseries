@@ -319,7 +319,7 @@ def test_publish(caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(
-        name=f"test-publish",
+        name="test-publish",
         data_type=SeriesType.simple(),
         load_data=False,
         data=create_df(
@@ -336,7 +336,7 @@ def test_publish(caplog):
     x.publish()
     # TO DO: update io.py to actually do the copying (now it just logs)
     # then check that all files are copied
-    assert False
+    # assert False
 
 
 @log_start_stop
@@ -353,8 +353,69 @@ def test_search_for_dataset_by_part_of_name(caplog):
     x.save()
     datasets = x.search(unique_new)
     ts_logger.warning(f"datasets: {str(datasets)}")
-    # assert df.shape == (12, 3)
     assert datasets == [f"test-find-{unique_new}"]
+
+
+@log_start_stop
+def test_dataset_getitem_by_string(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
+    tag_values = [["a", "b", "c"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2022-06-01", freq="MS"
+    )
+    y = x["b"]
+    ts_logger.debug(f"y = x['b']\n{y}")
+
+    # get a dataframe, so not
+    # assert list(y.data.columns) == ["valid_at", "b"]
+    ts_logger.debug(f"{__name__}look at y: {y}")
+    ts_logger.debug(f"{__name__}look at x: {x.data}")
+    assert list(y.columns) == ["valid_at", "b"]
+    assert list(x.data.columns) == ["valid_at", "a", "b", "c"]
+
+    # confirm that x and y are not the same object
+    # y.iloc[:, 1:] = y.iloc[:, 1:] * 2
+    # ts_logger.debug(f"look at x again: {x.data}")
+    # try to the same with subscripting , but it does not work
+    # x["b"] = x["b"] * 2
+    # ts_logger.debug(f"look at x again: {x.data}")
+
+
+@log_start_stop
+def test_filter_dataset_by_regex(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
+    tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+    )
+    df = x.filter(regex="^x")
+    ts_logger.warning(f"y = x.filter(regex='^x')\n{df}")
+
+    assert list(df.columns) == ["valid_at", "xd", "xe"]
+    assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
+
+
+@log_start_stop
+def test_filter_dataset_by_regex_new_dataset(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
+    tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+    )
+    y = x.filter(
+        regex="^x", name="test-filter", data_type=SeriesType.simple(), load_data=False
+    )
+    ts_logger.warning(f"datasets: {y}")
+    ts_logger.warning(f"datasets: {x}")
+
+    assert list(y.data.columns) == ["valid_at", "xd", "xe"]
+    assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
 
 @log_start_stop

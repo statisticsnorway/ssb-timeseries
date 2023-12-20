@@ -2,12 +2,11 @@ import os
 import glob
 import json
 import pandas
-from timeseries import dates
+import datetime
 
 from timeseries.logging import ts_logger
 from timeseries import properties
 from timeseries.dates import Interval, date_round
-import datetime
 
 
 TIMESERIES_ROOT: str = os.environ.get("TIMESERIES_ROOT", "/home/jovyan/series")
