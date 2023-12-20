@@ -1,7 +1,7 @@
 import uuid
 import logging
 
-from timeseries.dates import date_utc, now_utc
+# from timeseries.dates import date_utc, now_utc
 from timeseries.logging import log_start_stop, ts_logger
 from timeseries.dataset import Dataset
 from timeseries.properties import SeriesType

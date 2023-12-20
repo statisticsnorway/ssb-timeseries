@@ -100,6 +100,15 @@ class Dataset:
             )
         self.io.save(meta=self.tags, data=self.data)
 
+    def publish(self, as_of_tz: datetime = None) -> None:
+        """Copy data snapshot to immutable processing stage bucket and shared buckets.
+
+        Args:
+            as_of_tz (datetime, optional): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of._utc (utc dates under the hood).
+        """
+        self.save(as_of_tz=as_of_tz)
+        self.io.publish()
+
     def series(self):
         return self.data.columns
 

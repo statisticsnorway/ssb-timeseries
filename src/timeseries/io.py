@@ -19,9 +19,13 @@ class DatasetDirectory:
         set_name: str,
         set_type: properties.SeriesType,
         as_of_utc: datetime,
+        stage: str = "statistikk",
+        sharing: dict = {},
     ) -> None:
         self.set_name = set_name
         self.data_type = set_type
+        self.stage = stage
+        self.sharing = sharing
 
         if as_of_utc is None:
             pass
@@ -198,6 +202,41 @@ class DatasetDirectory:
 
         if os.path.isdir(self.metadata_dir):
             os.removedirs(self.metadata_dir)
+
+    def publish(self):
+        """Copies snapshots to bucket(s) according to processing stage and sharing configuration.
+
+        For this to work, .stage and sharing configurations should be set for the dataset, eg:
+            .sharing = {'s123': '<s1234-bucket>', 's234': '<s234-bucket>', 's345': '<s345-bucket>'}
+            .stage = 'statistikk'
+        """
+
+        # TO DO: replace pseudo code
+
+        def target(stage, fname):
+            return os.path.join(f"<{stage}-bucket>", fname)
+
+        data_publish_path = target(self.stage, self.data_file)
+        meta_publish_path = target(self.stage, self.metadata_file)
+
+        # the actual file copying can be done in multiple ways, see
+        # https://ioflood.com/blog/python-copy-file-guide-8-ways-to-copy-a-file-in-python/
+        # which ones are robust on Dapla?
+        # ... till we know more, let us just pretend to do the copying:
+        def copy(a, b):
+            ts_logger.warning(f"--> os.popen('cp {a} {b}')")
+
+        copy(self.data_fullpath, data_publish_path)
+        copy(self.metadata_fullpath, meta_publish_path)
+
+        def shared_dir(bucket):
+            # TO DO: alter to look up buckets by team
+            return os.path.join(bucket, self.set_type_dir, self.set_name)
+
+        for team, bucket in self.sharing:
+            copy(data_publish_path, shared_dir(bucket))
+            copy(meta_publish_path, shared_dir(bucket))
+            ts_logger.info(f"DATASET {self.set_name}: Snapshot shared with {team}.")
 
     def search(self, pattern="", *args, **kwargs):
         if pattern:

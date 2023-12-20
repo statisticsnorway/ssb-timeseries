@@ -315,6 +315,31 @@ def test_load_existing_set_without_loading_data(caplog) -> None:
 
 
 @log_start_stop
+def test_publish(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(
+        name=f"test-publish",
+        data_type=SeriesType.simple(),
+        load_data=False,
+        data=create_df(
+            ["p", "q", "r"], start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+        ),
+    )
+
+    x.io.sharing = {
+        "s123": "<s1234-bucket>",
+        "s234": "<s234-bucket>",
+        "s345": "<s345-bucket>",
+    }
+    x.io.stage = "statistikk"
+    x.publish()
+    # TO DO: update io.py to actually do the copying (now it just logs)
+    # then check that all files are copied
+    assert False
+
+
+@log_start_stop
 def test_search_for_dataset_by_part_of_name(caplog):
     caplog.set_level(logging.DEBUG)
     unique_new = uuid.uuid4().hex
