@@ -4,10 +4,15 @@
 # template and GitHub's R-ignore template.
 
 # PROJECT SPECIFIC 
+# to ignore or not to ignore: poetry.lock and .python-version
+# since this is supposed to be a library, it makes sense to ignore them
+poetry.lock
+.python-version
 sample-data/
 sample-metadata/  
 .poetry
 .ipynb
+.vscode/
 
 # The section below contains SSB specific ignores, not included in the Python-
 # and R-ignores from GitHub.
