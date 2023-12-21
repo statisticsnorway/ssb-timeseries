@@ -1,4 +1,4 @@
-# Time Series
+# Time series
 
 ## Background
 
@@ -10,36 +10,86 @@ In the spirit of that:
  * Python is replacing SAS for production 
  * Oracle databases and ODI for ETL are largely to be replaced with Python code and Parquet files a data lake architecture.
 
-While databases are not completely banned, thourough consideration is required to apply them.  the time series solution FAME needs to a replacement. 
+While databases are not completely banned, thorough consideration is required to apply them. The time series solution FAME needs a replacement. 
 
 Basic read/write functionality, calculations, time aggregation and plotting was demonstrated Friday December 8. See `src/demo.ipynb` for demo content and `tests/test_*.py` for more examples of what works and in some cases what does not.
 
 Note that
- * linux spesific filepaths have been rewritten, *but not tested in a Windows environment*.
- * the solutionm relies on env vars  TIMESERIES_ROOT and LOG_LOCATION. They *must* be set if `/home/jovyan/sample-data` is not reachable, but *should* be set anyway.
+ * linux spesific filepaths have been rewritten, *but not tested in a pure Windows environment*.
+ * the solution relies on env vars  TIMESERIES_ROOT and LOG_LOCATION being set. They *must* be set if `/home/jovyan/sample-data` is not reachable, but *should* be set anyway.
 * with env variables set and the code on python path `poetry run pytest` should succeed. If not, let me know that I ****** something up. ;) 
 
-## To get started
+## How to get started?
 
-The following should get you going:
+The library is in a workable state and should work both locally (it was developed in VS Code on Windows using WSL) and in Jupyter. It is still in early stages of development, so there is a risk that fundamental choices are reversed and breaking changes introduced. 
+
+With that disclaimer, feel free to explore and experiment. For now, getting feedback to inform further development is the main
+
+Proper library packaging is planned for a later development stage. In the meantime, you will have to clone/pull directly from the GitHub repository.
+
+Assuming you have Python working with a standard SSB setup for git and poetry etc, the following should get you going:
 
 ``` bash
-# get the poc package
+# Get the poc package
 git clone https://github.com/statisticsnorway/arkitektur-poc-tidsserier.git
 
-# To run inside a poetry controlled venv:
+# Run inside a poetry controlled venv:
 poetry shell
 
-# to create and set a location for data and log files 
-# it does not really matter where, although separated from the code is preferrable 
+# Create and set a location for data and log files.
+# This could be anywhere, but separated from the code is preferrable.
 mkdir series
 export TIMESERIES_ROOT=${PWD}/series
 export LOG_LOCATION=${PWD}/series
 
-# Run the tests TWICE to check that everything is OK: 
-# (A couple of them will fail if the expected directory structure does not exist. # They should succeed the second time.) 
+# Run the tests to check that everything is OK: 
 poetry run pytest
+
+# A couple of the test cases *will* fail when running for the first time.  
+# They will create the structures they need and should succeed in subsequent runs.
+
 ```
 
 
+## Functionality overview
 
+The core of the library is the Dataset class. This is essentially a wrapper around a DataFrame (for now Pandas, later probably Polars) in the .data attribute. 
+
+The .data attribute should comply to conventions implied by the underlying *information model*. These will start out as pure conventions and subject to evalutation. At a later stage they are likely to be enforced by Parquet schemas. Failing to obey them will cause some methods to fail. 
+
+The Dataset.io attribute connects the dataset to a helper class that takes care of reading and writing data. This structure abstracts away the IO mechanics, so that the user do not need to know about the "physical" details, only the *information model meaning* of the choices made.
+
+ * Read and write for both versioned and unversioned data types.
+ * Search for sets by name, regex and (planned for later) metadata.
+ * Basic filtering of sets (selecting series within a selected set).
+ * Basic linear algebra: Datasets can be added, subtracted, multiplied and divided with each other and dataframes, matrices, vectors (untested) and scalars according to normal rules.  
+ * Basic plotting: Dataset.plot() as shorthand for Dataset.data.plot(<and sensible defaults>).
+ * Basic time aggregation: 
+ `Dataset.groupby(<frequency>, 'sum'|'mean'|'auto')`
+ * 
+
+
+ ## The information model
+
+ ### TLDR
+
+ * **Types** are defined by
+  * **Versioning** defines how updated versions of the truth are represented: NONE overwrites a single version, NAMED or AS_OF maintaines new "logical" versions identified by name or date.
+  * **Temporality** describes the "real world" valid_at or valid_from - valid_to datetime of the data. It will translate into columns, datetime or period indexes of Dataset.data.
+  * Value type (only scalars for now) of Dataset.data "cells".
+* **Datasets** can consists of multiple series. (Later: possible extension with sets of sets.)
+* All series in a set must be of the same type. 
+* **Series** are value columns in Datasets.data, rows identified by date(s) or index corresponding temporality.
+* The combination `<Dataset.name>.<Series.name>` will serve as a globally unique series identifier.
+* `<Dataset.name>` identifies a "directory", hence must be unique. (Caveat: Directories per type creates room for error.)
+* `<Series.name>` (.data column name) must be unique within the set. 
+* Series names *should* be related to (preferrably constructed from) codes or meta data in such a way that they can be mapped to "tags" via a format mask (and if needed a translation table). 
+
+Yes, that *was* the short version. The long version is still pending production.
+
+To be continued ...
+
+### Other sources of documentation:
+
+* https://statistics-norway.atlassian.net/wiki/spaces/Arkitektur/pages/3581313026/Statistikkproduksjon
+* https://statistics-norway.atlassian.net/wiki/spaces/Arkitektur/pages/3595665419/Lagring+av+tidsserier

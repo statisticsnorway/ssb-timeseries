@@ -1,12 +1,7 @@
 import numpy as np
 import pandas as pd
 import itertools
-
-from datetime import datetime  # , timedelta
-from timeseries import dates
-from timeseries.dataset import Dataset
-from timeseries.properties import SeriesType
-from timeseries.logging import ts_logger
+from datetime import datetime
 
 
 def series_names(*args, **kwargs) -> list[str]:
