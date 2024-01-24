@@ -4,13 +4,11 @@
 
 Statistics Norway is building a new procuction system in the cloud.
 
-In a move towards open source technologies, we attempt to shift the responsibilities for technical solution closer to the teams that own the statistical processes.
-
-In the spirit of that: 
+In a move towards modern architecture, development methodology and open source technologies: 
  * Python is replacing SAS for production 
  * Oracle databases and ODI for ETL are largely to be replaced with Python code and Parquet files a data lake architecture.
 
-While databases are not completely banned, thorough consideration is required to apply them. The time series solution FAME needs a replacement. 
+While databases are not completely banned, but as we shift responsibilities for maintaing larger the tech stack closer to the teams that own the statistical processesthorough consideration is required to apply them. The time series solution FAME needs a replacement. 
 
 Basic read/write functionality, calculations, time aggregation and plotting was demonstrated Friday December 8. See `src/demo.ipynb` for demo content and `tests/test_*.py` for more examples of what works and in some cases what does not.
 
