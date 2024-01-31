@@ -302,7 +302,7 @@ def test_publish_simple_set_has_higher_snapshot_file_count_after(caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(
-        name="test-publish-simple",
+        name="test-snapshot-simple",
         data_type=SeriesType.simple(),
         load_data=False,
         data=create_df(
