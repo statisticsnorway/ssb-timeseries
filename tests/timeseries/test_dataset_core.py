@@ -12,6 +12,9 @@ from timeseries.dataset import Dataset
 from timeseries.properties import SeriesType, Versioning  # , Temporality
 from timeseries.sample_data import create_df
 
+from timeseries.io import PRODUCT_BUCKET as BUCKET
+from timeseries.io import STATISTICS_PRODUCT as PRODUCT
+
 
 @log_start_stop
 def test_dataset_instance_created(caplog) -> None:
@@ -95,26 +98,6 @@ def test_create_dataset_with_correct_data_size() -> None:
 
 
 @log_start_stop
-def test_dataset_datadir_created() -> None:
-    example = Dataset(
-        name="test-dataset-datadir-created", data_type=SeriesType.simple()
-    )
-    example.io.purge()
-    example.save()
-    assert os.path.isdir(example.io.data_dir)
-
-
-@log_start_stop
-def test_dataset_metadir_created() -> None:
-    example = Dataset(
-        name="test-dataset-metadir-created", data_type=SeriesType.simple()
-    )
-    example.io.purge()
-    example.save()
-    assert os.path.isdir(example.io.metadata_dir)
-
-
-@log_start_stop
 def test_datafile_exists_after_create_dataset_and_save() -> None:
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     set_name = f"test-{uuid.uuid4().hex}"
@@ -182,7 +165,7 @@ def test_read_existing_simple_metadata(caplog) -> None:
         end_date="2022-10-03",
         freq="MS",
     )
-    if os.path.isfile(x.io.metadata_fullpath):
+    if x.io.metadatafile_exists():
         ts_logger.debug(x.io.metadata_fullpath)
         ts_logger.debug(x.tags)
         ts_logger.debug(x.tags["name"])
@@ -215,7 +198,7 @@ def test_read_existing_simple_data(caplog) -> None:
         end_date="2022-10-03",
         freq="MS",
     )
-    if os.path.isfile(x.io.data_fullpath):
+    if x.io.datafile_exists():
         ts_logger.debug(x.io.data_fullpath)
         ts_logger.debug(x.data)
         assert x.data.size == 280
@@ -246,7 +229,7 @@ def test_read_existing_estimate_metadata(caplog) -> None:
         end_date="2022-10-03",
         freq="MS",
     )
-    if os.path.isfile(x.io.metadata_fullpath):
+    if x.io.metadatafile_exists():
         ts_logger.debug(x.io.metadata_fullpath)
         ts_logger.debug(x.tags)
         assert x.tags["name"] == set_name
@@ -281,7 +264,7 @@ def test_read_existing_estimate_data(caplog) -> None:
         freq="MS",
     )
     ts_logger.debug(x.data)
-    if os.path.isfile(x.io.data_fullpath):
+    if x.io.datafile_exists():
         ts_logger.debug(x)
         assert x.data.size == 364
     else:
@@ -315,11 +298,11 @@ def test_load_existing_set_without_loading_data(caplog) -> None:
 
 
 @log_start_stop
-def test_publish(caplog):
+def test_publish_simple_set_has_higher_snapshot_file_count_after(caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(
-        name="test-publish",
+        name="test-publish-simple",
         data_type=SeriesType.simple(),
         load_data=False,
         data=create_df(
@@ -327,15 +310,106 @@ def test_publish(caplog):
         ),
     )
 
-    x.io.sharing = {
-        "s123": "<s1234-bucket>",
-        "s234": "<s234-bucket>",
-        "s345": "<s345-bucket>",
-    }
-    x.io.stage = "statistikk"
-    x.publish()
-    # TO DO: update io.py to actually do the copying (now it just logs)
-    # then check that all files are copied
+    x.stage = "statistikk"
+    stage_path = x.io.snapshot_directory(product=PRODUCT, process_stage=x.stage)
+    path_123 = x.io.dir(BUCKET, PRODUCT, "shared", "s123")
+    path_234 = x.io.dir(BUCKET, PRODUCT, "shared", "s234")
+    x.sharing = [
+        {
+            "team": "s123",
+            "path": path_123,
+        },
+        {
+            "team": "s234",
+            "path": path_234,
+        },
+    ]
+    x.save()
+
+    path_123 = x.io.dir(path_123, x.name)
+    path_234 = x.io.dir(path_234, x.name)
+
+    count_before_snapshot = len(os.listdir(stage_path))
+    count_before_123 = len(os.listdir(path_123))
+    count_before_234 = len(os.listdir(path_234))
+
+    x.snapshot()
+
+    count_after_snapshot = len(os.listdir(stage_path))
+    count_after_123 = len(os.listdir(path_123))
+    count_after_234 = len(os.listdir(path_234))
+
+    def log(path, before, after):
+        ts_logger.debug(
+            f"SNAPSHOT to {path}\n\tfile count before:{before}, after: {after}"
+        )
+
+    log(stage_path, count_before_snapshot, count_after_snapshot)
+    log(path_123, count_before_123, count_after_123)
+    log(path_234, count_before_234, count_after_234)
+
+    assert count_before_snapshot < count_after_snapshot
+    assert count_before_123 < count_after_123
+    assert count_before_234 < count_after_234
+    # assert False
+
+
+@log_start_stop
+def test_snapshot_estimate_has_higher_file_count_after(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(
+        name="test-snapshot-estimate",
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        load_data=False,
+        data=create_df(
+            ["p", "q", "r"], start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+        ),
+    )
+
+    x.stage = "statistikk"
+    stage_path = x.io.snapshot_directory(product=PRODUCT, process_stage=x.stage)
+    path_123 = x.io.dir(BUCKET, PRODUCT, "shared", "s123")
+    path_234 = x.io.dir(BUCKET, PRODUCT, "shared", "s234")
+    x.sharing = [
+        {
+            "team": "s123",
+            "path": path_123,
+        },
+        {
+            "team": "s234",
+            "path": path_234,
+        },
+    ]
+
+    path_123 = x.io.dir(path_123, x.name)
+    path_234 = x.io.dir(path_234, x.name)
+
+    x.save()
+
+    count_before_snapshot = len(os.listdir(stage_path))
+    count_before_123 = len(os.listdir(path_123))
+    count_before_234 = len(os.listdir(path_234))
+
+    x.snapshot()
+
+    count_after_snapshot = len(os.listdir(stage_path))
+    count_after_123 = len(os.listdir(path_123))
+    count_after_234 = len(os.listdir(path_234))
+
+    def log(path, before, after):
+        ts_logger.debug(
+            f"SNAPSHOT to {path}\n\tfile count before:{before}, after: {after}"
+        )
+
+    log(stage_path, count_before_snapshot, count_after_snapshot)
+    log(path_123, count_before_123, count_after_123)
+    log(path_234, count_before_234, count_after_234)
+
+    assert count_before_snapshot < count_after_snapshot
+    assert count_before_123 < count_after_123
+    assert count_before_234 < count_after_234
     # assert False
 
 
@@ -368,7 +442,8 @@ def test_dataset_getitem_by_string(caplog):
     y = x["b"]
     ts_logger.debug(f"y = x['b']\n{y}")
 
-    # get a dataframe, so not
+    # TO DO / DECISION: we now get a dataframe for y, should probably get a (new) dataset?
+    # ... but then need to update name / metadata?
     # assert list(y.data.columns) == ["valid_at", "b"]
     ts_logger.debug(f"{__name__}look at y: {y}")
     ts_logger.debug(f"{__name__}look at x: {x.data}")
@@ -474,19 +549,19 @@ def test_versioning_none_appends_to_existing_file(caplog) -> None:
         as_of_tz=None,
     )
     a.data = create_df(
-        ["x", "y", "z"], start_date="2022-01-01", end_date="2022-06-03", freq="MS"
+        ["x", "y", "z"], start_date="2022-01-01", end_date="2022-12-03", freq="MS"
     )
     a.save()
 
     b = Dataset(name=a.name, data_type=a.data_type, load_data=False)
     b.data = create_df(
-        ["x", "y", "z"], start_date="2022-05-01", end_date="2022-09-03", freq="MS"
+        ["x", "y", "z"], start_date="2022-07-01", end_date="2023-06-03", freq="MS"
     )
     b.save()
 
     c = Dataset(name=a.name, data_type=a.data_type, load_data=True)
     ts_logger.warning(
-        f"original: {a.data.size}datapoints, changed {b.data.size} datepoints < combined {c.data.size} datapoits"
+        f"DATASET: {a.name}: First write {a.data.size} values, writing {b.data.size} values (50% new) --> combined {c.data.size} values."
     )
 
     assert a.data.size < c.data.size

@@ -10,6 +10,8 @@ from timeseries import io
 from timeseries import properties as prop
 from timeseries.logging import ts_logger
 
+utc_iso = dates.utc_iso
+
 
 class Dataset:
     def __init__(
@@ -108,14 +110,35 @@ class Dataset:
             )
         self.io.save(meta=self.tags, data=self.data)
 
-    def publish(self, as_of_tz: datetime = None) -> None:
+    def snapshot(self, as_of_tz: datetime = None) -> None:
         """Copy data snapshot to immutable processing stage bucket and shared buckets.
 
         Args:
-            as_of_tz (datetime, optional): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of._utc (utc dates under the hood).
+            as_of_tz (datetime, optional): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of_utc (utc dates under the hood).
         """
-        self.save(as_of_tz=as_of_tz)
-        self.io.publish()
+
+        # def snapshot_name(self) -> str:
+        #     # <kort-beskrivelse>_p<periode-fra-og-med>_p<perode-til-og- med>_v<versjon>.<filtype>
+        #     date_from = np.min(self.data[self.datetime_columns()])
+        #     date_to = np.max(self.data[self.datetime_columns()])
+        #     version = self.io.last_version + 1
+        #     out = f"{self.name}_p{date_from}_p{date_to}_v{version}.parquet"
+        #     return out
+
+        date_from = self.data[self.datetime_columns()].min().min()
+        date_to = self.data[self.datetime_columns()].max().max()
+        ts_logger.warning(
+            f"DATASET {self.name}: Data {utc_iso(date_from)} - {utc_iso(date_to)}:\n{self.data.head()}\n...\n{self.data.tail()}"
+        )
+
+        self.save(as_of_tz=self.as_of_utc)
+
+        self.io.snapshot(
+            stage=self.stage,
+            sharing=self.sharing,
+            period_from=date_from,
+            period_to=date_to,
+        )
 
     def series(self):
         return self.data.columns

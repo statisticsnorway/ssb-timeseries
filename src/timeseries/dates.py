@@ -1,5 +1,6 @@
 # from datetime import datetime, timedelta
 import datetime
+import time
 from dateutil import parser
 import pytz
 from functools import wraps
@@ -22,6 +23,7 @@ def dt_round(func):
 
 
 dt = datetime.datetime
+ts = time.time
 
 
 def date_round(d: dt, **kwargs) -> dt:
@@ -33,10 +35,28 @@ def date_utc(d, **kwargs) -> dt:
         d = now_utc()
 
     if not isinstance(d, dt):
-        # d = dt.strptime(d, "%Y-%m-%d")
-        d = parser.parse(d)
+        try:
+            d = d.to_datetime()
+        # except (ValueError, TypeError, AttributeError):
+        except AttributeError:
+            # d = dt.strptime(d, "%Y-%m-%d")
+            d = parser.parse(d)
+
+    if d.tzinfo is None or d.tzinfo.utcoffset(d) is None:
+        ts_logger.warning(
+            "DATE_UTC catched a date without timezone info. This may become an error in a future release."
+        )
+        try:
+            d = d.tz_localize("CET")
+        # except (ValueError, TypeError, AttributeError):
+        except AttributeError:
+            d = d.replace(tzinfo=pytz.timezone("Europe/Oslo"))
 
     return d.astimezone(tz=pytz.utc)
+
+
+def utc_iso(d, timespec: str = "minutes", **kwargs) -> str:
+    return date_utc(d, **kwargs).isoformat(timespec=timespec)
 
 
 def date_cet(d: dt, **kwargs) -> dt:

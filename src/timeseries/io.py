@@ -1,15 +1,26 @@
 import os
+import shutil
 import glob
 import json
 import pandas
 import datetime
+import re
+import contextlib
+
 
 from timeseries.logging import ts_logger
 from timeseries import properties
-from timeseries.dates import Interval, date_round
+from timeseries.dates import Interval, date_round, utc_iso
 
 
-TIMESERIES_ROOT: str = os.environ.get("TIMESERIES_ROOT", "/home/jovyan/series")
+PRODUCT_BUCKET: str = os.environ.get("PRODUCT_BUCKET", "/home/jovyan/")
+
+# does it make sense to put assume STATISTICS_PRODUCT is an env variable?
+STATISTICS_PRODUCT: str = os.environ.get("PRODUCT", "sample-data")
+
+TIMESERIES_ROOT: str = os.environ.get(
+    "TIMESERIES_ROOT", os.path.join(PRODUCT_BUCKET, STATISTICS_PRODUCT, "series")
+)
 
 
 class DatasetDirectory:
@@ -202,40 +213,131 @@ class DatasetDirectory:
         if os.path.isdir(self.metadata_dir):
             os.removedirs(self.metadata_dir)
 
-    def publish(self):
+    def last_version(self, dir: str, pattern: str = "*.parquet") -> str:
+        # naive "version" check - simply use number of files
+        # --> TO DO: use substring
+
+        files = glob.glob(os.path.join(dir, pattern))
+        number_of_files = len(files)
+
+        vs = [int(re.search("(_v)([0-9]+)(.parquet)", f).group(2)) for f in files]
+        ts_logger.warning(
+            f"DATASET {self.set_name}: io.last_version regex identified versions {vs}."
+        )
+        if vs:
+            read_from_filenames = max(vs)
+            out = read_from_filenames
+        else:
+            read_from_filenames = 0
+            out = number_of_files
+
+        ts_logger.debug(
+            f"DATASET {self.set_name}: io.last_version searched directory: \n\t{dir}\n\tfor '{pattern}' found {str(number_of_files)} files, regex identified version {str(read_from_filenames)} --> vs {str(out)}."
+        )
+        return out
+
+    def snapshot_directory(
+        self, product=STATISTICS_PRODUCT, process_stage: str = "statistikk"
+    ):
+        # The "fixed" relationship between TEAM and STATISTICS PRODUCT in the Dapla
+        # naming standard does not seem entirely "right". Not only does it force tech solution
+        # to match org structure, but also creates tigther couplings betweeen otherwise unrelated code
+        # as information about data content must be passed around.
+
+        # --> Here: product as CONSTANT or PARAMETER?
+        # def snapshot_directory(self, product, process_stage):
+        # ... or access parent object using weakref?
+
+        dir = os.path.join(
+            PRODUCT_BUCKET,
+            product,
+            process_stage,
+            "series",  # to distinguish from other data types
+            self.set_type_dir,
+            self.set_name,
+        )
+        ts_logger.debug(f"DATASET.IO.SNAPSHOT_DIRECTORY: {dir}")
+        os.makedirs(dir, exist_ok=True)
+        return dir
+
+    def snapshot_filename(
+        self,
+        process_stage: str = "statistikk",
+        as_of_utc=None,
+        period_from: str = "",
+        period_to: str = "",
+    ) -> str:
+        dir = self.snapshot_directory(
+            product=STATISTICS_PRODUCT, process_stage=process_stage
+        )
+
+        last_vs = self.last_version(dir=dir, pattern="*.parquet")
+        if as_of_utc:
+            out = f"{self.set_name}_p{utc_iso(period_from)}_p{utc_iso(period_to)}_v{utc_iso(as_of_utc)}_v{last_vs+1}"
+        else:
+            out = f"{self.set_name}_p{utc_iso(period_from)}_p{utc_iso(period_to)}_v{last_vs+1}"
+
+            # ouch! - to comply with the naming standard we need to know more about the data
+            # than seems right for this module (tight coupling):
+            ts_logger.warning(
+                f"DATASET last version {last_vs+1} from {period_from} to {period_to}.')"
+            )
+        return out
+        # return f"{self.set_name}_v{last_vs+1}"
+
+    def sharing_directory(
+        self,
+        team: str = "",
+        product: str = STATISTICS_PRODUCT,
+        bucket: str = PRODUCT_BUCKET,
+    ):
+        if team:
+            dir = os.path.join(bucket, team, self.set_name)
+        else:
+            dir = os.path.join(bucket, self.set_name)
+
+        ts_logger.debug(f"DATASET.IO.SHARING_DIRECTORY: {dir}")
+        os.makedirs(dir, exist_ok=True)
+        return dir
+
+    def snapshot(
+        self, stage, sharing={}, as_of_tz=None, period_from=None, period_to=None
+    ):
         """Copies snapshots to bucket(s) according to processing stage and sharing configuration.
 
         For this to work, .stage and sharing configurations should be set for the dataset, eg:
-            .sharing = {'s123': '<s1234-bucket>', 's234': '<s234-bucket>', 's345': '<s345-bucket>'}
+            .sharing = [{'team': 's123', 'path': '<s1234-bucket>'},
+                        {'team': 's234', 'path': '<s234-bucket>'},
+                        {'team': 's345': 'path': '<s345-bucket>'}]
             .stage = 'statistikk'
         """
 
-        # TO DO: replace pseudo code
+        dir = self.snapshot_directory(process_stage=stage)
+        snapshot_name = self.snapshot_filename(
+            as_of_utc=as_of_tz, period_from=period_from, period_to=period_to
+        )
 
-        def target(stage, fname):
-            return os.path.join(f"<{stage}-bucket>", fname)
+        data_publish_path = os.path.join(dir, f"{snapshot_name}.parquet")
+        meta_publish_path = os.path.join(dir, f"{snapshot_name}.json")
 
-        data_publish_path = target(self.stage, self.data_file)
-        meta_publish_path = target(self.stage, self.metadata_file)
-
-        # the actual file copying can be done in multiple ways, see
-        # https://ioflood.com/blog/python-copy-file-guide-8-ways-to-copy-a-file-in-python/
-        # which ones are robust on Dapla?
-        # ... till we know more, let us just pretend to do the copying:
-        def copy(a, b):
-            ts_logger.warning(f"--> os.popen('cp {a} {b}')")
+        def copy(from_file, to_file):
+            shutil.copy2(from_file, to_file)  # also copies file meta data
+            ts_logger.debug(
+                f"DATASET {self.set_name} shutil.copy2{from_file}, {to_file}')"
+            )
 
         copy(self.data_fullpath, data_publish_path)
         copy(self.metadata_fullpath, meta_publish_path)
 
-        def shared_dir(bucket):
-            # TO DO: alter to look up buckets by team
-            return os.path.join(bucket, self.set_type_dir, self.set_name)
-
-        for team, bucket in self.sharing:
-            copy(data_publish_path, shared_dir(bucket))
-            copy(meta_publish_path, shared_dir(bucket))
-            ts_logger.info(f"DATASET {self.set_name}: Snapshot shared with {team}.")
+        if sharing:
+            ts_logger.debug(f"Sharing configs: {sharing}")
+            for s in sharing:
+                ts_logger.debug(f"Sharing: {s}")
+                copy(data_publish_path, self.sharing_directory(bucket=s["path"]))
+                copy(meta_publish_path, self.sharing_directory(bucket=s["path"]))
+                ts_logger.info(
+                    f"DATASET {self.set_name}: share with {s['team']}, snapshot copied to {s['path']}."
+                )
 
     def search(self, pattern="", *args, **kwargs):
         if pattern:
@@ -251,6 +353,26 @@ class DatasetDirectory:
 
         return [f[2] for f in search_results]
 
+    @classmethod
+    def dir(self, *args, **kwargs) -> str:
+        """A convenience classmethod for os.makedirs(os.path.join(*args)).
+        As long as the target is under PRODUCT_BUCKET, it will create the target if it does not exist.
+        """
+        ts_logger.debug(f"{args}:")
+        path = os.path.join(*args)
+
+        dir_is_in_series = os.path.commonpath([path, PRODUCT_BUCKET]) == PRODUCT_BUCKET
+        if dir_is_in_series or kwargs.get(
+            "force", False
+        ):  # hidden feature: also for kwarg 'force' == True
+            os.makedirs(path, exist_ok=True)
+        else:
+            raise DatasetIoException(
+                f"Directory {path} must be below {PRODUCT_BUCKET} in file tree."
+            )
+
+        return path
+
 
 def validate_date_str(d: datetime) -> str:
     if d is None:
@@ -259,3 +381,73 @@ def validate_date_str(d: datetime) -> str:
     else:
         rounded_d = date_round(d).isoformat()
     return rounded_d
+
+
+@contextlib.contextmanager
+def cd(path):
+    """Temporary cd into a directory (create if not exists), like so:
+
+    with cd(path):
+        do_stuff()
+
+    """
+    CWD = os.getcwd()
+
+    try:
+        if os.path.isdir(path):
+            os.chdir(path)
+        else:
+            os.makedirs(path, exist_ok=True)
+            os.chdir(path)
+
+        yield
+    finally:
+        os.chdir(CWD)
+
+
+def init_root(
+    path,
+    products: list[str] = [],
+    create_log_and_shared: bool = False,
+    create_product_dirs: bool = False,
+    create_all: bool = False,
+):
+    """init_root
+
+    Args:
+        path (str):
+            Absolute or relative path to the top level root directory.
+            It will be created if it does not exist, as will a 'series' inside it,
+            and the TIMESERIES_ROOT env variable will be set to point to it.
+        products list(str):
+            If set, allows
+        as_production_bucket (bool, optional): Create directory structure as if this was a production bucket. Defaults to False.
+
+    """
+
+    with cd(path):
+        os.environ["PRODUCT_BUCKET"] = os.getcwd()
+
+        root = os.path.join(os.getcwd(), "series")
+        os.makedirs(root, exist_ok=True)
+        os.environ["TIMESERIES_ROOT"] = root
+
+        if create_all:
+            create_log_and_shared = True
+            create_product_dirs = True
+
+        if create_log_and_shared:
+            os.makedirs("shared", exist_ok=True)
+            os.makedirs("logs", exist_ok=True)
+
+        if create_product_dirs and products:
+            for p in products:
+                with cd(p):
+                    os.makedirs("inndata", exist_ok=True)
+                    os.makedirs("klargjorte-data", exist_ok=True)
+                    os.makedirs("statistikk", exist_ok=True)
+                    os.makedirs("utdata", exist_ok=True)
+
+
+class DatasetIoException(Exception):
+    pass
