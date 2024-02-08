@@ -566,28 +566,3 @@ def test_versioning_none_appends_to_existing_file(caplog) -> None:
 
     assert a.data.size < c.data.size
     assert b.data.size < c.data.size
-
-
-@log_start_stop
-def test_find_data_using_metadata_attributes() -> None:
-    # metadata - test extendeded attribute set
-    # find data via metadata
-    # metadata = my_dataset.metadata
-    pass
-
-
-@log_start_stop
-def test_update_metadata_attributes() -> None:
-    # TO DO:
-    # Updating metadata by changing an attribute value should
-    # ... update metadata.json
-    # ... keep previous version
-    pass
-
-
-@log_start_stop
-def test_updated_tags_propagates_to_column_names_accordingly() -> None:
-    # TO DO:
-    # my_dataset.update_metadata('column_name', 'metadata_tag')
-    # ... --> versioning
-    pass

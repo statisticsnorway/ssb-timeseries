@@ -19,9 +19,9 @@ Note that
 
 ## How to get started?
 
-The library is in a workable state and should work both locally (it was developed in VS Code on Windows using WSL) and in Jupyter. It is still in early stages of development, so there is a risk that fundamental choices are reversed and breaking changes introduced. 
+The library is in a workable state and should work both locally (it was developed in VS Code on Windows using WSL) and in Jupyter. It is still in an exploratory phase, so there is a risk that fundamental choices are reversed and breaking changes introduced. 
 
-With that disclaimer, feel free to explore and experiment. For now, getting feedback to inform further development is the main
+With that disclaimer, feel free to explore and experiment, and do not be shy about asking questions or giving feedback. At this stage, feedback is all important.
 
 Proper library packaging is planned for a later development stage. In the meantime, you will have to clone/pull directly from the GitHub repository.
 
@@ -86,6 +86,10 @@ The Dataset.io attribute connects the dataset to a helper class that takes care 
 Yes, that *was* the short version. The long version is still pending production.
 
 To be continued ...
+
+### How to contribute
+
+More information about this will come later, but contributions are welcome. If you want to contribute, just let us know. 
 
 ### Other sources of documentation:
 
