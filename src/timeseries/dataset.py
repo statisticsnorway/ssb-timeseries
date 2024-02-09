@@ -9,6 +9,7 @@ from timeseries import dates
 from timeseries import io
 from timeseries import properties as prop
 from timeseries.logging import ts_logger
+from timeseries.sample_data import series_names
 
 utc_iso = dates.utc_iso
 
@@ -17,9 +18,10 @@ class Dataset:
     def __init__(
         self,
         name: str,
-        data_type: prop.SeriesType,
+        data_type: prop.SeriesType = None,
         as_of_tz: datetime = None,
         load_data: bool = True,
+        series_tags: dict = None,
         **kwargs,
     ) -> None:
         """
@@ -42,23 +44,35 @@ class Dataset:
 
         Files are created / data is stored to database on .save, but not before.
         """
+
         self.name: str = name
-        self.data_type = data_type
+        if data_type:  # self.exists():
+            self.data_type = data_type
+        else:
+            # TO DO: if the datatype is not provided, search by name,
+            # throw error if a) no set is found or b) multiple sets are found
+            # ... till then, just continue
+            self.data_type = data_type
+
+        # TO DO: for versioned series, return latest if no as_of_tz is provided
         self.as_of_utc = dates.date_utc(as_of_tz)
+
         # self.series: dict = kwargs.get("series", {})
 
         self.io = io.DatasetDirectory(
             set_name=self.name, set_type=self.data_type, as_of_utc=self.as_of_utc
         )
 
-        # metadata: defaults overwritten by stored is overwritten kwargs
+        # metadata: defaults overwritten by stored overwritten by kwargs
         default_tags = {
             "name": name,
             "versioning": str(self.data_type.versioning),
             "temporality": str(self.data_type.temporality),
+            "series": {},
         }
         stored_tags: dict = self.io.read_metadata()
         kwarg_tags: dict = kwargs.get("tags", {})
+
         self.tags = {**default_tags, **stored_tags, **kwarg_tags}
 
         # ts_logger.debug(f"DATASET {self.name}: .......... coalesce:\n\tdefault_tags {default_tags}\n\tkwarg_tags {kwarg_tags}\n\tstored_tags {stored_tags}\n\t--> {self.tags} "        )
@@ -92,6 +106,39 @@ class Dataset:
             ts_logger.debug(
                 f"DATASET {self.name}: Merged {kwarg_data.size} datapoints:\n{self.data}"
             )
+            # TO DO: update series tags
+            # tags may come in through `stored_tags['series]` with additional ones in parameter `series_tags`
+            # this will add new tags or overwrite existing ones
+            # (to delete or append values to an existing tag will need explicit actions)
+
+            set_only_tags = ["series", "name"]
+            # inherit_from_set_tags = {key, d[key] for key in self.tags.items() if key not in set_only_tags}
+            inherit_from_set_tags = {"dataset": self.name, **self.tags}
+            [inherit_from_set_tags.pop(key) for key in set_only_tags]
+
+            ts_logger.debug(
+                f"DATASET {self.name}: .tags:\n\t{self.tags}\n\tinherited: {inherit_from_set_tags} "
+            )
+            # TO DO: apply tags provided in parameter series_tags
+            kwarg_series_tags = kwargs.get("series_tags", {})
+
+            self.tags["series"] = {
+                n: {"name": n, "dataset": self.name, **inherit_from_set_tags}
+                for n in self.numeric_columns()
+            }
+
+            name_pattern = kwargs.get("name_pattern", "")
+            if name_pattern:
+                for s in self.tags["series"]:
+                    name_parts = s.split("_")
+                    # [self.tags['series'][s][attribute] = value for attribute,  value in zip(name_pattern, name_parts)]
+                    for attribute, value in zip(name_pattern, name_parts):
+                        self.tags["series"][s][attribute] = value
+
+                    ts_logger.debug(
+                        f"DATASET {self.name}: series {s} {self.tags['series'][s]} "
+                    )
+                    # [self.tags.series[k] = for k, a in zip(self.numeric_columns(), name_pattern]
 
     def save(self, as_of_tz: datetime = None) -> None:
         """Persist the Dataset.
@@ -140,11 +187,19 @@ class Dataset:
             period_to=date_to,
         )
 
-    def series(self):
-        return self.data.columns
+    def series(self, what: str = "names"):
+        if what.lower() == "names":
+            return self.data.columns
+        elif what.lower() == "tags":
+            return self.tags["series"]
+        else:
+            raise ("wtf!")
 
-    def series_tags(self, series_name=None):
-        return self.tags[series_name]
+    def series_tags(self, series_name=None):  # remove this?
+        if series_name:
+            return self.tags["series"][series_name]
+        else:
+            return self.tags["series"]
 
     def search(self, pattern: str = "*", *args, **kwargs):
         return self.io.search(pattern=pattern, *args, **kwargs)
@@ -307,6 +362,9 @@ class Dataset:
 
     def _numeric_columns(self):
         return self.data.select_dtypes(include=np.number).columns
+
+    def numeric_columns(self):
+        return list(set(self.data.columns).difference(self.datetime_columns()))
 
     def datetime_columns(self, *comparisons):
         """
