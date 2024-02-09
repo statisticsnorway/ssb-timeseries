@@ -9,7 +9,8 @@ from timeseries import dates
 from timeseries import io
 from timeseries import properties as prop
 from timeseries.logging import ts_logger
-from timeseries.sample_data import series_names
+
+# from timeseries.sample_data import series_names
 
 utc_iso = dates.utc_iso
 
@@ -120,7 +121,8 @@ class Dataset:
                 f"DATASET {self.name}: .tags:\n\t{self.tags}\n\tinherited: {inherit_from_set_tags} "
             )
             # TO DO: apply tags provided in parameter series_tags
-            kwarg_series_tags = kwargs.get("series_tags", {})
+            # ... or just be content with the autotag?
+            # kwarg_series_tags = kwargs.get("series_tags", {})
 
             self.tags["series"] = {
                 n: {"name": n, "dataset": self.name, **inherit_from_set_tags}

@@ -3,7 +3,7 @@ import logging
 
 # from polars import Series
 
-from timeseries.dates import date_utc, now_utc, date_round
+from timeseries.dates import date_utc  # , now_utc, date_round
 from timeseries.logging import log_start_stop, ts_logger
 from timeseries.dataset import Dataset
 from timeseries.properties import SeriesType
