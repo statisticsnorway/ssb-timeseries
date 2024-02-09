@@ -105,15 +105,13 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
     assert [key for key in d.keys()].sort() == x.numeric_columns().sort()
 
     for key in d.keys():
-        ts_logger.warning(f" ... {d[key]}")
+        ts_logger.debug(f" ... {d[key]}")
         assert d[key]["dataset"] == set_name
         assert d[key]["name"] == key
         assert d[key]["versioning"] == str(x.data_type.versioning)
         assert d[key]["temporality"] == str(x.data_type.temporality)
         assert d[key]["About"] == "ImportantThings"
         assert d[key]["SeriesDifferentiatingAttributes"] == ["A", "B", "C"]
-
-    assert False
 
 
 @log_start_stop
