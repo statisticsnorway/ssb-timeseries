@@ -14,7 +14,7 @@ from timeseries.dates import Interval, date_round, utc_iso
 
 
 PRODUCT_BUCKET: str = os.environ.get(
-    "PRODUCT_BUCKET", "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
+    "PRODUCT_BUCKET", "ssb-prod-finregn-data-delt/tidsserier-poc"
 )
 
 # does it make sense to put assume STATISTICS_PRODUCT is an env variable?
