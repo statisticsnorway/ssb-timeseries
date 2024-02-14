@@ -12,7 +12,12 @@
 #
 
 # move this stuff to .venv?
-export PRODUCT_BUCKET=${PWD}
-export STATISTICS_PRODUCT=sample-data
-export TIMESERIES_ROOT=${PRODUCT_BUCKET}/${STATISTICS_PRODUCT}/series
-export LOG_LOCATION=${PRODUCT_BUCKET}/${STATISTICS_PRODUCT}/logs
+#export PRODUCT_BUCKET=${PWD}
+#export STATISTICS_PRODUCT=sample-data
+
+# export BUCKET=${PWD}
+# export PRODUCT=sample-data
+# export TIMESERIES_ROOT=${BUCKET}/${PRODUCT}/series_data
+# export LOG_LOCATION=${BUCKET}/${PRODUCT}/logs
+
+export BUCKET=${PWD}/sample-data

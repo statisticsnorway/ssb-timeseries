@@ -1,9 +1,6 @@
 import os
 import uuid
 
-# import numpy as np
-# import pandas as pd
-# import functools
 import logging
 
 from timeseries.dates import now_utc, date_utc
@@ -11,9 +8,7 @@ from timeseries.logging import ts_logger, log_start_stop
 from timeseries.dataset import Dataset
 from timeseries.properties import SeriesType, Versioning  # , Temporality
 from timeseries.sample_data import create_df
-
-from timeseries.io import PRODUCT_BUCKET as BUCKET
-from timeseries.io import STATISTICS_PRODUCT as PRODUCT
+from timeseries.io import CONFIG
 
 
 @log_start_stop
@@ -310,10 +305,14 @@ def test_publish_simple_set_has_higher_snapshot_file_count_after(caplog):
         ),
     )
 
-    x.stage = "statistikk"
-    stage_path = x.io.snapshot_directory(product=PRODUCT, process_stage=x.stage)
-    path_123 = x.io.dir(BUCKET, PRODUCT, "shared", "s123")
-    path_234 = x.io.dir(BUCKET, PRODUCT, "shared", "s234")
+    x.process_stage = "statistikk"
+    x.product = "sample-data"
+
+    stage_path = x.io.snapshot_directory(
+        product="sample-data", process_stage=x.process_stage
+    )
+    path_123 = x.io.dir(CONFIG.bucket, "sample-data", "shared", "s123")
+    path_234 = x.io.dir(CONFIG.bucket, "sample-data", "shared", "s234")
     x.sharing = [
         {
             "team": "s123",
@@ -324,6 +323,7 @@ def test_publish_simple_set_has_higher_snapshot_file_count_after(caplog):
             "path": path_234,
         },
     ]
+
     x.save()
 
     path_123 = x.io.dir(path_123, x.name)
@@ -368,10 +368,14 @@ def test_snapshot_estimate_has_higher_file_count_after(caplog):
         ),
     )
 
-    x.stage = "statistikk"
-    stage_path = x.io.snapshot_directory(product=PRODUCT, process_stage=x.stage)
-    path_123 = x.io.dir(BUCKET, PRODUCT, "shared", "s123")
-    path_234 = x.io.dir(BUCKET, PRODUCT, "shared", "s234")
+    x.process_stage = "statistikk"
+    x.product = "sample-data"
+
+    stage_path = x.io.snapshot_directory(
+        product="sample-data", process_stage=x.process_stage
+    )
+    path_123 = x.io.dir(CONFIG.bucket, "sample-data", "shared", "s123")
+    path_234 = x.io.dir(CONFIG.bucket, "sample-data", "shared", "s234")
     x.sharing = [
         {
             "team": "s123",

@@ -44,7 +44,7 @@ def date_utc(d, **kwargs) -> dt:
 
     if d.tzinfo is None or d.tzinfo.utcoffset(d) is None:
         ts_logger.warning(
-            "DATE_UTC catched a date without timezone info. This may become an error in a future release."
+            "DATE_UTC catched a date without timezone info. This will become an error later."
         )
         try:
             d = d.tz_localize("CET")

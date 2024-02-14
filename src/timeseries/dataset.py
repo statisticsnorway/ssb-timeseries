@@ -60,7 +60,7 @@ class Dataset:
 
         # self.series: dict = kwargs.get("series", {})
 
-        self.io = io.DatasetDirectory(
+        self.io = io.FileSystem(
             set_name=self.name, set_type=self.data_type, as_of_utc=self.as_of_utc
         )
 
@@ -151,7 +151,7 @@ class Dataset:
         if as_of_tz is not None:
             self.as_of_utc = dates.date_utc(as_of_tz)
 
-        self.io = io.DatasetDirectory(self.name, self.data_type, self.as_of_utc)
+        self.io = io.FileSystem(self.name, self.data_type, self.as_of_utc)
         ts_logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")
         if not self.tags:
             ts_logger.warning(
@@ -183,7 +183,8 @@ class Dataset:
         self.save(as_of_tz=self.as_of_utc)
 
         self.io.snapshot(
-            stage=self.stage,
+            product=self.product,
+            process_stage=self.process_stage,
             sharing=self.sharing,
             period_from=date_from,
             period_to=date_to,

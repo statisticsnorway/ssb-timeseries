@@ -10,6 +10,7 @@ poetry.lock
 .python-version
 sample-data/
 sample-metadata/  
+series_data/
 .poetry
 .ipynb
 .vscode/
