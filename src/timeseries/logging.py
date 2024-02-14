@@ -9,6 +9,7 @@ import logging
 import os
 
 from datetime import datetime
+from timeseries.config import Config
 
 ts_logger = logging.getLogger("TIMESERIES")
 log_string = logging.Formatter("%(name)s | %(levelname)s | %(asctime)s | %(message)s")
@@ -17,9 +18,12 @@ log_json = logging.Formatter(
 )
 
 # log to file
-LOG_LOCATION: str = os.environ.get("LOG_LOCATION", "/home/jovyan/logs")
+# BUCKET: str = os.environ.get("BUCKET")
+CONFIG = Config()
 
-file_handler = logging.FileHandler(os.path.join(LOG_LOCATION, "timeseries.log"))
+# LOG_LOCATION: str = os.environ.get("BUCKET", "/home/jovyan/logs")
+
+file_handler = logging.FileHandler(os.path.join(CONFIG.log_location, "timeseries.log"))
 file_handler.setFormatter(log_string)
 file_handler.setLevel(logging.INFO)
 ts_logger.addHandler(file_handler)

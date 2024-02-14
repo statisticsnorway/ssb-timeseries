@@ -1,11 +1,15 @@
 import os
 
+DEFAULT = os.getcwd()
+
 
 class Config:
     shared = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
     jovyan = "/home/jovyan"
 
-    def __init__(self, root: str, product: str = "", dir: str = "series_data") -> None:
+    def __init__(
+        self, root: str = "", product: str = "", dir: str = "series_data"
+    ) -> None:
 
         self.product = product
 
@@ -19,7 +23,11 @@ class Config:
             case "home" | "~":
                 root = "~"
             case "":
-                root = os.environ["TIMESERIES_ROOT"]
+                from_env_variable = os.environ["BUCKET"]
+                if from_env_variable:
+                    root = from_env_variable
+                else:
+                    root = DEFAULT
             case _:
                 pass
 
@@ -28,8 +36,10 @@ class Config:
         if product:
             # not sure this is a good idea
             self.timeseries_root = os.path.join(self.bucket, product, dir)
+            self.log_location = os.path.join(self.bucket, product, "logs")
         else:
             self.timeseries_root = os.path.join(self.bucket, dir)
+            self.log_location = os.path.join(self.bucket, "logs")
 
     def set_env(self):
         """Saves configurations into environment variables:
@@ -41,6 +51,7 @@ class Config:
         if self.product:
             os.environ["PRODUCT"] = self.product
         os.environ["TIMESERIES_ROOT"] = self.timeseries_root
+        os.environ["LOG_LOCATION"] = self.log_location
 
     def file_system_type(self) -> str:
         """Returns 'gcs' if Config.bucket is on Google Cloud Storage,  otherwise'local'."""
