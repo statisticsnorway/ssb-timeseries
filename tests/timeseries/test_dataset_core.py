@@ -9,6 +9,7 @@ from timeseries.dataset import Dataset
 from timeseries.properties import SeriesType, Versioning  # , Temporality
 from timeseries.sample_data import create_df
 from timeseries.io import CONFIG
+from timeseries import fs
 
 
 @log_start_stop
@@ -329,15 +330,15 @@ def test_publish_simple_set_has_higher_snapshot_file_count_after(caplog):
     path_123 = x.io.dir(path_123, x.name)
     path_234 = x.io.dir(path_234, x.name)
 
-    count_before_snapshot = len(os.listdir(stage_path))
-    count_before_123 = len(os.listdir(path_123))
-    count_before_234 = len(os.listdir(path_234))
+    count_before_snapshot = fs.file_count(stage_path, create=True)
+    count_before_123 = fs.file_count(path_123, create=True)
+    count_before_234 = fs.file_count(path_234, create=True)
 
     x.snapshot()
 
-    count_after_snapshot = len(os.listdir(stage_path))
-    count_after_123 = len(os.listdir(path_123))
-    count_after_234 = len(os.listdir(path_234))
+    count_after_snapshot = fs.file_count(stage_path)
+    count_after_123 = fs.file_count(path_123)
+    count_after_234 = fs.file_count(path_234)
 
     def log(path, before, after):
         ts_logger.debug(
@@ -392,15 +393,15 @@ def test_snapshot_estimate_has_higher_file_count_after(caplog):
 
     x.save()
 
-    count_before_snapshot = len(os.listdir(stage_path))
-    count_before_123 = len(os.listdir(path_123))
-    count_before_234 = len(os.listdir(path_234))
+    count_before_snapshot = fs.file_count(stage_path, create=True)
+    count_before_123 = fs.file_count(path_123, create=True)
+    count_before_234 = fs.file_count(path_234, create=True)
 
     x.snapshot()
 
-    count_after_snapshot = len(os.listdir(stage_path))
-    count_after_123 = len(os.listdir(path_123))
-    count_after_234 = len(os.listdir(path_234))
+    count_after_snapshot = fs.file_count(stage_path)
+    count_after_123 = fs.file_count(path_123)
+    count_after_234 = fs.file_count(path_234)
 
     def log(path, before, after):
         ts_logger.debug(
