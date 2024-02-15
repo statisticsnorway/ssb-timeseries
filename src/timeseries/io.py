@@ -133,10 +133,13 @@ class DatasetDirectory:
                 df = new
             else:
                 date_cols = list(
-                    set(new.columns)
-                    & set(old.columns)
-                    & {"valid_at", "valid_from", "valid_to"}
+                    set(
+                        new.columns.tolist()
+                        + old.columns.tolist()
+                        #+ ["valid_at", "valid_from", "valid_to"]
+                    )
                 )
+                # Append new data
                 df = pandas.concat(
                     [old, new],
                     axis=0,

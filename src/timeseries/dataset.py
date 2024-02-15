@@ -149,7 +149,7 @@ class Dataset:
             as_of_tz (datetime, optional): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of._utc (utc dates under the hood).
         """
         if as_of_tz is not None:
-            self.as_of_utc = dates.date_utc(as_of_tz)
+            self.as_of_utc = dates.date_utc(self.as_of_tz)
 
         self.io = io.DatasetDirectory(self.name, self.data_type, self.as_of_utc)
         ts_logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")

@@ -21,7 +21,7 @@ LOG_LOCATION: str = os.environ.get("LOG_LOCATION", "/home/jovyan/logs")
 
 file_handler = logging.FileHandler(os.path.join(LOG_LOCATION, "timeseries.log"))
 file_handler.setFormatter(log_string)
-file_handler.setLevel(logging.INFO)
+file_handler.setLevel(logging.DEBUG)
 ts_logger.addHandler(file_handler)
 
 # Also log to console.
@@ -29,6 +29,7 @@ console = logging.StreamHandler()
 console.setFormatter(log_string)
 console.setLevel(logging.WARNING)
 ts_logger.addHandler(console)
+ts_logger.setLevel(logging.DEBUG)
 
 # Google Cloud logging:
 # from google.cloud.logging.handlers import CloudLoggingHandler
