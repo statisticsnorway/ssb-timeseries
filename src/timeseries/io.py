@@ -60,9 +60,7 @@ class FileSystem:
 
     @property
     def root(self) -> str:
-        # ts_root = os.environ["TIMESERIES_ROOT"]
         ts_root = CONFIG.timeseries_root
-        ts_logger.warning(f"io.FileSystem.root:{ts_root}")
         return ts_root
 
     @property

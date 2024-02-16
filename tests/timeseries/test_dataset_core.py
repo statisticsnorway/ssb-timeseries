@@ -294,7 +294,7 @@ def test_load_existing_set_without_loading_data(caplog) -> None:
 
 
 @log_start_stop
-def test_publish_simple_set_has_higher_snapshot_file_count_after(caplog):
+def test_snapshot_simple_set_has_higher_snapshot_file_count_after(caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(
