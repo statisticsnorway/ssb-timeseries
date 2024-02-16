@@ -501,3 +501,11 @@ class GoogleCloudStorage(FileSystem):
 
 class DatasetIoException(Exception):
     pass
+
+
+class DatasetDirectory(FileSystem):
+    # renamed - for backward compatibility
+    ts_logger.warning(
+        "The DatasetDirectory class was deprecated refactoring io.py, use FileSystem instead."
+    )
+    pass
