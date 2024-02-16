@@ -194,28 +194,47 @@ def pandas_read_parquet(
     *args,
     **kwargs,
 ) -> pandas.DataFrame:
-
-    if exists(path):
-        df = pandas.read_parquet(path)
+    if is_gcs(path):
+        fs = FileClient.get_gcs_file_system()
+        with fs.open(path, "rb") as file:
+            df = pandas.read_parquet(file)
     else:
-        df = pandas.DataFrame()
-    return df
+        if exists(path):
+            df = pandas.read_parquet(path)
+        else:
+            df = pandas.DataFrame()
+        return df
 
 
 def pandas_write_parquet(df: pandas.DataFrame, path):
-    mkdir(path)
-    df.to_parquet(path)
+    if is_gcs(path):
+        fs = FileClient.get_gcs_file_system()
+        with fs.open(path, "wb") as file:
+            df.to_parquet(file)
+    else:
+        mkdir(path)
+        df.to_parquet(path)
 
 
 def read_json(path) -> dict:
-    with open(path, "r") as file:
-        return json.load(file)
+    if is_gcs(path):
+        fs = FileClient.get_gcs_file_system()
+        with fs.open(path, "r") as file:
+            return json.load(file)
+    else:
+        with open(path, "r") as file:
+            return json.load(file)
 
 
 def write_json(path, content) -> None:
-    mkdir(path)
-    with open(path, "w") as file:
-        json.dump(content, file, indent=4, ensure_ascii=False)
+    if is_gcs(path):
+        fs = FileClient.get_gcs_file_system()
+        with fs.open(path, "w") as file:
+            json.dump(content, file, indent=4, ensure_ascii=False)
+    else:
+        mkdir(path)
+        with open(path, "w") as file:
+            json.dump(content, file, indent=4, ensure_ascii=False)
 
 
 # from pyarrow import fs
