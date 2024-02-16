@@ -58,14 +58,15 @@ def test_existing_subpath() -> None:
     assert fs.existing_subpath(long_path) == HOME
 
 
-@pytest.mark.skipif(not IS_DAPLA, reason="... not in Kansas anymore.")
+@pytest.mark.skipif(not IS_DAPLA, reason="I do not think we are in Kansas anymore.")
 def test_mkdir_dapla() -> None:
 
-    ts_logger.warning(CONFIG.bucket)
-    assert False
+    ts_logger.warning(BUCKET)
+    fs.mkdir(os.path.join(BUCKET, "tests", "a", "b", "c"))
+    assert fs.exists(os.path.join(BUCKET, "tests", "a", "b", "c"))
 
 
-@pytest.mark.skipif(True, reason="... not in Kansas anymore.")
+@pytest.mark.skipif(IS_DAPLA, reason="... now we are in Kansas!")
 def test_mkdir_local() -> None:
     short_path = os.path.join(HOME, "a")
     long_path = os.path.join(HOME, "a", "b", "c", "d")

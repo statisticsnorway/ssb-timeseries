@@ -20,4 +20,4 @@
 # export TIMESERIES_ROOT=${BUCKET}/${PRODUCT}/series_data
 # export LOG_LOCATION=${BUCKET}/${PRODUCT}/logs
 
-export BUCKET=${PWD}/sample-data
+export BUCKET=${HOME}/sample-data
