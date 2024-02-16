@@ -1,6 +1,6 @@
 import os
 
-DEFAULT = os.getcwd()
+DEFAULT = os.environ["HOME"]  # getcwd()
 
 
 class Config:
