@@ -1,6 +1,10 @@
 import os
+from dotenv import load_dotenv
 
-DEFAULT = os.environ["HOME"]  # getcwd()
+load_dotenv()
+
+BUCKET = os.getenv("BUCKET")
+DEFAULT = os.getenv("HOME")
 
 
 class Config:
@@ -23,9 +27,8 @@ class Config:
             case "home" | "~":
                 root = "~"
             case "":
-                from_env_variable = os.environ["BUCKET"]
-                if from_env_variable:
-                    root = from_env_variable
+                if BUCKET:
+                    root = BUCKET
                 else:
                     root = DEFAULT
             case _:
