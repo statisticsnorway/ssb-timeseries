@@ -45,7 +45,7 @@ def date_utc(d, **kwargs) -> dt:
             d = parser.parse(d)
 
     if d.tzinfo is None or d.tzinfo.utcoffset(d) is None:
-        ts_logger.warning(
+        ts_logger.debug(
             "DATE_UTC catched a date without timezone info. This will become an error later."
         )
         try:
