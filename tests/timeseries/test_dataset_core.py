@@ -431,7 +431,7 @@ def test_search_for_dataset_by_part_of_name(caplog):
     )
     x.save()
     datasets = x.search(unique_new)
-    ts_logger.warning(f"datasets: {str(datasets)}")
+    ts_logger.debug(f"datasets: {str(datasets)}")
     assert datasets == [f"test-find-{unique_new}"]
 
 
@@ -473,7 +473,7 @@ def test_filter_dataset_by_regex(caplog):
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
     df = x.filter(regex="^x")
-    ts_logger.warning(f"y = x.filter(regex='^x')\n{df}")
+    ts_logger.debug(f"y = x.filter(regex='^x')\n{df}")
 
     assert list(df.columns) == ["valid_at", "xd", "xe"]
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
@@ -491,8 +491,8 @@ def test_filter_dataset_by_regex_new_dataset(caplog):
     y = x.filter(
         regex="^x", name="test-filter", data_type=SeriesType.simple(), load_data=False
     )
-    ts_logger.warning(f"datasets: {y}")
-    ts_logger.warning(f"datasets: {x}")
+    ts_logger.debug(f"datasets: {y}")
+    ts_logger.debug(f"datasets: {x}")
 
     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
@@ -565,7 +565,7 @@ def test_versioning_none_appends_to_existing_file(caplog) -> None:
     b.save()
 
     c = Dataset(name=a.name, data_type=a.data_type, load_data=True)
-    ts_logger.warning(
+    ts_logger.debug(
         f"DATASET: {a.name}: First write {a.data.size} values, writing {b.data.size} values (50% new) --> combined {c.data.size} values."
     )
 
