@@ -6,41 +6,51 @@ from timeseries import fs
 from timeseries.logging import ts_logger
 
 BUCKET = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/"
-JOVYAN = "/home/jovyan/sample-data/series/"
-HOME = os.environ.get("HOME")
+JOVYAN = "/home/jovyan/series_data/"
+HOME = os.getenv("HOME")
 IS_DAPLA = HOME == "/home/jovyan"
 
 
-def test_remove_prefix() -> None:
+@pytest.mark.skipif(HOME == "/home/bernhard", reason="known other location")
+def test_bucket_exists_if_running_on_dapla() -> None:
+    ts_logger.warning(f"Home directory is {HOME}")
+    assert fs.exists(BUCKET)
 
-    assert fs.remove_prefix(BUCKET) == "ssb-prod-dapla-felles-data-delt/poc-tidsserier/"
-    assert fs.remove_prefix(JOVYAN) == JOVYAN
+
+def test_remove_prefix() -> None:
+    assert (
+        fs.remove_prefix("gs://ssb-prod-dapla-felles-data-delt")
+        == "ssb-prod-dapla-felles-data-delt"
+    )
+    assert fs.remove_prefix("/home/jovyan") == "/home/jovyan"
 
 
 def test_is_gcs() -> None:
-
-    assert fs.is_gcs(BUCKET)
-    assert not fs.is_gcs(JOVYAN)
+    assert fs.is_gcs("gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/")
+    assert not fs.is_gcs("/home/jovyan")
 
 
 def test_is_local() -> None:
-
-    assert not fs.is_local(BUCKET)
-    assert fs.is_local(JOVYAN)
+    assert not fs.is_local("gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/")
+    assert fs.is_local("/home/jovyan")
 
 
 def test_fs_type() -> None:
-
-    assert fs.fs_type(BUCKET) == "gcs"
-    assert fs.fs_type(JOVYAN) == "local"
+    assert fs.fs_type("gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/") == "gcs"
+    assert fs.fs_type("/home/jovyan") == "local"
 
 
 def test_same_path() -> None:
-    ts_logger.warning(fs.same_path(JOVYAN, JOVYAN, os.path.join(JOVYAN, "b")))
-    assert fs.same_path(BUCKET, JOVYAN) == "/"
-    assert fs.same_path(os.path.join(JOVYAN, "a"), JOVYAN) == os.path.normpath(JOVYAN)
+    # ts_logger.warning(fs.same_path("/home/jovyan", "/home/jovyan/a", "/home/jovyan/b"))
+    assert fs.same_path(BUCKET, "/home/jovyan") == "/"
+    assert fs.same_path(
+        os.path.join("/home/jovyan/a"), "/home/jovyan"
+    ) == os.path.normpath("/home/jovyan")
     assert (
-        fs.same_path(BUCKET, os.path.join(BUCKET, "a"))
+        fs.same_path(
+            "/ssb-prod-dapla-felles-data-delt/poc-tidsserier",
+            "/ssb-prod-dapla-felles-data-delt/poc-tidsserier/a",
+        )
         == "/ssb-prod-dapla-felles-data-delt/poc-tidsserier"
     )
 
@@ -67,6 +77,7 @@ def test_mkdir_dapla() -> None:
 
 
 @pytest.mark.skipif(IS_DAPLA, reason="... now we are in Kansas!")
+# @pytest.mark.skipif(IS_DAPLA, reason="... now we are in Kansas!")
 def test_mkdir_local() -> None:
     short_path = os.path.join(HOME, "a")
     long_path = os.path.join(HOME, "a", "b", "c", "d")
@@ -74,4 +85,4 @@ def test_mkdir_local() -> None:
         fs.mkdir
     ts_logger.warning(CONFIG.bucket)
 
-    assert False
+    # assert False

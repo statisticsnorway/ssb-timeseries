@@ -35,8 +35,8 @@ class FileSystem:
             pass
             # ecxception if not
         else:
-            rounded_utc = as_of_utc
-            self.as_of_utc: datetime = rounded_utc.isoformat()
+            # rounded_utc = as_of_utc
+            self.as_of_utc: datetime = as_of_utc.isoformat()
 
     # def __new__(
     #     cls,
@@ -211,9 +211,11 @@ class FileSystem:
         files = fs.ls(dir, pattern=pattern)
         number_of_files = len(files)
 
-        vs = [int(re.search("(_v)([0-9]+)(.parquet)", f).group(2)) for f in files]
-        ts_logger.warning(
-            f"DATASET {self.set_name}: io.last_version regex identified versions {vs}."
+        vs = sorted(
+            [int(re.search("(_v)([0-9]+)(.parquet)", f).group(2)) for f in files]
+        )
+        ts_logger.debug(
+            f"DATASET {self.set_name}: io.last_version regex identified versions {vs} in {dir}."
         )
         if vs:
             read_from_filenames = max(vs)
@@ -246,17 +248,16 @@ class FileSystem:
         period_to: str = "",
     ) -> str:
         dir = self.snapshot_directory(product=product, process_stage=process_stage)
-        last_vs = self.last_version(dir=dir, pattern="*.parquet")
+        next_vs = self.last_version(dir=dir, pattern="*.parquet") + 1
 
         if as_of_utc:
-            out = f"{self.set_name}_p{utc_iso(period_from)}_p{utc_iso(period_to)}_v{utc_iso(as_of_utc)}_v{last_vs+1}"
+            out = f"{self.set_name}_p{utc_iso(period_from)}_p{utc_iso(period_to)}_v{utc_iso(as_of_utc)}_v{next_vs}"
         else:
-            out = f"{self.set_name}_p{utc_iso(period_from)}_p{utc_iso(period_to)}_v{last_vs+1}"
+            out = f"{self.set_name}_p{utc_iso(period_from)}_p{utc_iso(period_to)}_v{next_vs}"
 
-            # ouch! - to comply with the naming standard we need to know more about the data
-            # than seems right for this module (tight coupling):
+            #  to comply with the naming standard we need to stuff about the data
             ts_logger.debug(
-                f"DATASET last version {last_vs+1} from {period_from} to {period_to}.')"
+                f"DATASET last version {next_vs} from {period_from} to {period_to}.')"
             )
         return out
 
@@ -271,7 +272,7 @@ class FileSystem:
         #     dir = os.path.join(bucket, self.set_name)
 
         dir = os.path.join(bucket, self.set_name)
-        ts_logger.debug(f"DATASET.IO.SHARING_DIRECTORY: {dir}")
+        ts_logger.warning(f"DATASET.IO.SHARING_DIRECTORY: {dir}")
         fs.mkdir(dir)
         return dir
 
@@ -363,140 +364,140 @@ class FileSystem:
         return path
 
 
-class Local(FileSystem):
-    type_name = "local"
+# class Local(FileSystem):
+#     type_name = "local"
 
-    def init_fs(self) -> None:
-        pass
+#     def init_fs(self) -> None:
+#         pass
 
 
-class GoogleCloudStorage(FileSystem):
-    type_name = "gcs"
+# class GoogleCloudStorage(FileSystem):
+#     type_name = "gcs"
 
-    def init_fs(self) -> None:
-        # try: ... except: ... is a workaround for 23 warnings from dapla.FileClient.get_gcs_file_system():
-        #  Implementing implicit namespace packages (as specified in PEP 420) is preferred to
-        #   `pkg_resources.declare_namespace`.
-        #   See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
-        # self.gcs = FileClient.get_gcs_file_system()
-        pass
+#     def init_fs(self) -> None:
+#         # try: ... except: ... is a workaround for 23 warnings from dapla.FileClient.get_gcs_file_system():
+#         #  Implementing implicit namespace packages (as specified in PEP 420) is preferred to
+#         #   `pkg_resources.declare_namespace`.
+#         #   See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+#         # self.gcs = FileClient.get_gcs_file_system()
+#         pass
 
-    def read_data(
-        self, interval: Interval = Interval.all, *args, **kwargs
-    ) -> pandas.DataFrame:
-        ts_logger.debug(interval)
+#     def read_data(
+#         self, interval: Interval = Interval.all, *args, **kwargs
+#     ) -> pandas.DataFrame:
+#         ts_logger.debug(interval)
 
-        if fs.exists(self.data_fullpath):
-            ts_logger.debug(
-                f"DATASET {self.set_name}: Reading data from file {self.data_fullpath}"
-            )
-            try:
-                with self.gcs.open(self.data_fullpath, "rb"):
-                    df = pandas.read_parquet(self.data_fullpath)
-                ts_logger.info(f"DATASET {self.set_name}: Read data.")
-            except FileNotFoundError:
-                ts_logger.exception(
-                    f"DATASET {self.set_name}: Read data failed. File not found: {self.data_fullpath}"
-                )
-                df = pandas.DataFrame()
+#         if fs.exists(self.data_fullpath):
+#             ts_logger.debug(
+#                 f"DATASET {self.set_name}: Reading data from file {self.data_fullpath}"
+#             )
+#             try:
+#                 with self.gcs.open(self.data_fullpath, "rb"):
+#                     df = pandas.read_parquet(self.data_fullpath)
+#                 ts_logger.info(f"DATASET {self.set_name}: Read data.")
+#             except FileNotFoundError:
+#                 ts_logger.exception(
+#                     f"DATASET {self.set_name}: Read data failed. File not found: {self.data_fullpath}"
+#                 )
+#                 df = pandas.DataFrame()
 
-        else:
-            df = pandas.DataFrame()
+#         else:
+#             df = pandas.DataFrame()
 
-        ts_logger.debug(f"DATASET {self.set_name}: read data:\n{df}")
-        return df
+#         ts_logger.debug(f"DATASET {self.set_name}: read data:\n{df}")
+#         return df
 
-    def write_data(self, new: pandas.DataFrame):
-        ts_logger.info(
-            f"DATASET {self.set_name}: write data to file {self.data_fullpath}."
-        )
+#     def write_data(self, new: pandas.DataFrame):
+#         ts_logger.info(
+#             f"DATASET {self.set_name}: write data to file {self.data_fullpath}."
+#         )
 
-        if self.data_type.versioning == properties.Versioning.AS_OF:
-            df = new
-        else:
-            old = self.read_data(self.set_name)
-            if old.empty:
-                df = new
-            else:
-                date_cols = list(
-                    set(new.columns)
-                    & set(old.columns)
-                    & {"valid_at", "valid_from", "valid_to"}
-                )
-                df = pandas.concat(
-                    [old, new],
-                    axis=0,
-                    ignore_index=True,
-                ).drop_duplicates(date_cols, keep="last")
+#         if self.data_type.versioning == properties.Versioning.AS_OF:
+#             df = new
+#         else:
+#             old = self.read_data(self.set_name)
+#             if old.empty:
+#                 df = new
+#             else:
+#                 date_cols = list(
+#                     set(new.columns)
+#                     & set(old.columns)
+#                     & {"valid_at", "valid_from", "valid_to"}
+#                 )
+#                 df = pandas.concat(
+#                     [old, new],
+#                     axis=0,
+#                     ignore_index=True,
+#                 ).drop_duplicates(date_cols, keep="last")
 
-        try:
-            ts_logger.debug(df)
-            with self.gcs.open(self.data_fullpath, "wb"):
-                df.to_parquet(self.data_fullpath)
-        except Exception as e:
-            ts_logger.exception(
-                f"DATASET {self.set_name}: writing data to {self.data_fullpath} returned exception: {e}."
-            )
-        ts_logger.info(
-            f"DATASET {self.set_name}: writing data to file {self.data_fullpath}."
-        )
+#         try:
+#             ts_logger.debug(df)
+#             with self.gcs.open(self.data_fullpath, "wb"):
+#                 df.to_parquet(self.data_fullpath)
+#         except Exception as e:
+#             ts_logger.exception(
+#                 f"DATASET {self.set_name}: writing data to {self.data_fullpath} returned exception: {e}."
+#             )
+#         ts_logger.info(
+#             f"DATASET {self.set_name}: writing data to file {self.data_fullpath}."
+#         )
 
-    def read_metadata(self) -> dict:
-        meta: dict = {"name": self.set_name}
-        if self.gcs.exists(self.metadata_fullpath):
-            ts_logger.info(
-                f"DATASET {self.set_name}: START: Reading metadata from file {self.metadata_fullpath}."
-            )
-            with self.gcs.open(self.metadata_fullpath, "r") as file:
-                meta = json.load(file)
-        return meta
+#     def read_metadata(self) -> dict:
+#         meta: dict = {"name": self.set_name}
+#         if self.gcs.exists(self.metadata_fullpath):
+#             ts_logger.info(
+#                 f"DATASET {self.set_name}: START: Reading metadata from file {self.metadata_fullpath}."
+#             )
+#             with self.gcs.open(self.metadata_fullpath, "r") as file:
+#                 meta = json.load(file)
+#         return meta
 
-    def write_metadata(self, meta) -> None:
-        try:
-            ts_logger.info(
-                f"DATASET {self.set_name}: Writing metadata to file {self.metadata_fullpath}."
-            )
-            with self.gcs.open(self.metadata_fullpath, "w") as file:
-                ts_logger.debug(meta)
-                json.dump(meta, file, indent=4, ensure_ascii=False)
-        except Exception as e:
-            ts_logger.exception(
-                f"DATASET {self.set_name}: ERROR: Writing metadata to file {self.metadata_fullpath} returned exception {e}."
-            )
+#     def write_metadata(self, meta) -> None:
+#         try:
+#             ts_logger.info(
+#                 f"DATASET {self.set_name}: Writing metadata to file {self.metadata_fullpath}."
+#             )
+#             with self.gcs.open(self.metadata_fullpath, "w") as file:
+#                 ts_logger.debug(meta)
+#                 json.dump(meta, file, indent=4, ensure_ascii=False)
+#         except Exception as e:
+#             ts_logger.exception(
+#                 f"DATASET {self.set_name}: ERROR: Writing metadata to file {self.metadata_fullpath} returned exception {e}."
+#             )
 
-    def search(self, pattern="", *args, **kwargs):
-        if pattern:
-            pattern = f"*{pattern}*"
-        else:
-            pattern = "*"
+#     def search(self, pattern="", *args, **kwargs):
+#         if pattern:
+#             pattern = f"*{pattern}*"
+#         else:
+#             pattern = "*"
 
-        search_str = os.path.join(CONFIG.timeseries_root, "*", pattern)
-        dirs = self.gcs.glob(search_str)
-        ts_logger.warning(f"DATASET.IO.SEARCH: {search_str} dirs{dirs}")
-        search_results = [
-            d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
-        ]
-        ts_logger.warning(f"DATASET.IO.SEARCH: search_results{search_results}")
+#         search_str = os.path.join(CONFIG.timeseries_root, "*", pattern)
+#         dirs = self.gcs.glob(search_str)
+#         ts_logger.warning(f"DATASET.IO.SEARCH: {search_str} dirs{dirs}")
+#         search_results = [
+#             d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
+#         ]
+#         ts_logger.warning(f"DATASET.IO.SEARCH: search_results{search_results}")
 
-        return [f[2] for f in search_results]
+#         return [f[2] for f in search_results]
 
-    @classmethod
-    def dir(self, *args, **kwargs) -> str:
-        """For GCS this method simply returns os.path.join(*args). This is required for consistency across file systems; for local file systems
-        it is a convenience classmethod for os.makedirs(os.path.join(*args)).
-        """
-        ts_logger.debug(f"{args}:")
-        path = os.path.join(*args)
-        # ts_root = str(self.root)
-        ts_root = str(CONFIG.bucket)
+#     @classmethod
+#     def dir(self, *args, **kwargs) -> str:
+#         """For GCS this method simply returns os.path.join(*args). This is required for consistency across file systems; for local file systems
+#         it is a convenience classmethod for os.makedirs(os.path.join(*args)).
+#         """
+#         ts_logger.debug(f"{args}:")
+#         path = os.path.join(*args)
+#         # ts_root = str(self.root)
+#         ts_root = str(CONFIG.bucket)
 
-        dir_is_in_series = os.path.commonpath([path, ts_root]) == ts_root
-        if dir_is_in_series:
-            return path
-        else:
-            raise DatasetIoException(
-                f"Directory {path} must be below {BUCKET} in file tree."
-            )
+#         dir_is_in_series = os.path.commonpath([path, ts_root]) == ts_root
+#         if dir_is_in_series:
+#             return path
+#         else:
+#             raise DatasetIoException(
+#                 f"Directory {path} must be below {BUCKET} in file tree."
+#             )
 
 
 class DatasetIoException(Exception):

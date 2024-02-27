@@ -5,6 +5,7 @@ from dapla import FileClient
 import shutil
 import glob
 import json
+from timeseries.logging import ts_logger, log_start_stop
 
 # import pyarrow
 import pandas
@@ -54,16 +55,21 @@ def existing_subpath(path: str):
 
 
 def dir_name(path: str):
-    if len(os.path.splitext(os.path.basename(path))) > 1:
+    basename = os.path.basename(path)
+    parts = os.path.splitext(basename)
+    ts_logger.warning(f".FS: base:{basename} split into parts{parts}")
+    if len(parts) > 1:
         d = os.path.dirname(path)
     else:
         d = path
-    return os.path.normpath(d)
+    return d  # os.path.normpath(d)
 
 
 def mkdir(path):
     if is_local(path):
         os.makedirs(dir_name(path), exist_ok=True)
+    else:
+        pass
 
 
 def file_count(path: str, create=False):
@@ -97,13 +103,13 @@ def cp(from_path, to_path):
 
     match (from_type, to_type):
         case ("local", "local"):
-            shutil.copy(from_path, to_path)
+            shutil.copy2(from_path, to_path)
         case ("local", "gcs"):
             fs.put(from_path, to_path)
         case ("gcs", "local"):
             fs.get(from_path, to_path)
         case ("gcs", "gcs"):
-            fs.move(from_path, to_path)
+            fs.copy(from_path, to_path)
 
 
 def mv(from_path, to_path):
@@ -194,6 +200,7 @@ def pandas_read_parquet(
     *args,
     **kwargs,
 ) -> pandas.DataFrame:
+
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         with fs.open(path, "rb") as file:
@@ -203,10 +210,12 @@ def pandas_read_parquet(
             df = pandas.read_parquet(path)
         else:
             df = pandas.DataFrame()
-        return df
+
+    return df
 
 
 def pandas_write_parquet(df: pandas.DataFrame, path):
+
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         with fs.open(path, "wb") as file:

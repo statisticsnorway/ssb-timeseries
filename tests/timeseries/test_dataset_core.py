@@ -2,6 +2,7 @@ import os
 import uuid
 
 import logging
+import pytest
 
 from timeseries.dates import now_utc, date_utc
 from timeseries.logging import ts_logger, log_start_stop
@@ -20,7 +21,8 @@ def test_dataset_instance_created(caplog) -> None:
     assert isinstance(example, Dataset)
 
 
-def SKIP_test_dataset_instance_created_equals_repr(caplog) -> None:
+@pytest.mark.skipif(True, reason="Broken.")
+def test_dataset_instance_created_equals_repr(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -45,8 +47,9 @@ def SKIP_test_dataset_instance_created_equals_repr(caplog) -> None:
     assert a.identical(b)
 
 
+@pytest.mark.skipif(True, reason="Broken.")
 @log_start_stop
-def SKIP_test_dataset_instance_identity(caplog) -> None:
+def test_dataset_instance_identity(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -310,10 +313,10 @@ def test_snapshot_simple_set_has_higher_snapshot_file_count_after(caplog):
     x.product = "sample-data"
 
     stage_path = x.io.snapshot_directory(
-        product="sample-data", process_stage=x.process_stage
+        product=x.product, process_stage=x.process_stage
     )
-    path_123 = x.io.dir(CONFIG.bucket, "sample-data", "shared", "s123")
-    path_234 = x.io.dir(CONFIG.bucket, "sample-data", "shared", "s234")
+    path_123 = x.io.dir(CONFIG.bucket, x.product, "shared", "s123")
+    path_234 = x.io.dir(CONFIG.bucket, x.product, "shared", "s234")
     x.sharing = [
         {
             "team": "s123",
@@ -375,8 +378,8 @@ def test_snapshot_estimate_has_higher_file_count_after(caplog):
     stage_path = x.io.snapshot_directory(
         product="sample-data", process_stage=x.process_stage
     )
-    path_123 = x.io.dir(CONFIG.bucket, "sample-data", "shared", "s123")
-    path_234 = x.io.dir(CONFIG.bucket, "sample-data", "shared", "s234")
+    path_123 = x.io.dir(CONFIG.bucket, x.product, "shared", "s123")
+    path_234 = x.io.dir(CONFIG.bucket, x.product, "shared", "s234")
     x.sharing = [
         {
             "team": "s123",
@@ -392,6 +395,8 @@ def test_snapshot_estimate_has_higher_file_count_after(caplog):
     path_234 = x.io.dir(path_234, x.name)
 
     x.save()
+    ts_logger.debug(f"SNAPSHOT conf.bucket {CONFIG.bucket}")
+    ts_logger.warning(f"SNAPSHOT to {path_123}")
 
     count_before_snapshot = fs.file_count(stage_path, create=True)
     count_before_123 = fs.file_count(path_123, create=True)

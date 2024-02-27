@@ -1,7 +1,4 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 BUCKET = os.getenv("BUCKET")
 DEFAULT = os.getenv("HOME")
@@ -25,7 +22,7 @@ class Config:
             case "shared":
                 root = self.shared
             case "home" | "~":
-                root = "~"
+                root = os.getenv("HOME")
             case "":
                 if BUCKET:
                     root = BUCKET
