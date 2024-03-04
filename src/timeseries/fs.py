@@ -1,11 +1,13 @@
 # from abc import ABC, abstractmethod
-import contextlib
+# import contextlib
 import os
 from dapla import FileClient
 import shutil
 import glob
 import json
-from timeseries.logging import ts_logger, log_start_stop
+
+# from timeseries.logging import ts_logger  # , log_start_stop
+from pathlib import Path
 
 # import pyarrow
 import pandas
@@ -34,11 +36,13 @@ def fs_type(path: str):
 
 
 def exists(path: str):
-    if is_gcs(path):
+    if not path:
+        return False
+    elif is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         return fs.exists(path)
     else:
-        return os.path.exists(path)
+        return Path(path).exists()
 
 
 def existing_subpath(path: str):
@@ -54,20 +58,39 @@ def existing_subpath(path: str):
     return out
 
 
-def dir_name(path: str):
-    basename = os.path.basename(path)
-    parts = os.path.splitext(basename)
-    ts_logger.warning(f".FS: base:{basename} split into parts{parts}")
-    if len(parts) > 1:
-        d = os.path.dirname(path)
+def touch(path: str):
+    if is_gcs(path):
+        fs = FileClient.get_gcs_file_system()
+        fs.touch(path)
     else:
-        d = path
-    return d  # os.path.normpath(d)
+        Path(path).touch()
+
+
+# def dir_name(path: str):
+#     basename = os.path.basename(path)
+#     parts = os.path.splitext(basename)
+#     if len(parts) > 1:
+#         d = os.path.dirname(path)
+#     else:
+#         d = path
+
+#     return d  # os.path.normpath(d)
 
 
 def mkdir(path):
+    # not good enough .. it is hard to distinguish between dirs and files that do not exist yet
     if is_local(path):
-        os.makedirs(dir_name(path), exist_ok=True)
+        os.makedirs(path, exist_ok=True)
+    else:
+        pass
+
+
+def mk_parent_dir(path):
+    # wanted a mkdir that could work with both file and directory paths,
+    # but it is hard to distinguish between dirs and files that do not exist yet
+    # --> use this to create parent directory for files, mkdir() when the last part of path is a directory
+    if is_local(path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
     else:
         pass
 
@@ -99,7 +122,8 @@ def cp(from_path, to_path):
     to_type = fs_type(to_path)
     if is_gcs(from_path) | is_gcs(to_path):
         fs = FileClient.get_gcs_file_system()
-    mkdir(to_path)
+    else:
+        os.makedirs(os.path.dirname(to_path), exist_ok=True)
 
     match (from_type, to_type):
         case ("local", "local"):
@@ -124,6 +148,8 @@ def mv(from_path, to_path):
 
     if is_gcs(from_path) | is_gcs(to_path):
         fs = FileClient.get_gcs_file_system()
+    else:
+        os.makedirs(os.path.dirname(to_path), exist_ok=True)
 
     match (from_type, to_type):
         case ("local", "local"):
@@ -163,30 +189,6 @@ def find(path, pattern="", *args, **kwargs):
         return [f[2] for f in search_results]
 
 
-@contextlib.contextmanager
-def create_temp_directory_and_delete_after_use(path):
-    """Create a temporary directory (ONLY if not exists), to be used like so:
-
-    with create_temp_directory_and_delete_after_use(path):
-        do_stuff()
-
-    """
-    target_exists = exists(path)
-
-    CWD = os.getcwd()
-
-    try:
-        if os.path.isdir(path):
-            os.chdir(path)
-        else:
-            os.makedirs(path, exist_ok=True)
-            os.chdir(path)
-
-        yield
-    finally:
-        os.chdir(CWD)
-
-
 def read_parquet(path):
     pass
 
@@ -221,7 +223,7 @@ def pandas_write_parquet(df: pandas.DataFrame, path):
         with fs.open(path, "wb") as file:
             df.to_parquet(file)
     else:
-        mkdir(path)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         df.to_parquet(path)
 
 
@@ -241,7 +243,7 @@ def write_json(path, content) -> None:
         with fs.open(path, "w") as file:
             json.dump(content, file, indent=4, ensure_ascii=False)
     else:
-        mkdir(path)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as file:
             json.dump(content, file, indent=4, ensure_ascii=False)
 
@@ -262,3 +264,11 @@ def write_json(path, content) -> None:
 # # using this to read a partitioned dataset
 # import pyarrow.dataset as ds
 # ds.dataset("data/", filesystem=fs)
+
+
+@staticmethod
+def funcname(parameter_list):
+    """
+    docstring
+    """
+    pass

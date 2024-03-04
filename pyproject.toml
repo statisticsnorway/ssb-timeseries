@@ -2,7 +2,7 @@
 name = "arkitektur-poc-tidsserier"
 version = "0.1.0"
 description = ""
-authors = ["Bernhard Ryeng <'rye@ssb.no>"]
+authors = ["Bernhard Ryeng <rye@ssb.no>"]
 license = "MIT"
 readme = "README.md"
 
@@ -28,4 +28,3 @@ pythonpath = ["src"]
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-

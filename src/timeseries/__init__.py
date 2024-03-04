@@ -1,1 +1,10 @@
-__all__ = ["dataset", "dates", "io", "logging", "properties", "sample_data"]
+__all__ = [
+    "dataset",
+    "dates",
+    "io",
+    "fs",
+    "config",
+    "logging",
+    "properties",
+    "sample_data",
+]

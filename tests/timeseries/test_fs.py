@@ -1,4 +1,5 @@
 import os
+import uuid
 import pytest
 
 from timeseries.io import CONFIG
@@ -8,6 +9,7 @@ from timeseries.logging import ts_logger
 BUCKET = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/"
 JOVYAN = "/home/jovyan/series_data/"
 HOME = os.getenv("HOME")
+# GCS_VISIBLE = fs.exists(BUCKET)
 IS_DAPLA = HOME == "/home/jovyan"
 
 
@@ -61,28 +63,32 @@ def test_root_and_home_exists() -> None:
 
 
 def test_existing_subpath() -> None:
-    long_path = os.path.join(HOME, "a", "b", "c", "d")
-    if fs.exists(HOME) and not fs.exists(long_path):
-        ts_logger.warning(fs.existing_subpath(long_path))
-
+    long_path = os.path.join(HOME, f"this-dir-does-not-to-exist-{uuid.uuid4()}")
+    assert fs.exists(HOME)
+    assert not fs.exists(long_path)
     assert fs.existing_subpath(long_path) == HOME
 
 
-@pytest.mark.skipif(not IS_DAPLA, reason="I do not think we are in Kansas anymore.")
-def test_mkdir_dapla() -> None:
+# @pytest.mark.skipif(not GCS_VISIBLE, reason="Can not see GCS.")
+# def test_mkdir_dapla() -> None:
 
-    ts_logger.warning(BUCKET)
-    fs.mkdir(os.path.join(BUCKET, "tests", "a", "b", "c"))
-    assert fs.exists(os.path.join(BUCKET, "tests", "a", "b", "c"))
+#     ts_logger.warning(f"Can see{BUCKET}")
+#     a = f"temp-dir-while-running-tests-{uuid.uuid4()}"
+#     fs.mkdir(os.path.join(BUCKET, "tests", a, "b", "c"))
+#     assert fs.exists(os.path.join(BUCKET, "tests", "a", "b", "c"))
 
 
-@pytest.mark.skipif(IS_DAPLA, reason="... now we are in Kansas!")
-# @pytest.mark.skipif(IS_DAPLA, reason="... now we are in Kansas!")
-def test_mkdir_local() -> None:
-    short_path = os.path.join(HOME, "a")
-    long_path = os.path.join(HOME, "a", "b", "c", "d")
-    if fs.exists(HOME) and not fs.exists(short_path):
-        fs.mkdir
-    ts_logger.warning(CONFIG.bucket)
+# # @pytest.mark.skipif(IS_DAPLA, reason="... now we are in Kansas!")
+# def test_mkdir_local() -> None:
+#     a = f"temp-dir-while-running-tests-{uuid.uuid4()}"
+#     short_path = os.path.join(HOME, a)
+#     if fs.exists(short_path):
+#         ts_logger.warning(f"The directory {short_path} already existed!")
+#         assert False
+#     else:
+#         long_path = os.path.join(HOME, a, "b", "c", "d")
+#         ts_logger.warning(f"Root: {CONFIG.bucket}")
+#         ts_logger.warning(f"Attempting to create local fs directory: {long_path}")
+#         fs.mkdir(long_path)
 
-    # assert False
+#         assert fs.exists(long_path)

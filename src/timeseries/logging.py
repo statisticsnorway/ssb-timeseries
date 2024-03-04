@@ -6,7 +6,8 @@
 
 import functools
 import logging
-import os
+
+# import os
 
 from datetime import datetime
 from timeseries.config import Config
@@ -17,13 +18,9 @@ log_json = logging.Formatter(
     '{"name": "%(name)s"; "level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" }'
 )
 
-# log to file
-# BUCKET: str = os.environ.get("BUCKET")
 CONFIG = Config()
 
-# LOG_LOCATION: str = os.environ.get("BUCKET", "/home/jovyan/logs")
-
-file_handler = logging.FileHandler(os.path.join(CONFIG.log_location, "timeseries.log"))
+file_handler = logging.FileHandler(CONFIG.log_file)
 file_handler.setFormatter(log_string)
 file_handler.setLevel(logging.INFO)
 ts_logger.addHandler(file_handler)

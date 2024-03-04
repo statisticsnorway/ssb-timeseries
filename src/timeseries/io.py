@@ -1,19 +1,20 @@
 # from abc import ABC, abstractmethod
 import os
 import glob
-import json
+
+# import json
 import pandas
 import datetime
 import re
 
 from timeseries import fs
 from timeseries import properties
-from timeseries.dates import Interval, date_round, utc_iso
+from timeseries.dates import Interval, utc_iso  # , date_round
 from timeseries.config import Config
 from timeseries.logging import ts_logger
 
 
-BUCKET: str = os.environ.get("BUCKET")
+# BUCKET: str = os.environ.get("BUCKET")
 CONFIG = Config()
 
 
@@ -321,8 +322,8 @@ class FileSystem:
                     meta_publish_path,
                     self.sharing_directory(bucket=s["path"], team=s["team"]),
                 )
-                ts_logger.info(
-                    f"DATASET {self.set_name}: share with {s['team']}, snapshot copied to {s['path']}."
+                ts_logger.warning(
+                    f"DATASET {self.set_name}: sharing with {s['team']}, snapshot copied to {s['path']}."
                 )
 
     def search(self, pattern="", *args, **kwargs):
@@ -358,7 +359,7 @@ class FileSystem:
             fs.mkdir(path)
         else:
             raise DatasetIoException(
-                f"Directory {path} must be below {BUCKET} in file tree."
+                f"Directory {path} must be below {ts_root} in file tree."
             )
 
         return path

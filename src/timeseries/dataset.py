@@ -176,7 +176,7 @@ class Dataset:
 
         date_from = self.data[self.datetime_columns()].min().min()
         date_to = self.data[self.datetime_columns()].max().max()
-        ts_logger.warning(
+        ts_logger.debug(
             f"DATASET {self.name}: Data {utc_iso(date_from)} - {utc_iso(date_to)}:\n{self.data.head()}\n...\n{self.data.tail()}"
         )
 

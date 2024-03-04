@@ -19,5 +19,8 @@
 # export PRODUCT=sample-data
 # export TIMESERIES_ROOT=${BUCKET}/${PRODUCT}/series_data
 # export LOG_LOCATION=${BUCKET}/${PRODUCT}/logs
+# export BUCKET=${HOME}/sample-data
 
-export BUCKET=${HOME}/sample-data
+# TO DO: rewrite
+echo "This script will be DEPRECATED. The smae timeseries/__main__.py can be executed by running "  
+python src/timeseries
