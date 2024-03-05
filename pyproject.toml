@@ -5,6 +5,7 @@ description = ""
 authors = ["Bernhard Ryeng <rye@ssb.no>"]
 license = "MIT"
 readme = "README.md"
+packages = [{include = "timeseries", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
@@ -28,3 +29,6 @@ pythonpath = ["src"]
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+timeseries-config = "timeseries.config:main"

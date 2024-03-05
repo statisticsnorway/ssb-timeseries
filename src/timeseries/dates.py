@@ -34,7 +34,7 @@ def date_utc(d, **kwargs) -> dt:
     if d is None:
         d = now_utc()
 
-    tz = kwargs.get("from_tz")
+    # tz = kwargs.get("from_tz")
 
     if not isinstance(d, dt):
         try:

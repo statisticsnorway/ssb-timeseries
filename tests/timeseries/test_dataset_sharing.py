@@ -1,12 +1,12 @@
-import uuid
+# import uuid
 
 import logging
 import pytest
 
-from timeseries.dates import now_utc, date_utc
+from timeseries.dates import date_utc  # now_utc,
 from timeseries.logging import ts_logger, log_start_stop
 from timeseries.dataset import Dataset
-from timeseries.properties import SeriesType, Versioning  # , Temporality
+from timeseries.properties import SeriesType  # , Versioning, Temporality
 from timeseries.sample_data import create_df
 from timeseries.io import CONFIG
 from timeseries import fs
@@ -15,6 +15,7 @@ BUCKET = CONFIG.bucket
 PRODUCT = "sample-data-product"
 
 
+@pytest.mark.skipif(False, reason="Don't skip.")
 @log_start_stop
 def test_snapshot_simple_set_has_higher_snapshot_file_count_after(caplog):
     caplog.set_level(logging.DEBUG)

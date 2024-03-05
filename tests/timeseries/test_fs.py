@@ -2,7 +2,7 @@ import os
 import uuid
 import pytest
 
-from timeseries.io import CONFIG
+# from timeseries.io import CONFIG
 from timeseries import fs
 from timeseries.logging import ts_logger
 

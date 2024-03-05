@@ -1,4 +1,5 @@
 # from dataclasses import dataclass
+import sys
 import os
 import json
 
@@ -60,24 +61,24 @@ class Config:
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
-    @classmethod
-    def shared_gcs(cls):
-        return cls(path="gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier")
+    # @classmethod
+    # def jovyan(cls):
+    #     return cls(
+    #         bucket="/home/jovyan",
+    #         timeseries_root="/home/jovyan/series_data",
+    #         log_file="/home/jovyan/logs/timeseries.log",
+    #     )
 
-    @classmethod
-    def jovyan(cls):
-        return cls(path="/home/jovyan")
+    # @classmethod
+    # def home(cls):
+    #     if TIMESERIES_CONFIG:
+    #         cfg = TIMESERIES_CONFIG
+    #     else:
+    #         cfg = os.path.join(HOME, ".configs", "timeseries", "config.json")
 
-    @classmethod
-    def home(cls):
-        if TIMESERIES_CONFIG:
-            cfg = TIMESERIES_CONFIG
-        else:
-            cfg = os.path.join(HOME, ".configs", "timeseries", "config.json")
-
-        return cls(
-            timeseries_root=os.path.join(HOME, "series_data"), configuration_file=cfg
-        )
+    #     return cls(
+    #         timeseries_root=os.path.join(HOME, "series_data"), configuration_file=cfg
+    #     )
 
     @classmethod
     def load(cls, path=TIMESERIES_CONFIG):
@@ -98,19 +99,35 @@ class Config:
 #     pass
 
 
-def main():
-    print("timeseries.config executed as main!")
+def main(*args):
+    print(f"timeseries.config executed as main! {sys.argv[0]}")
+    # for a, arg in enumerate(sys.argv[1:]):
+    #    print(f"{a} - {arg}")
 
-    # if TIMESERIES_CONFIG:
-    #     pass
-    # #     cfg = Config
-    # #     cfg.save(TIMESERIES_CONFIG)
-    # else:
-    #     os.environ["TIMESERIES_CONFIG"] = DEFAULT_CONFIG_LOCATION
-    #     cfg = Config(DEFAULT_CONFIG_LOCATION)
-    #     cfg.save(DEFAULT_CONFIG_LOCATION)
+    option = sys.argv[1]
+    print(option)
+    match option:
+        case "home":
+            cfg = Config(
+                bucket=HOME,
+            )
+        case "gcs":
+            cfg = Config(
+                bucket=GCS,
+            )
+        case "jovyan":
+            cfg = Config(
+                bucket=JOVYAN,
+                timeseries_root=os.path.join(JOVYAN, "series_data"),
+                log_file=os.path.join(JOVYAN, "logs", "timeseries.log"),
+            )
+    cfg.save()
+    print(cfg.toJSON())
 
 
 if __name__ == "__main__":
     # Execute when the module is not initialized from an import statement.
-    main()
+    print(f"Name of the script      : {sys.argv[0]=}")
+    print(f"Arguments of the script : {sys.argv[1:]=}")
+
+    main(sys.argv)
