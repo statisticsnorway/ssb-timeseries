@@ -4,26 +4,47 @@
 
 Statistics Norway is building a new procuction system in the cloud.
 
-In a move towards modern architecture, development methodology and open source technologies: 
- * Python is replacing SAS for production 
- * Oracle databases and ODI for ETL are largely to be replaced with Python code and Parquet files a data lake architecture.
+Responsibilities for maintaining the production environment is moved closer to the statistical processes owners.
 
-While databases are not completely banned, but as we shift responsibilities for maintaing larger the tech stack closer to the teams that own the statistical processesthorough consideration is required to apply them. The time series solution FAME needs a replacement. 
+Moving towards modern architecture, development methodology and open source technologies: 
 
-Basic read/write functionality, calculations, time aggregation and plotting was demonstrated Friday December 8. See `src/demo.ipynb` for demo content and `tests/test_*.py` for more examples of what works and in some cases what does not.
+ * Python and R are replacing SAS for production code.
+ * Oracle databases and ODI for ETL are being replaced by a data lake architecture relying heavily on Parquet files.
+ * The time series solution FAME is not moving along and a replacement has not been chosen. 
 
-Note that
- * linux spesific filepaths have been rewritten, *but not tested in a pure Windows environment*.
- * the solution relies on env vars  TIMESERIES_ROOT and LOG_LOCATION being set. They *must* be set if `/home/jovyan/sample-data` is not reachable, but *should* be set anyway.
-* with env variables set and the code on python path `poetry run pytest` should succeed. If not, let me know that I ****** something up. ;) 
+Time series are essential to statistics production, so this leaves a huge gap.  
+
+A complete solution will need cover several areas of functionality:
+
+ * Basics: storage with performant read and write, search and filtering 
+ * Descriptive metadata 
+ * Calculation support: math and statistics libraries
+ * Visualisation
+ * Workflow integration and process monitoring 
+ * Data lineage and ad hoc inspection
+
+This PoC aims to demonstrate how the key functionality may be provided with the core technologies Python and Parquet, in alignment with architecture decisions and process model requirements. As such, it 
+
+ * Basic functionality for read/write, calculations, time aggregation and plotting was demonstrated December 2023.
+ * Persisting snapshots in alignment with the process model, simple descriptive tagging and integrations with GCS buckets was added Q1 2024. 
 
 ## How to get started?
 
-The library is in a workable state and should work both locally (it was developed in VS Code on Windows using WSL) and in Jupyter. It is still in an exploratory phase, so there is a risk that fundamental choices are reversed and breaking changes introduced. 
+See notebook files and tests, `demo.ipynb` and `tests/test_*.py` for examples of usage, and what works and in some cases what does not.
 
-With that disclaimer, feel free to explore and experiment, and do not be shy about asking questions or giving feedback. At this stage, feedback is all important.
+Note that
+ * The library *should* be platform independent, but has been developed and tested mainly in a Linux environment.
+~~ * the solution relies on env vars  TIMESERIES_ROOT and LOG_LOCATION being set. They *must* be set if `/home/jovyan/sample-data` is not reachable, but *should* be set anyway.~~
+* The environment variable TIMESERIES_CONFIG is expected to to point to a JSON file with configurations.
+* The command `poetry run timeseries-config home` can be run from a terminal in order to create the environment variable and a file with default configurations in the home directory, ie `/home/jovyan` in the Jupyter environment (or the equivalent running locally).
+* The similar `poetry run timeseries-config gcs` will put configurations and logs in the home directory and time series data in a shared bucket `gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier`. 
+* With the environment variable set and the configuration in place `poetry run pytest` should succeed.
+* That is, if the code is on the python path. A little bit down the road, we aim to make the library available on PyPi and installable by way of `poetry add <...>`. Till then, you will need to clone this repo and make sure the code is visible to your project.
 
-Proper library packaging is planned for a later development stage. In the meantime, you will have to clone/pull directly from the GitHub repository.
+
+While the library is in a workable state and should work both locally and in JupyterLab, it is still in an exploratory phase. There is a risk that fundamental choices are reversed and breaking changes introduced. 
+
+With that disclaimer, feel free to explore and experiment, and do not be shy about asking questions or giving feedback. At this stage, feedback is all important. 
 
 Assuming you have Python working with a standard SSB setup for git and poetry etc, the following should get you going:
 
@@ -33,20 +54,18 @@ git clone https://github.com/statisticsnorway/arkitektur-poc-tidsserier.git
 
 # Run inside a poetry controlled venv:
 poetry shell
-
-# Create and set a location for data and log files.
-# This could be anywhere, but separated from the code is preferrable.
-mkdir series
-export TIMESERIES_ROOT=${PWD}/series
-export LOG_LOCATION=${PWD}/series
-
+## Create default config
+poetry run timeseries-config home
 # Run the tests to check that everything is OK: 
 poetry run pytest
-
-# A couple of the test cases *will* fail when running for the first time.  
-# They will create the structures they need and should succeed in subsequent runs.
-
+# A couple of the test cases *are expected* fail when running for the first time in a new location.  
+# They should create the structures they need and should succeed in subsequent runs.
 ```
+~~ No longer needed:~~ 
+~~ Create and set a location for data and log files. This could be anywhere, but separated from the code is preferrable.~~ 
+~~ mkdir series~~ 
+~~ export TIMESERIES_ROOT=${PWD}/series ~~ 
+~~ export LOG_LOCATION=${PWD}/series ~~ 
 
 
 ## Functionality overview

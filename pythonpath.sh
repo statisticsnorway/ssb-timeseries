@@ -1,26 +1,4 @@
 #!/usr/bin/env bash
 
-# do this from within python instead:
-# mkdir sample-data/inndata
-# mkdir sample-data/klargjorte-data
-# mkdir sample-data/statistikk
-# mkdir sample-data/utdata
-# mkdir sample-data/series
-# mkdir sample-data/logs
-#
-#    .io.init_root(path, products=['sample-data'], create_all=True)
-#
-
-# move this stuff to .venv?
-#export PRODUCT_BUCKET=${PWD}
-#export STATISTICS_PRODUCT=sample-data
-
-# export BUCKET=${PWD}
-# export PRODUCT=sample-data
-# export TIMESERIES_ROOT=${BUCKET}/${PRODUCT}/series_data
-# export LOG_LOCATION=${BUCKET}/${PRODUCT}/logs
-# export BUCKET=${HOME}/sample-data
-
-# TO DO: rewrite
-echo "This script will be DEPRECATED. The smae timeseries/__main__.py can be executed by running "  
-python src/timeseries
+echo "This script will be DEPRECATED." 
+echo "Run 'poetry run timeseries-config home' to create a config.json and point to it in the env var TIMESERIES_CONFIG."  
