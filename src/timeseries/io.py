@@ -7,15 +7,15 @@ import pandas
 import datetime
 import re
 
+from timeseries import config
 from timeseries import fs
 from timeseries import properties
 from timeseries.dates import Interval, utc_iso  # , date_round
-from timeseries.config import Config
 from timeseries.logging import ts_logger
 
 
-# BUCKET: str = os.environ.get("BUCKET")
-CONFIG = Config()
+TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
+CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
 
 
 class FileSystem:

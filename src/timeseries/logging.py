@@ -7,10 +7,10 @@
 import functools
 import logging
 
-# import os
+import os
 
 from datetime import datetime
-from timeseries.config import Config
+from timeseries import config
 
 ts_logger = logging.getLogger("TIMESERIES")
 log_string = logging.Formatter("%(name)s | %(levelname)s | %(asctime)s | %(message)s")
@@ -18,7 +18,8 @@ log_json = logging.Formatter(
     '{"name": "%(name)s"; "level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" }'
 )
 
-CONFIG = Config()
+TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
+CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
 
 file_handler = logging.FileHandler(CONFIG.log_file)
 file_handler.setFormatter(log_string)

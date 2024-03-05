@@ -19,16 +19,17 @@ def remember_config():
     """
     A fixture to make sure that running tests do not change the configuration file.
     """
-    print("before tests")
     config_file = os.getenv("TIMESERIES_CONFIG")
-    configuration = config.Config(configuration_file=config_file)
-    print(configuration)
+    if config_file:
+        configuration = config.Config(configuration_file=config_file)
+        print(f"Before tests, reading configuration: {configuration}")
 
-    # tests run here
-    yield
+        # tests run here
+        yield
 
-    print("after tests")
-    configuration.save(config_file)
+        print(f"Config after tests:\n{config.Config()}")
+        print(f"After tests, reset config to:\n{configuration}")
+        configuration.save(config_file)
 
 
 # @pytest.fixture(scope="module", autouse=True)

@@ -1,11 +1,7 @@
-import os.path
+# import os.path
 
 from timeseries import io
 from timeseries.properties import SeriesType
-
-# from timeseries.dates import date_utc
-
-# io.configs(root=os.getcwd(), product="sample-data")
 
 
 def test_dataset_dirs() -> None:

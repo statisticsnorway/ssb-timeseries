@@ -9,7 +9,8 @@ from timeseries.dataset import Dataset
 from timeseries.properties import SeriesType, Versioning  # , Temporality
 from timeseries.sample_data import create_df
 from timeseries.io import CONFIG
-from timeseries import fs
+
+# from timeseries import fs
 
 BUCKET = CONFIG.bucket
 
