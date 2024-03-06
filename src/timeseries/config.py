@@ -108,10 +108,10 @@ class Config:
         """
         fs.write_json(content=self.toJSON(), path=path)
         if HOME == JOVYAN:
-            # then for some reason, this does not work: os.environ["TIMESERIES_CONFIG"] = path
+            # For some reason `os.environ["TIMESERIES_CONFIG"] = path` does not work:
             cmd = f"export TIMESERIES_CONFIG={TIMESERIES_CONFIG}"
             os.system(cmd)
-            # os.system(f"echo '{cmd}' >> ~/.bashcr")
+            # os.system(f"echo '{cmd}' >> ~/.bashrc")
         else:
             os.environ["TIMESERIES_CONFIG"] = path
 
