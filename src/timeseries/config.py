@@ -9,6 +9,7 @@ GCS = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
 JOVYAN = "/home/jovyan"
 HOME: str = os.getenv("HOME")
 
+DEFAULT_BUCKET = HOME
 DEFAULT_TIMESERIES_LOCATION = os.path.join(HOME, "series_data")
 DEFAULT_CONFIG_LOCATION = os.path.join(HOME, "timeseries_config.json")
 DEFAULT_LOG_FILE_LOCATION: str = os.path.join(HOME, "logs", "timeseries.log")
@@ -34,8 +35,14 @@ class Config:
             self.configuration_file = configuration_file
             os.environ["TIMESERIES_CONFIG"] = configuration_file
         elif configuration_file:
-            print("OOOPS!")
-            3 / 0
+            if fs.exists(TIMESERIES_CONFIG):
+                self.load(TIMESERIES_CONFIG)
+                self.save(configuration_file)
+            else:
+                self.bucket = DEFAULT_BUCKET
+                self.timeseries_root = DEFAULT_TIMESERIES_LOCATION
+                self.log_file = DEFAULT_LOG_FILE_LOCATION
+
         elif fs.exists(TIMESERIES_CONFIG):
             self.load(TIMESERIES_CONFIG)
             self.configuration_file = TIMESERIES_CONFIG
@@ -57,7 +64,7 @@ class Config:
             if bucket:
                 self.bucket = bucket
             elif not self.bucket:
-                self.bucket = self.HOME
+                self.bucket = DEFAULT_BUCKET
 
             product = kwargs.get("product", "")
             if product:
@@ -130,7 +137,7 @@ def main(*args):
             timeseries_root = os.path.join(JOVYAN, "series_data")
             log_file = os.path.join(JOVYAN, "logs", "timeseries.log")
         case _:
-            bucket = HOME
+            bucket = DEFAULT_BUCKET
             timeseries_root = DEFAULT_TIMESERIES_LOCATION
             log_file = DEFAULT_LOG_FILE_LOCATION
 
