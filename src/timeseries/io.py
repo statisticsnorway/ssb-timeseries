@@ -505,9 +505,9 @@ class DatasetIoException(Exception):
     pass
 
 
-class DatasetDirectory(FileSystem):
+class DatasetDirectory:
     # renamed - for backward compatibility
     ts_logger.warning(
-        "The DatasetDirectory class was deprecated refactoring io.py, use FileSystem instead."
+        "The DatasetDirectory class has been deprecated, use FileSystem instead."
     )
     pass
