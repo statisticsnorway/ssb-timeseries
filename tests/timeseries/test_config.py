@@ -1,6 +1,7 @@
 import os
 import logging
 import pytest
+import uuid
 
 from timeseries import config
 from timeseries import fs
@@ -85,6 +86,15 @@ def test_read_config_from_file(remember_config) -> None:
 
         config_from_file = TIMESERIES_CONFIG
         assert isinstance(config_from_file, config.Config)
+
+
+def test_read_config_from_missing_json_file(remember_config) -> None:
+    tmp_config = os.path.join(os.getcwd(), f"timeseries_temp_config{uuid.uuid4()}.json")
+    configuration = config.Config(configuration_file=tmp_config, bucket=os.getcwd())
+    assert isinstance(configuration, config.Config)
+    assert configuration.bucket == os.getcwd()
+    assert configuration.log_file == config.DEFAULT_LOG_FILE_LOCATION
+    fs.rm(tmp_config)
 
 
 @pytest.mark.skipif(HOME != "/home/bernhard", reason="None of your business.")
