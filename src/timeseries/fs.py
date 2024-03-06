@@ -162,8 +162,24 @@ def mv(from_path, to_path):
             fs.move(from_path, to_path)
 
 
-def rm(path):
-    pass
+def rm(path, *args):
+    if is_gcs(path):
+        pass
+        # TO DO: implement this (but recursive)
+        # fs = FileClient.get_gcs_file_system()
+        # fs.rm(path)
+    else:
+        os.remove(path)
+
+
+def rmtree(path, *args):
+    if is_gcs(path):
+        pass
+        # TO DO: implement this (but recursive)
+        # fs = FileClient.get_gcs_file_system()
+        # fs.rm(path)
+    else:
+        shutil.rmtree(path)
 
 
 def same_path(*args):
@@ -238,6 +254,9 @@ def read_json(path) -> dict:
 
 
 def write_json(path, content) -> None:
+    if not isinstance(path, str):
+        path = json.loads(path)
+
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         with fs.open(path, "w") as file:

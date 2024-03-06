@@ -3,6 +3,8 @@ import sys
 import os
 import json
 
+from sqlalchemy import TIME
+
 from timeseries import fs
 
 GCS = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
@@ -105,7 +107,13 @@ class Config:
             path (pathlike/string, optional): Full path of the JSON file to save to. Defaults to the value of the environment variable TIMESERIES_CONFIG.
         """
         fs.write_json(content=self.toJSON(), path=path)
-        os.environ["TIMESERIES_CONFIG"] = path
+        if HOME == JOVYAN:
+            # then for some reason, this does not work: os.environ["TIMESERIES_CONFIG"] = path
+            cmd = f"export TIMESERIES_CONFIG={TIMESERIES_CONFIG}"
+            os.system(cmd)
+            # os.system(f"echo '{cmd}' >> ~/.bashcr")
+        else:
+            os.environ["TIMESERIES_CONFIG"] = path
 
 
 def main(*args):

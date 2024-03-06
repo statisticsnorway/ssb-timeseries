@@ -352,10 +352,9 @@ class FileSystem:
         # ts_root = str(self.root)
         ts_root = str(CONFIG.bucket)
 
-        dir_is_in_series = os.path.commonpath([path, ts_root]) == ts_root
         force = kwargs.get("force", False)
 
-        if dir_is_in_series or force:  # hidden feature: also for kwarg 'force' == True
+        if ts_root in path or force:  # hidden feature: also for kwarg 'force' == True
             fs.mkdir(path)
         else:
             raise DatasetIoException(

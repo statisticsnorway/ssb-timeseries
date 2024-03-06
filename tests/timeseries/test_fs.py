@@ -69,6 +69,32 @@ def test_existing_subpath() -> None:
     assert fs.existing_subpath(long_path) == HOME
 
 
+def test_is_in_path():
+    non_existing = str(uuid.uuid4())
+
+    gcs_parent = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
+    gcs_child = os.path.join(gcs_parent, non_existing)
+
+    local_parent = HOME
+    local_child = os.path.join(HOME, non_existing)
+
+    if False:
+        # ... I changed my mind about approach to problem when adding this test.
+        assert fs.existing_subpath(local_child) == local_parent
+        assert fs.existing_subpath(gcs_child) == gcs_parent
+
+    # ... the context for adding the test was these
+    # E    timeseries.io.DatasetIoException:
+    # Directory gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/sample-data-product/shared/s123
+    # must be below gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier in file tree.
+    # --> os.path.commonpath([path, ts_root]) == ts_root
+    path = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/sample-data-product/shared/s123"
+    ts_root = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
+    assert ts_root in path
+    # Fails: assert os.path.commonpath([path, ts_root]) == ts_root
+    # because os.path.commonpath([path, ts_root]) turns gs:// into gs:/
+
+
 # @pytest.mark.skipif(not GCS_VISIBLE, reason="Can not see GCS.")
 # def test_mkdir_dapla() -> None:
 
