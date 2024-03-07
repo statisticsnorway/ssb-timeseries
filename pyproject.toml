@@ -18,6 +18,7 @@ google-cloud-logging = "^3.8.0"
 pytz = "^2023.3.post1"
 polars = "^0.19.18"
 duckdb = "^0.10.0"
+datafusion = "^35.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.1.3"
