@@ -24,6 +24,10 @@ Default configs may be created by running
 See `config` module docs for details.
 """
 
+# from abc import ABC, abstractmethod
+# from typing import Protocol
+# import contextlib
+
 TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
 CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
 

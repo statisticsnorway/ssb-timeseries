@@ -3,8 +3,6 @@ import sys
 import os
 import json
 
-from sqlalchemy import TIME
-
 from timeseries import fs
 
 GCS = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"

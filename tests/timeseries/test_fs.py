@@ -69,7 +69,8 @@ def test_existing_subpath() -> None:
     assert fs.existing_subpath(long_path) == HOME
 
 
-def test_is_in_path():
+@pytest.mark.skipif(True, reason="Can not see GCS.")
+def test_that_child_dir_is_not_outside_parent():
     non_existing = str(uuid.uuid4())
 
     gcs_parent = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"

@@ -1,5 +1,3 @@
-# from abc import ABC, abstractmethod
-# import contextlib
 import os
 from dapla import FileClient
 import shutil
