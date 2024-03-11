@@ -367,6 +367,7 @@ class Dataset:
         return self.data.select_dtypes(include=np.number).columns
 
     def numeric_columns(self):
+        # return list(set(self.data.columns).difference(self.datetime_columns()))
         return list(set(self.data.columns).difference(self.datetime_columns()))
 
     def datetime_columns(self, *comparisons):
@@ -382,6 +383,8 @@ class Dataset:
                 intersect = set(c.data.columns) & intersect
             elif isinstance(c, pd.DataFrame):
                 intersect = set(c.columns) & intersect
+            else:
+                pass
 
         return list(intersect)
 
@@ -409,7 +412,13 @@ class Dataset:
             ts_logger.debug(
                 f"DATASET {self.name}: .math({self.name},{other.name}) redirect to operating on {other.name}.data."
             )
-            result_data = self.math(other.data, func)
+            result_data = self.data.copy()
+            # result_data = self.math(other.data, func)
+            result_data[self.numeric_columns()] = func(
+                self.data[self.numeric_columns()], other.data[other.numeric_columns()]
+            )
+            other_name = other.name
+            other_as_of = other.as_of_utc
 
             # return result_data
         elif isinstance(other, pd.DataFrame):
@@ -418,33 +427,41 @@ class Dataset:
                 f"DATASET {self.name}: .math({self.name}.{func.__name__}(pd.dataframe)."
             )
 
-            datetime_columns = self.datetime_columns(other)
-            if not datetime_columns:
-                raise ValueError("No common datetime column found.")
-
-            # Exclude datetime columns from both DataFrames
-            df1_values = self.data.drop(columns=datetime_columns)
-            df2_values = other.drop(columns=datetime_columns)
-
-            result_values = func(df1_values, df2_values)
-
-            result_data = pd.concat(
-                [self.data[list(datetime_columns)], result_values], axis=1
-            )
-
-        elif isinstance(other, (int, float)):
-            numeric_columns = self._numeric_columns()
-            result_data = self.data.copy()
-
-            for col in numeric_columns:
-                result_data[col] = func(result_data[col], other)
-
             # datetime_columns = self.datetime_columns(other)
-            # self.data[:, ~list(datetime_columns)] = func(
-            #     self.data[:, ~list(datetime_columns)], other
+            # if not datetime_columns:
+            #     raise ValueError("No common datetime column found.")
+
+            # # Exclude datetime columns from both DataFrames
+            # df1_values = self.data.drop(columns=datetime_columns)
+            # df2_values = other.drop(columns=datetime_columns)
+
+            # result_values = func(df1_values, df2_values)
+
+            # result_data = pd.concat(
+            #     [self.data[list(datetime_columns)], result_values], axis=1
             # )
 
+            result_data = self.data.copy()
+            num_cols = self.numeric_columns()
+            result_data[num_cols] = func(result_data[num_cols], other[num_cols])
+
+            other_name = "df"
+            other_as_of = None
+
+        elif isinstance(other, (int, float)):
+            result_data = self.data.copy()
+
+            # numeric_columns = self._numeric_columns()
+            # for col in numeric_columns:
+            #     result_data[col] = func(result_data[col], other)
+
+            num_cols = self.numeric_columns()
+            result_data[num_cols] = func(result_data[num_cols], other)
+
             # return result_data
+            other_name = "scalar"
+            other_as_of = None
+
         elif isinstance(other, np.ndarray):
             # Compare shape of the ndarray against the numeric_columns of self.data. There are up to 3 accepted cases (depending on the operation):
             #  * matrix;         shape = (data.numeric.rows, data.numeric.columns)
@@ -465,14 +482,28 @@ class Dataset:
                 raise ValueError(
                     f"Incompatible shapes for element-wise {func.__name__}"
                 )
+            other_name = "ndarray"
+            other_as_of = None
         else:
             raise ValueError("Unsupported operand type")
 
-        # TO DO: CONSIDER returning a (new) Dataset object instead?
-        return result_data
-        # out = Dataset(name=self.name, data_type=self.data_type, as_of_tz=self.as_of_utc)
-        # out.data = result_data
-        # return out
+        # TO DO: return (new) Dataset object instead!
+        # return result_data
+        if other_as_of:
+            out_as_of = max(self.as_of_utc, other_as_of)
+        else:
+            out_as_of = self.as_of_utc
+
+        out = Dataset(
+            name=f"({self.name}.{func.__name__}.{other_name})",
+            data_type=self.data_type,
+            as_of_tz=out_as_of,
+            data=result_data,
+        )
+        ts_logger.debug(
+            f"DATASET.math({func.__name__}, {self.name}, {other_name}) --> {out.name}\n\t{out.data}."
+        )
+        return out
 
     def __add__(self, other):
         return self.math(other, np.add)

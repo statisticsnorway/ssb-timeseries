@@ -58,29 +58,40 @@ def test_dataset_math(caplog) -> None:
     )
 
     scalar = 1000
-    # col_vector = np.ones((1, 3)) * scalar
-    # row_vector = np.ones((4, 1)) * scalar
-    # matrix = np.ones((4, 3)) * scalar
 
+    # TO DO: improve coverage by adding asserts for scalar cases
     ts_logger.debug(f"matrix:\n{a + scalar}")
     ts_logger.debug(f"matrix:\n{a - scalar}")
     ts_logger.debug(f"matrix:\n{a * scalar}")
     ts_logger.debug(f"matrix:\n{a / scalar}")
 
-    ts_logger.debug(f"matrix:\n{a + a_data}")
-    ts_logger.debug(f"matrix:\n{a - a_data}")
-    ts_logger.debug(f"matrix:\n{a * a_data}")
-    ts_logger.debug(f"matrix:\n{a / a_data}")
+    # TO DO: add test cases for numpy arrays
+    # col_vector = np.ones((1, 3)) * scalar
+    # row_vector = np.ones((4, 1)) * scalar
+    # matrix = np.ones((4, 3)) * scalar
 
-    ts_logger.debug(f"matrix:\n{a + a}")
-    ts_logger.debug(f"matrix:\n{a - a}")
-    ts_logger.debug(f"matrix:\n{a * a}")
-    ts_logger.debug(f"matrix:\n{a / a}")
+    # peek into the asserts below:
 
-    assert all((a + a) == (a + a_data))
-    assert all((a - a) == (a - a_data))
-    assert all((a * a) == (a * a_data))
-    assert all((a / a) == (a / a_data))
+    # ts_logger.debug(f"matrix:\n{a + a_data}")
+    # ts_logger.debug(f"matrix:\n{a - a_data}")
+    # ts_logger.debug(f"matrix:\n{a * a_data}")
+    # ts_logger.debug(f"matrix:\n{a / a_data}")
+
+    # ts_logger.debug(f"matrix:\n{a + a}")
+    # ts_logger.debug(f"matrix:\n{a - a}")
+    # ts_logger.debug(f"matrix:\n{a * a}")
+    # ts_logger.debug(f"matrix:\n{a / a}")
+
+    assert all((a + a).data == (a + a_data).data)
+    assert all((a - a).data == (a - a_data).data)
+    assert all((a * a).data == (a * a_data).data)
+    assert all((a / a).data == (a / a_data).data)
+
+    # TO DO: add method dataset.__iter__ for these assertss to go though
+    # assert all((a + a) == (a + a_data))
+    # assert all((a - a) == (a - a_data))
+    # assert all((a * a) == (a * a_data))
+    # assert all((a / a) == (a / a_data))
 
 
 @log_start_stop
@@ -163,7 +174,9 @@ def test_dataset_add_dataset(caplog) -> None:
     ts_logger.warning(d)
     ts_logger.warning(all(d == c))
 
-    assert all(c == d)
+    assert all(c.data == d.data)
+    # must redefine equals for datasets
+    # assert all(c == d)
 
 
 @log_start_stop
@@ -187,7 +200,9 @@ def test_dataset_add_dataframe(caplog) -> None:
     b = a + df
     c = a * 2
 
-    assert all(b == c)
+    assert all(b.data == c.data)
+    # must redefine equals for datasets
+    # assert all(b == c)
 
 
 @log_start_stop
@@ -215,9 +230,9 @@ def test_dataset_subtract_dataset(caplog) -> None:
 
     c = a - b
 
-    assert all(c == 0)
+    # assert all(c == 0)
     # to be supplemented by
-    # assert all(c.data == 0)
+    assert all(c.data == 0)
 
 
 @log_start_stop
@@ -237,9 +252,10 @@ def test_dataset_subtract_dataframe(caplog) -> None:
     )
     b = a - data1
 
-    assert all(b == 0)
+    # assert all(b == 0)
+    # assert all(b == 0)
     # to be supplemented by
-    # assert all(b.data == 0)
+    assert all(b.data == 0)
 
 
 @log_start_stop
