@@ -1,6 +1,6 @@
+import pytest
 import os
 import logging
-import pytest
 import uuid
 
 from timeseries import config

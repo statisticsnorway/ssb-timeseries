@@ -1,8 +1,7 @@
-# from pandas import DataFrame as df
+import pytest
+
 from timeseries.sample_data import create_df
 import logging
-
-# from timeseries.logging import ts_logger
 
 
 def test_create_sample_from_single_string() -> None:

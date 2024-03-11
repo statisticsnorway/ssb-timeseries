@@ -84,7 +84,7 @@ def test_that_child_dir_is_not_outside_parent():
         assert fs.existing_subpath(local_child) == local_parent
         assert fs.existing_subpath(gcs_child) == gcs_parent
 
-    # ... the context for adding the test was these
+    # ... the context for adding the test was
     # E    timeseries.io.DatasetIoException:
     # Directory gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/sample-data-product/shared/s123
     # must be below gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier in file tree.
@@ -92,7 +92,7 @@ def test_that_child_dir_is_not_outside_parent():
     path = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/sample-data-product/shared/s123"
     ts_root = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
     assert ts_root in path
-    # Fails: assert os.path.commonpath([path, ts_root]) == ts_root
+    # Failed because: assert os.path.commonpath([path, ts_root]) == ts_root
     # because os.path.commonpath([path, ts_root]) turns gs:// into gs:/
 
 

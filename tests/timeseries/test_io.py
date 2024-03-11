@@ -1,4 +1,4 @@
-# import os.path
+import pytest
 
 from timeseries import io
 from timeseries.properties import SeriesType

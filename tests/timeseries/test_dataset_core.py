@@ -23,7 +23,7 @@ def test_dataset_instance_created(caplog) -> None:
     assert isinstance(example, Dataset)
 
 
-@pytest.mark.skipif(True, reason="Broken.")
+@pytest.mark.skipif(True, reason="revisit dataset.__repr__.")
 def test_dataset_instance_created_equals_repr(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
@@ -49,7 +49,7 @@ def test_dataset_instance_created_equals_repr(caplog) -> None:
     assert a.identical(b)
 
 
-@pytest.mark.skipif(True, reason="Broken.")
+@pytest.mark.skipif(True, reason="revisit dataset.identical.")
 @log_start_stop
 def test_dataset_instance_identity(caplog) -> None:
     caplog.set_level(logging.DEBUG)

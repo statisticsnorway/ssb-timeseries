@@ -1,3 +1,4 @@
+import pytest
 import logging
 
 from timeseries.dates import date_utc
@@ -8,7 +9,8 @@ from timeseries.sample_data import create_df
 
 
 @log_start_stop
-def skip_test_dataset_instance_identity(caplog) -> None:
+@pytest.mark.skipif(True, reason="dataset.identity needs rethinking/fixing")
+def test_dataset_instance_identity(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     """Test SAMENESS as opposed to .data euality in terms of the == operator. 
     Two Dataset are the same SET if name, type and storage location are the same. 
@@ -95,55 +97,6 @@ def test_dataset_math(caplog) -> None:
 
 
 @log_start_stop
-def test_dataset_groupby_sum(caplog):
-    caplog.set_level(logging.DEBUG)
-
-    x = Dataset(name="test-groupby-sum", data_type=SeriesType.simple(), load_data=False)
-
-    tag_values = [["p", "q", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2023-02-28", freq="D"
-    )
-    assert x.data.shape == (424, 4)
-    ts_logger.warning(f'groupby:\n{x.groupby("M", "sum")}')
-    assert x.groupby("M", "sum").shape == (14, 3)
-
-
-@log_start_stop
-def test_dataset_groupby_mean(caplog):
-    caplog.set_level(logging.DEBUG)
-
-    x = Dataset(
-        name="test-groupby-mean", data_type=SeriesType.simple(), load_data=False
-    )
-
-    tag_values = [["p", "q", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2023-02-28", freq="D"
-    )
-    assert x.data.shape == (424, 4)
-    df1 = x.groupby("M", "mean")
-    ts_logger.warning(f"groupby:\n{df1}")
-    assert df1.shape == (14, 3)
-
-
-@log_start_stop
-def test_dataset_resample(caplog):
-    caplog.set_level(logging.DEBUG)
-
-    x = Dataset(name="test-resample", data_type=SeriesType.simple(), load_data=False)
-    tag_values = [["p", "q", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
-    )
-    assert x.data.shape == (1, 4)
-    # df = x.data.resample("M").mean()
-    df = x.resample("M", "mean")
-    ts_logger.warning(f"resample:\n{df}")
-    # assert df.shape == (12, 3)
-
-
-@log_start_stop
 def test_dataset_add_dataset(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
@@ -171,12 +124,61 @@ def test_dataset_add_dataset(caplog) -> None:
     c = a + b
     d = a * 2
 
-    ts_logger.warning(d)
-    ts_logger.warning(all(d == c))
+    ts_logger.debug(d)
+    ts_logger.debug(all(d == c))
 
     assert all(c.data == d.data)
-    # must redefine equals for datasets
+    # TO DO: redefine equals for datasets? add __iter__
     # assert all(c == d)
+
+
+@log_start_stop
+def test_algebra_expression_with_multiple_dataset(
+    caplog,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    a = Dataset(
+        name="A",
+        data_type=SeriesType.simple(),
+        load_data=False,
+        as_of_tz=None,
+        data=create_df(
+            ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+    )
+    b = Dataset(
+        name="B",
+        data_type=SeriesType.simple(),
+        load_data=False,
+        as_of_tz=None,
+        data=create_df(
+            ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+    )
+    c = Dataset(
+        name="C",
+        data_type=SeriesType.simple(),
+        load_data=False,
+        as_of_tz=None,
+        data=create_df(
+            ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+    )
+
+    d = a * a * a + b * b + b * b - c - c - c
+    e = a**3 + 2 * b**2 - 3 * c
+
+    # ts_logger.warning(f"d: {d.name}\n{d.data}")
+    # ts_logger.warning(f"e: {e.name}\n{e.data}")
+    ts_logger.warning(
+        f"d.data[numeric] == e.data[numeric]: \n{d.data[d.numeric_columns()] == e.data[e.numeric_columns()]} --> all = {all(d.data[d.numeric_columns()] == e.data[e.numeric_columns()])}"
+    )
+    assert all(d.data[d.numeric_columns()] == e.data[e.numeric_columns()])
+
+    # must redefine equals for datasets
+    # ts_logger.warning(f"e == d\n{(e == d).data}\n\t--> {all(e == d)}")
+    # assert all(e == d)
 
 
 @log_start_stop

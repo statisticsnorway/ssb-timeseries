@@ -10,8 +10,6 @@ from timeseries import io
 from timeseries import properties as prop
 from timeseries.logging import ts_logger
 
-# from timeseries.sample_data import series_names
-
 utc_iso = dates.utc_iso
 
 
@@ -356,18 +354,73 @@ class Dataset:
                 ts_logger.warning(f"groupby\n{out}.")
                 ts_logger.warning(f"DATASET {self.name}: groupby\n{out}.")
 
-        return out
+        new_name = f"({self.name}.groupby({freq},{func})"
 
-    def resample(self, freq: str, func: str = "auto", *args, **kwargs):
-        # TO DO
-        # monthly_max = x.resample("M").max()
-        pass
+        return Dataset(
+            name=new_name,
+            data_type=self.data_type,
+            as_of_tz=self.as_of_utc,
+            data=out,
+        )
 
-    def _numeric_columns(self):
-        return self.data.select_dtypes(include=np.number).columns
+    def resample(self, freq: str, func, *args, **kwargs):
+        # TO DO: have a closer look at dates returned for last period when upsampling
+        # df = self.data.set_index(self.datetime_columns())
+        df = self.data.set_index(self.datetime_columns()).copy()
+        match func:
+            case "min":
+                out = df.resample(freq).min()
+            case "max":
+                out = df.resample(freq).max()
+            case "sum":
+                out = df.resample(freq).sum()
+            case "mean":
+                out = df.resample(freq).mean()
+            case "ffill":
+                out = df.resample(freq).ffill()
+            case "bfill":
+                out = df.resample(freq).bfill()
+            case _:
+                out = df.resample(freq, *args).apply(func)
+
+        new_name = f"new set:[{self.name}.resampled({freq}, {func}]"
+        return Dataset(
+            name=new_name,
+            data_type=self.data_type,
+            as_of_tz=self.as_of_utc,
+            data=out,
+        )
+
+    # TO DO: Add these? (needed to make all() and any() work?)
+    # def __iter__(self):
+    #     self.n = 0
+    #     return self
+    #
+    # def __next__(self):
+    #     if self.n <= self.data.columns:
+    #         x = self.n
+    #         self.n += 1
+    #         return x
+    #     else:
+    #         raise StopIteration
+    #     return x
+
+    # TO DO: rethink identity: is / is not behaviour
+    # def identical(self, other) -> bool:
+    #     # check_data = self.__eq__(other)
+    #     # return all(check_defs) and check_data.all()
+    #     return self.__dict__ == other.__dict__
+
+    def all(self) -> bool:
+        ts_logger.warning(all(self.data))
+        a = np.all(self.data[self.numeric_columns()])
+        return a
+
+    def any(self) -> bool:
+        a = np.any(self.data[self.numeric_columns()])
+        return a
 
     def numeric_columns(self):
-        # return list(set(self.data.columns).difference(self.datetime_columns()))
         return list(set(self.data.columns).difference(self.datetime_columns()))
 
     def datetime_columns(self, *comparisons):
@@ -412,57 +465,37 @@ class Dataset:
             ts_logger.debug(
                 f"DATASET {self.name}: .math({self.name},{other.name}) redirect to operating on {other.name}.data."
             )
-            result_data = self.data.copy()
-            # result_data = self.math(other.data, func)
-            result_data[self.numeric_columns()] = func(
+            out_data = self.data.copy()
+            out_data[self.numeric_columns()] = func(
                 self.data[self.numeric_columns()], other.data[other.numeric_columns()]
             )
             other_name = other.name
             other_as_of = other.as_of_utc
 
-            # return result_data
         elif isinstance(other, pd.DataFrame):
             # element-wise matrix operation
             ts_logger.debug(
                 f"DATASET {self.name}: .math({self.name}.{func.__name__}(pd.dataframe)."
             )
 
-            # datetime_columns = self.datetime_columns(other)
-            # if not datetime_columns:
-            #     raise ValueError("No common datetime column found.")
-
-            # # Exclude datetime columns from both DataFrames
-            # df1_values = self.data.drop(columns=datetime_columns)
-            # df2_values = other.drop(columns=datetime_columns)
-
-            # result_values = func(df1_values, df2_values)
-
-            # result_data = pd.concat(
-            #     [self.data[list(datetime_columns)], result_values], axis=1
-            # )
-
-            result_data = self.data.copy()
+            out_data = self.data.copy()
             num_cols = self.numeric_columns()
-            result_data[num_cols] = func(result_data[num_cols], other[num_cols])
+            out_data[num_cols] = func(out_data[num_cols], other[num_cols])
 
             other_name = "df"
             other_as_of = None
 
         elif isinstance(other, (int, float)):
-            result_data = self.data.copy()
-
-            # numeric_columns = self._numeric_columns()
-            # for col in numeric_columns:
-            #     result_data[col] = func(result_data[col], other)
+            out_data = self.data.copy()
 
             num_cols = self.numeric_columns()
-            result_data[num_cols] = func(result_data[num_cols], other)
+            out_data[num_cols] = func(out_data[num_cols], other)
 
-            # return result_data
-            other_name = "scalar"
+            other_name = str(other)
             other_as_of = None
 
         elif isinstance(other, np.ndarray):
+            # TO DO: this needs more thorugh testing!
             # Compare shape of the ndarray against the numeric_columns of self.data. There are up to 3 accepted cases (depending on the operation):
             #  * matrix;         shape = (data.numeric.rows, data.numeric.columns)
             #  * column vector;  shape = (data.numeric.rows, 1)
@@ -472,12 +505,15 @@ class Dataset:
                 other.shape[0] == len(self.data)
                 or other.shape[0] == len(self.data.columns)
             ):
-                result_data = self.data.copy()
+                out_data = self.data.copy()
 
-                for col in self._numeric_columns():
-                    result_data[col] = func(result_data[col], other)
+                # for col in self._numeric_columns():
+                #    out_data[col] = func(out_data[col], other)
+                out_data[self.numeric_columns()] = func(
+                    out_data[self.numeric_columns()], other
+                )
 
-                # return result_data
+                # return out_data
             else:
                 raise ValueError(
                     f"Incompatible shapes for element-wise {func.__name__}"
@@ -488,7 +524,7 @@ class Dataset:
             raise ValueError("Unsupported operand type")
 
         # TO DO: return (new) Dataset object instead!
-        # return result_data
+        # return out_data
         if other_as_of:
             out_as_of = max(self.as_of_utc, other_as_of)
         else:
@@ -498,41 +534,65 @@ class Dataset:
             name=f"({self.name}.{func.__name__}.{other_name})",
             data_type=self.data_type,
             as_of_tz=out_as_of,
-            data=result_data,
+            data=out_data,
         )
         ts_logger.debug(
             f"DATASET.math({func.__name__}, {self.name}, {other_name}) --> {out.name}\n\t{out.data}."
         )
         return out
 
+    # TO DO: check how perfomrance of pure pyarrow or polars compares to numpy
+
     def __add__(self, other):
+        return self.math(other, np.add)
+
+    def __radd__(self, other):
         return self.math(other, np.add)
 
     def __sub__(self, other):
         return self.math(other, np.subtract)
 
+    def __rsub__(self, other):
+        return self.math(other, np.subtract)
+
     def __mul__(self, other):
+        return self.math(other, np.multiply)
+
+    def __rmul__(self, other):
         return self.math(other, np.multiply)
 
     def __truediv__(self, other):
         return self.math(other, np.divide)
 
+    def __rtruediv__(self, other):
+        return self.math(other, np.divide)
+
+    def __floordiv__(self, other):
+        return self.math(other, np.floor_divide)
+
+    def __rfloordiv__(self, other):
+        return self.math(other, np.floor_divide)
+
+    def __pow__(self, other):
+        return self.math(other, np.power)
+
+    def __rpow__(self, other):
+        return self.math(other, np.power)
+
+    def __mod__(self, other):
+        return self.math(other, np.mod)
+
+    def __rmod__(self, other):
+        return self.math(other, np.mod)
+
     def __eq__(self, other):
         return self.math(other, np.equal)
 
     def __gt__(self, other):
-        # return self._perform_comparison(other, np.greater)
         return self.math(other, np.greater)
 
     def __lt__(self, other):
-        # return self._perform_comparison(other, np.less)
         return self.math(other, np.less)
-
-    def identical(self, other) -> bool:
-        # check_data = self.__eq__(other)
-
-        # return all(check_defs) and check_data.all()
-        return self.__dict__ == other.__dict__
 
     def __repr__(self) -> str:
         return f'Dataset(name="{self.name}", data_type={repr(self.data_type)}, as_of_tz="{self.as_of_utc.isoformat()}")'
@@ -547,3 +607,14 @@ class Dataset:
                 "data": self.data.size,
             }
         )
+
+    # unfinished business
+    def reindex(self, index_type: str = "dt", freq="", *args) -> None:
+        match index_type:
+            case "dt" | "datetime":
+                self.data = self.data.set_index(self.datetime_columns(), *args)
+            case "p" | "period":
+                p = pd.PeriodIndex(self.data[self.datetime_columns], freq=freq)
+                self.data.reindex(p)
+            case _:
+                self.data = self.data.set_index(self.datetime_columns(), *args)
