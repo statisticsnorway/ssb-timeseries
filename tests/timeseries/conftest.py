@@ -22,13 +22,18 @@ def remember_config():
     config_file = os.getenv("TIMESERIES_CONFIG")
     if config_file:
         configuration = config.Config(configuration_file=config_file)
-        print(f"Before tests, reading configuration: {configuration}")
+        print(
+            f"Because TIMESERIES_CONFIG identifies a config file, before tests, read configuration: {configuration}"
+        )
 
-        # tests run here
-        yield
+    # tests run here
+    yield
 
-        print(f"Config after tests:\n{config.Config()}")
-        print(f"After tests, reset config to:\n{configuration}")
+    if config_file and os.path.isfile(config_file):
+        print(
+            f"To make sure the tests have not altered configurations:\n{config.Config()}"
+        )
+        print(f"revert to what we read above:\n{configuration}")
         configuration.save(config_file)
 
 
