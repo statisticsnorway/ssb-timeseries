@@ -15,15 +15,16 @@ import pandas
 
 
 def remove_prefix(path: str):
-    return path.replace("gs://", "")
+    # some os.* functions shorten gs://<path> to gs:/<path>
+    return path.replace("//", "/").replace("gs:/", "")
 
 
 def is_gcs(path: str):
-    return path[:5] == "gs://"
+    return path[:4] == "gs:/"
 
 
 def is_local(path: str):
-    return path[:5] != "gs://"
+    return path[:4] != "gs:/"
 
 
 def fs_type(path: str):
@@ -120,7 +121,7 @@ def cp(from_path, to_path):
     to_type = fs_type(to_path)
     if is_gcs(from_path) | is_gcs(to_path):
         fs = FileClient.get_gcs_file_system()
-    else:
+    if is_local(to_path):
         os.makedirs(os.path.dirname(to_path), exist_ok=True)
 
     match (from_type, to_type):
@@ -146,7 +147,7 @@ def mv(from_path, to_path):
 
     if is_gcs(from_path) | is_gcs(to_path):
         fs = FileClient.get_gcs_file_system()
-    else:
+    if is_local(to_path):
         os.makedirs(os.path.dirname(to_path), exist_ok=True)
 
     match (from_type, to_type):
