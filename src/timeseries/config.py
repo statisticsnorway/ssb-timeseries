@@ -88,15 +88,14 @@ class Config:
 
     def load(self, path):
         if path:
-            from_file = json.loads(fs.read_json(path))
-            print(f"{path} red as {type(from_file)} \n{from_file}")
+            read_from_file = json.loads(fs.read_json(path))
 
-            self.bucket = from_file.get("bucket")
-            self.timeseries_root = from_file.get("timeseries_root")
-            self.product = from_file.get("product", "")
-            self.log_file = from_file.get("log_file", "")
+            self.bucket = read_from_file.get("bucket")
+            self.timeseries_root = read_from_file.get("timeseries_root")
+            self.product = read_from_file.get("product", "")
+            self.log_file = read_from_file.get("log_file", "")
         else:
-            print("Config.load(path) was called with an empty path.")
+            raise ValueError("Config.load(<path>) was called with an empty path.")
 
     def save(self, path=TIMESERIES_CONFIG):
         """Saves configurations to JSON file and set environment variable TIMESERIES_CONFIG to the location of the file.
@@ -115,21 +114,37 @@ class Config:
 
 
 def main(*args):
-    print(f"Timeseries config executed as main! {sys.argv[0]}")
+    """Set configurations to predefined defaults when run from command line:
+        ```
+        poetry run timeseries-config <option>
+        ```
+    or
+        ```
+        python ./config.py <option>`
+        ```
+    Args:
+        option: 'home' | 'gcs' | 'jovyan'.
+    """
     # for a, arg in enumerate(sys.argv[1:]):
     #    print(f"{a} - {arg}")
 
     TIMESERIES_CONFIG = os.getenv("TIMESERIES_CONFIG", DEFAULT_CONFIG_LOCATION)
     if not TIMESERIES_CONFIG:
+        print(
+            "Environvent variable TIMESERIES_CONFIG is empty. Using default: {DEFAULT_CONFIG_LOCATION}."
+        )
         os.environ["TIMESERIES_CONFIG"] = DEFAULT_CONFIG_LOCATION
         TIMESERIES_CONFIG = DEFAULT_CONFIG_LOCATION
 
-    print(f"Configuration file: {TIMESERIES_CONFIG}")
+    if args:
+        named_config = args[0]
+    else:
+        named_config = sys.argv[1]
 
-    option = sys.argv[1]
-    print(f"Resetting configurations for: '{option}'.")
-
-    match option:
+    print(
+        f"Update configuration file TIMESERIES_CONFIG: {TIMESERIES_CONFIG}, with named presets: '{named_config}'."
+    )
+    match named_config:
         case "home":
             bucket = HOME
             timeseries_root = os.path.join(HOME, "series_data")
@@ -143,9 +158,9 @@ def main(*args):
             timeseries_root = os.path.join(JOVYAN, "series_data")
             log_file = os.path.join(JOVYAN, "logs", "timeseries.log")
         case _:
-            bucket = DEFAULT_BUCKET
-            timeseries_root = DEFAULT_TIMESERIES_LOCATION
-            log_file = DEFAULT_LOG_FILE_LOCATION
+            raise ValueError(
+                f"Unrecognised named configuration preset '{named_config}'."
+            )
 
     cfg = Config(
         configuration_file=TIMESERIES_CONFIG,
@@ -155,11 +170,12 @@ def main(*args):
     )
     cfg.save(TIMESERIES_CONFIG)
     print(cfg)
+    print(os.getenv("TIMESERIES_CONFIG"))
 
 
 if __name__ == "__main__":
-    # Execute when the module is not initialized from an import statement.
+    # Execute when called directly, ie not via import statements.
+    # ??? `poetry run timeseries-config <option>` does not appear to go this route.
     print(f"Name of the script      : {sys.argv[0]=}")
     print(f"Arguments of the script : {sys.argv[1:]=}")
-
-    main(sys.argv)
+    main(sys.argv[1])

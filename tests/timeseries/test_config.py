@@ -73,19 +73,14 @@ def test_read_config_from_file(remember_config, print_stuff) -> None:
             f"Env variable pointed to non-existing configuration file: {TIMESERIES_CONFIG}. Using {new_config}."
         )
         if isinstance(new_config, config.Config):
-            new_config.save(
-                timeseries_root=TIMESERIES_CONFIG,
-                configuration_file=os.path.join(
-                    HOME, ".config", "timeseries", "config.json"
-                ),
-            )
+            new_config.save(path=TIMESERIES_CONFIG)
             # os.environ["HOME"] = TIMESERIES_CONFIG
-            ts_logger.info(f"Configuration file: {TIMESERIES_CONFIG} created.")
-        else:
-            assert False
+            ts_logger.warning(
+                f"Configuration file did not exist: {TIMESERIES_CONFIG}. Created."
+            )
 
-        config_from_file = TIMESERIES_CONFIG
-        assert isinstance(config_from_file, config.Config)
+        try_again = config.Config(configuration_file=TIMESERIES_CONFIG)
+        assert isinstance(try_again, config.Config)
 
 
 def test_read_config_from_missing_json_file(remember_config) -> None:
