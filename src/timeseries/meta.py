@@ -1,3 +1,6 @@
+import bigtree
+import pandas as pd
+
 # import json
 # import uuid
 # from enum import Enum
@@ -5,20 +8,92 @@
 from timeseries import properties
 
 # from timeseries import dataset as ds # --> circular?
-from timeseries import logging as log
+from timeseries.logging import ts_logger
+from timeseries import fs
+
+# from klass import search_classification
+from klass import get_classification
+
+
+class Taxonomy:
+    def __init__(
+        self,
+        id: int = 0,
+        path: str = "",
+        root_name="Taxonomy",
+        sep=".",
+        substitute: dict = None,
+    ):
+        self.name = ""
+        if id:
+            # TO DO: handle versions of KLASS
+            klass = get_classification(id).get_codes().data
+            self.data = add_root_node(
+                klass, {"code": "0", "parentCode": None, "name": root_name}
+            )
+            if substitute:
+                for key, value in substitute.items():
+                    self.data["code"] = self.data["code"].str.replace(key, value)
+                    self.data["parentCode"] = self.data["parentCode"].str.replace(
+                        key, value
+                    )
+        elif path:
+            # TO DO: read from file:
+            df_from_file = pd.DataFrame.from_dict(fs.read_json(path))
+            self.data = df_from_file
+
+        # TO DO: improve parent node init
+
+        self.structure = bigtree.dataframe_to_tree_by_relation(
+            data=self.data,
+            child_col="code",
+            parent_col="parentCode",
+            attribute_cols=[
+                "name",
+                "shortName",
+                "presentationName",
+                "validFrom",
+                "validTo",
+                "notes",
+            ],
+        )
+
+    def tree(self, *args, **kwargs) -> str:
+        # ugly! it would be preferable not to print the tree to std out
+        # ... but this works
+        import io
+        from contextlib import redirect_stdout
+
+        with io.StringIO() as buf, redirect_stdout(buf):
+            bigtree.print_tree(self.structure, *args, **kwargs)
+            output = buf.getvalue()
+        return output
+
+
+def add_root_node(df: pd.DataFrame, root_node: dict) -> pd.DataFrame:
+    """Prepend root node row to taxonomy dataframe."""
+    new_row = dict((c, None) for c in df.columns)
+    for k in root_node.keys():
+        new_row[k] = root_node[k]
+    df.rename(columns={"name": "fullName"})
+    df["parentCode"] = df["parentCode"].fillna(value=root_node["code"])
+    df.loc[-1] = root_node
+    df.index = df.index + 1
+    df.sort_index(inplace=True)
+    return df
 
 
 class DatasetTags:
     def __init__(
         self,
         name: str,
-        versioning: properties.SeriesVersioning,
-        temporality: properties.SeriesTemporality,
+        versioning: properties.Versioning,
+        temporality: properties.Temporality,
         **kwargs,
     ) -> None:
         self.name: str = name
-        self.versioning: properties.SeriesVersioning = versioning
-        self.temporality: properties.SeriesTemporality = temporality
+        self.versioning: properties.Versioning = versioning
+        self.temporality: properties.Temporality = temporality
         self.series: list[SeriesTags] = []
         self.series_tags: dict = kwargs.get(
             "series_tags", ""
@@ -27,7 +102,7 @@ class DatasetTags:
         series_in_set = kwargs.get("series", [])
 
         # TO DO: for series in set, add SeriesTags
-        log.debug(series_in_set)
+        ts_logger.debug(series_in_set)
 
     def tag_set(self, attribute: str, value: str):
         pass

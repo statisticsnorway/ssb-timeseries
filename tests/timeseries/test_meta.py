@@ -2,13 +2,14 @@ import pytest
 import uuid
 import logging
 
-# from polars import Series
-
 from timeseries.dates import date_utc  # , now_utc, date_round
 from timeseries.logging import log_start_stop, ts_logger
 from timeseries.dataset import Dataset
 from timeseries.properties import SeriesType
 from timeseries.sample_data import create_df
+
+from timeseries.meta import Taxonomy
+from bigtree import print_tree
 
 
 @log_start_stop
@@ -116,6 +117,93 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
 
 
 @log_start_stop
+def test_read_flat_codes_from_klass() -> None:
+    activity = Taxonomy(id=697)
+    ts_logger.warning(f"captured ...\n{activity.data.shape}")
+
+    assert activity.data.shape == (16, 9)
+    assert activity.structure.max_depth == 2
+    assert activity.structure.root.name == "0"
+
+
+@log_start_stop
+def test_read_hierarchical_codes_from_klass() -> None:
+    energy_balance = Taxonomy(id=157)
+    ts_logger.warning(f"captured ...\n{energy_balance.tree(attr_list=['fullName'])}")
+
+    assert energy_balance.structure.root.name == "0"
+    assert energy_balance.structure.max_depth == 4
+    assert energy_balance.structure.max_depth == 4
+    assert energy_balance.structure.max_depth == 4
+
+
+@log_start_stop
+def test_replace_chars_in_flat_codes(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    k697 = Taxonomy(
+        id=697,
+        substitute={
+            "_": ".",
+            "aa": "å",
+            "lagerf": "lagerføring",
+            "lagere": "lagerendring",
+        },  # multiple replacements! --> generate substitution dict from json file if required
+    )
+    k697_names = [n.name for n in k697.structure.root.children]
+    ts_logger.warning(f"klass 697 codes:\n{k697_names}")
+    ts_logger.warning(
+        f"tree ...\n{print_tree(k697.structure.root, attr_list=['fullname'])}"
+    )
+
+    assert sorted(k697_names) == sorted(
+        [
+            "bruk.omvandl",
+            "bruk.råstoff",  # changed!
+            "bruk.red",
+            "bruk.stasj",
+            "bruk.trans",
+            "eksport",
+            "import",
+            "lagerendring",  # changed!
+            "lagerføring",  # changed!
+            "prod.pri",
+            "prod.sek",
+            "svinn.annet",
+            "svinn.distr",
+            "svinn.fakl",
+            "svinn.lager",
+        ]
+    )
+
+
+@log_start_stop
+def test_replace_chars_in_hierarchical_codes(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    k157 = Taxonomy(
+        id=157,
+        substitute={
+            ".": "/",
+        },
+    )
+    # compare for leaf nodes of sub tree
+    k157_names = [n.name for n in k157.structure.root["1"].leaves]
+    ts_logger.warning(f"klass 157 codes:\n{k157_names}")
+    ts_logger.warning(
+        f"tree ...\n{print_tree(k157.structure.root['1'], attr_list=['fullname'])}"
+    )
+
+    assert sorted(k157_names) == sorted(
+        [
+            "1/1/1",
+            "1/1/2",
+            "1/1/3",
+            "1/2",
+        ]
+    )
+
+
+@pytest.mark.skipif(True, reason="Not ready yet.")
+@log_start_stop
 def test_find_data_using_metadata_attributes() -> None:
     # metadata - test extendeded attribute set
     # find data via metadata
@@ -125,6 +213,7 @@ def test_find_data_using_metadata_attributes() -> None:
     assert True
 
 
+@pytest.mark.skipif(True, reason="Not ready yet.")
 @log_start_stop
 def test_update_metadata_attributes() -> None:
     # TO DO:
@@ -136,7 +225,7 @@ def test_update_metadata_attributes() -> None:
     assert True
 
 
-@log_start_stop
+@pytest.mark.skipif(True, reason="Not ready yet.")
 def test_updated_tags_propagates_to_column_names_accordingly() -> None:
     # TO DO:
     # my_dataset.update_metadata('column_name', 'metadata_tag')
