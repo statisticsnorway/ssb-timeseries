@@ -130,7 +130,7 @@ def test_read_flat_codes_from_klass() -> None:
 @log_start_stop
 def test_read_hierarchical_codes_from_klass() -> None:
     energy_balance = Taxonomy(157)
-    ts_logger.debug(f"captured ...\n{energy_balance.tree(attr_list=['fullName'])}")
+    ts_logger.debug(f"captured ...\n{energy_balance.print_tree()}")
 
     assert energy_balance.structure.root.name == "0"
     assert energy_balance.structure.max_depth == 4
@@ -217,8 +217,7 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
     finally:
         os.remove(temp_file)
 
-    file157
-    # compare for leaf nodes of sub tree
+    # compare all leaf nodes of sub tree
     k157_names = [n.name for n in klass157.structure.root.leaves]
     f157_names = [n.name for n in file157.structure.root.leaves]
     assert k157_names == f157_names

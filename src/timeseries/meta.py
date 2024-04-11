@@ -120,7 +120,7 @@ class Taxonomy:
 
         return trees_equal and entities_equal
 
-    def tree(self, *args, **kwargs) -> str:
+    def print_tree(self, *args, **kwargs) -> str:
         # ugly! it would be preferable not to print the tree to std out
         # ... but this works
         import io
