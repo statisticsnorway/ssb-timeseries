@@ -1,3 +1,9 @@
+"""_summary_
+
+Returns:
+    _type_: _description_
+"""
+
 import bigtree
 import pandas as pd
 
@@ -16,36 +22,72 @@ from klass import get_classification
 
 
 class Taxonomy:
+    """Wraps taxonomies defined in KLASS or json files in a object structure.
+
+    Properties:
+        definition:
+            Descriptions of the taxonomy:
+                name:
+                structure_type:     enum:   list | tree | graph
+                levels: number of levels not counting the root node
+        entities:
+            entity definitions, represented as a dataframe with columns:
+                code: str
+                    A unique entity identifier within the taxonomy.
+                    It may very well consist of numeric values, but will be represented as a string.
+                parent:  str
+                    "parentCode"
+                    The code for the parent entity.
+                name: str
+                    A unique human readable name. Not nullable.
+                short:
+                    "shortName"
+                    A short version / mnemonic for name, if applicable.
+                presentationName
+                    A "self explanatory" unique name, if applicable.
+                validFrom
+                validTo
+                notes
+        structure:
+            Relations between entities of the taxonomy.
+            Both lists and trees will be represented as hierarchies; with the root node being the taxonomy.
+            Level two will be the first item level, so a flat list will have two levels.
+            Hierarchies with a natural top or "root" node should have a single node at level two.
+        lookups:
+            Complete listing of supported names for all entities, mapping different categories of names of different standards and in different languages to a unique identifier.
+    Methods:
+
+    """
+
     def __init__(
         self,
-        id: int = 0,
-        path: str = "",
+        id_or_path,
         root_name="Taxonomy",
         sep=".",
         substitute: dict = None,
     ):
-        self.name = ""
-        if id:
+        self.definition = {"name": root_name}
+        if isinstance(id_or_path, int):
             # TO DO: handle versions of KLASS
-            klass = get_classification(id).get_codes().data
-            self.data = add_root_node(
+            klass = get_classification(id_or_path).get_codes().data
+            self.entities = add_root_node(
                 klass, {"code": "0", "parentCode": None, "name": root_name}
             )
             if substitute:
                 for key, value in substitute.items():
-                    self.data["code"] = self.data["code"].str.replace(key, value)
-                    self.data["parentCode"] = self.data["parentCode"].str.replace(
+                    self.entities["code"] = self.entities["code"].str.replace(
                         key, value
                     )
-        elif path:
+                    self.entities["parentCode"] = self.entities[
+                        "parentCode"
+                    ].str.replace(key, value)
+        elif isinstance(id_or_path, str):
             # TO DO: read from file:
-            df_from_file = pd.DataFrame.from_dict(fs.read_json(path))
-            self.data = df_from_file
-
-        # TO DO: improve parent node init
+            df_from_file = pd.DataFrame.from_dict(fs.read_json(id_or_path))
+            self.entities = df_from_file
 
         self.structure = bigtree.dataframe_to_tree_by_relation(
-            data=self.data,
+            data=self.entities,
             child_col="code",
             parent_col="parentCode",
             attribute_cols=[
@@ -58,6 +100,26 @@ class Taxonomy:
             ],
         )
 
+    def __eq__(self, other) -> bool:
+        # this neglects everything but the codes and their hierarchical relations
+        tree_diff = bigtree.get_tree_diff(self.structure, other.structure)
+        if tree_diff:
+            trees_equal = False
+        else:
+            trees_equal = True
+
+        fields_to_compare = ["code", "parentCode", "name"]
+        s_entities = self.entities[fields_to_compare].reset_index(drop=True)
+        o_entities = other.entities[fields_to_compare].reset_index(drop=True)
+
+        ts_logger.debug(
+            f"comparing:\n{s_entities.to_string()}\n...and:\n{s_entities.to_string()}"
+        )
+        ts_logger.debug(f".info:\n{s_entities.info()}\n...and:\n{s_entities.info()}")
+        entities_equal = all(s_entities == o_entities)
+
+        return trees_equal and entities_equal
+
     def tree(self, *args, **kwargs) -> str:
         # ugly! it would be preferable not to print the tree to std out
         # ... but this works
@@ -68,6 +130,10 @@ class Taxonomy:
             bigtree.print_tree(self.structure, *args, **kwargs)
             output = buf.getvalue()
         return output
+
+    def save(self, path) -> None:
+        # TODO: this will no work with buckets
+        self.entities.to_json(path_or_buf=path)
 
 
 def add_root_node(df: pd.DataFrame, root_node: dict) -> pd.DataFrame:
