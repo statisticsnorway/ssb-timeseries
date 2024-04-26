@@ -78,6 +78,18 @@ def test_dataset_instance_identity(caplog) -> None:
     assert not a.identical(c)
 
 
+def test_dataset_copy_creates_new_instance(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    original = Dataset(name="test-copying-original-set", data_type=SeriesType.simple())
+    new_name = "test-copying-copied-set"
+    copy = original.copy(new_name)
+
+    assert isinstance(copy, Dataset)
+    assert copy.name == new_name
+    assert original != copy
+
+
 @log_start_stop
 def test_create_dataset_with_correct_data_size() -> None:
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x", "y", "z"]}
@@ -327,20 +339,28 @@ def test_dataset_getitem_by_string(caplog):
     y = x["b"]
     ts_logger.debug(f"y = x['b']\n{y}")
 
-    # TO DO / DECISION: we now get a dataframe for y, should probably get a (new) dataset?
-    # ... but then need to update name / metadata?
-    # assert list(y.data.columns) == ["valid_at", "b"]
     ts_logger.debug(f"{__name__}look at y: {y}")
     ts_logger.debug(f"{__name__}look at x: {x.data}")
-    assert list(y.columns) == ["valid_at", "b"]
+    assert list(y.data.columns) == ["valid_at", "b"]
     assert list(x.data.columns) == ["valid_at", "a", "b", "c"]
-
     # confirm that x and y are not the same object
-    # y.iloc[:, 1:] = y.iloc[:, 1:] * 2
-    # ts_logger.debug(f"look at x again: {x.data}")
-    # try to the same with subscripting , but it does not work
-    # x["b"] = x["b"] * 2
-    # ts_logger.debug(f"look at x again: {x.data}")
+
+
+@log_start_stop
+def test_filter_dataset_by_regex_return_dataframe(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
+    tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+    )
+    y = x.filter(regex="^x", output="dataframe")
+    ts_logger.debug(f"y = x.filter(regex='^x')\n{y.data}")
+
+    # assert isinstance(y, Dataset)
+    assert list(y.columns) == ["valid_at", "xd", "xe"]
+    assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
 
 @log_start_stop
@@ -352,10 +372,11 @@ def test_filter_dataset_by_regex(caplog):
     x.data = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
-    df = x.filter(regex="^x")
-    ts_logger.debug(f"y = x.filter(regex='^x')\n{df}")
+    y = x.filter(regex="^x")
+    ts_logger.debug(f"y = x.filter(regex='^x')\n{y.data}")
 
-    assert list(df.columns) == ["valid_at", "xd", "xe"]
+    assert isinstance(y, Dataset)
+    assert list(y.data.columns) == ["valid_at", "xd", "xe"]
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
 

@@ -4,20 +4,17 @@ Returns:
     _type_: _description_
 """
 
-import bigtree
-import pandas as pd
-
 # import json
 # import uuid
 # from enum import Enum
+import bigtree
+import pandas as pd
 
+from timeseries import fs
 from timeseries import properties
+from timeseries.logging import ts_logger
 
 # from timeseries import dataset as ds # --> circular?
-from timeseries.logging import ts_logger
-from timeseries import fs
-
-# from klass import search_classification
 from klass import get_classification
 
 
@@ -63,28 +60,33 @@ class Taxonomy:
         self,
         id_or_path,
         root_name="Taxonomy",
+        root_code="0",
         sep=".",
         substitute: dict = None,
     ):
-        self.definition = {"name": root_name}
+        self.name = root_name
+        self.definition = {
+            "name": root_name,
+            "id_or_path": id_or_path,
+            "substitutions": substitute,
+        }
         if isinstance(id_or_path, int):
             # TO DO: handle versions of KLASS
             klass = get_classification(id_or_path).get_codes().data
             self.entities = add_root_node(
-                klass, {"code": "0", "parentCode": None, "name": root_name}
+                klass, {"code": root_code, "parentCode": None, "name": root_name}
             )
-            if substitute:
-                for key, value in substitute.items():
-                    self.entities["code"] = self.entities["code"].str.replace(
-                        key, value
-                    )
-                    self.entities["parentCode"] = self.entities[
-                        "parentCode"
-                    ].str.replace(key, value)
         elif isinstance(id_or_path, str):
             # TO DO: read from file:
             df_from_file = pd.DataFrame.from_dict(fs.read_json(id_or_path))
             self.entities = df_from_file
+
+        if substitute:
+            for key, value in substitute.items():
+                self.entities["code"] = self.entities["code"].str.replace(key, value)
+                self.entities["parentCode"] = self.entities["parentCode"].str.replace(
+                    key, value
+                )
 
         self.structure = bigtree.dataframe_to_tree_by_relation(
             data=self.entities,

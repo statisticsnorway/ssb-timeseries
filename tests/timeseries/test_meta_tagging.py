@@ -1,6 +1,5 @@
 import pytest
 import uuid
-import os
 import logging
 
 from timeseries.dates import date_utc  # , now_utc, date_round
@@ -9,15 +8,12 @@ from timeseries.dataset import Dataset
 from timeseries.properties import SeriesType
 from timeseries.sample_data import create_df
 
-from timeseries.meta import Taxonomy
-from bigtree import print_tree, get_tree_diff
-
 
 @log_start_stop
 def test_init_dataset_returns_expected_set_level_tags(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
-    set_name = f"test-datetimecols-{uuid.uuid4().hex}"
+    set_name = f"test-setlevel-tags-{uuid.uuid4().hex}"
     set_tags = {
         "About": "ImportantThings",
         "SeriesDifferentiatingAttributes": ["A", "B", "C"],
@@ -64,7 +60,7 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
-    set_name = f"test-datetimecols-{uuid.uuid4().hex}"
+    set_name = f"test-mandatory-plus-inherited-{uuid.uuid4().hex}"
     set_tags = {
         "About": "ImportantThings",
         "SeriesDifferentiatingAttributes": [
@@ -117,15 +113,44 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
         assert d[key]["SeriesDifferentiatingAttributes"] == ["A", "B", "C"]
 
 
-@pytest.mark.skipif(True, reason="Not ready yet.")
 @log_start_stop
 def test_find_data_using_metadata_attributes() -> None:
     # metadata - test extendeded attribute set
     # find data via metadata
     # metadata = my_dataset.metadata
 
-    ts_logger.debug("don't worrry, be happy ...")
-    assert True
+    set_name = f"test-datetimecols-{uuid.uuid4().hex}"
+    set_tags = {
+        "About": "ImportantThings",
+        "Country": "Norway",
+    }
+    series_tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["z"]}
+    tag_values: list[list[str]] = [value for value in series_tags.values()]
+
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        tags=set_tags,
+        series_tags=series_tags,
+        data=create_df(
+            *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+        name_pattern=["A", "B", "C"],
+    )
+
+    x_attr_A_equals_a = x.filter(tags={"A": "a"})
+
+    ts_logger.debug(f" x_attr_A_equals_a ... {x_attr_A_equals_a.data.columns}")
+    ts_logger.warning(f" ... {x_attr_A_equals_a.tags}")
+
+    d = x_attr_A_equals_a.tags["series"]
+    for key in d.keys():
+        ts_logger.warning(f" \n... {d[key]}")
+        assert d[key]["dataset"] != set_name
+        assert d[key]["name"] == key
+        assert sorted(d["A"]) == "a"
+        assert sorted(d["A"]) == "a"
 
 
 @pytest.mark.skipif(True, reason="Not ready yet.")
@@ -137,7 +162,7 @@ def test_update_metadata_attributes() -> None:
     # ... keep previous version
 
     ts_logger.debug("don't worrry, be happy ...")
-    assert True
+    assert False
 
 
 @pytest.mark.skipif(True, reason="Not ready yet.")
@@ -147,4 +172,4 @@ def test_updated_tags_propagates_to_column_names_accordingly() -> None:
     # ... --> versioning
 
     ts_logger.debug("don't worrry, be happy ...")
-    assert True
+    assert False

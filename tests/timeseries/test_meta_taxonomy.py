@@ -1,18 +1,14 @@
 import pytest
 import uuid
-import os
 import logging
 
-from timeseries.dates import date_utc  # , now_utc, date_round
 from timeseries.logging import log_start_stop, ts_logger
-from timeseries.dataset import Dataset
-from timeseries.properties import SeriesType
-from timeseries.sample_data import create_df
-
 from timeseries.meta import Taxonomy
+from timeseries import fs
 from bigtree import print_tree, get_tree_diff
 
 
+@pytest.mark.skipif(False, reason="")
 @log_start_stop
 def test_read_flat_code_list_from_klass_returns_two_level_tree() -> None:
     activity = Taxonomy(697)
@@ -112,7 +108,7 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
         klass157.save(temp_file)
         file157 = Taxonomy(temp_file)
     finally:
-        os.remove(temp_file)
+        fs.rm(temp_file)
 
     # compare all leaf nodes of sub tree
     k157_names = [n.name for n in klass157.structure.root.leaves]
