@@ -1,7 +1,6 @@
 import random
 
 # import json
-
 from klass import get_classification  # Import the utility-function
 
 

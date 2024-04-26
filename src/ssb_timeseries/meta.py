@@ -7,18 +7,18 @@ Returns:
 import bigtree
 import pandas as pd
 
+# from klass import search_classification
+from klass import get_classification
+
+from ssb_timeseries import fs
+
 # import json
 # import uuid
 # from enum import Enum
-
 from ssb_timeseries import properties
 
 # from ssb_timeseries import dataset as ds # --> circular?
 from ssb_timeseries.logging import ts_logger
-from ssb_timeseries import fs
-
-# from klass import search_classification
-from klass import get_classification
 
 
 class Taxonomy:
@@ -55,6 +55,7 @@ class Taxonomy:
             Hierarchies with a natural top or "root" node should have a single node at level two.
         lookups:
             Complete listing of supported names for all entities, mapping different categories of names of different standards and in different languages to a unique identifier.
+
     Methods:
 
     """

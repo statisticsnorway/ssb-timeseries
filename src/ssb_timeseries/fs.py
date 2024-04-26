@@ -1,14 +1,14 @@
-import os
-from dapla import FileClient
-import shutil
 import glob
 import json
+import os
+import shutil
 
 # from ssb_timeseries.logging import ts_logger  # , log_start_stop
 from pathlib import Path
 
 # import pyarrow
 import pandas
+from dapla import FileClient
 
 """This is an abstraction that allows file based io regardless of whether involved file systems are local or gcs.
 """
@@ -116,7 +116,6 @@ def cp(from_path, to_path):
         from_path (to__ty): _description_
         path_to (_type_): _description_
     """
-
     from_type = fs_type(from_path)
     to_type = fs_type(to_path)
     if is_gcs(from_path) | is_gcs(to_path):
@@ -248,7 +247,7 @@ def read_json(path) -> dict:
         with fs.open(path, "r") as file:
             return json.load(file)
     else:
-        with open(path, "r") as file:
+        with open(path) as file:
             return json.load(file)
 
 
@@ -286,7 +285,5 @@ def write_json(path, content) -> None:
 
 @staticmethod
 def funcname(parameter_list):
-    """
-    docstring
-    """
+    """Docstring"""
     pass

@@ -1,5 +1,5 @@
-import os
 import contextlib
+import os
 
 
 @contextlib.contextmanager
@@ -43,7 +43,6 @@ def init_root(
         as_production_bucket (bool, optional): Create directory structure as if this was a production bucket. Defaults to False.
 
     """
-
     with cd(path):
         os.environ["BUCKET"] = os.getcwd()
 

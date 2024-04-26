@@ -1,14 +1,17 @@
+import logging
 import uuid
 
-import logging
 import pytest
 
-from ssb_timeseries.dates import now_utc, date_utc
-from ssb_timeseries.logging import ts_logger, log_start_stop
 from ssb_timeseries.dataset import Dataset
-from ssb_timeseries.properties import SeriesType, Versioning  # , Temporality
-from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.dates import date_utc
+from ssb_timeseries.dates import now_utc
 from ssb_timeseries.io import CONFIG
+from ssb_timeseries.logging import log_start_stop
+from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.properties import SeriesType  # , Temporality
+from ssb_timeseries.properties import Versioning  # , Temporality
+from ssb_timeseries.sample_data import create_df
 
 # from ssb_timeseries import fs
 
@@ -38,9 +41,9 @@ def test_dataset_instance_created_equals_repr(caplog) -> None:
             freq="MS",
         ),
     )
-    ts_logger.warning(f"Dataset a: {repr(a)}")
+    ts_logger.warning(f"Dataset a: {a!r}")
     b = eval(repr(a))
-    ts_logger.warning(f"Dataset b: {repr(b)}")
+    ts_logger.warning(f"Dataset b: {b!r}")
     assert a is a
     # TO DO: CHECK THIS
     # assert a == a
@@ -311,7 +314,7 @@ def test_search_for_dataset_by_part_of_name(caplog):
     )
     x.save()
     datasets = x.search(unique_new)
-    ts_logger.debug(f"datasets: {str(datasets)}")
+    ts_logger.debug(f"datasets: {datasets!s}")
     assert datasets == [f"test-find-{unique_new}"]
 
 

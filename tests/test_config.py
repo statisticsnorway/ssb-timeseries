@@ -1,7 +1,8 @@
-import pytest
-import os
 import logging
+import os
 import uuid
+
+import pytest
 
 from ssb_timeseries import config
 from ssb_timeseries import fs

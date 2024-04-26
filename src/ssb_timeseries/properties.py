@@ -118,14 +118,14 @@ class SeriesType:
 
     def __str__(self):
         # return f"{self.versioning}_{self.temporality}"
-        return f"{str(self.versioning)}_{str(self.temporality)}"
+        return f"{self.versioning!s}_{self.temporality!s}"
 
     @classmethod
     def permutations(cls) -> list[str]:
         return ["_".join(c) for c in product(Versioning.keys(), Temporality.keys())]
 
     def __repr__(self):
-        return f"SeriesType({repr(self.versioning)},{repr(self.temporality)})"
+        return f"SeriesType({self.versioning!r},{self.temporality!r})"
 
 
 def estimate_types() -> list[str]:

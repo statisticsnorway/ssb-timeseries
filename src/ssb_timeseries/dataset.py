@@ -1,9 +1,10 @@
 # from typing import Optional, Dict
 # from dataclasses import dataclass, field
 
-import pandas as pd
-import numpy as np
 import datetime
+
+import numpy as np
+import pandas as pd
 
 from ssb_timeseries import dates
 from ssb_timeseries import io
@@ -23,8 +24,7 @@ class Dataset:
         series_tags: dict = None,
         **kwargs,
     ) -> None:
-        """
-        Load existing dataset or create a new one of specified type.
+        """Load existing dataset or create a new one of specified type.
         The type defines
          * versioning (NONE, AS_OF, NAMED)
          * temporality (Valid AT point in time, or FROM and TO for duration)
@@ -43,7 +43,6 @@ class Dataset:
 
         Files are created / data is stored to database on .save, but not before.
         """
-
         self.name: str = name
         if data_type:  # self.exists():
             self.data_type = data_type
@@ -132,7 +131,7 @@ class Dataset:
                 for s in self.tags["series"]:
                     name_parts = s.split("_")
                     # [self.tags['series'][s][attribute] = value for attribute,  value in zip(name_pattern, name_parts)]
-                    for attribute, value in zip(name_pattern, name_parts):
+                    for attribute, value in zip(name_pattern, name_parts, strict=False):
                         self.tags["series"][s][attribute] = value
 
                     ts_logger.debug(
@@ -163,7 +162,6 @@ class Dataset:
         Args:
             as_of_tz (datetime, optional): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of_utc (utc dates under the hood).
         """
-
         # def snapshot_name(self) -> str:
         #     # <kort-beskrivelse>_p<periode-fra-og-med>_p<perode-til-og- med>_v<versjon>.<filtype>
         #     date_from = np.min(self.data[self.datetime_columns()])
@@ -216,7 +214,6 @@ class Dataset:
 
         Returns: A new Dataset if kwargs are provided to initialise it, otherwise, a dataframe.
         """
-
         df = self.data
         if regex:
             df = df.filter(regex=regex)
@@ -253,7 +250,6 @@ class Dataset:
             regex (str, optional): Expression for regex search in column names. Defaults to ''.
             tags (dict, optional): Dictionary with tags to search for. Defaults to {}.
         """
-
         # Dataset[...] should return a Dataset object (?) with only the requested items (columns).
         # but should not mutate the original object, ie "self",
         # so that if x is a Dataset and x[a] a columnwise subset of x
@@ -298,7 +294,6 @@ class Dataset:
         be warned: messing with variables by way of stack inspection is a dirty trick
         this runs the risk of reassigning objects, functions, or variables within the scope of the calling function
         """
-
         import inspect
 
         stack = inspect.stack()
@@ -424,8 +419,7 @@ class Dataset:
         return list(set(self.data.columns).difference(self.datetime_columns()))
 
     def datetime_columns(self, *comparisons):
-        """
-        Arguments:
+        """Arguments:
             *comparisons (optional) Objects to compare with.
 
         Returns: The (common) datetime column names of self (and comparisons) as a list of strings.
@@ -442,8 +436,7 @@ class Dataset:
         return list(intersect)
 
     def math(self, other, func):
-        """
-        Generic helper making math functions work on numeric, non date columns of dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar.
+        """Generic helper making math functions work on numeric, non date columns of dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar.
 
         Although the purpose was to limit "boilerplate" for core linear algebra functions, it also extend to other operations that follow the same differentiation pattern.
 
@@ -595,7 +588,7 @@ class Dataset:
         return self.math(other, np.less)
 
     def __repr__(self) -> str:
-        return f'Dataset(name="{self.name}", data_type={repr(self.data_type)}, as_of_tz="{self.as_of_utc.isoformat()}")'
+        return f'Dataset(name="{self.name}", data_type={self.data_type!r}, as_of_tz="{self.as_of_utc.isoformat()}")'
 
     def __str__(self) -> str:
         return str(

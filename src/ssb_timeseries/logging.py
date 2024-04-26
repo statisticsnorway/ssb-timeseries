@@ -6,10 +6,9 @@
 
 import functools
 import logging
-
 import os
-
 from datetime import datetime
+
 from ssb_timeseries import config
 
 ts_logger = logging.getLogger("TIMESERIES")
@@ -71,7 +70,7 @@ class EnterExitLog:
 
 
 def log_start_stop(func):
-    """log start and stop of decorated function"""
+    """Log start and stop of decorated function"""
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):

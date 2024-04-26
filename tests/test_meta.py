@@ -1,16 +1,18 @@
-import pytest
-import uuid
-import os
 import logging
+import os
+import uuid
 
-from ssb_timeseries.dates import date_utc  # , now_utc, date_round
-from ssb_timeseries.logging import log_start_stop, ts_logger
+import pytest
+from bigtree import get_tree_diff
+from bigtree import print_tree
+
 from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.dates import date_utc  # , now_utc, date_round
+from ssb_timeseries.logging import log_start_stop
+from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.meta import Taxonomy
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
-
-from ssb_timeseries.meta import Taxonomy
-from bigtree import print_tree, get_tree_diff
 
 
 @log_start_stop

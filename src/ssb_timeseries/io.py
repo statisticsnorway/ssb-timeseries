@@ -1,14 +1,15 @@
-import os
+import datetime
 import glob
+import os
+import re
 
 import pandas
-import datetime
-import re
 
 from ssb_timeseries import config
 from ssb_timeseries import fs
 from ssb_timeseries import properties
-from ssb_timeseries.dates import Interval, utc_iso
+from ssb_timeseries.dates import Interval
+from ssb_timeseries.dates import utc_iso
 from ssb_timeseries.logging import ts_logger
 
 """The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
@@ -240,7 +241,7 @@ class FileSystem:
             out = number_of_files
 
         ts_logger.debug(
-            f"DATASET {self.set_name}: io.last_version searched directory: \n\t{dir}\n\tfor '{pattern}' found {str(number_of_files)} files, regex identified version {str(read_from_filenames)} --> vs {str(out)}."
+            f"DATASET {self.set_name}: io.last_version searched directory: \n\t{dir}\n\tfor '{pattern}' found {number_of_files!s} files, regex identified version {read_from_filenames!s} --> vs {out!s}."
         )
         return out
 
@@ -308,7 +309,6 @@ class FileSystem:
                         {'team': 's345': 'path': '<s345-bucket>'}]
             .stage = 'statistikk'
         """
-
         dir = self.snapshot_directory(product=product, process_stage=process_stage)
         snapshot_name = self.snapshot_filename(
             product=product,

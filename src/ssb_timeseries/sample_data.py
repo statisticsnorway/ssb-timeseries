@@ -1,7 +1,8 @@
-import numpy as np
-import pandas as pd
 import itertools
 from datetime import datetime
+
+import numpy as np
+import pandas as pd
 
 
 def series_names(*args, **kwargs) -> list[str]:
@@ -43,8 +44,7 @@ def create_df(
     temporality: str = "AT",
     decimals: int = 0,
 ) -> pd.DataFrame:
-    """
-    Generate sample data for specified date range and permutations over lists.
+    """Generate sample data for specified date range and permutations over lists.
 
     Parameters:
     - start_date (datetime, optional): The start date of the date range. Defaults to negative infinity.
@@ -76,7 +76,6 @@ def create_df(
     sample_data = generate_sample_df(List1, List2, freq='D')
     ```
     """
-
     # Handle start_date and end_date defaults
     if start_date is None:
         start_date = datetime.min  # Representing negative infinity

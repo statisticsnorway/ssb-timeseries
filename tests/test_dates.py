@@ -1,6 +1,8 @@
-from ssb_timeseries.dates import Interval, date_utc, now_utc
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime
+from datetime import timedelta
+
+from ssb_timeseries.dates import Interval
 from ssb_timeseries.logging import ts_logger
 
 

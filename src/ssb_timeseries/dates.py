@@ -1,9 +1,10 @@
 # from datetime import datetime, timedelta
 import datetime
 import time
-from dateutil import parser
-import pytz
 from functools import wraps
+
+import pytz
+from dateutil import parser
 
 from ssb_timeseries.logging import ts_logger
 
@@ -77,14 +78,12 @@ def now_cet(**kwargs) -> dt:
 
 class Interval:
     def __init__(self, f=None, t=None, **kwargs) -> None:
-        """
-        Interval(date_from, date_to)
+        """Interval(date_from, date_to)
         or a number of variations of named parameters: start/stop, begin/end, as_of, as_of_from/as_of_to, valid_from, valid_to -
         If only "as_of" is provided, start/stop are both set to this date.
         Interval.start defaults to datetime.min
         Interval.stop defaults to datetime.max
         """
-
         as_of = kwargs.get("as_of")
         as_of_from = kwargs.get("as_of_from")
         as_of_to = kwargs.get("as_of_to")

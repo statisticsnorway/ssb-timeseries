@@ -1,7 +1,6 @@
-import pytest
+import logging
 
 from ssb_timeseries.sample_data import create_df
-import logging
 
 
 def test_create_sample_from_single_string() -> None:

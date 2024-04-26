@@ -51,7 +51,7 @@ pythonpath = ["src"]
 
 [tool.poetry.scripts]
 ssb-timeseries = "ssb_timeseries.__main__:main"
-timeseries-config = "timeseries.config:main"
+timeseries-config = "ssb_timeseries.config:main"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]

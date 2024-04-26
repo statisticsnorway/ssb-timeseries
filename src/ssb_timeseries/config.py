@@ -1,7 +1,7 @@
 # from dataclasses import dataclass
-import sys
-import os
 import json
+import os
+import sys
 
 from ssb_timeseries import fs
 
@@ -28,7 +28,6 @@ class Config:
                 timeseries_root     - Series data are stored in tree underneath. Defaults to '$HOME/series_data/'
                 log_file            - Exactly that. Defaults to '$HOME/series_data/'
         """
-
         if fs.exists(configuration_file):
             """If the configuration_file is specified and exists, load it."""
             self.load(configuration_file)

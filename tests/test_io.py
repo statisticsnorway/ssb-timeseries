@@ -1,5 +1,3 @@
-import pytest
-
 from ssb_timeseries import io
 from ssb_timeseries.properties import SeriesType
 

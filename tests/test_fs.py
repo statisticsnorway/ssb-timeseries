@@ -1,5 +1,6 @@
 import os
 import uuid
+
 import pytest
 
 # from ssb_timeseries.io import CONFIG

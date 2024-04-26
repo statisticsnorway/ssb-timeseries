@@ -4,7 +4,6 @@ import os
 import pytest
 
 # import logging
-
 from ssb_timeseries import config
 
 # from ssb_timeseries import fs
@@ -16,9 +15,7 @@ from ssb_timeseries import config
 
 @pytest.fixture(scope="function", autouse=False)
 def remember_config():
-    """
-    A fixture to make sure that running tests do not change the configuration file.
-    """
+    """A fixture to make sure that running tests do not change the configuration file."""
     config_file = os.getenv("TIMESERIES_CONFIG")
     if config_file:
         configuration = config.Config(configuration_file=config_file)
@@ -39,9 +36,7 @@ def remember_config():
 
 @pytest.fixture(scope="module", autouse=True)
 def print_stuff():
-    """
-    Just testing pytest.fixtures.
-    """
+    """Just testing pytest.fixtures."""
     print("Before test module")
     yield
     print("After test modules")
