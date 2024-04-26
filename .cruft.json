@@ -1,0 +1,30 @@
+{
+  "template": "https://github.com/statisticsnorway/ssb-pypitemplate.git",
+  "commit": "f7f5ee76f498f10dd72f7f263516aeaff20b0b3a",
+  "checkout": "2024.4.9",
+  "context": {
+    "cookiecutter": {
+      "project_name": "ssb-timeseries",
+      "package_name": "ssb_timeseries",
+      "friendly_name": "SSB Timeseries",
+      "copyright_owner": "Statistics Norway",
+      "copyright_year": "2024",
+      "author": "Bernhard Ryeng",
+      "email": "bernhard.ryeng@ssb.no",
+      "github_organization": "statisticsnorway",
+      "version": "0.0.0",
+      "license": "MIT",
+      "development_status": "Development Status :: 4 - Beta",
+      "code_quality_level": "Medium",
+      "_copy_without_render": [
+        "*.rst_t"
+      ],
+      "_jinja2_env_vars": {
+        "lstrip_blocks": true,
+        "trim_blocks": true
+      },
+      "_template": "https://github.com/statisticsnorway/ssb-pypitemplate.git"
+    }
+  },
+  "directory": null
+}
