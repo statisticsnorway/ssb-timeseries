@@ -1,11 +1,11 @@
 import os
 
-# from timeseries import config
+# from ssb_timeseries import config
 
 """Use this module for running / validating setups?
 ISSUE: the code is not found when trying to run `python timeseries`
 ... but is working fine for `python -m timeseries`
---> have a closer look at pyproject.toml? 
+--> have a closer look at pyproject.toml?
 """
 
 

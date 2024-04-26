@@ -10,7 +10,7 @@ import logging
 import os
 
 from datetime import datetime
-from timeseries import config
+from ssb_timeseries import config
 
 ts_logger = logging.getLogger("TIMESERIES")
 log_string = logging.Formatter("%(name)s | %(levelname)s | %(asctime)s | %(message)s")

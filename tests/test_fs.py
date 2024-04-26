@@ -2,9 +2,9 @@ import os
 import uuid
 import pytest
 
-# from timeseries.io import CONFIG
-from timeseries import fs
-from timeseries.logging import ts_logger
+# from ssb_timeseries.io import CONFIG
+from ssb_timeseries import fs
+from ssb_timeseries.logging import ts_logger
 
 BUCKET = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/"
 JOVYAN = "/home/jovyan/series_data/"

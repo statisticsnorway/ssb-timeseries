@@ -5,10 +5,10 @@ import pytest
 
 # import logging
 
-from timeseries import config
+from ssb_timeseries import config
 
-# from timeseries import fs
-# from timeseries.logging import ts_logger
+# from ssb_timeseries import fs
+# from ssb_timeseries.logging import ts_logger
 
 # HOME = os.getenv("HOME")
 # TIMESERIES_CONFIG = os.getenv("TIMESERIES_CONFIG")

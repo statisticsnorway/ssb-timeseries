@@ -1,21 +1,21 @@
 import pytest
 import logging
 
-from timeseries.dates import date_utc
-from timeseries.logging import log_start_stop, ts_logger
-from timeseries.dataset import Dataset
-from timeseries.properties import SeriesType
-from timeseries.sample_data import create_df
+from ssb_timeseries.dates import date_utc
+from ssb_timeseries.logging import log_start_stop, ts_logger
+from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.properties import SeriesType
+from ssb_timeseries.sample_data import create_df
 
 
 @log_start_stop
 @pytest.mark.skipif(True, reason="dataset.identity needs rethinking/fixing")
 def test_dataset_instance_identity(caplog) -> None:
     caplog.set_level(logging.DEBUG)
-    """Test SAMENESS as opposed to .data euality in terms of the == operator. 
-    Two Dataset are the same SET if name, type and storage location are the same. 
-    Two Dataset instances are the same INSTANCE if name, type and datafile are the same. 
-    (For versioned sets, this implies the same version identifier.) 
+    """Test SAMENESS as opposed to .data euality in terms of the == operator.
+    Two Dataset are the same SET if name, type and storage location are the same.
+    Two Dataset instances are the same INSTANCE if name, type and datafile are the same.
+    (For versioned sets, this implies the same version identifier.)
     Related stuff:
     https://stackoverflow.com/questions/34599953/are-objects-with-the-same-id-always-equal-when-comparing-them-with
     """

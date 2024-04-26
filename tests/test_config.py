@@ -3,9 +3,9 @@ import os
 import logging
 import uuid
 
-from timeseries import config
-from timeseries import fs
-from timeseries.logging import ts_logger
+from ssb_timeseries import config
+from ssb_timeseries import fs
+from ssb_timeseries.logging import ts_logger
 
 # BUCKET = config.GCS
 # JOVYAN = config.JOVYAN

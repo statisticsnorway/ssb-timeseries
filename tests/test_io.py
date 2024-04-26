@@ -1,7 +1,7 @@
 import pytest
 
-from timeseries import io
-from timeseries.properties import SeriesType
+from ssb_timeseries import io
+from ssb_timeseries.properties import SeriesType
 
 
 def test_dataset_dirs() -> None:

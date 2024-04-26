@@ -3,7 +3,7 @@ import sys
 import os
 import json
 
-from timeseries import fs
+from ssb_timeseries import fs
 
 GCS = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
 JOVYAN = "/home/jovyan"

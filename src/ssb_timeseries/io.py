@@ -5,17 +5,17 @@ import pandas
 import datetime
 import re
 
-from timeseries import config
-from timeseries import fs
-from timeseries import properties
-from timeseries.dates import Interval, utc_iso
-from timeseries.logging import ts_logger
+from ssb_timeseries import config
+from ssb_timeseries import fs
+from ssb_timeseries import properties
+from ssb_timeseries.dates import Interval, utc_iso
+from ssb_timeseries.logging import ts_logger
 
 """The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
 
 TO DO: turn Dataset.io into a Protocol class?
 
-Essential configs: 
+Essential configs:
     TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
     CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
 

@@ -4,7 +4,7 @@ import shutil
 import glob
 import json
 
-# from timeseries.logging import ts_logger  # , log_start_stop
+# from ssb_timeseries.logging import ts_logger  # , log_start_stop
 from pathlib import Path
 
 # import pyarrow

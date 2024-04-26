@@ -1,7 +1,7 @@
-from timeseries.dates import Interval, date_utc, now_utc
+from ssb_timeseries.dates import Interval, date_utc, now_utc
 from datetime import datetime, timedelta
 import logging
-from timeseries.logging import ts_logger
+from ssb_timeseries.logging import ts_logger
 
 
 def test_define_without_params() -> None:

@@ -3,14 +3,14 @@ import uuid
 import logging
 import pytest
 
-from timeseries.dates import now_utc, date_utc
-from timeseries.logging import ts_logger, log_start_stop
-from timeseries.dataset import Dataset
-from timeseries.properties import SeriesType, Versioning  # , Temporality
-from timeseries.sample_data import create_df
-from timeseries.io import CONFIG
+from ssb_timeseries.dates import now_utc, date_utc
+from ssb_timeseries.logging import ts_logger, log_start_stop
+from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.properties import SeriesType, Versioning  # , Temporality
+from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.io import CONFIG
 
-# from timeseries import fs
+# from ssb_timeseries import fs
 
 BUCKET = CONFIG.bucket
 

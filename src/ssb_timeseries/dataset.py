@@ -5,10 +5,10 @@ import pandas as pd
 import numpy as np
 import datetime
 
-from timeseries import dates
-from timeseries import io
-from timeseries import properties as prop
-from timeseries.logging import ts_logger
+from ssb_timeseries import dates
+from ssb_timeseries import io
+from ssb_timeseries import properties as prop
+from ssb_timeseries.logging import ts_logger
 
 utc_iso = dates.utc_iso
 

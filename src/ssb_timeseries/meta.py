@@ -11,11 +11,11 @@ import pandas as pd
 # import uuid
 # from enum import Enum
 
-from timeseries import properties
+from ssb_timeseries import properties
 
-# from timeseries import dataset as ds # --> circular?
-from timeseries.logging import ts_logger
-from timeseries import fs
+# from ssb_timeseries import dataset as ds # --> circular?
+from ssb_timeseries.logging import ts_logger
+from ssb_timeseries import fs
 
 # from klass import search_classification
 from klass import get_classification

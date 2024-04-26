@@ -5,7 +5,7 @@ from dateutil import parser
 import pytz
 from functools import wraps
 
-from timeseries.logging import ts_logger
+from ssb_timeseries.logging import ts_logger
 
 MAX_TIME_PRECISION = "Min"
 

@@ -1,6 +1,6 @@
 import pytest
 
-from timeseries.sample_data import create_df
+from ssb_timeseries.sample_data import create_df
 import logging
 
 

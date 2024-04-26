@@ -3,13 +3,13 @@ import uuid
 import os
 import logging
 
-from timeseries.dates import date_utc  # , now_utc, date_round
-from timeseries.logging import log_start_stop, ts_logger
-from timeseries.dataset import Dataset
-from timeseries.properties import SeriesType
-from timeseries.sample_data import create_df
+from ssb_timeseries.dates import date_utc  # , now_utc, date_round
+from ssb_timeseries.logging import log_start_stop, ts_logger
+from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.properties import SeriesType
+from ssb_timeseries.sample_data import create_df
 
-from timeseries.meta import Taxonomy
+from ssb_timeseries.meta import Taxonomy
 from bigtree import print_tree, get_tree_diff
 
 
@@ -43,10 +43,10 @@ def test_init_dataset_returns_expected_set_level_tags(caplog) -> None:
 
     """ We expect DATASET tags on the form:
     {
-        'name': 'test-datetimecols-eec23c979e7b4976b77d48f005ffd7b2', 
-        'versioning': 'AS_OF', 
-        'temporality': 'AT', 
-        'About': 'ImportantThings', 
+        'name': 'test-datetimecols-eec23c979e7b4976b77d48f005ffd7b2',
+        'versioning': 'AS_OF',
+        'temporality': 'AT',
+        'About': 'ImportantThings',
         'SeriesDifferentiatingAttributes': ['A', 'B', 'C']
     }
     with *at least* the above provided attributes (possibly / quite likely many more)
@@ -91,14 +91,14 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
 
     """ we expect SERIES tags to include most of the dataset tags:
     {<series_name>: {
-        'dataset': 'test-datetimecols-eec23c979e7b4976b77d48f005ffd7b2', 
+        'dataset': 'test-datetimecols-eec23c979e7b4976b77d48f005ffd7b2',
         'name': <series name>,
-        'versioning': 'AS_OF', 
-        'temporality': 'AT', 
-        'About': 'ImportantThings', 
+        'versioning': 'AS_OF',
+        'temporality': 'AT',
+        'About': 'ImportantThings',
         'SeriesDifferentiatingAttributes': ['A', 'B', 'C'],
         **{ any series specific tags passed to init via the `series_tags` parameter}
-    } 
+    }
 
     """
     assert x.series_tags() == x.tags["series"]
