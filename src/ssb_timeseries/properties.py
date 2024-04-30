@@ -30,6 +30,10 @@ class SuperEnum(Enum):
         # return list(cls._value2member_map_.keys())
         return [item.value[1] for item in cls]
 
+    def __eq__(self, other: Self) -> bool:
+        """Equality test."""
+        return repr(self) == repr(other)
+
     def __repr__(self) -> str:
         """Machine readable string representation, ideally sufficient to recreate object."""
         return f"{self.__class__.__name__}.{self.name}"
@@ -139,18 +143,22 @@ class SeriesType:
     #     """Helper for testing/logging; returns '<versioning>\n<temporality>'. Do not use in production code."""
     #     return f"{self.versioning[1]}\n{self.temporality[1]}"
 
-    def __str__(self) -> str:
-        """Helper; returns '<versioning>_<temporality>'."""
-        return f"{self.versioning!s}_{self.temporality!s}"
-
     @classmethod
     def permutations(cls) -> list[str]:
         """Helper; returns ['<versioning>_<temporality>', ...] ."""
         return ["_".join(c) for c in product(Versioning.keys(), Temporality.keys())]
 
+    def __str__(self) -> str:
+        """Helper; returns '<versioning>_<temporality>'."""
+        return f"{self.versioning!s}_{self.temporality!s}"
+
     def __repr__(self) -> str:
         """Helper, returns code with required parameters to initialise given SeriesType."""
         return f"SeriesType({self.versioning!r},{self.temporality!r})"
+
+    def __eq__(self, other: Self) -> bool:
+        """Equality test."""
+        return repr(self) == repr(other)
 
 
 def estimate_types() -> list[str]:

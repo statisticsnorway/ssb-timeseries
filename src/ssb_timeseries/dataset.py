@@ -1,4 +1,5 @@
 import datetime
+from copy import deepcopy
 from typing import Any
 from typing import no_type_check
 
@@ -146,17 +147,16 @@ class Dataset:
                     )
                     # [self.tags.series[k] = for k, a in zip(self.numeric_columns(), name_pattern]
 
-    def copy(self, new_name, **kwargs):
-        out = self.__class__(
-            name=new_name,
-            data_type=self.data_type,
-            as_of_tz=self.as_of_utc,
-            data=self.data,
-        )
-        # for k, v in kwargs.items():
-        #     ts_logger.warning(
-        #         f"DATASET.copy(value {k}: \n\t-->\n {v}."  # f"DATASET.copy(value {k}: {self.[v]}{v}."
-        #     )
+    def copy(self, new_name: str, **kwargs) -> Self:  # noqa: ANN003
+        """Create a copy of the Dataset.
+
+        The copy need to get a new name, but unless other information is spcecified, it will be create wiht the same data_type, as_of_tz, data, and tags.
+        """
+        out = deepcopy(self)
+        out.name = new_name
+        for k, v in kwargs.items():
+            setattr(out, k, v)
+            ts_logger.warning(f"DATASET.copy() ... set {k}:\n\t {v}.")
 
         return out
 
@@ -223,35 +223,49 @@ class Dataset:
         else:
             return self.tags["series"]
 
-    def tag_set(self, **kwargs):
+    def tag_set(self, tags: dict = None, **kwargs: str | list[str]) -> None:
         """Tag the set.
 
-        Keyword Args:
-            attribute (str): Attribute identifier.
-                We start out with free text identifiers, leaving it to users to enforce consistency.
-                Later, we should implement a register of valid attributes with names and definitions.
-            value (str): Element identifier.
-                A code or name that is unique within the taxonomy.
-        """
-        pass
-        # if value not in self[attribute]:
-        #    self[attribute].append(value)
+        Tags may be provided as dictionary of tags, or as kwargs.
 
-    def tag_series(self, identifiers, tags: dict = None, **kwargs):
+        In both cases they take the form of attribute-value pairs.
+
+        Attribute (str): Attribute identifier.
+        Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
+
+        Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
+        """
+        if tags:
+            raise NotImplementedError("Not (yet) implemented. Planned for later.")
+        elif kwargs:
+            raise NotImplementedError("Not (yet) implemented. Planned for later.")
+            # if value not in self[attribute]:
+            # self[attribute].append(value)
+        else:
+            raise ValueError("Must provide either tags or kwargs.")
+
+    def tag_series(
+        self, identifiers: str | list[str], tags: dict = None, **kwargs: str
+    ) -> None:
         """Tag the series.
 
-        Args:
-            identifiers (list[str] | Search(...))
-                A list of strings with series names. Names should be exact match for columns in .data.
-                A search object (IDEA for later implementation) would be a reusable object containg valid search criteria in the form of names, regexes and tags (attribute-value pairs).
-        Keyword Args:
-            attribute (str): Attribute identifier.
-                We start out with free text identifiers, leaving it to users to enforce consistency.
-                Later, we should implement a register of valid attributes with names and definitions.
-            value (str): Element identifier.
-                A code or name that is unique within the taxonomy.
+        Tags may be provided as dictionary of tags, or as kwargs.
+
+        In both cases they take the form of attribute-value pairs.
+
+        Attribute (str): Attribute identifier.
+        Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
+
+        Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
         """
-        pass
+        if tags:
+            raise NotImplementedError("Not (yet) implemented. Planned for later.")
+        elif kwargs:
+            raise NotImplementedError("Not (yet) implemented. Planned for later.")
+            # if value not in self[attribute]:
+            # self[attribute].append(value)
+        else:
+            raise ValueError("Must provide either tags or kwargs.")
         # should handle different datatypes for "item" :
         # name, int index, List of name or index
         # if value not in self.series[item][attribute]:
@@ -276,19 +290,25 @@ class Dataset:
             regex (str): Expression for regex search in column names. Defaults to ''.
             tags (dict): Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
+            output (str): Output type. Defaults to 'dataset'.
             **kwargs: if provided, goes into the init of a new Dataset.
 
-        Returns: By default a new Dataset. If output="dataframe" or "df", a dataframe.
+        Returns: By default a new Dataset. If output="dataframe" or "df", a dataframe. Deep copy.
         """
-        df = self.data
         if regex:
-            df = df.filter(regex=regex)
+            df = self.data.filter(regex=regex).copy(deep=True)
 
         if pattern:
-            df = df.filter(like=pattern)
+            df = self.data.filter(like=pattern).copy(deep=True)
 
         if tags:
-            ts_logger.warning(f"DATASET.filter(TO DO: handle meta dict: {tags} ")
+            ts_logger.warning(f"DATASET.filter() tags:\n{tags}")
+            series_tags = self.series_tags()
+            names = [
+                series_tags[s]["name"] for s in series_tags if tags in series_tags[s]
+            ]
+            ts_logger.debug(f"DATASET.filter(( --> names:\n\t{names} ")
+            df = self.data[names].copy(deep=True)
 
         df = pd.concat([self.data[self.datetime_columns()], df], axis=1)
         # TO DO: add interval parameter to filter on datetime? Similar to:
@@ -302,21 +322,22 @@ class Dataset:
             case "dataset" | "ds" | _:
                 # return new dataset even when no kwargs provide name etc?
                 # or just some kind of self.copy?
-                new_name = f"filter({self.name} where ...)"
-                out = self.copy(new_name=new_name, data=df)
-                ts_logger.warning(
-                    f"DATASET.filter({pattern} {tags} {regex}) --> {out.name}\n\t{df.columns}."
+                new_name = (
+                    f"dataset.filter({self.name} where pattern: {pattern} tags: {tags})"
                 )
+                out = self.copy(new_name=new_name, data=df, **kwargs)
 
         return out
 
         # TBD: the most natural behaviour is probably not to apply filter to self.data,
         # but to return a (new) Dataset or DataFrame. Which one should it be?
 
-    def __getitem__(self, key: str | dict[str, str]) -> pd.DataFrame | Self:
+    def __getitem__(
+        self, criteria: str | dict[str, str] | list[str]
+    ) -> pd.DataFrame | Self:
         """Access Dataset.data.columns via Dataset[ list[column_names] | regex | tags].
 
-        Key takes the shape of either a regex (str) or a tags (dict).
+        Criteria takes the shape of either a string or a tags (dict).
         """
         # pattern: str = "", regex: str = "", tags: dict = {}):
         # Dataset[...] should return a Dataset object (?) with only the requested items (columns).
@@ -328,33 +349,25 @@ class Dataset:
         # (Then the original x is not affected by updates to x[a])?
         # Or, is there a trick using dataframe views?
         # --->
-        if isinstance(key, str):
-            return self.filter(
-                pattern=key,
-                # name=self.name,
-                # data_type=self.data_type,
-                # as_of_tz=self.as_of_utc,
-            )
-        elif isinstance(key, dict):
-            return self.filter(
-                tags=key,
-                # name=self.name,
-                # data_type=self.data_type,
-                # as_of_tz=self.as_of_utc,
-            )
+        if isinstance(criteria, str):
+            return self.filter(pattern=criteria)
+        elif isinstance(criteria, dict):
+            return self.filter(tags=criteria)
         # regex=regex, tags=tags)
 
-    def plot(self, *args, **kwargs: Any) -> Any:
+    def plot(self, *args: Any, **kwargs: Any) -> Any:
         """Plot dataset data.
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
         """
+        xlabels = self.datetime_columns[0]
+        ts_logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
         return self.data.plot(
-            "valid_at",
+            xlabels,
+            *args,
             legend=len(self.data.columns) < 9,
             title=self.name,
             figsize=(12, 4),
-            *args,
             **kwargs,
         )
 

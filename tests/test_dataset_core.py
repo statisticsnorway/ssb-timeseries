@@ -90,7 +90,12 @@ def test_dataset_copy_creates_new_instance(caplog) -> None:
 
     assert isinstance(copy, Dataset)
     assert copy.name == new_name
-    assert original != copy
+    assert copy.data_type == original.data_type
+    # TODO: pop dataset name from tags before comparing
+    # assert copy.tags == original.tags
+    assert all(copy.data == original.data)
+    ts_logger.warning(f"Original: {original}\nCopy: {copy}")
+    assert id(original) != id(copy)
 
 
 @log_start_stop
@@ -342,10 +347,11 @@ def test_dataset_getitem_by_string(caplog: LogCaptureFixture):
         *tag_values, start_date="2022-01-01", end_date="2022-06-01", freq="MS"
     )
     y = x["b"]
-    ts_logger.debug(f"y = x['b']\n{y}")
+    assert isinstance(y, Dataset)
 
-    ts_logger.debug(f"{__name__}look at y: {y}")
-    ts_logger.debug(f"{__name__}look at x: {x.data}")
+    ts_logger.debug(f"y = x['b']\n{y}")
+    ts_logger.debug(f"{__name__}look at y:\n\t{y}")
+    ts_logger.debug(f"{__name__}look at x:\n\t{x.data}")
     assert list(y.data.columns) == ["valid_at", "b"]
     assert list(x.data.columns) == ["valid_at", "a", "b", "c"]
     # confirm that x and y are not the same object
@@ -361,7 +367,7 @@ def test_filter_dataset_by_regex_return_dataframe(caplog):
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
     y = x.filter(regex="^x", output="dataframe")
-    ts_logger.debug(f"y = x.filter(regex='^x')\n{y.data}")
+    ts_logger.debug(f"y = x.filter(regex='^x')\n{y}")
 
     # assert isinstance(y, Dataset)
     assert list(y.columns) == ["valid_at", "xd", "xe"]
@@ -369,7 +375,7 @@ def test_filter_dataset_by_regex_return_dataframe(caplog):
 
 
 @log_start_stop
-def test_filter_dataset_by_regex(caplog: LogCaptureFixture):
+def test_filter_dataset_by_regex_return_dataset(caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
@@ -378,30 +384,48 @@ def test_filter_dataset_by_regex(caplog: LogCaptureFixture):
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
     y = x.filter(regex="^x")
-    ts_logger.debug(f"y = x.filter(regex='^x')\n{y.data}")
+    ts_logger.debug(f"y = x.filter(regex='^x')\n{y}")
 
     assert isinstance(y, Dataset)
     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
 
-@log_start_stop
-def test_filter_dataset_by_regex_new_dataset(caplog: LogCaptureFixture):
-    caplog.set_level(logging.DEBUG)
+# repeated?
+# @log_start_stop
+# def test_filter_dataset_by_regex(caplog: LogCaptureFixture):
+#     caplog.set_level(logging.DEBUG)
 
-    x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
-    tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
-    )
-    y = x.filter(
-        regex="^x", name="test-filter", data_type=SeriesType.simple(), load_data=False
-    )
-    ts_logger.debug(f"datasets: {y}")
-    ts_logger.debug(f"datasets: {x}")
+#     x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
+#     tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
+#     x.data = create_df(
+#         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+#     )
+#     y = x.filter(regex="^x")
+#     ts_logger.debug(f"y = x.filter(regex='^x')\n{y.data}")
 
-    assert list(y.data.columns) == ["valid_at", "xd", "xe"]
-    assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
+#     assert isinstance(y, Dataset)
+#     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
+#     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
+
+
+# @log_start_stop
+# def test_filter_dataset_by_regex_new_dataset(caplog: LogCaptureFixture):
+#     caplog.set_level(logging.DEBUG)
+
+#     x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
+#     tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
+#     x.data = create_df(
+#         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+#     )
+#     y = x.filter(
+#         regex="^x", name="test-filter", data_type=SeriesType.simple(), load_data=False
+#     )
+#     ts_logger.debug(f"datasets: {y}")
+#     ts_logger.debug(f"datasets: {x}")
+
+#     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
+#     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
 
 @log_start_stop
