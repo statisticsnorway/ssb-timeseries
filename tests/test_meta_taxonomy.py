@@ -5,10 +5,10 @@ import pytest
 from bigtree import get_tree_diff
 from bigtree import print_tree
 
+from ssb_timeseries import fs
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import Taxonomy
-from timeseries import fs
 
 
 @pytest.mark.skipif(False, reason="")
