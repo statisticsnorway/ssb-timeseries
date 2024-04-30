@@ -146,7 +146,21 @@ class Dataset:
                     )
                     # [self.tags.series[k] = for k, a in zip(self.numeric_columns(), name_pattern]
 
-    def save(self, as_of_tz: datetime.datetime = None) -> None:
+    def copy(self, new_name, **kwargs):
+        out = self.__class__(
+            name=new_name,
+            data_type=self.data_type,
+            as_of_tz=self.as_of_utc,
+            data=self.data,
+        )
+        # for k, v in kwargs.items():
+        #     ts_logger.warning(
+        #         f"DATASET.copy(value {k}: \n\t-->\n {v}."  # f"DATASET.copy(value {k}: {self.[v]}{v}."
+        #     )
+
+        return out
+
+    def save(self, as_of_tz: datetime = None) -> None:
         """Persist the Dataset.
 
         Args:
@@ -209,6 +223,39 @@ class Dataset:
         else:
             return self.tags["series"]
 
+    def tag_set(self, **kwargs):
+        """Tag the set.
+
+        Keyword Args:
+            attribute (str): Attribute identifier.
+                We start out with free text identifiers, leaving it to users to enforce consistency.
+                Later, we should implement a register of valid attributes with names and definitions.
+            value (str): Element identifier.
+                A code or name that is unique within the taxonomy.
+        """
+        pass
+        # if value not in self[attribute]:
+        #    self[attribute].append(value)
+
+    def tag_series(self, identifiers, tags: dict = None, **kwargs):
+        """Tag the series.
+
+        Args:
+            identifiers (list[str] | Search(...))
+                A list of strings with series names. Names should be exact match for columns in .data.
+                A search object (IDEA for later implementation) would be a reusable object containg valid search criteria in the form of names, regexes and tags (attribute-value pairs).
+        Keyword Args:
+            attribute (str): Attribute identifier.
+                We start out with free text identifiers, leaving it to users to enforce consistency.
+                Later, we should implement a register of valid attributes with names and definitions.
+            value (str): Element identifier.
+                A code or name that is unique within the taxonomy.
+        """
+        pass
+        # should handle different datatypes for "item" :
+        # name, int index, List of name or index
+        # if value not in self.series[item][attribute]:
+        #    self.series[attribute].append(value)
     def search(self, pattern: str = "*") -> list[str]:
         """Search for datasets by name matching pattern."""
         return self.io.search(pattern=pattern)
@@ -218,6 +265,7 @@ class Dataset:
         pattern: str = "",
         tags: dict[Any, Any] = None,
         regex: str = "",
+	output: str="dataset",
         **kwargs: str | list[str],
     ) -> pd.DataFrame | Self:
         """Filter dataset.data by textual pattern, regex or metadata tag dictionary. Or a combination.
@@ -225,11 +273,11 @@ class Dataset:
         Args:
             pattern (str): Text pattern for search 'like' in column names. Defaults to ''.
             regex (str): Expression for regex search in column names. Defaults to ''.
-            tags (dict): Dictionary with tags to search for. Defaults to {}.
+            tags (dict): Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND).
+                | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
             **kwargs: if provided, goes into the init of a new Dataset.
 
-        Returns:
-            A new Dataset if kwargs are provided to initialise it, otherwise, a dataframe.
+        Returns: By default a new Dataset. If output="dataframe" or "df", a dataframe.
         """
         df = self.data
         if regex:
@@ -239,20 +287,25 @@ class Dataset:
             df = df.filter(like=pattern)
 
         if tags:
-            # TO DO: handle meta dict
-            pass
+            ts_logger.warning(f"DATASET.filter(TO DO: handle meta dict: {tags} ")
 
         df = pd.concat([self.data[self.datetime_columns()], df], axis=1)
         # TO DO: add interval parameter to filter on datetime? Similar to:
         # if interval:
         #    df = df[interval, :]
 
-        if kwargs:
-            # or just some kind of self.copy?
-            out = Dataset(**kwargs)
-            out.data = df
-        else:
-            out = df
+        match output:
+            case "dataframe" | "df":
+                # provide option to get dataframe
+                out = df
+            case "dataset" | "ds" | _:
+                # return new dataset even when no kwargs provide name etc?
+                # or just some kind of self.copy?
+                new_name = f"filter({self.name} where ...)"
+                out = self.copy(new_name=new_name, data=df)
+                ts_logger.warning(
+                    f"DATASET.filter({pattern} {tags} {regex}) --> {out.name}\n\t{df.columns}."
+                )
 
         return out
 
@@ -290,7 +343,7 @@ class Dataset:
             )
         # regex=regex, tags=tags)
 
-    def plot(self, **kwargs: Any) -> Any:
+    def plot(self,*args, **kwargs: Any) -> Any:
         """Plot dataset data.
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
@@ -300,7 +353,7 @@ class Dataset:
             legend=len(self.data.columns) < 9,
             title=self.name,
             figsize=(12, 4),
-            **kwargs,
+            *args,**kwargs,
         )
 
     def vectors(self, pattern: str = "") -> None:
@@ -645,11 +698,11 @@ class Dataset:
         return self.math(other, np.less)
 
     def __repr__(self) -> str:
-        """Machine readable string representation of Dataset, ideally sufficient to recreate object."""
+        """Returns a machine readable string representation of Dataset, ideally sufficient to recreate object."""
         return f'Dataset(name="{self.name}", data_type={self.data_type!r}, as_of_tz="{self.as_of_utc.isoformat()}")'
 
     def __str__(self) -> str:
-        """Human readable string representation of Dataset."""
+        """Returns a human readable string representation of the Dataset."""
         return str(
             {
                 "name": self.name,
