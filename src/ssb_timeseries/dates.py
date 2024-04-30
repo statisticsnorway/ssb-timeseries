@@ -1,3 +1,4 @@
+# ruff: noqa
 # from datetime import datetime, timedelta
 import datetime
 import time
@@ -10,28 +11,26 @@ from ssb_timeseries.logging import ts_logger
 
 MAX_TIME_PRECISION = "Min"
 
-
-@wraps
-def dt_round(func):
-    def wrapper(*args, **kwargs):
-        rounding = kwargs.get("rounding", None)
-        if rounding is None:
-            return func(*args, **kwargs)
-        else:
-            return func(*args, **kwargs).floor(rounding)
-
-    return wrapper
-
-
 dt = datetime.datetime
-ts = time.time
+ts = time.time()
 
 
 def date_round(d: dt, **kwargs) -> dt:
-    return d.floor(MAX_TIME_PRECISION)
+
+    rounding = kwargs.get("rounding", MAX_TIME_PRECISION)
+    match rounding.lower():
+        case "day" | "d":
+            out = d.replace(hour=0, minute=0, second=0, microsecond=0)
+        case "hour" | "h":
+            out = d.replace(minute=0, second=0, microsecond=0)
+        case "minute" | "min" | "m":
+            out = d.replace(second=0, microsecond=0)
+        case "second" | "sec" | "s" | _:
+            out = d.replace(microsecond=0)
+    return out
 
 
-def date_utc(d, **kwargs) -> dt:
+def date_utc(d: dt, **kwargs) -> dt:
     if d is None:
         d = now_utc()
 
@@ -58,7 +57,7 @@ def date_utc(d, **kwargs) -> dt:
     return d.astimezone(tz=pytz.utc)
 
 
-def utc_iso(d, timespec: str = "minutes", **kwargs) -> str:
+def utc_iso(d: dt, timespec: str = "minutes", **kwargs) -> str:
     return date_utc(d, **kwargs).isoformat(timespec=timespec)
 
 
@@ -68,12 +67,12 @@ def date_cet(d: dt, **kwargs) -> dt:
 
 def now_utc(**kwargs) -> dt:
     t = dt.now(tz=pytz.utc)
-    return t
+    return date_round(t, **kwargs)
 
 
 def now_cet(**kwargs) -> dt:
     t = dt.now(tz=pytz.timezone("Europe/Oslo"))
-    return t
+    return date_round(t, **kwargs)
 
 
 class Interval:

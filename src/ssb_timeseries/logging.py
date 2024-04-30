@@ -1,3 +1,9 @@
+"""Time series should make use of standardised messaging and logging.
+
+These are features that may warrant their own shared Dapla libraries. This module separates out code that could go into such a library.
+"""
+
+# ruff: noqa: ANN002, ANN003
 # import uuid
 # automatic cloud logging config
 # import google.cloud.logging
@@ -8,6 +14,8 @@ import functools
 import logging
 import os
 from datetime import datetime
+
+from typing_extensions import Self
 
 from ssb_timeseries import config
 
@@ -53,15 +61,20 @@ ts_logger.addHandler(console)
 
 
 class EnterExitLog:
-    def __init__(self, name: str):
+    """Class supporting decorator to log on enter and exit."""
+
+    def __init__(self, name: str) -> None:
+        """Enter/exit template for workflow process."""
         self.name = name
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
+        """Before each workflow process step, do this."""
         self.init_time = datetime.now()
         ts_logger.info(f"START: {self.name}.")
         return self
 
-    def __exit__(self, type, value, tb):
+    def __exit__(self, exc_type, exc_value, exc_traceback) -> None:  # noqa ANN001
+        """After each workflow process step, do this."""
         self.end_time = datetime.now()
         self.elapsed_time = self.end_time - self.init_time
         ts_logger.info(
@@ -69,8 +82,9 @@ class EnterExitLog:
         )
 
 
-def log_start_stop(func):
-    """Log start and stop of decorated function"""
+def log_start_stop(func):  # noqa ANN001
+    """Log start and stop of decorated function."""
+    # TODO: generalise: pass in functions to enter/exit?
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -82,20 +96,20 @@ def log_start_stop(func):
     return wrapper
 
 
-def debug(func):
-    """Print the function signature and return value"""
+# def debug(func):  # ANN001, ANN201
+#     """Print the function signature and return value."""
 
-    @functools.wraps(func)
-    def wrapper_debug(*args, **kwargs):
-        args_repr = [repr(a) for a in args]  # 1
-        kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]  # 2
-        signature = ", ".join(args_repr + kwargs_repr)  # 3
-        print(f"Calling {func.__name__}({signature})")
-        value = func(*args, **kwargs)
-        print(f"{func.__name__!r} returned {value!r}")  # 4
-        return value
+#     @functools.wraps(func)
+#     def wrapper_debug(*args, **kwargs):
+#         args_repr = [repr(a) for a in args]  # 1
+#         kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]  # 2
+#         signature = ", ".join(args_repr + kwargs_repr)  # 3
+#         print(f"Calling {func.__name__}({signature})")
+#         value = func(*args, **kwargs)
+#         print(f"{func.__name__!r} returned {value!r}")  # 4
+#         return value
 
-    return wrapper_debug
+#     return wrapper_debug
 
 
 """

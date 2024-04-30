@@ -2,6 +2,7 @@ import datetime
 import glob
 import os
 import re
+from os import PathLike
 
 import pandas
 
@@ -34,14 +35,17 @@ CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
 
 
 class FileSystem:
+    """A filesystem abstraction for Dataset IO."""
+
     def __init__(
         self,
         set_name: str,
         set_type: properties.SeriesType,
         as_of_utc: datetime,
         process_stage: str = "statistikk",
-        sharing: dict = {},
+        sharing: dict | None = None,
     ) -> None:
+        """Initialise filesystem abstraction for dataset: calculate directory structure based on dataset type and name."""
         self.set_name = set_name
         self.data_type = set_type
         self.process_stage = process_stage
@@ -76,24 +80,28 @@ class FileSystem:
 
     @property
     def root(self) -> str:
+        """The root path is the basis for all other paths."""
         ts_root = CONFIG.timeseries_root
         return ts_root
 
     @property
     def set_type_dir(self) -> str:
+        """Under the time series root there is a directory for each data type. Names concatenate the contituents of the type: temporality and versioning."""
         return f"{self.data_type.versioning}_{self.data_type.temporality}"
 
     @property
     def type_path(self) -> str:
+        """All sets of the same data type are stored in the same sub directory under the timeseries root."""
         return os.path.join(self.root, self.set_type_dir)
 
     @property
     def metadata_file(self) -> str:
+        """The name of the metadata file for the dataset."""
         return f"{self.set_name}-metadata.json"
 
     @property
     def data_file(self) -> str:
-        # def datafile_name(self) -> str:
+        """The name of the data file for the dataset."""
         if "AS_OF" in self.set_type_dir:
             file_name = f"{self.set_name}-as_of_{self.as_of_utc}-data.parquet"
         elif "NONE" in self.set_type_dir:
@@ -108,23 +116,32 @@ class FileSystem:
 
     @property
     def data_dir(self) -> str:
+        """The data directory for the dataset. This is a subdirectory under the type path."""
         return os.path.join(self.type_path, self.set_name)
 
     @property
     def data_fullpath(self) -> str:
+        """The full path to the data file."""
         return os.path.join(self.data_dir, self.data_file)
 
     @property
     def metadata_dir(self) -> str:
+        """The location of the metadata file for the dataset.
+
+        In the inital implementation with data and metadata in separate files it made sense for this to be the same as the data directory. However, Most likely, in a future version we will change this apporach and store metadata as header information in the data file, and the same information in a central meta data directory.
+        """
         return os.path.join(self.type_path, self.set_name)
 
     @property
     def metadata_fullpath(self) -> str:
+        """The full path to the metadata file."""
         return os.path.join(self.metadata_dir, self.metadata_file)
 
     def read_data(
-        self, interval: Interval = Interval.all, *args, **kwargs
+        self,
+        interval: Interval = Interval.all,
     ) -> pandas.DataFrame:
+        """Read data from the filesystem. Return empty dataframe if not found."""
         ts_logger.debug(interval)
         if fs.exists(self.data_fullpath):
             ts_logger.debug(
@@ -145,7 +162,8 @@ class FileSystem:
         ts_logger.debug(f"DATASET {self.set_name}: read data:\n{df}")
         return df
 
-    def write_data(self, new: pandas.DataFrame):
+    def write_data(self, new: pandas.DataFrame) -> None:
+        """Write data to the filesystem. If versioning is AS_OF, write to new file. If versioning is NONE, write to existing file."""
         if self.data_type.versioning == properties.Versioning.AS_OF:
             df = new
         else:
@@ -179,6 +197,7 @@ class FileSystem:
         )
 
     def read_metadata(self) -> dict:
+        """Read tags from the metadata file."""
         meta: dict = {"name": self.set_name}
         if fs.exists(self.metadata_fullpath):
             ts_logger.info(
@@ -187,7 +206,8 @@ class FileSystem:
             meta = fs.read_json(self.metadata_fullpath)
         return meta
 
-    def write_metadata(self, meta) -> None:
+    def write_metadata(self, meta: dict) -> None:
+        """Write tags to the metadata file."""
         os.makedirs(self.metadata_dir, exist_ok=True)
         try:
             fs.write_json(self.metadata_fullpath, meta)
@@ -200,12 +220,15 @@ class FileSystem:
             )
 
     def datafile_exists(self) -> bool:
+        """Check if the data file exists."""
         return fs.exists(self.data_fullpath)
 
     def metadatafile_exists(self) -> bool:
+        """Check if the metadata file exists."""
         return fs.exists(self.metadata_fullpath)
 
     def save(self, meta: dict, data: pandas.DataFrame = None) -> None:
+        """Save data and metadata to disk."""
         if meta:
             self.write_metadata(meta)
         else:
@@ -220,18 +243,16 @@ class FileSystem:
                 f"DATASET {self.set_name}: Data is empty. Nothing to write."
             )
 
-    def last_version(self, dir: str, pattern: str = "*.parquet") -> str:
-        # naive "version" check - simply use number of files
-        # --> TO DO: use substring
-
-        files = fs.ls(dir, pattern=pattern)
+    def last_version(self, directory: str, pattern: str = "*.parquet") -> str:
+        """Check directory and get max version number from files matching regex pattern."""
+        files = fs.ls(directory, pattern=pattern)
         number_of_files = len(files)
 
         vs = sorted(
             [int(re.search("(_v)([0-9]+)(.parquet)", f).group(2)) for f in files]
         )
         ts_logger.debug(
-            f"DATASET {self.set_name}: io.last_version regex identified versions {vs} in {dir}."
+            f"DATASET {self.set_name}: io.last_version regex identified versions {vs} in {directory}."
         )
         if vs:
             read_from_filenames = max(vs)
@@ -241,11 +262,17 @@ class FileSystem:
             out = number_of_files
 
         ts_logger.debug(
-            f"DATASET {self.set_name}: io.last_version searched directory: \n\t{dir}\n\tfor '{pattern}' found {number_of_files!s} files, regex identified version {read_from_filenames!s} --> vs {out!s}."
+            f"DATASET {self.set_name}: io.last_version searched directory: \n\t{directory}\n\tfor '{pattern}' found {number_of_files!s} files, regex identified version {read_from_filenames!s} --> vs {out!s}."
         )
         return out
 
-    def snapshot_directory(self, product, process_stage: str = "statistikk"):
+    def snapshot_directory(
+        self, product: str, process_stage: str = "statistikk"
+    ) -> PathLike:
+        """Get name of snapshot directory.
+
+        Uses dataset parameters, configuration, product and process stage.
+        """
         return os.path.join(
             CONFIG.bucket,
             product,
@@ -259,12 +286,19 @@ class FileSystem:
         self,
         product: str,
         process_stage: str,
-        as_of_utc=None,
+        as_of_utc: datetime.datetime | None = None,
         period_from: str = "",
         period_to: str = "",
-    ) -> str:
-        dir = self.snapshot_directory(product=product, process_stage=process_stage)
-        next_vs = self.last_version(dir=dir, pattern="*.parquet") + 1
+    ) -> PathLike:
+        """Get full path of snapshot file.
+
+        Uses dataset parameters, configuration, product, process stage and as-of time.
+        Relying on snapshot_directory() first to get the directory name.
+        """
+        directory = self.snapshot_directory(
+            product=product, process_stage=process_stage
+        )
+        next_vs = self.last_version(directory=directory, pattern="*.parquet") + 1
 
         if as_of_utc:
             out = f"{self.set_name}_p{utc_iso(period_from)}_p{utc_iso(period_to)}_v{utc_iso(as_of_utc)}_v{next_vs}"
@@ -281,26 +315,30 @@ class FileSystem:
         self,
         team: str,
         bucket: str,
-    ):
+    ) -> PathLike:
+        """Get name of sharing directory based on dataset parameters and configuration.
+
+        Creates the directory if it does not exist.
+        """
         # if team:
         #     dir = os.path.join(bucket, team, self.set_name)
         # else:
         #     dir = os.path.join(bucket, self.set_name)
 
-        dir = os.path.join(bucket, self.set_name)
-        ts_logger.warning(f"DATASET.IO.SHARING_DIRECTORY: {dir}")
-        fs.mkdir(dir)
-        return dir
+        directory = os.path.join(bucket, self.set_name)
+        ts_logger.warning(f"DATASET.IO.SHARING_DIRECTORY: {directory}")
+        fs.mkdir(directory)
+        return directory
 
     def snapshot(
         self,
         product: str,
         process_stage: str,
-        sharing={},
-        as_of_tz=None,
-        period_from=None,
-        period_to=None,
-    ):
+        sharing: dict | None = None,
+        as_of_tz: datetime.datetime | None = None,
+        period_from: datetime.datetime | None = None,
+        period_to: datetime.datetime | None = None,
+    ) -> None:
         """Copies snapshots to bucket(s) according to processing stage and sharing configuration.
 
         For this to work, .stage and sharing configurations should be set for the dataset, eg:
@@ -309,7 +347,9 @@ class FileSystem:
                         {'team': 's345': 'path': '<s345-bucket>'}]
             .stage = 'statistikk'
         """
-        dir = self.snapshot_directory(product=product, process_stage=process_stage)
+        directory = self.snapshot_directory(
+            product=product, process_stage=process_stage
+        )
         snapshot_name = self.snapshot_filename(
             product=product,
             process_stage=process_stage,
@@ -318,8 +358,8 @@ class FileSystem:
             period_to=period_to,
         )
 
-        data_publish_path = os.path.join(dir, f"{snapshot_name}.parquet")
-        meta_publish_path = os.path.join(dir, f"{snapshot_name}.json")
+        data_publish_path = os.path.join(directory, f"{snapshot_name}.parquet")
+        meta_publish_path = os.path.join(directory, f"{snapshot_name}.json")
 
         fs.cp(self.data_fullpath, data_publish_path)
         fs.cp(self.metadata_fullpath, meta_publish_path)
@@ -340,7 +380,8 @@ class FileSystem:
                     f"DATASET {self.set_name}: sharing with {s['team']}, snapshot copied to {s['path']}."
                 )
 
-    def search(self, pattern="", *args, **kwargs):
+    def search(self, pattern: str = "") -> list[str | PathLike]:
+        """Search for files in under timeseries root."""
         if pattern:
             pattern = f"*{pattern}*"
         else:
@@ -357,7 +398,7 @@ class FileSystem:
         return [f[2] for f in search_results]
 
     @classmethod
-    def dir(self, *args, **kwargs) -> str:
+    def dir(self, *args, **kwargs) -> str:  # noqa ANN002,ANN003
         """Check that target directory is under BUCKET. If so, create it if it does not exist."""
         ts_logger.debug(f"{args}:")
         path = os.path.join(*args)
@@ -374,12 +415,6 @@ class FileSystem:
 
 
 class DatasetIoException(Exception):
-    pass
+    """Exception for dataset io errors."""
 
-
-class DatasetDirectory:
-    # renamed - for backward compatibility
-    ts_logger.warning(
-        "The DatasetDirectory class has been deprecated, use FileSystem instead."
-    )
     pass

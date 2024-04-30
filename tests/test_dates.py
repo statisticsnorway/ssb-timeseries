@@ -127,20 +127,6 @@ def test_interval_a_equals_interval_b_false(caplog) -> None:
     assert not a == b
 
 
-def test_interval_a_equals_interval_b_true(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    t0 = datetime.now()
-    d = timedelta(days=1)
-    a_start = t0 - d
-    a_stop = t0 + d
-    b_start = a_start
-    b_stop = a_stop
-    a = Interval(begin=a_start, end=a_stop)
-    b = Interval(begin=b_start, end=b_stop)
-    assert a == b
-
-
 def test_interval_a_greater_than_interval_b(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 

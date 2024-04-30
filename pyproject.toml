@@ -24,8 +24,9 @@ google-cloud-logging = "^3.8.0"
 pytz = "^2023.3.post1"
 polars = "^0.19.18"
 duckdb = "^0.10.0"
-datafusion = "^35.0.0"
 bigtree = "^0.17.0"
+click = "^8.1.7"
+typing-extensions = "^4.11.0"
 
 [tool.poetry.group.dev.dependencies]
 pygments = ">=2.10.0"

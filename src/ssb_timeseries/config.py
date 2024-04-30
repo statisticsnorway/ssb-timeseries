@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+from os import PathLike
 
 from ssb_timeseries import fs
 
@@ -17,14 +18,16 @@ TIMESERIES_CONFIG: str = os.getenv("TIMESERIES_CONFIG", DEFAULT_CONFIG_LOCATION)
 
 
 class Config:
-    def __init__(self, configuration_file: str = "", **kwargs) -> None:
+    """Timeseries configurations: bucket, product, timeseries_root, log_file."""
+
+    def __init__(self, configuration_file: str = "", **kwargs: str) -> None:
         """Create or retrieve configurations from within production code. If called with no parameters, it first tries to read from config file as specified by environment variable TIMSERIES_CONFIG. If that does not succeed, applies defaults.
 
         Args:
             configuration_file (str, optional): If provided, it tries that before falling back to the environment variable. Defaults to "".
             kwargs:
                 bucket              - The "production bucket" location. Sharing and snapshots typically go in the sub directories hee, depending on configs.
-                prdouct             - Optional sub directory for "production bucket".
+                product             - Optional sub directory for "production bucket".
                 timeseries_root     - Series data are stored in tree underneath. Defaults to '$HOME/series_data/'
                 log_file            - Exactly that. Defaults to '$HOME/series_data/'
         """
@@ -79,13 +82,16 @@ class Config:
         else:
             return "local"
 
-    def toJSON(self):
+    def toJSON(self) -> str:
+        """Return timeseries configurations as JSON string."""
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
     def __str__(self) -> str:
+        """Human readable string representation of configuration object: JSON string."""
         return self.toJSON()
 
-    def load(self, path):
+    def load(self, path: PathLike) -> None:
+        """Read the properties from a JSON file into a Config object."""
         if path:
             read_from_file = json.loads(fs.read_json(path))
 
@@ -96,7 +102,7 @@ class Config:
         else:
             raise ValueError("Config.load(<path>) was called with an empty path.")
 
-    def save(self, path=TIMESERIES_CONFIG):
+    def save(self, path: PathLike = TIMESERIES_CONFIG) -> None:
         """Saves configurations to JSON file and set environment variable TIMESERIES_CONFIG to the location of the file.
 
         Args:
@@ -112,11 +118,12 @@ class Config:
             os.environ["TIMESERIES_CONFIG"] = path
 
 
-def main(*args):
-    """Set configurations to predefined defaults when run from command line:
-        ```
-        poetry run timeseries-config <option>
-        ```
+def main(*args: str | PathLike) -> None:
+    """Set configurations to predefined defaults when run from command line.
+
+    ```
+    poetry run timeseries-config <option>
+    ```
     or
         ```
         python ./config.py <option>`

@@ -147,7 +147,7 @@ def test_metafile_exists_after_create_dataset_and_save(caplog) -> None:
     )
 
     x.save()
-    ts_logger.debug(x.io.metadata_fullpath)
+    ts_logger.warning(x.io.metadata_fullpath)
     assert x.io.metadatafile_exists()
 
 
@@ -181,7 +181,7 @@ def test_read_existing_simple_metadata(caplog) -> None:
             f"DATASET {x.name}: Metadata not found at {x.io.metadata_fullpath}. Writing."
         )
         x.save()
-        assert False
+        raise AssertionError
 
 
 @log_start_stop
@@ -211,7 +211,7 @@ def test_read_existing_simple_data(caplog) -> None:
             f"DATASET {x.name}: Data not found at {x.io.data_fullpath}. Writing."
         )
         x.save()
-        assert False
+        raise AssertionError
 
 
 @log_start_stop
@@ -243,7 +243,7 @@ def test_read_existing_estimate_metadata(caplog) -> None:
             f"DATASET {x.name}: Metadata not found at {x.io.metadata_fullpath}. Writing."
         )
         x.save()
-        assert False
+        raise AssertionError
 
 
 @log_start_stop
@@ -276,7 +276,7 @@ def test_read_existing_estimate_data(caplog) -> None:
             f"DATASET {x.name}: Data not found at {x.io.data_fullpath}. Writing."
         )
         x.save()
-        assert False
+        raise AssertionError
 
 
 @log_start_stop
@@ -297,7 +297,7 @@ def test_load_existing_set_without_loading_data(caplog) -> None:
     x.data = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-10-03", freq="MS"
     )
-    x.save
+    x.save()
     assert not x.data.empty
 
 
@@ -419,7 +419,7 @@ def test_correct_datetime_columns_valid_from_to(caplog) -> None:
 def test_versioning_as_of_creates_new_file(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
-    # assert False
+    # raise AssertionError
     pass
     # TO DO:
     # Verify behaviours of data types / saving correctly:

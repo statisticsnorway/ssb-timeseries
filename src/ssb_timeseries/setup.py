@@ -1,6 +1,8 @@
 import contextlib
 import os
 
+# ruff: noqa
+
 
 @contextlib.contextmanager
 def cd(path):

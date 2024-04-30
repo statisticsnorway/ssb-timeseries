@@ -5,7 +5,12 @@ import numpy as np
 import pandas as pd
 
 
-def series_names(*args, **kwargs) -> list[str]:
+def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[str]:
+    """For *args, return permutations of elements as list[str] to be used as series names.
+
+    Args: can be str | list | tuple | dict.
+    Kwarg: 'separator' defines char sequence inserted between name elements. Defaults to '_'.
+    """
     separator = kwargs.get("separator", "_")
 
     if isinstance(args, dict):
@@ -33,9 +38,9 @@ def series_names(*args, **kwargs) -> list[str]:
 
 
 def create_df(
-    *lists,
-    start_date: datetime = None,
-    end_date: datetime = None,
+    *lists: dict | list[str] | tuple | str,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
     freq: str = "D",
     interval: int = 1,
     separator: str = "_",

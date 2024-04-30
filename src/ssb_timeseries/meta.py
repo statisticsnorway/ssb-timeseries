@@ -1,23 +1,17 @@
-"""_summary_
+"""Placeholder utility covering meta data functionality used by timeseries.
 
-Returns:
-    _type_: _description_
+Ideally, this functionality should live elsewhere, in ssb-python-klass and other meta data libraries. Likely subject to refactoring later.
 """
+
+from os import PathLike
 
 import bigtree
 import pandas as pd
-
-# from klass import search_classification
 from klass import get_classification
+from typing_extensions import Self
 
 from ssb_timeseries import fs
-
-# import json
-# import uuid
-# from enum import Enum
 from ssb_timeseries import properties
-
-# from ssb_timeseries import dataset as ds # --> circular?
 from ssb_timeseries.logging import ts_logger
 
 
@@ -55,18 +49,19 @@ class Taxonomy:
             Hierarchies with a natural top or "root" node should have a single node at level two.
         lookups:
             Complete listing of supported names for all entities, mapping different categories of names of different standards and in different languages to a unique identifier.
-
-    Methods:
-
     """
 
     def __init__(
         self,
-        id_or_path,
-        root_name="Taxonomy",
-        sep=".",
-        substitute: dict = None,
-    ):
+        id_or_path: int | PathLike | str,
+        root_name: str = "Taxonomy",
+        sep: str = ".",
+        substitute: dict | None = None,
+    ) -> None:
+        """Create Taxonomy object from KLASS id or file name.
+
+        Key attributs: .entities holds the list of values and .structure puts the entitiees in a tree.
+        """
         self.definition = {"name": root_name}
         if isinstance(id_or_path, int):
             # TO DO: handle versions of KLASS
@@ -82,7 +77,7 @@ class Taxonomy:
                     self.entities["parentCode"] = self.entities[
                         "parentCode"
                     ].str.replace(key, value)
-        elif isinstance(id_or_path, str):
+        elif isinstance(id_or_path, PathLike | str):
             # TO DO: read from file:
             df_from_file = pd.DataFrame.from_dict(fs.read_json(id_or_path))
             self.entities = df_from_file
@@ -101,8 +96,8 @@ class Taxonomy:
             ],
         )
 
-    def __eq__(self, other) -> bool:
-        # this neglects everything but the codes and their hierarchical relations
+    def __eq__(self, other: Self) -> bool:
+        """Checks for equality. Taxonomies are considered equal if their codes and hierarchical relations are the same."""
         tree_diff = bigtree.get_tree_diff(self.structure, other.structure)
         if tree_diff:
             trees_equal = False
@@ -121,9 +116,12 @@ class Taxonomy:
 
         return trees_equal and entities_equal
 
-    def print_tree(self, *args, **kwargs) -> str:
-        # ugly! it would be preferable not to print the tree to std out
-        # ... but this works
+    def print_tree(self, *args, **kwargs) -> str:  # noqa: ANN002, ANN003
+        """Return a string with the tree structure.
+
+        Implementation is ugly! It would be preferable not to print the tree to std out.
+        ... but this works.
+        """
         import io
         from contextlib import redirect_stdout
 
@@ -132,8 +130,12 @@ class Taxonomy:
             output = buf.getvalue()
         return output
 
-    def save(self, path) -> None:
-        # TODO: this will no work with buckets
+    def save(self, path: PathLike) -> None:
+        """Save taxonomy to json file.
+
+        The file can be read using Taxonomy(<path to file>).
+        """
+        # TODO: make this work with timeseries.fs
         self.entities.to_json(path_or_buf=path)
 
 
@@ -150,14 +152,21 @@ def add_root_node(df: pd.DataFrame, root_node: dict) -> pd.DataFrame:
     return df
 
 
+# A different apporach for tagging sets and series was considered.
+# DatasetTags and SeriesTags classes are currently not used, but kept as the decision may be revisited.
+
+
 class DatasetTags:
+    """Dataset Tags: key value pairs with dataset metadata. Methods for manipulating tags."""
+
     def __init__(
         self,
         name: str,
         versioning: properties.Versioning,
         temporality: properties.Temporality,
-        **kwargs,
+        **kwargs: str | list[str],
     ) -> None:
+        """Initialise Dataset Tags."""
         self.name: str = name
         self.versioning: properties.Versioning = versioning
         self.temporality: properties.Temporality = temporality
@@ -171,19 +180,42 @@ class DatasetTags:
         # TO DO: for series in set, add SeriesTags
         ts_logger.debug(series_in_set)
 
-    def tag_set(self, attribute: str, value: str):
+    def tag_set(
+        self,
+        tags: dict | None = None,
+        operation: str = "add",
+        **kwargs: str | list[str],
+    ) -> None:
+        """Tag the dataset.
+
+        Tags may be specified as kwargs or as a tags dict.
+        Operation (optional: 'add' (default) | 'remove') specifies the action to perform.
+        """
         pass
         # if value not in self[attribute]:
         #    self[attribute].append(value)
 
-    def tag_series(self, item, attribute: str, value: str):
+    def tag_series(
+        self,
+        identifiers: str | list[str] = "*",
+        tags: dict | None = None,
+        operation: str = "add",
+        **kwargs: str | list[str],
+    ) -> None:
+        """Tag (identified) series in the dataset.
+
+        Series may be identified by series names or index, a list of series names or list of series indexes, or a dict of tags.
+        Tags may be specified as kwargs or as a tags dict.
+        Operation (optional: 'add' (default) | 'replace' | 'remove') specifies the action to perform on the identified series.
+        """
         pass
         # should handle different datatypes for "item" :
         # name, int index, List of name or index
         # if value not in self.series[item][attribute]:
         #    self.series[attribute].append(value)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Self) -> bool:
+        """Check if dataset tags are the same."""
         return (self.name, self.versioning, self.temporality, self.tags) == (
             other.name,
             other.versioning,
@@ -191,26 +223,27 @@ class DatasetTags:
             other.tags,
         )
 
-    def __repr__(self):
-        return {
-            "name": self.name,
-            "versioning": self.versioning,
-            "temporality": self.temporality,
-            # "tags": self.tags,
-            # "series": len(self.series),
-        }
+    def __repr__(self) -> str:
+        """Return initialization for a copy of the dataset tag object: DatasetTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})."""
+        return f"DatasetTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})"
 
 
 class SeriesTags:
+    """Series Tags: key value pairs with series metadata. Methods for manipulating tags."""
+
     def __init__(
         self,
         dataset: str,
         name: str,
-        index: int = None,
-        tags: dict = {},
-        lineage: dict = {},
-        stats: dict = {},
+        index: int | None = None,
+        tags: dict | None = None,
+        lineage: dict | None = None,
+        stats: dict | None = None,
     ) -> None:
+        """Initialise Series Tags.
+
+        Should inherit from Dataset_Tags.
+        """
         self.dataset = dataset
         self.name = name
         self.fullname = f"{self.dataset}_{self.name}"
@@ -232,11 +265,6 @@ class SeriesTags:
         return result
     """
 
-    def __repr__(self):
-        return str(
-            {
-                "name": self.name,
-                "dataset": self.dataset,
-                "tags": self.tags,
-            }
-        )
+    def __repr__(self) -> str:
+        """Return initialization for a copy of the series tag object: SeriesTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})."""
+        return f"SeriesTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})"

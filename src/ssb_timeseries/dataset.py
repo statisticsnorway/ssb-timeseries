@@ -3,28 +3,39 @@
 
 import datetime
 
+# from re import S
 import numpy as np
 import pandas as pd
+from typing_extensions import Any
+from typing_extensions import Self
 
 from ssb_timeseries import dates
 from ssb_timeseries import io
-from ssb_timeseries import properties as prop
+from ssb_timeseries import properties
 from ssb_timeseries.logging import ts_logger
 
 utc_iso = dates.utc_iso
 
+# ruff: noqa: RUF013
+
 
 class Dataset:
+    """Datasets are the core unit of analysis for workflow and data storage.
+
+    A dataset is a logical collection of data and metadata stemming from the same process origin. Series in a dataset must be
+    """
+
     def __init__(
         self,
         name: str,
-        data_type: prop.SeriesType = None,
-        as_of_tz: datetime = None,
+        data_type: properties.SeriesType = None,
+        as_of_tz: datetime.datetime | None = None,
         load_data: bool = True,
-        series_tags: dict = None,
-        **kwargs,
+        series_tags: dict | None = None,
+        **kwargs,  # noqa: ANN003
     ) -> None:
         """Load existing dataset or create a new one of specified type.
+
         The type defines
          * versioning (NONE, AS_OF, NAMED)
          * temporality (Valid AT point in time, or FROM and TO for duration)
@@ -86,9 +97,9 @@ class Dataset:
         # THEN, if kwarg_data, append/merge
         #   if as_of_tz is not provided, set set to utc_now()
 
-        if load_data and self.data_type.versioning == prop.Versioning.NONE:
+        if load_data and self.data_type.versioning == properties.Versioning.NONE:
             self.data = self.io.read_data()
-        elif load_data and self.data_type.versioning == prop.Versioning.AS_OF:
+        elif load_data and self.data_type.versioning == properties.Versioning.AS_OF:
             self.data = self.io.read_data(self.as_of_utc)
         else:
             self.data = pd.DataFrame()
@@ -139,7 +150,7 @@ class Dataset:
                     )
                     # [self.tags.series[k] = for k, a in zip(self.numeric_columns(), name_pattern]
 
-    def save(self, as_of_tz: datetime = None) -> None:
+    def save(self, as_of_tz: datetime.datetime | None = None) -> None:
         """Persist the Dataset.
 
         Args:
@@ -156,7 +167,7 @@ class Dataset:
             )
         self.io.save(meta=self.tags, data=self.data)
 
-    def snapshot(self, as_of_tz: datetime = None) -> None:
+    def snapshot(self, as_of_tz: datetime.datetime | None = None) -> None:
         """Copy data snapshot to immutable processing stage bucket and shared buckets.
 
         Args:
@@ -186,24 +197,33 @@ class Dataset:
             period_to=date_to,
         )
 
-    def series(self, what: str = "names"):
+    def series(self, what: str = "names") -> list[str] | dict:
+        """Get series names (default) or tags."""
         if what.lower() == "names":
             return self.data.columns
         elif what.lower() == "tags":
             return self.tags["series"]
         else:
-            raise ("wtf!")
+            raise ValueError(f"Unrecognised return type {what}")
 
-    def series_tags(self, series_name=None):  # remove this?
+    def series_tags(self, series_name: str | list[str] = "") -> dict:  # remove this?
+        """Get series tags."""
         if series_name:
             return self.tags["series"][series_name]
         else:
             return self.tags["series"]
 
-    def search(self, pattern: str = "*", *args, **kwargs):
-        return self.io.search(pattern=pattern, *args, **kwargs)
+    def search(self, pattern: str = "*") -> list[str]:
+        """Search for datasets by name matching pattern."""
+        return self.io.search(pattern=pattern)
 
-    def filter(self, pattern: str = "", tags: dict = {}, regex: str = "", **kwargs):
+    def filter(
+        self,
+        pattern: str = "",
+        tags: dict = None,
+        regex: str = "",
+        **kwargs: str | list[str],
+    ) -> pd.DataFrame | Self:
         """Filter dataset.data by textual pattern, regex or metadata tag dictionary. Or a combination.
 
         Args:
@@ -242,14 +262,13 @@ class Dataset:
         # TBD: the most natural behaviour is probably not to apply filter to self.data,
         # but to return a (new) Dataset or DataFrame. Which one should it be?
 
-    def __getitem__(self, key):
-        # pattern: str = "", regex: str = "", tags: dict = {}):
+    def __getitem__(self, key: str | dict) -> pd.DataFrame | Self:  # noqa: D417
         """Access Dataset.data.columns via Dataset[ list[column_names] | regex | tags].
 
         Args:
-            regex (str, optional): Expression for regex search in column names. Defaults to ''.
-            tags (dict, optional): Dictionary with tags to search for. Defaults to {}.
+            key takes the shape of either a regex (str) or a tags (dict).
         """
+        # pattern: str = "", regex: str = "", tags: dict = {}):
         # Dataset[...] should return a Dataset object (?) with only the requested items (columns).
         # but should not mutate the original object, ie "self",
         # so that if x is a Dataset and x[a] a columnwise subset of x
@@ -275,24 +294,27 @@ class Dataset:
             )
         # regex=regex, tags=tags)
 
-    def plot(self, *args, **kwargs):
+    def plot(self, **kwargs) -> Any:  # noqa: ANN003
+        """Plot dataset data.
+
+        Convenience wrapper around Dataframe.plot() with sensible defaults.
+        """
         return self.data.plot(
             "valid_at",
             legend=len(self.data.columns) < 9,
             title=self.name,
             figsize=(12, 4),
-            *args,
             **kwargs,
         )
 
-    def vectors(self, filter: str = ""):
-        """_summary_
+    def vectors(self, pattern: str = "") -> None:
+        """Get vectors with names equal to column names from Dataset.data.
 
         Args:
-            filter (str, optional): _description_. Defaults to "".
+            pattern (str, optional): _description_. Defaults to "".
 
-        be warned: messing with variables by way of stack inspection is a dirty trick
-        this runs the risk of reassigning objects, functions, or variables within the scope of the calling function
+        Be warned: This is a hack. It (re)assigns variables in the scope of the calling function by way of stack inspection.
+        This runs the risk of reassigning objects, functions, or variables.
         """
         import inspect
 
@@ -300,14 +322,20 @@ class Dataset:
         locals_ = stack[1][0].f_locals
 
         for col in self.data.columns:
-            if col.__contains__(filter):
+            if col.__contains__(pattern):
                 cmd = f"{col} = self.data['{col}']"
                 ts_logger.debug(cmd)
                 # the original idea was running (in caller scope)
                 # exec(cmd)
                 locals_[col] = self.data[col]
 
-    def groupby(self, freq: str, func: str = "auto", *args, **kwargs):
+    def groupby(
+        self, freq: str, func: str = "auto", *args, **kwargs  # noqa: ANN002, ANN003
+    ) -> Self:
+        """Group dataset data by specified frequency and function.
+
+        Returns a new Dataset.
+        """
         datetime_columns = list(
             set(self.data.columns) & {"valid_at", "valid_to", "valid_from"}
         )
@@ -320,11 +348,11 @@ class Dataset:
         match func:
             case "mean":
                 out = self.data.groupby(period_index).mean(
-                    numeric_only=True, *args, **kwargs
+                    *args, numeric_only=True, **kwargs
                 )
             case "sum":
                 out = self.data.groupby(period_index).sum(
-                    numeric_only=True, *args, **kwargs
+                    *args, numeric_only=True, **kwargs
                 )
             case "auto":
                 # TO DO: QA on exact logic / use "real" metadata
@@ -332,13 +360,13 @@ class Dataset:
                 # (this implementation is just to show how it can be done)
                 # QUESTION: do we need a default for "other" series / what should it be?
                 df1 = self.data.groupby(period_index).mean(
-                    numeric_only=True, *args, **kwargs
+                    *args, numeric_only=True, **kwargs
                 )
                 ts_logger.debug(f"groupby\n{df1}.")
 
                 df2 = (
                     self.data.groupby(period_index)
-                    .sum(numeric_only=True, *args, **kwargs)
+                    .sum(*args, numeric_only=True, **kwargs)
                     .filter(regex="mendgde|volum|vekt")
                 )
                 ts_logger.warning(f"groupby\n{df2}.")
@@ -358,7 +386,14 @@ class Dataset:
             data=out,
         )
 
-    def resample(self, freq: str, func, *args, **kwargs):
+    def resample(
+        self,
+        freq: str,
+        func,  # noqa: ANN001
+        *args,  # noqa: ANN002
+        **kwargs,  # noqa: ANN003
+    ) -> Self:
+        """Alter frequency of dataset data."""
         # TO DO: have a closer look at dates returned for last period when upsampling
         # df = self.data.set_index(self.datetime_columns())
         df = self.data.set_index(self.datetime_columns()).copy()
@@ -401,26 +436,30 @@ class Dataset:
     #     return x
 
     # TO DO: rethink identity: is / is not behaviour
-    # def identical(self, other) -> bool:
-    #     # check_data = self.__eq__(other)
+    # def identical(self, other:Self) -> bool:
+    #     # check_data = self.__eq__(other:Self)
     #     # return all(check_defs) and check_data.all()
     #     return self.__dict__ == other.__dict__
 
     def all(self) -> bool:
+        """Check if all values in series columns evaluate to true."""
         ts_logger.warning(all(self.data))
         a = np.all(self.data[self.numeric_columns()])
         return a
 
     def any(self) -> bool:
+        """Check if any values in series columns evaluate to true."""
         a = np.any(self.data[self.numeric_columns()])
         return a
 
-    def numeric_columns(self):
+    def numeric_columns(self) -> list[str]:
+        """Get names of all numeric series columns (ie columns that are not datetime)."""
         return list(set(self.data.columns).difference(self.datetime_columns()))
 
-    def datetime_columns(self, *comparisons):
-        """Arguments:
-            *comparisons (optional) Objects to compare with.
+    def datetime_columns(self, *comparisons: Self | pd.DataFrame) -> list[str]:
+        """Get names of datetime columns (valid_at, valid_from, valid_to).
+
+        :param    *comparisons (optional) Objects to compare with. If provided, returns the intersection of self and all comparisons.
 
         Returns: The (common) datetime column names of self (and comparisons) as a list of strings.
         """
@@ -435,14 +474,18 @@ class Dataset:
 
         return list(intersect)
 
-    def math(self, other, func):
+    def math(
+        self,
+        other: Self | pd.DataFrame | np.ndarray | int | float,
+        func,  # noqa: ANN001
+    ) -> Self:
         """Generic helper making math functions work on numeric, non date columns of dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar.
 
         Although the purpose was to limit "boilerplate" for core linear algebra functions, it also extend to other operations that follow the same differentiation pattern.
 
         Args:
             other (dataframe | series | matrix | vector | scalar ): One (or more?) pandas (polars to come) datframe or series, numpy matrix or vector or a scalar value.
-            func (_type_): The function to be applied as `self.func(**other)` or (in some cases) with infix notation `self f other`. Note that one or more date columns of the self / lefthand side argument are preserved, ie data shifting operations are not supported.
+            func (_type_): The function to be applied as `self.func(**other:Self)` or (in some cases) with infix notation `self f other`. Note that one or more date columns of the self / lefthand side argument are preserved, ie data shifting operations are not supported.
 
         Raises:
             ValueError: "Unsupported operand type"
@@ -478,7 +521,7 @@ class Dataset:
             other_name = "df"
             other_as_of = None
 
-        elif isinstance(other, (int, float)):
+        elif isinstance(other, int | float):
             out_data = self.data.copy()
 
             num_cols = self.numeric_columns()
@@ -501,7 +544,7 @@ class Dataset:
                 out_data = self.data.copy()
 
                 # for col in self._numeric_columns():
-                #    out_data[col] = func(out_data[col], other)
+                #    out_data[col] = func(out_data[col], other:Self)
                 out_data[self.numeric_columns()] = func(
                     out_data[self.numeric_columns()], other
                 )
@@ -536,61 +579,80 @@ class Dataset:
 
     # TO DO: check how perfomrance of pure pyarrow or polars compares to numpy
 
-    def __add__(self, other):
+    def __add__(self, other: Self) -> Self:
+        """Add two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.add)
 
-    def __radd__(self, other):
+    def __radd__(self, other: Self) -> Self:
+        """Right add two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.add)
 
-    def __sub__(self, other):
+    def __sub__(self, other: Self) -> Self:
+        """Subtract two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.subtract)
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: Self) -> Self:
+        """Right subtract two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.subtract)
 
-    def __mul__(self, other):
+    def __mul__(self, other: Self) -> Self:
+        """Multiply two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.multiply)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: Self) -> Self:
+        """Right multiply two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.multiply)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: Self) -> Self:
+        """Divide two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.divide)
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: Self) -> Self:
+        """Right divide two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.divide)
 
-    def __floordiv__(self, other):
+    def __floordiv__(self, other: Self) -> Self:
+        """Floor divide two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.floor_divide)
 
-    def __rfloordiv__(self, other):
+    def __rfloordiv__(self, other: Self) -> Self:
+        """Right floor divide two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.floor_divide)
 
-    def __pow__(self, other):
+    def __pow__(self, other: Self) -> Self:
+        """Power of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.power)
 
-    def __rpow__(self, other):
+    def __rpow__(self, other: Self) -> Self:
+        """Right power of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.power)
 
-    def __mod__(self, other):
+    def __mod__(self, other: Self) -> Self:
+        """Modulo of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.mod)
 
-    def __rmod__(self, other):
+    def __rmod__(self, other: Self) -> Self:
+        """Right modulo of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.mod)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Self) -> Self:
+        """Check equality of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.equal)
 
-    def __gt__(self, other):
+    def __gt__(self, other: Self) -> Self:
+        """Check greater than for two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.greater)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Self) -> Self:
+        """Check less than for two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.less)
 
     def __repr__(self) -> str:
+        """Machine readable string representation of Dataset, ideally sufficient to recreate object."""
         return f'Dataset(name="{self.name}", data_type={self.data_type!r}, as_of_tz="{self.as_of_utc.isoformat()}")'
 
     def __str__(self) -> str:
+        """Human readable string representation of Dataset."""
         return str(
             {
                 "name": self.name,
@@ -602,7 +664,13 @@ class Dataset:
         )
 
     # unfinished business
-    def reindex(self, index_type: str = "dt", freq="", *args) -> None:
+    def reindex(
+        self,
+        index_type: str = "dt",
+        freq: str = "",
+        *args,  # noqa: ANN002
+    ) -> None:
+        """Reindex dataset by datetime or period."""
         match index_type:
             case "dt" | "datetime":
                 self.data = self.data.set_index(self.datetime_columns(), *args)

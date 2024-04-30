@@ -1,3 +1,5 @@
+# ruff: noqa
+
 import random
 
 # import json

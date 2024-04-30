@@ -2,39 +2,46 @@ import glob
 import json
 import os
 import shutil
-
-# from ssb_timeseries.logging import ts_logger  # , log_start_stop
+from os import PathLike
 from pathlib import Path
 
-# import pyarrow
 import pandas
+import pyarrow
 from dapla import FileClient
+
+# from ssb_timeseries.logging import ts_logger  # , log_start_stop
 
 """This is an abstraction that allows file based io regardless of whether involved file systems are local or gcs.
 """
 
+# ruff: noqa: ANN002, ANN003
 
-def remove_prefix(path: str):
-    # some os.* functions shorten gs://<path> to gs:/<path>
+
+def remove_prefix(path: str | PathLike) -> str:
+    """Helper function to compensate for some os.* functions shorten gs://<path> to gs:/<path>."""
     return path.replace("//", "/").replace("gs:/", "")
 
 
-def is_gcs(path: str):
+def is_gcs(path: str | PathLike) -> bool:
+    """Check if path is on GCS."""
     return path[:4] == "gs:/"
 
 
-def is_local(path: str):
+def is_local(path: str | PathLike) -> bool:
+    """Check if path is local."""
     return path[:4] != "gs:/"
 
 
-def fs_type(path: str):
+def fs_type(path: str | PathLike) -> str:
+    """Check filesystem type (local or GCS) for a given path."""
     out = ""
     types = {"gcs": is_gcs(path), "local": is_local(path)}
     out = list(types.keys())[list(types.values()).index(True)]
     return out
 
 
-def exists(path: str):
+def exists(path: str | PathLike) -> bool:
+    """Check if a given (local or GCS) path exists."""
     if not path:
         return False
     elif is_gcs(path):
@@ -44,7 +51,8 @@ def exists(path: str):
         return Path(path).exists()
 
 
-def existing_subpath(path: str):
+def existing_subpath(path: str | PathLike) -> str:
+    """Return the existing part of a path on local or GCS file system."""
     out = ""
     parts = path.split(os.sep)
     pp = ""
@@ -57,7 +65,8 @@ def existing_subpath(path: str):
     return out
 
 
-def touch(path: str):
+def touch(path: str | PathLike) -> None:
+    """Touch file regardless of wether the filesystem is local or GCS."""
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         fs.touch(path)
@@ -65,7 +74,7 @@ def touch(path: str):
         Path(path).touch()
 
 
-# def dir_name(path: str):
+# def dir_name(path: str | PathLike):
 #     basename = os.path.basename(path)
 #     parts = os.path.splitext(basename)
 #     if len(parts) > 1:
@@ -76,7 +85,8 @@ def touch(path: str):
 #     return d  # os.path.normpath(d)
 
 
-def mkdir(path):
+def mkdir(path: str | PathLike) -> None:
+    """Make directory regardless of filesystem is local or GCS."""
     # not good enough .. it is hard to distinguish between dirs and files that do not exist yet
     if is_local(path):
         os.makedirs(path, exist_ok=True)
@@ -84,7 +94,8 @@ def mkdir(path):
         pass
 
 
-def mk_parent_dir(path):
+def mk_parent_dir(path: str | PathLike) -> None:
+    """Ensure a parent directory exists. ... regardless of wether fielsystem is local or GCS."""
     # wanted a mkdir that could work with both file and directory paths,
     # but it is hard to distinguish between dirs and files that do not exist yet
     # --> use this to create parent directory for files, mkdir() when the last part of path is a directory
@@ -94,11 +105,13 @@ def mk_parent_dir(path):
         pass
 
 
-def file_count(path: str, create=False):
+def file_count(path: str | PathLike, create: bool = False) -> int:
+    """Count files in path. Should work regardless of wether source and target location is local fs or GCS to local."""
     return len(ls(path, create=create))
 
 
-def ls(path, pattern="*", create=False):
+def ls(path: str, pattern: str = "*", create: bool = False) -> list[str | PathLike]:
+    """List files. Should work regardless of wether the filesystem is local or GCS."""
     search = os.path.join(path, pattern)
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
@@ -109,13 +122,8 @@ def ls(path, pattern="*", create=False):
         return glob.glob(search)
 
 
-def cp(from_path, to_path):
-    """Copy file ... regardless of source and target location is local fs or GCS to local.
-
-    Args:
-        from_path (to__ty): _description_
-        path_to (_type_): _description_
-    """
+def cp(from_path: str | PathLike, to_path: str | PathLike) -> None:
+    """Copy file ... regardless of source and target location is local fs or GCS to local."""
     from_type = fs_type(from_path)
     to_type = fs_type(to_path)
     if is_gcs(from_path) | is_gcs(to_path):
@@ -134,13 +142,8 @@ def cp(from_path, to_path):
             fs.copy(from_path, to_path)
 
 
-def mv(from_path, to_path):
-    """Move file ... regardless of source and target location is local fs or GCS to local.
-
-    Args:
-        from_path (to__ty): _description_
-        path_to (_type_): _description_
-    """
+def mv(from_path: str | PathLike, to_path: str | PathLike) -> None:
+    """Move file ... regardless of source and target location is local fs or GCS to local."""
     from_type = fs_type(from_path)
     to_type = fs_type(to_path)
 
@@ -160,7 +163,8 @@ def mv(from_path, to_path):
             fs.move(from_path, to_path)
 
 
-def rm(path, *args):
+def rm(path: str | PathLike, *args) -> None:
+    """Remove file from local or GCS filesystem."""
     if is_gcs(path):
         pass
         # TO DO: implement this (but recursive)
@@ -170,7 +174,8 @@ def rm(path, *args):
         os.remove(path)
 
 
-def rmtree(path, *args):
+def rmtree(path: str, *args) -> None:
+    """Remove all directory and all its files and subdirectories regardless of local or GCS filesystem."""
     if is_gcs(path):
         pass
         # TO DO: implement this (but recursive)
@@ -180,14 +185,16 @@ def rmtree(path, *args):
         shutil.rmtree(path)
 
 
-def same_path(*args):
+def same_path(*args) -> str | PathLike:
+    """Return common part of path, for two or more files. Files must be on same file system, but the file system can be either local or GCS."""
     # TO DO: add support for Windows style paths?
     # ... regex along the lines of: [A-Z\:|\\\\]
     paths = [a.replace("gs:/", "") for a in args]
     return os.path.commonpath(paths)
 
 
-def find(path, pattern="", *args, **kwargs):
+def find(path: PathLike, pattern: str = "", *args, **kwargs) -> list[str | PathLike]:
+    """Find files and subdirectories with names matching pattern. Should work for both local and GCS filesystems."""
     if is_gcs(path):
         pass
     else:
@@ -203,20 +210,27 @@ def find(path, pattern="", *args, **kwargs):
         return [f[2] for f in search_results]
 
 
-def read_parquet(path):
+def read_parquet(path: PathLike) -> None:
+    """TODO: Add faster pyarrrow implementations enforcing type based schemas."""
     pass
 
 
-def write_parquet(data, path, tags={}, schema=None):
+def write_parquet(
+    data: pyarrow.Table,  # or pd./pl.dataframe
+    path: PathLike,
+    tags: dict | None = None,
+    schema: pyarrow.Schema = None,
+) -> None:
+    """TODO: Add faster pyarrrow implementations enforcing type based schemas."""
     pass
 
 
 def pandas_read_parquet(
-    path,
+    path: PathLike,
     *args,
     **kwargs,
 ) -> pandas.DataFrame:
-
+    """Quick and dirty --> replace later."""
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         with fs.open(path, "rb") as file:
@@ -230,8 +244,8 @@ def pandas_read_parquet(
     return df
 
 
-def pandas_write_parquet(df: pandas.DataFrame, path):
-
+def pandas_write_parquet(df: pandas.DataFrame, path: PathLike) -> None:
+    """Quick and dirty --> replace later."""
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         with fs.open(path, "wb") as file:
@@ -241,7 +255,8 @@ def pandas_write_parquet(df: pandas.DataFrame, path):
         df.to_parquet(path)
 
 
-def read_json(path) -> dict:
+def read_json(path: PathLike) -> dict:
+    """Read json file from path on either local fs or GCS."""
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         with fs.open(path, "r") as file:
@@ -251,9 +266,15 @@ def read_json(path) -> dict:
             return json.load(file)
 
 
-def write_json(path, content) -> None:
-    if not isinstance(path, str):
-        path = json.loads(path)
+def write_json(path: PathLike, content: str | dict) -> None:
+    """Write json file to path on either local fs or GCS."""
+    # Code does not make sense, but is not invoked:
+    # if not isinstance(path, str):
+    #     path = json.loads(path)
+    # more reasonable would be somehting like -->
+    # if not isinstance(content, str):
+    #     content = json.loads(content)
+    # ... but that caauses an error. --> Code is "too clever"?
 
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
@@ -283,7 +304,7 @@ def write_json(path, content) -> None:
 # ds.dataset("data/", filesystem=fs)
 
 
-@staticmethod
-def funcname(parameter_list):
-    """Docstring"""
-    pass
+# @staticmethod
+# def funcname(parameter_list):
+#     """Docstring"""
+#     pass
