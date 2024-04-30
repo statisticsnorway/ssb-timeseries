@@ -1,11 +1,14 @@
-import pytest
-import uuid
 import logging
+import uuid
 
-from timeseries.logging import log_start_stop, ts_logger
-from timeseries.meta import Taxonomy
+import pytest
+from bigtree import get_tree_diff
+from bigtree import print_tree
+
+from ssb_timeseries.logging import log_start_stop
+from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.meta import Taxonomy
 from timeseries import fs
-from bigtree import print_tree, get_tree_diff
 
 
 @pytest.mark.skipif(False, reason="")
