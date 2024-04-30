@@ -259,13 +259,10 @@ class Dataset:
         # TBD: the most natural behaviour is probably not to apply filter to self.data,
         # but to return a (new) Dataset or DataFrame. Which one should it be?
 
-    def __getitem__(
-        self, key: str | dict[str, str]
-    ) -> pd.DataFrame | Self:  # noqa: D417
+    def __getitem__(self, key: str | dict[str, str]) -> pd.DataFrame | Self:
         """Access Dataset.data.columns via Dataset[ list[column_names] | regex | tags].
 
-        Args:
-            key takes the shape of either a regex (str) or a tags (dict).
+        Key takes the shape of either a regex (str) or a tags (dict).
         """
         # pattern: str = "", regex: str = "", tags: dict = {}):
         # Dataset[...] should return a Dataset object (?) with only the requested items (columns).
@@ -293,7 +290,7 @@ class Dataset:
             )
         # regex=regex, tags=tags)
 
-    def plot(self, **kwargs: Any) -> Any:  # noqa: ANN003
+    def plot(self, **kwargs: Any) -> Any:
         """Plot dataset data.
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
@@ -472,10 +469,11 @@ class Dataset:
 
         return list(intersect)
 
+    @no_type_check
     def math(
         self,
         other: Self | pd.DataFrame | pd.Series | int | float,
-        func: F,  # ---noqa: ANN001
+        func,  # noqa: ANN001
     ) -> Self:
         """Generic helper making math functions work on numeric, non date columns of dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar.
 
