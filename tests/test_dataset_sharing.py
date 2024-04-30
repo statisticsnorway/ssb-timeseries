@@ -16,6 +16,8 @@ from ssb_timeseries.sample_data import create_df
 BUCKET = CONFIG.bucket
 PRODUCT = "sample-data-product"
 
+# mypy: ignore-errors
+
 
 @pytest.mark.skipif(False, reason="Don't skip.")
 @log_start_stop

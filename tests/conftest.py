@@ -12,6 +12,8 @@ from ssb_timeseries import config
 # HOME = os.getenv("HOME")
 # TIMESERIES_CONFIG = os.getenv("TIMESERIES_CONFIG")
 
+# mypy: ignore-errors
+
 
 @pytest.fixture(scope="function", autouse=False)
 def remember_config():

@@ -30,7 +30,7 @@ def date_round(d: dt, **kwargs) -> dt:
     return out
 
 
-def date_utc(d: dt, **kwargs) -> dt:
+def date_utc(d: dt | str, **kwargs) -> dt:
     if d is None:
         d = now_utc()
 

@@ -39,8 +39,8 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
 
 def create_df(
     *lists: dict | list[str] | tuple | str,
-    start_date: datetime | None = None,
-    end_date: datetime | None = None,
+    start_date: datetime | str | None = None,
+    end_date: datetime | str | None = None,
     freq: str = "D",
     interval: int = 1,
     separator: str = "_",

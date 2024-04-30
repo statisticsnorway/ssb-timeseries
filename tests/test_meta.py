@@ -14,6 +14,8 @@ from ssb_timeseries.meta import Taxonomy
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
+# mypy: ignore-errors
+
 
 @log_start_stop
 def test_init_dataset_returns_expected_set_level_tags(caplog) -> None:

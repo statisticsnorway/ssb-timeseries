@@ -8,6 +8,8 @@ from ssb_timeseries import config
 from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
 
+# mypy: ignore-errors
+
 # BUCKET = config.GCS
 # JOVYAN = config.JOVYAN
 

@@ -58,6 +58,11 @@ ts_logger.addHandler(console)
 # def debug(message: str) -> None:
 #     ts_logger.debug(message)
 #     # print(message)
+from collections.abc import Callable
+from typing import Any
+from typing import TypeVar
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 class EnterExitLog:
@@ -82,7 +87,7 @@ class EnterExitLog:
         )
 
 
-def log_start_stop(func):  # noqa ANN001
+def log_start_stop(func: F) -> F:
     """Log start and stop of decorated function."""
     # TODO: generalise: pass in functions to enter/exit?
 

@@ -2,6 +2,7 @@ import logging
 import uuid
 
 import pytest
+from pytest import LogCaptureFixture
 
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
@@ -15,11 +16,13 @@ from ssb_timeseries.sample_data import create_df
 
 # from ssb_timeseries import fs
 
+# mypy: ignore-errors
+
 BUCKET = CONFIG.bucket
 
 
 @log_start_stop
-def test_dataset_instance_created(caplog) -> None:
+def test_dataset_instance_created(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     example = Dataset(name="test-no-dir-created", data_type=SeriesType.simple())
@@ -27,7 +30,7 @@ def test_dataset_instance_created(caplog) -> None:
 
 
 @pytest.mark.skipif(True, reason="revisit dataset.__repr__.")
-def test_dataset_instance_created_equals_repr(caplog) -> None:
+def test_dataset_instance_created_equals_repr(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -54,7 +57,7 @@ def test_dataset_instance_created_equals_repr(caplog) -> None:
 
 @pytest.mark.skipif(True, reason="revisit dataset.identical.")
 @log_start_stop
-def test_dataset_instance_identity(caplog) -> None:
+def test_dataset_instance_identity(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -125,7 +128,9 @@ def test_datafile_exists_after_create_dataset_and_save() -> None:
 
 
 @log_start_stop
-def test_metafile_exists_after_create_dataset_and_save(caplog) -> None:
+def test_metafile_exists_after_create_dataset_and_save(
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
@@ -152,7 +157,7 @@ def test_metafile_exists_after_create_dataset_and_save(caplog) -> None:
 
 
 @log_start_stop
-def test_read_existing_simple_metadata(caplog) -> None:
+def test_read_existing_simple_metadata(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
@@ -185,7 +190,7 @@ def test_read_existing_simple_metadata(caplog) -> None:
 
 
 @log_start_stop
-def test_read_existing_simple_data(caplog) -> None:
+def test_read_existing_simple_data(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
@@ -215,7 +220,7 @@ def test_read_existing_simple_data(caplog) -> None:
 
 
 @log_start_stop
-def test_read_existing_estimate_metadata(caplog) -> None:
+def test_read_existing_estimate_metadata(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
@@ -247,7 +252,7 @@ def test_read_existing_estimate_metadata(caplog) -> None:
 
 
 @log_start_stop
-def test_read_existing_estimate_data(caplog) -> None:
+def test_read_existing_estimate_data(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
@@ -280,7 +285,7 @@ def test_read_existing_estimate_data(caplog) -> None:
 
 
 @log_start_stop
-def test_load_existing_set_without_loading_data(caplog) -> None:
+def test_load_existing_set_without_loading_data(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     set_name = "persisted-example-estimate"
@@ -302,7 +307,7 @@ def test_load_existing_set_without_loading_data(caplog) -> None:
 
 
 @log_start_stop
-def test_search_for_dataset_by_part_of_name(caplog):
+def test_search_for_dataset_by_part_of_name(caplog: LogCaptureFixture):
     caplog.set_level(logging.DEBUG)
     unique_new = uuid.uuid4().hex
     x = Dataset(
@@ -319,7 +324,7 @@ def test_search_for_dataset_by_part_of_name(caplog):
 
 
 @log_start_stop
-def test_dataset_getitem_by_string(caplog):
+def test_dataset_getitem_by_string(caplog: LogCaptureFixture):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
@@ -347,7 +352,7 @@ def test_dataset_getitem_by_string(caplog):
 
 
 @log_start_stop
-def test_filter_dataset_by_regex(caplog):
+def test_filter_dataset_by_regex(caplog: LogCaptureFixture):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
@@ -363,7 +368,7 @@ def test_filter_dataset_by_regex(caplog):
 
 
 @log_start_stop
-def test_filter_dataset_by_regex_new_dataset(caplog):
+def test_filter_dataset_by_regex_new_dataset(caplog: LogCaptureFixture):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
@@ -382,7 +387,7 @@ def test_filter_dataset_by_regex_new_dataset(caplog):
 
 
 @log_start_stop
-def test_correct_datetime_columns_valid_at(caplog) -> None:
+def test_correct_datetime_columns_valid_at(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -397,7 +402,7 @@ def test_correct_datetime_columns_valid_at(caplog) -> None:
 
 
 @log_start_stop
-def test_correct_datetime_columns_valid_from_to(caplog) -> None:
+def test_correct_datetime_columns_valid_from_to(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -416,7 +421,7 @@ def test_correct_datetime_columns_valid_from_to(caplog) -> None:
 
 
 @log_start_stop
-def test_versioning_as_of_creates_new_file(caplog) -> None:
+def test_versioning_as_of_creates_new_file(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     # raise AssertionError
@@ -427,7 +432,7 @@ def test_versioning_as_of_creates_new_file(caplog) -> None:
 
 
 @log_start_stop
-def test_versioning_none_appends_to_existing_file(caplog) -> None:
+def test_versioning_none_appends_to_existing_file(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(

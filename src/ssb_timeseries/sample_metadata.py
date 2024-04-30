@@ -1,4 +1,5 @@
 # ruff: noqa
+# mypy: ignore-errors
 
 import random
 

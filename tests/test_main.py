@@ -5,6 +5,8 @@ from click.testing import CliRunner
 
 from ssb_timeseries import __main__
 
+# mypy: ignore-errors
+
 
 @pytest.fixture()
 def runner() -> CliRunner:

@@ -7,10 +7,11 @@ import pytest
 from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
 
+# mypy: ignore-errors
+
 BUCKET = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/"
 JOVYAN = "/home/jovyan/series_data/"
 HOME = os.getenv("HOME")
-# GCS_VISIBLE = fs.exists(BUCKET)
 IS_DAPLA = HOME == "/home/jovyan"
 
 

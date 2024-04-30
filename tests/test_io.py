@@ -1,6 +1,8 @@
 from ssb_timeseries import io
 from ssb_timeseries.properties import SeriesType
 
+# mypy: ignore-errors
+
 
 def test_dataset_dirs() -> None:
     dirs = io.FileSystem(

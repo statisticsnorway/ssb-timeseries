@@ -2,6 +2,8 @@ import logging
 
 from ssb_timeseries.sample_data import create_df
 
+# mypy: ignore-errors
+
 
 def test_create_sample_from_single_string() -> None:
     df = create_df("a", start_date="2022-01-01", end_date="2022-01-03", freq="D")

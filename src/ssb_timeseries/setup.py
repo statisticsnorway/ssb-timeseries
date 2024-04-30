@@ -2,6 +2,7 @@ import contextlib
 import os
 
 # ruff: noqa
+# mypy: ignore-errors
 
 
 @contextlib.contextmanager
