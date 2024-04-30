@@ -2,8 +2,8 @@ import datetime
 import glob
 import os
 import re
-from os import PathLike
 
+# from os import PathStr
 import pandas
 
 from ssb_timeseries import config
@@ -12,6 +12,9 @@ from ssb_timeseries import properties
 from ssb_timeseries.dates import Interval
 from ssb_timeseries.dates import utc_iso
 from ssb_timeseries.logging import ts_logger
+
+# from ssb_timeseries.types import F
+from ssb_timeseries.types import PathStr
 
 """The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
 
@@ -268,7 +271,7 @@ class FileSystem:
 
     def snapshot_directory(
         self, product: str, process_stage: str = "statistikk"
-    ) -> PathLike:
+    ) -> PathStr:
         """Get name of snapshot directory.
 
         Uses dataset parameters, configuration, product and process stage.
@@ -289,7 +292,7 @@ class FileSystem:
         as_of_utc: datetime.datetime | None = None,
         period_from: str = "",
         period_to: str = "",
-    ) -> PathLike:
+    ) -> PathStr:
         """Get full path of snapshot file.
 
         Uses dataset parameters, configuration, product, process stage and as-of time.
@@ -315,7 +318,7 @@ class FileSystem:
         self,
         team: str,
         bucket: str,
-    ) -> PathLike:
+    ) -> PathStr:
         """Get name of sharing directory based on dataset parameters and configuration.
 
         Creates the directory if it does not exist.
@@ -380,7 +383,7 @@ class FileSystem:
                     f"DATASET {self.set_name}: sharing with {s['team']}, snapshot copied to {s['path']}."
                 )
 
-    def search(self, pattern: str = "") -> list[str | PathLike]:
+    def search(self, pattern: str = "") -> list[str | PathStr]:
         """Search for files in under timeseries root."""
         if pattern:
             pattern = f"*{pattern}*"

@@ -8,7 +8,7 @@ from ssb_timeseries import fs
 
 GCS = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
 JOVYAN = "/home/jovyan"
-HOME: str = os.getenv("HOME")
+HOME = os.getenv("HOME")
 
 DEFAULT_BUCKET = HOME
 DEFAULT_TIMESERIES_LOCATION = os.path.join(HOME, "series_data")

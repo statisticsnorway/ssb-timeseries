@@ -1,20 +1,16 @@
-# from typing import Optional, Dict
-# from dataclasses import dataclass, field
-
 import datetime
+from typing import Any
+from typing import no_type_check
 
-# from re import S
 import numpy as np
 import pandas as pd
-from typing_extensions import Any
 from typing_extensions import Self
 
 from ssb_timeseries import dates
 from ssb_timeseries import io
 from ssb_timeseries import properties
 from ssb_timeseries.logging import ts_logger
-
-utc_iso = dates.utc_iso
+from ssb_timeseries.types import F
 
 # ruff: noqa: RUF013
 
@@ -32,7 +28,7 @@ class Dataset:
         as_of_tz: datetime.datetime = None,
         load_data: bool = True,
         series_tags: dict = None,
-        **kwargs,  # noqa: ANN003
+        **kwargs: Any,  # noqa: -- ANN003
     ) -> None:
         """Load existing dataset or create a new one of specified type.
 
@@ -79,8 +75,8 @@ class Dataset:
             "temporality": str(self.data_type.temporality),
             "series": {},
         }
-        stored_tags: dict = self.io.read_metadata()
-        kwarg_tags: dict = kwargs.get("tags", {})
+        stored_tags = self.io.read_metadata()
+        kwarg_tags = kwargs.get("tags", {})
 
         self.tags = {**default_tags, **stored_tags, **kwarg_tags}
 
@@ -184,7 +180,7 @@ class Dataset:
         date_from = self.data[self.datetime_columns()].min().min()
         date_to = self.data[self.datetime_columns()].max().max()
         ts_logger.debug(
-            f"DATASET {self.name}: Data {utc_iso(date_from)} - {utc_iso(date_to)}:\n{self.data.head()}\n...\n{self.data.tail()}"
+            f"DATASET {self.name}: Data {dates.utc_iso(date_from)} - {dates.utc_iso(date_to)}:\n{self.data.head()}\n...\n{self.data.tail()}"
         )
 
         self.save(as_of_tz=self.as_of_utc)
@@ -197,7 +193,7 @@ class Dataset:
             period_to=date_to,
         )
 
-    def series(self, what: str = "names") -> list[str] | dict:
+    def series(self, what: str = "names") -> Any:
         """Get series names (default) or tags."""
         if what.lower() == "names":
             return self.data.columns
@@ -206,7 +202,7 @@ class Dataset:
         else:
             raise ValueError(f"Unrecognised return type {what}")
 
-    def series_tags(self, series_name: str | list[str] = "") -> dict:  # remove this?
+    def series_tags(self, series_name: str | list[str] = "") -> Any:  # remove this?
         """Get series tags."""
         if series_name:
             return self.tags["series"][series_name]
@@ -220,7 +216,7 @@ class Dataset:
     def filter(
         self,
         pattern: str = "",
-        tags: dict = None,
+        tags: dict[Any, Any] = None,
         regex: str = "",
         **kwargs: str | list[str],
     ) -> pd.DataFrame | Self:
@@ -263,7 +259,9 @@ class Dataset:
         # TBD: the most natural behaviour is probably not to apply filter to self.data,
         # but to return a (new) Dataset or DataFrame. Which one should it be?
 
-    def __getitem__(self, key: str | dict) -> pd.DataFrame | Self:  # noqa: D417
+    def __getitem__(
+        self, key: str | dict[str, str]
+    ) -> pd.DataFrame | Self:  # noqa: D417
         """Access Dataset.data.columns via Dataset[ list[column_names] | regex | tags].
 
         Args:
@@ -295,7 +293,7 @@ class Dataset:
             )
         # regex=regex, tags=tags)
 
-    def plot(self, **kwargs) -> Any:  # noqa: ANN003
+    def plot(self, **kwargs: Any) -> Any:  # noqa: ANN003
         """Plot dataset data.
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
@@ -340,10 +338,11 @@ class Dataset:
         datetime_columns = list(
             set(self.data.columns) & {"valid_at", "valid_to", "valid_from"}
         )
-        datetime_columns = "valid_at"
-        ts_logger.debug(f"DATASET {self.name}: datetime columns: {datetime_columns}.")
+        ts_logger.warning(f"DATASET {self.name}: datetime columns: {datetime_columns}.")
 
-        period_index = pd.PeriodIndex(self.data[datetime_columns], freq=freq)
+        # works for datetime_columns = "valid_at", untested for others
+        # TODO: add support for ["valid_from", "valid_to"]
+        period_index = pd.PeriodIndex(self.data[datetime_columns[0]], freq=freq)
         ts_logger.debug(f"DATASET {self.name}: period index\n{period_index}.")
 
         match func:
@@ -380,7 +379,7 @@ class Dataset:
 
         new_name = f"({self.name}.groupby({freq},{func})"
 
-        return Dataset(
+        return self.__class__(
             name=new_name,
             data_type=self.data_type,
             as_of_tz=self.as_of_utc,
@@ -390,9 +389,9 @@ class Dataset:
     def resample(
         self,
         freq: str,
-        func,  # noqa: ANN001
-        *args,  # noqa: ANN002
-        **kwargs,  # noqa: ANN003
+        func: F | str,
+        *args: Any,  # ---noqa: ANN002
+        **kwargs: Any,  # --noqa: ANN003
     ) -> Self:
         """Alter frequency of dataset data."""
         # TO DO: have a closer look at dates returned for last period when upsampling
@@ -412,10 +411,10 @@ class Dataset:
             case "bfill":
                 out = df.resample(freq).bfill()
             case _:
-                out = df.resample(freq, *args).apply(func)
+                out = df.resample(freq, *args, **kwargs).apply(func)
 
         new_name = f"new set:[{self.name}.resampled({freq}, {func}]"
-        return Dataset(
+        return self.__class__(
             name=new_name,
             data_type=self.data_type,
             as_of_tz=self.as_of_utc,
@@ -445,13 +444,11 @@ class Dataset:
     def all(self) -> bool:
         """Check if all values in series columns evaluate to true."""
         ts_logger.warning(all(self.data))
-        a = np.all(self.data[self.numeric_columns()])
-        return a
+        return all(self.data[self.numeric_columns()])
 
     def any(self) -> bool:
         """Check if any values in series columns evaluate to true."""
-        a = np.any(self.data[self.numeric_columns()])
-        return a
+        return any(self.data[self.numeric_columns()])
 
     def numeric_columns(self) -> list[str]:
         """Get names of all numeric series columns (ie columns that are not datetime)."""
@@ -477,8 +474,8 @@ class Dataset:
 
     def math(
         self,
-        other: Self | pd.DataFrame | np.ndarray | int | float,
-        func,  # noqa: ANN001
+        other: Self | pd.DataFrame | pd.Series | int | float,
+        func: F,  # ---noqa: ANN001
     ) -> Self:
         """Generic helper making math functions work on numeric, non date columns of dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar.
 
@@ -567,7 +564,7 @@ class Dataset:
         else:
             out_as_of = self.as_of_utc
 
-        out = Dataset(
+        out = self.__class__(
             name=f"({self.name}.{func.__name__}.{other_name})",
             data_type=self.data_type,
             as_of_tz=out_as_of,
@@ -578,7 +575,7 @@ class Dataset:
         )
         return out
 
-    # TO DO: check how perfomrance of pure pyarrow or polars compares to numpy
+    # TO DO: check how performance of pure pyarrow or polars compares to numpy
 
     def __add__(self, other: Self) -> Self:
         """Add two datasets or a dataset and a dataframe, numpy array or scalar."""
@@ -636,6 +633,7 @@ class Dataset:
         """Right modulo of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.mod)
 
+    @no_type_check
     def __eq__(self, other: Self) -> Self:
         """Check equality of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.equal)
@@ -665,6 +663,9 @@ class Dataset:
         )
 
     # unfinished business
+
+    # mypy: disable-error-code="no-untyped-def"
+    @no_type_check
     def reindex(
         self,
         index_type: str = "dt",

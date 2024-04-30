@@ -18,6 +18,7 @@ from datetime import datetime
 from typing_extensions import Self
 
 from ssb_timeseries import config
+from ssb_timeseries.types import F
 
 ts_logger = logging.getLogger("TIMESERIES")
 log_string = logging.Formatter("%(name)s | %(levelname)s | %(asctime)s | %(message)s")
@@ -58,11 +59,9 @@ ts_logger.addHandler(console)
 # def debug(message: str) -> None:
 #     ts_logger.debug(message)
 #     # print(message)
-from collections.abc import Callable
-from typing import Any
-from typing import TypeVar
 
-F = TypeVar("F", bound=Callable[..., Any])
+
+# F = TypeVar("F", bound=Callable[..., Any])
 
 
 class EnterExitLog:
