@@ -29,9 +29,9 @@ class Dataset:
         self,
         name: str,
         data_type: properties.SeriesType = None,
-        as_of_tz: datetime.datetime | None = None,
+        as_of_tz: datetime.datetime = None,
         load_data: bool = True,
-        series_tags: dict | None = None,
+        series_tags: dict = None,
         **kwargs,  # noqa: ANN003
     ) -> None:
         """Load existing dataset or create a new one of specified type.
@@ -150,7 +150,7 @@ class Dataset:
                     )
                     # [self.tags.series[k] = for k, a in zip(self.numeric_columns(), name_pattern]
 
-    def save(self, as_of_tz: datetime.datetime | None = None) -> None:
+    def save(self, as_of_tz: datetime.datetime = None) -> None:
         """Persist the Dataset.
 
         Args:
@@ -167,7 +167,7 @@ class Dataset:
             )
         self.io.save(meta=self.tags, data=self.data)
 
-    def snapshot(self, as_of_tz: datetime.datetime | None = None) -> None:
+    def snapshot(self, as_of_tz: datetime.datetime = None) -> None:
         """Copy data snapshot to immutable processing stage bucket and shared buckets.
 
         Args:
@@ -227,12 +227,13 @@ class Dataset:
         """Filter dataset.data by textual pattern, regex or metadata tag dictionary. Or a combination.
 
         Args:
-            pattern (str, optional): Text pattern for search 'like' in column names. Defaults to ''.
-            regex (str, optional): Expression for regex search in column names. Defaults to ''.
-            tags (dict, optional): Dictionary with tags to search for. Defaults to {}.
+            pattern (str): Text pattern for search 'like' in column names. Defaults to ''.
+            regex (str): Expression for regex search in column names. Defaults to ''.
+            tags (dict): Dictionary with tags to search for. Defaults to {}.
             **kwargs: if provided, goes into the init of a new Dataset.
 
-        Returns: A new Dataset if kwargs are provided to initialise it, otherwise, a dataframe.
+        Returns:
+            A new Dataset if kwargs are provided to initialise it, otherwise, a dataframe.
         """
         df = self.data
         if regex:
@@ -311,7 +312,7 @@ class Dataset:
         """Get vectors with names equal to column names from Dataset.data.
 
         Args:
-            pattern (str, optional): _description_. Defaults to "".
+            pattern (str): Optional pattern for simple filtering of column names containing pattern. Defaults to "".
 
         Be warned: This is a hack. It (re)assigns variables in the scope of the calling function by way of stack inspection.
         This runs the risk of reassigning objects, functions, or variables.
@@ -492,7 +493,7 @@ class Dataset:
             ValueError: "Incompatible shapes."
 
         Returns:
-            _type_: Pandas (or polars?) dataframe.
+            Self:   A new dataset with the result. The name of the new set is derived from inputs and the functions applied.
         """
         if isinstance(other, Dataset):
             ts_logger.debug(

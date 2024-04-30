@@ -94,6 +94,7 @@ def create_df(
         "Y": "years",
         "YS": "years",
         "M": "months",
+        "ME": "months",
         "MS": "months",
         "D": "days",
         "H": "hours",

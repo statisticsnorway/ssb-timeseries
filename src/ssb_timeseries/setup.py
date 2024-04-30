@@ -32,19 +32,8 @@ def init_root(
     create_log_and_shared: bool = False,
     create_product_dirs: bool = False,
     create_all: bool = False,
-):
-    """init_root
-
-    Args:
-        path (str):
-            Absolute or relative path to the top level root directory.
-            It will be created if it does not exist, as will a 'series' inside it,
-            and the TIMESERIES_ROOT env variable will be set to point to it.
-        products list(str):
-            If set, allows
-        as_production_bucket (bool, optional): Create directory structure as if this was a production bucket. Defaults to False.
-
-    """
+) -> None:
+    """Creeate directory structure."""
     with cd(path):
         os.environ["BUCKET"] = os.getcwd()
 

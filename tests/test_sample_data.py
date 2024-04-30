@@ -37,7 +37,7 @@ def test_create_sample_from_two_lists(caplog) -> None:
         ["x", "y", "z"],
         start_date="2022-01-01",
         end_date="2022-05-05",
-        freq="M",
+        freq="ME",
     )
     # expected 4 months x (1 date column + 6 variable columns) = 28 values
     assert df.size == 28

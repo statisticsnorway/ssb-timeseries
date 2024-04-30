@@ -24,7 +24,7 @@ class Config:
         """Create or retrieve configurations from within production code. If called with no parameters, it first tries to read from config file as specified by environment variable TIMSERIES_CONFIG. If that does not succeed, applies defaults.
 
         Args:
-            configuration_file (str, optional): If provided, it tries that before falling back to the environment variable. Defaults to "".
+            configuration_file (str): If provided, it tries that before falling back to the environment variable. Defaults to "".
             kwargs:
                 bucket              - The "production bucket" location. Sharing and snapshots typically go in the sub directories hee, depending on configs.
                 product             - Optional sub directory for "production bucket".
@@ -106,7 +106,7 @@ class Config:
         """Saves configurations to JSON file and set environment variable TIMESERIES_CONFIG to the location of the file.
 
         Args:
-            path (pathlike/string, optional): Full path of the JSON file to save to. Defaults to the value of the environment variable TIMESERIES_CONFIG.
+            path (PathLike): Full path of the JSON file to save to. Defaults to the value of the environment variable TIMESERIES_CONFIG.
         """
         fs.write_json(content=self.toJSON(), path=path)
         if HOME == JOVYAN:
