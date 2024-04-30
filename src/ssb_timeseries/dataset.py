@@ -256,6 +256,7 @@ class Dataset:
         # name, int index, List of name or index
         # if value not in self.series[item][attribute]:
         #    self.series[attribute].append(value)
+
     def search(self, pattern: str = "*") -> list[str]:
         """Search for datasets by name matching pattern."""
         return self.io.search(pattern=pattern)
@@ -265,7 +266,7 @@ class Dataset:
         pattern: str = "",
         tags: dict[Any, Any] = None,
         regex: str = "",
-	output: str="dataset",
+        output: str = "dataset",
         **kwargs: str | list[str],
     ) -> pd.DataFrame | Self:
         """Filter dataset.data by textual pattern, regex or metadata tag dictionary. Or a combination.
@@ -343,7 +344,7 @@ class Dataset:
             )
         # regex=regex, tags=tags)
 
-    def plot(self,*args, **kwargs: Any) -> Any:
+    def plot(self, *args, **kwargs: Any) -> Any:
         """Plot dataset data.
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
@@ -353,7 +354,8 @@ class Dataset:
             legend=len(self.data.columns) < 9,
             title=self.name,
             figsize=(12, 4),
-            *args,**kwargs,
+            *args,
+            **kwargs,
         )
 
     def vectors(self, pattern: str = "") -> None:
