@@ -8,6 +8,7 @@ Essential configs:
 
 Default configs may be created by running
     `poetry run timeseries-config {home | jovyan | gcs}`
+
 See `config` module docs for details.
 """
 
@@ -49,7 +50,11 @@ class FileSystem:
         process_stage: str = "statistikk",
         sharing: dict | None = None,
     ) -> None:
-        """Initialise filesystem abstraction for dataset: calculate directory structure based on dataset type and name."""
+        """Initialise filesystem abstraction for dataset.
+
+        Calculate directory structure based on dataset type and name.
+
+        """
         self.set_name = set_name
         self.data_type = set_type
         self.process_stage = process_stage

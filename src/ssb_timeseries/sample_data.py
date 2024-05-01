@@ -8,10 +8,12 @@ import pandas as pd
 
 
 def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[str]:
-    """For *args, return permutations of elements as list[str] to be used as series names.
+    """For `*args`, return permutations of elements as list[str] to be used as series names.
 
-    Args: can be str | list | tuple | dict.
-    Kwarg: 'separator' defines char sequence inserted between name elements. Defaults to '_'.
+    Args:
+        `*args` (str | list | tuple | dict): Each arg in args should be a collection of names to be combined with the other.
+        `**kwargs` (str): One option: 'separator' defines a character sequence inserted between name elements. Defaults to '_'.
+
     """
     separator = kwargs.get("separator", "_")
 
@@ -54,26 +56,26 @@ def create_df(
 ) -> pd.DataFrame:
     """Generate sample data for specified date range and permutations over lists.
 
-    Parameters:
-    - start_date (datetime, optional): The start date of the date range. Defaults to negative infinity.
-    - end_date (datetime, optional): The end date of the date range. Defaults to positive infinity.
-    - *lists: Lists of values to generate combinations from.
-    - freq (str, optional): The frequency of date generation:
-        'Y' for yearly at last day of year,
-        'YS' for yearly at first day of year,
-        'M' for monthly at last day of month,
-        'MS' for monthly at first day of month,
-        'W' for weekly on Sundays,
-        'D' for daily,
-        'H' for hourly,
-        'T' for minutely,
-        'S' for secondly,
-        etc.
-      Default is 'D'.
-    - interval (int, optional): The interval between dates. Default is 1.
-    - separator (str, optional): The separator used to join combinations. Default is '_'.
-    - midpoint (float, optional): The midpoint value for generating random data. Default is 100.
-    - variance (float, optional): The variance value for generating random data. Default is 10.
+    Args:
+        `start_date` (datetime, optional): The start date of the date range. Defaults to negative infinity.
+        `end_date` (datetime, optional): The end date of the date range. Defaults to positive infinity.
+        `*lists` (list[str]): Lists of values to generate combinations from.
+        `freq` (str, optional): The frequency of date generation:
+            'Y' for yearly at last day of year,
+            'YS' for yearly at first day of year,
+            'M' for monthly at last day of month,
+            'MS' for monthly at first day of month,
+            'W' for weekly on Sundays,
+            'D' for daily,
+            'H' for hourly,
+            'T' for minutely,
+            'S' for secondly,
+            etc.
+            Default is 'D'.
+        `interval` (int, optional): The interval between dates. Default is 1.
+        `separator` (str, optional): The separator used to join combinations. Default is '_'.
+        `midpoint` (float, optional): The midpoint value for generating random data. Default is 100.
+        `variance` (float, optional): The variance value for generating random data. Default is 10.
 
     Returns:
     - DataFrame: A DataFrame containing sample data.

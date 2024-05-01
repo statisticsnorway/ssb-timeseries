@@ -6,12 +6,13 @@ from typing import Any
 from typing import no_type_check
 
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore[import-untyped]
 from typing_extensions import Self
 
-from ssb_timeseries import dates
 from ssb_timeseries import io
 from ssb_timeseries import properties
+from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
+from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import F
 
@@ -28,7 +29,6 @@ class Dataset:
         data_type: properties.SeriesType = None,
         as_of_tz: datetime = None,
         load_data: bool = True,
-        series_tags: dict = None,
         **kwargs: Any,
     ) -> None:
         """Load existing dataset or create a new one of specified type.
@@ -45,11 +45,12 @@ class Dataset:
         For data_types with AS_OF versioning, not providing the AS_OF date will have the same effect.
 
         Metadata will always be read.
-        Data is represented as pandas (or polars?) dataframes.
-        Data is stored to parquet files (or database?).
-        Support for addittional "type" features/flags behaviours like sparse data may be added later.
+        Data is represented as Pandas dataframes; but Polars lazyframes or Pyarrow tables is likely to be better.
+        Initial implementation assumes stores data in parquet files, but feather files and various database options are considered for later.
 
-        Files are created / data is stored to database on .save, but not before.
+        Support for addittional "type" features/flags behaviours like sparse data may be added later (if needed).
+
+        Data is kept in memory and not stored before explicit call to .save.
         """
         self.name: str = name
         if data_type:  # self.exists():
@@ -61,7 +62,7 @@ class Dataset:
             self.data_type = data_type
 
         # TODO: for versioned series, return latest if no as_of_tz is provided
-        self.as_of_utc = dates.date_utc(as_of_tz)
+        self.as_of_utc = date_utc(as_of_tz)
 
         # self.series: dict = kwargs.get("series", {})
 
@@ -147,7 +148,11 @@ class Dataset:
                     )
                     # [self.tags.series[k] = for k, a in zip(self.numeric_columns(), name_pattern]
 
-    def copy(self, new_name: str, **kwargs) -> Self:  # noqa: ANN003
+        self.product: str = kwargs.get("product", "")
+        self.process_stage: str = kwargs.get("process_stage", "")
+        self.sharing: dict[str, str] = kwargs.get("sharing", {})
+
+    def copy(self, new_name: str, **kwargs: Any) -> Self:
         """Create a copy of the Dataset.
 
         The copy need to get a new name, but unless other information is spcecified, it will be create wiht the same data_type, as_of_tz, data, and tags.
@@ -180,7 +185,7 @@ class Dataset:
             as_of_tz (datetime): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of._utc (utc dates under the hood).
         """
         if as_of_tz is not None:
-            self.as_of_utc = dates.date_utc(as_of_tz)
+            self.as_of_utc = date_utc(as_of_tz)
 
         self.io = io.FileSystem(self.name, self.data_type, self.as_of_utc)
         ts_logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")
@@ -207,7 +212,7 @@ class Dataset:
         date_from = self.data[self.datetime_columns()].min().min()
         date_to = self.data[self.datetime_columns()].max().max()
         ts_logger.debug(
-            f"DATASET {self.name}: Data {dates.utc_iso(date_from)} - {dates.utc_iso(date_to)}:\n{self.data.head()}\n...\n{self.data.tail()}"
+            f"DATASET {self.name}: Data {utc_iso(date_from)} - {utc_iso(date_to)}:\n{self.data.head()}\n...\n{self.data.tail()}"
         )
 
         self.save(as_of_tz=self.as_of_utc)
@@ -236,7 +241,7 @@ class Dataset:
         else:
             return self.tags["series"]
 
-    def tag_set(self, tags: dict = None, **kwargs: str | list[str]) -> None:
+    def tag_set(self, tags: dict[str, str] = None, **kwargs: str | list[str]) -> None:
         """Tag the set.
 
         Tags may be provided as dictionary of tags, or as kwargs.
@@ -258,7 +263,7 @@ class Dataset:
             raise ValueError("Must provide either tags or kwargs.")
 
     def tag_series(
-        self, identifiers: str | list[str], tags: dict = None, **kwargs: str
+        self, identifiers: str | list[str], tags: dict[str, str] = None, **kwargs: str
     ) -> None:
         """Tag the series.
 
@@ -313,6 +318,7 @@ class Dataset:
         Returns:
             Dataset | Dataframe:
             By default a new Dataset (a deep copy of self). If output="dataframe" or "df", a dataframe.
+            TODO: Explore shallow copy / nocopy options.
         """
         if regex:
             df = self.data.filter(regex=regex).copy(deep=True)
@@ -355,14 +361,17 @@ class Dataset:
                 out.tags["series"] = matching_series_tags
         return out
 
-    def __getitem__(self, criteria: str | dict[str, str] | list[str]) -> Self:
+    def __getitem__(
+        self, criteria: str | dict[str, str] = "", **kwargs: Any
+    ) -> Self | None:
         """Access Dataset.data.columns via Dataset[ list[column_names] | pattern | tags].
 
         Arguments:
-            criteria: (str | dict | list) Either a string pattern or a dict of tags.
+            criteria: (str | dict) Either a string pattern or a dict of tags.
+            kwargs: If criteria is empty, this is passed to filter().
 
         Returns:
-            Self
+            Self | None
         """
         # pattern: str = "", regex: str = "", tags: dict = {}):
         # Dataset[...] should return a Dataset object (?) with only the requested items (columns).
@@ -374,14 +383,15 @@ class Dataset:
         # (Then the original x is not affected by updates to x[a])?
         # Or, is there a trick using dataframe views?
         # --->
-        if isinstance(criteria, str):
+        if criteria and isinstance(criteria, str):
             return self.filter(pattern=criteria)
-        elif isinstance(criteria, dict):
+        elif criteria and isinstance(criteria, dict):
             return self.filter(tags=criteria)
-        elif isinstance(criteria, list):
-            pass
-            # return self.filter(criteria)
-        # regex=regex, tags=tags)
+        elif kwargs:
+            ts_logger.debug(f"DATASET.__getitem__(:\n\t{kwargs} ")
+            return self.filter(**kwargs)
+        else:
+            return None
 
     def plot(self, *args: Any, **kwargs: Any) -> Any:
         """Plot dataset data.
@@ -554,9 +564,11 @@ class Dataset:
     def datetime_columns(self, *comparisons: Self | pd.DataFrame) -> list[str]:
         """Get names of datetime columns (valid_at, valid_from, valid_to).
 
-        :param    *comparisons (optional) Objects to compare with. If provided, returns the intersection of self and all comparisons.
+        Args:
+            *comparisons (Self | pd.DataFrame): Objects to compare with. If provided, returns the intersection of self and all comparisons.
 
-        Returns: The (common) datetime column names of self (and comparisons) as a list of strings.
+        Returns:
+            list[str]: The (common) datetime column names of self (and comparisons).
         """
         intersect = set(self.data.columns) & {"valid_at", "valid_from", "valid_to"}
         for c in comparisons:

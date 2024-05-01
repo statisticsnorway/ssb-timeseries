@@ -1,11 +1,9 @@
 # type: ignore
 # ruff: noqa
-from datetime import datetime as dt  # , timedelta
-from time import time as ts
+"""Date and time utilities."""
 
-# import datetime
-# import time
-from functools import wraps
+from datetime import datetime as dt
+from typing import Any
 
 import pytz
 from dateutil import parser
@@ -19,6 +17,10 @@ MAX_TIME_PRECISION = "Min"
 
 
 def date_round(d: dt, **kwargs) -> dt:
+    """Round date to specified or default precision.
+
+    Default precision is {MAX_TIME_PRECISION}.
+    """
 
     rounding = kwargs.get("rounding", MAX_TIME_PRECISION)
     match rounding.lower():
@@ -34,6 +36,10 @@ def date_round(d: dt, **kwargs) -> dt:
 
 
 def date_utc(d: dt | str, **kwargs) -> dt:
+    """Convert date to UTC.
+
+    If date has no timezone information, the data is assumed to be in CET.
+    """
     if d is None:
         d = now_utc()
 
@@ -60,7 +66,12 @@ def date_utc(d: dt | str, **kwargs) -> dt:
     return d.astimezone(tz=pytz.utc)
 
 
-def utc_iso(d: dt, timespec: str = "minutes", **kwargs) -> str:
+def utc_iso(d: dt, timespec: str = "minutes", **kwargs: Any) -> str:
+    """Return date in UTC and ISO format.
+
+    Arguments:
+
+    """
     return date_utc(d, **kwargs).isoformat(timespec=timespec)
 
 

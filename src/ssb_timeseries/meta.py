@@ -19,30 +19,28 @@ from ssb_timeseries.types import PathStr
 class Taxonomy:
     """Wraps taxonomies defined in KLASS or json files in a object structure.
 
-    Properties:
-        definition:
-            Descriptions of the taxonomy:
-                name:
-                structure_type:     enum:   list | tree | graph
-                levels: number of levels not counting the root node
-        entities:
-            entity definitions, represented as a dataframe with columns:
-                code: str
-                    A unique entity identifier within the taxonomy.
-                    It may very well consist of numeric values, but will be represented as a string.
-                parent:  str
-                    "parentCode"
-                    The code for the parent entity.
-                name: str
-                    A unique human readable name. Not nullable.
-                short:
-                    "shortName"
-                    A short version / mnemonic for name, if applicable.
-                presentationName
-                    A "self explanatory" unique name, if applicable.
-                validFrom
-                validTo
-                notes
+    Attributes:
+        definition (str): Descriptions of the taxonomy:
+            name:
+            structure_type:     enum:   list | tree | graph
+            levels: number of levels not counting the root node
+        entities (pd.Dataframe): Entity definitions, represented as a dataframe with columns:
+            * code: str
+                A unique entity identifier within the taxonomy.
+                It may very well consist of numeric values, but will be represented as a string.
+            * parent:  str
+                "parentCode"
+                The code for the parent entity.
+            * name: str
+                A unique human readable name. Not nullable.
+            * short:
+                "shortName"
+                A short version / mnemonic for name, if applicable.
+            * presentationName
+                A "self explanatory" unique name, if applicable.
+            * validFrom
+            * validTo
+            * notes
         structure:
             Relations between entities of the taxonomy.
             Both lists and trees will be represented as hierarchies; with the root node being the taxonomy.

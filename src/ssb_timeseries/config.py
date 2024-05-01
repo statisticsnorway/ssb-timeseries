@@ -24,18 +24,21 @@ class Config:
     """Timeseries configurations: bucket, product, timeseries_root, log_file."""
 
     def __init__(self, configuration_file: str = "", **kwargs: str) -> None:
-        """Create or retrieve configurations from within production code. If called with no parameters, it first tries to read from config file as specified by environment variable TIMSERIES_CONFIG. If that does not succeed, applies defaults.
+        """Create or retrieve configurations.
+
+        If called with no parameters, Config attempts to read from the file specified by the environment variable TIMSERIES_CONFIG. If that does not succeed, applies defaults.
 
         Args:
-            configuration_file (str): If provided, it tries that before falling back to the environment variable. Defaults to "".
-            kwargs:
-                bucket              - The "production bucket" location. Sharing and snapshots typically go in the sub directories hee, depending on configs.
-                product             - Optional sub directory for "production bucket".
-                timeseries_root     - Series data are stored in tree underneath. Defaults to '$HOME/series_data/'
-                log_file            - Exactly that. Defaults to '$HOME/series_data/'
+            configuration_file (str): Tries to read this before falling back to environment variable. Defaults to "".
+            kwargs (str):  Configuration options:
+
+        Kwargs:
+            - bucket              - The "production bucket" location. Sharing and snapshots typically go in the sub directories hee, depending on configs.
+            - product             - Optional sub directory for "production bucket".
+            - timeseries_root     - Series data are stored in tree underneath. Defaults to '$HOME/series_data/'
+            - log_file            - Exactly that. Defaults to '$HOME/series_data/'
         """
         if fs.exists(configuration_file):
-            """If the configuration_file is specified and exists, load it."""
             self.load(configuration_file)
             self.configuration_file = configuration_file
             os.environ["TIMESERIES_CONFIG"] = configuration_file
@@ -124,15 +127,21 @@ class Config:
 def main(*args: str | PathStr) -> None:
     """Set configurations to predefined defaults when run from command line.
 
-    ```
-    poetry run timeseries-config <option>
-    ```
+    Use:
+        ```
+        poetry run timeseries-config <option>
+        ```
     or
         ```
         python ./config.py <option>`
         ```
+
     Args:
-        option: 'home' | 'gcs' | 'jovyan'.
+        *args (str): 'home' | 'gcs' | 'jovyan'.
+
+    Raises:
+        ValueError: If args is not 'home' | 'gcs' | 'jovyan'.
+
     """
     # for a, arg in enumerate(sys.argv[1:]):
     #    print(f"{a} - {arg}")
