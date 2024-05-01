@@ -259,7 +259,7 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
             or returned_series_tags[key]["A"] == "b"
         )
 
-    raise AssertionError("In order to see DEBUG logs while testing.")
+    # raise AssertionError("In order to see DEBUG logs while testing.")
 
 
 @pytest.mark.skipif(True, reason="Not ready yet.")
