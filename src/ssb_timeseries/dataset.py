@@ -305,7 +305,7 @@ class Dataset:
         Args:
             pattern (str): Text pattern for search 'like' in column names. Defaults to ''.
             regex (str): Expression for regex search in column names. Defaults to ''.
-            tags (dict): Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND).
+            tags (dict): Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
             output (str): Output type - dataset or dataframe.(df). Defaults to 'dataset'. Short forms 'df' or 'ds' are accepted.
             new_name (str): Name of new Dataset. If not provided, a new name is generated.
