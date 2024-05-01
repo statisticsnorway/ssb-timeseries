@@ -36,6 +36,10 @@ def test_read_hierarchical_code_set_from_klass_returns_multi_level_tree() -> Non
 
 @log_start_stop
 def test_replace_chars_in_flat_codes(caplog) -> None:
+    """The substitute parameter of Taxonomy init allows making changes to codes when reading a taxonomy list.
+
+    While best practice calls for direct match to KLASS, this allows mappings with (minor) deviations.
+    """
     caplog.set_level(logging.DEBUG)
     k697 = Taxonomy(
         id_or_path=697,
@@ -75,6 +79,10 @@ def test_replace_chars_in_flat_codes(caplog) -> None:
 
 @log_start_stop
 def test_replace_chars_in_hierarchical_codes(caplog) -> None:
+    """The substitute parameter of Taxonomy init allows making changes to codes when reading a taxonomy list.
+
+    While best practice calls for direct match to KLASS, this allows mappings with (minor) deviations.
+    """
     caplog.set_level(logging.DEBUG)
     k157 = Taxonomy(
         id_or_path=157,

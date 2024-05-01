@@ -55,12 +55,12 @@ class Dataset:
         if data_type:  # self.exists():
             self.data_type = data_type
         else:
-            # TO DO: if the datatype is not provided, search by name,
+            # TODO: if the datatype is not provided, search by name,
             # throw error if a) no set is found or b) multiple sets are found
             # ... till then, just continue
             self.data_type = data_type
 
-        # TO DO: for versioned series, return latest if no as_of_tz is provided
+        # TODO: for versioned series, return latest if no as_of_tz is provided
         self.as_of_utc = dates.date_utc(as_of_tz)
 
         # self.series: dict = kwargs.get("series", {})
@@ -103,7 +103,7 @@ class Dataset:
 
         kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
         if not kwarg_data.empty:
-            # TO DO: if kwarg_data overlap data from file, overwrite with kwarg_data
+            # TODO: if kwarg_data overlap data from file, overwrite with kwarg_data
             # ... for all versioning types? Think it through!
             self.data = kwarg_data
             # self.data.set_index(self.datetime_columns())
@@ -112,7 +112,7 @@ class Dataset:
             ts_logger.debug(
                 f"DATASET {self.name}: Merged {kwarg_data.size} datapoints:\n{self.data}"
             )
-            # TO DO: update series tags
+            # TODO: update series tags
             # tags may come in through `stored_tags['series]` with additional ones in parameter `series_tags`
             # this will add new tags or overwrite existing ones
             # (to delete or append values to an existing tag will need explicit actions)
@@ -125,7 +125,7 @@ class Dataset:
             ts_logger.debug(
                 f"DATASET {self.name}: .tags:\n\t{self.tags}\n\tinherited: {inherit_from_set_tags} "
             )
-            # TO DO: apply tags provided in parameter series_tags
+            # TODO: apply tags provided in parameter series_tags
             # ... or just be content with the autotag?
             # kwarg_series_tags = kwargs.get("series_tags", {})
 
@@ -153,12 +153,25 @@ class Dataset:
         The copy need to get a new name, but unless other information is spcecified, it will be create wiht the same data_type, as_of_tz, data, and tags.
         """
         out = deepcopy(self)
-        out.name = new_name
         for k, v in kwargs.items():
             setattr(out, k, v)
-            ts_logger.warning(f"DATASET.copy() ... set {k}:\n\t {v}.")
+            ts_logger.debug(f"DATASET.copy() attribute: {k}:\n {v}.")
 
+        out.rename(new_name)
         return out
+
+    def rename(self, new_name: str) -> None:
+        """Rename the Dataset.
+
+        For use by .copy, and on very rare other occasions. Does not move or rename any previously stored data.
+
+        TODO: Fix that?
+        """
+        self.name = new_name
+
+        self.tags["dataset"] = new_name
+        for _, v in self.tags["series"].items():
+            v["dataset"] = new_name
 
     def save(self, as_of_tz: datetime = None) -> None:
         """Persist the Dataset.
@@ -283,7 +296,9 @@ class Dataset:
         output: str = "dataset",
         **kwargs: str | list[str],
     ) -> pd.DataFrame | Self:
-        """Filter dataset.data by textual pattern, regex or metadata tag dictionary. Or a combination.
+        """Filter dataset.data by textual pattern, regex or metadata tag dictionary.
+
+        Or a combination.
 
         Args:
             pattern (str): Text pattern for search 'like' in column names. Defaults to ''.
@@ -297,40 +312,43 @@ class Dataset:
         """
         if regex:
             df = self.data.filter(regex=regex).copy(deep=True)
+            matching_series = df.columns
 
         if pattern:
             df = self.data.filter(like=pattern).copy(deep=True)
+            matching_series = df.columns
 
         if tags:
-            ts_logger.warning(f"DATASET.filter() tags:\n{tags}")
             series_tags = self.series_tags()
-            names = [
-                series_tags[s]["name"] for s in series_tags if tags in series_tags[s]
+            ts_logger.debug(
+                f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}"
+            )
+            matching_series = [
+                name
+                for name, s_tags in series_tags.items()
+                if all(s_tags[k] == v for k, v in tags.items())
             ]
-            ts_logger.debug(f"DATASET.filter(( --> names:\n\t{names} ")
-            df = self.data[names].copy(deep=True)
+            ts_logger.debug(f"DATASET.filter(tags) matched series:\n{matching_series} ")
+            df = self.data[matching_series].copy(deep=True)
 
         df = pd.concat([self.data[self.datetime_columns()], df], axis=1)
-        # TO DO: add interval parameter to filter on datetime? Similar to:
+
+        # TODO: add interval parameter to filter on datetime? Similar to:
         # if interval:
         #    df = df[interval, :]
+        # ... or is it better to do this in another function?
 
         match output:
             case "dataframe" | "df":
-                # provide option to get dataframe
                 out = df
             case "dataset" | "ds" | _:
-                # return new dataset even when no kwargs provide name etc?
-                # or just some kind of self.copy?
-                new_name = (
-                    f"dataset.filter({self.name} where pattern: {pattern} tags: {tags})"
-                )
+                new_name = f"COPY of({self.name} FILTERED by pattern: {pattern}, regex: {regex} tags: {tags})"
                 out = self.copy(new_name=new_name, data=df, **kwargs)
-
+                matching_series_tags = {
+                    k: v for k, v in out.tags["series"].items() if k in matching_series
+                }
+                out.tags["series"] = matching_series_tags
         return out
-
-        # TBD: the most natural behaviour is probably not to apply filter to self.data,
-        # but to return a (new) Dataset or DataFrame. Which one should it be?
 
     def __getitem__(
         self, criteria: str | dict[str, str] | list[str]
@@ -420,7 +438,7 @@ class Dataset:
                     *args, numeric_only=True, **kwargs
                 )
             case "auto":
-                # TO DO: QA on exact logic / use "real" metadata
+                # TODO: QA on exact logic / use "real" metadata
                 # in particular, how to check meta data and blend d1 and df2 values as appropriate
                 # (this implementation is just to show how it can be done)
                 # QUESTION: do we need a default for "other" series / what should it be?
@@ -459,7 +477,7 @@ class Dataset:
         **kwargs: Any,  # --noqa: ANN003
     ) -> Self:
         """Alter frequency of dataset data."""
-        # TO DO: have a closer look at dates returned for last period when upsampling
+        # TODO: have a closer look at dates returned for last period when upsampling
         # df = self.data.set_index(self.datetime_columns())
         df = self.data.set_index(self.datetime_columns()).copy()
         match func:
@@ -486,7 +504,7 @@ class Dataset:
             data=out,
         )
 
-    # TO DO: Add these? (needed to make all() and any() work?)
+    # TODO: Add these? (needed to make all() and any() work?)
     # def __iter__(self):
     #     self.n = 0
     #     return self
@@ -500,7 +518,7 @@ class Dataset:
     #         raise StopIteration
     #     return x
 
-    # TO DO: rethink identity: is / is not behaviour
+    # TODO: rethink identity: is / is not behaviour
     # def identical(self, other:Self) -> bool:
     #     # check_data = self.__eq__(other:Self)
     #     # return all(check_defs) and check_data.all()
@@ -595,7 +613,7 @@ class Dataset:
             other_as_of = None
 
         elif isinstance(other, np.ndarray):
-            # TO DO: this needs more thorugh testing!
+            # TODO: this needs more thorugh testing!
             # Compare shape of the ndarray against the numeric_columns of self.data. There are up to 3 accepted cases (depending on the operation):
             #  * matrix;         shape = (data.numeric.rows, data.numeric.columns)
             #  * column vector;  shape = (data.numeric.rows, 1)
@@ -623,7 +641,7 @@ class Dataset:
         else:
             raise ValueError("Unsupported operand type")
 
-        # TO DO: return (new) Dataset object instead!
+        # TODO: return (new) Dataset object instead!
         # return out_data
         if other_as_of:
             out_as_of = max(self.as_of_utc, other_as_of)
@@ -641,7 +659,7 @@ class Dataset:
         )
         return out
 
-    # TO DO: check how performance of pure pyarrow or polars compares to numpy
+    # TODO: check how performance of pure pyarrow or polars compares to numpy
 
     def __add__(self, other: Self) -> Self:
         """Add two datasets or a dataset and a dataframe, numpy array or scalar."""

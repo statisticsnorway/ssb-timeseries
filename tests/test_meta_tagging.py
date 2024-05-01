@@ -60,7 +60,7 @@ def test_init_dataset_returns_expected_set_level_tags(caplog) -> None:
 
 @log_start_stop
 def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dataset(
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
@@ -118,10 +118,9 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
 
 
 @log_start_stop
-def test_find_data_using_metadata_attributes() -> None:
-    # metadata - test extendeded attribute set
-    # find data via metadata
-    # metadata = my_dataset.metadata
+def test_find_data_using_metadata_attributes(caplog: pytest.LogCaptureFixture) -> None:
+    """Filter series in set by series tags."""
+    caplog.set_level(logging.DEBUG)
 
     set_name = f"test-datetimecols-{uuid.uuid4().hex}"
     set_tags = {
@@ -144,17 +143,21 @@ def test_find_data_using_metadata_attributes() -> None:
     )
 
     x_attr_A_equals_a = x.filter(tags={"A": "a"})
+    expected_matches = ["a_p_z", "a_q_z", "a_r_z"]
 
-    ts_logger.debug(f" x_attr_A_equals_a ... {x_attr_A_equals_a.data.columns}")
-    ts_logger.warning(f" ... {x_attr_A_equals_a.tags}")
+    ts_logger.debug(
+        f"x_attr_A_equals_a: \n\t{x_attr_A_equals_a.series()}\n vs expected:\n\t{expected_matches}"
+    )
+    assert isinstance(x_attr_A_equals_a, Dataset)
+    assert sorted(x_attr_A_equals_a.numeric_columns()) == sorted(expected_matches)
 
-    d = x_attr_A_equals_a.tags["series"]
-    for key in d.keys():
-        ts_logger.warning(f" \n... {d[key]}")
-        assert d[key]["dataset"] != set_name
-        assert d[key]["name"] == key
-        assert sorted(d["A"]) == "a"
-        assert sorted(d["A"]) == "a"
+    returned_series_tags = x_attr_A_equals_a.tags["series"]
+    for key in returned_series_tags.keys():
+        assert returned_series_tags[key]["dataset"] != set_name  # TODO: update metadata
+        assert returned_series_tags[key]["name"] == key
+        assert returned_series_tags[key]["A"] == "a"
+
+    # raise AssertionError("In order to see DEBUG logs while testing.")
 
 
 @pytest.mark.skipif(True, reason="Not ready yet.")

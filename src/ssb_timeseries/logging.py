@@ -21,7 +21,9 @@ from ssb_timeseries import config
 from ssb_timeseries.types import F
 
 ts_logger = logging.getLogger("TIMESERIES")
-log_string = logging.Formatter("%(name)s | %(levelname)s | %(asctime)s | %(message)s")
+log_string = logging.Formatter(
+    "%(name)s | %(levelname)s | %(asctime)s | %(message)s \n"
+)
 log_json = logging.Formatter(
     '{"name": "%(name)s"; "level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" }'
 )
@@ -30,13 +32,13 @@ TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
 CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
 
 file_handler = logging.FileHandler(CONFIG.log_file)
-file_handler.setFormatter(log_string)
+file_handler.setFormatter(log_json)
 file_handler.setLevel(logging.INFO)
 ts_logger.addHandler(file_handler)
 
 # Also log to console.
 console = logging.StreamHandler()
-console.setFormatter(log_string)
+console.setFormatter(log_string)  # BUG: format does not take effect in console?
 console.setLevel(logging.WARNING)
 ts_logger.addHandler(console)
 
