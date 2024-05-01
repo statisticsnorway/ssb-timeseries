@@ -351,11 +351,15 @@ class FileSystem:
     ) -> None:
         """Copies snapshots to bucket(s) according to processing stage and sharing configuration.
 
-        For this to work, .stage and sharing configurations should be set for the dataset, eg:
-            .sharing = [{'team': 's123', 'path': '<s1234-bucket>'},
-                        {'team': 's234', 'path': '<s234-bucket>'},
-                        {'team': 's345': 'path': '<s345-bucket>'}]
+        For this to work, .stage and sharing configurations should be set for the dataset, eg::
+
+            .sharing = [
+                {'team': 's123', 'path': '<s1234-bucket>'},
+                {'team': 's234', 'path': '<s234-bucket>'},
+                {'team': 's345': 'path': '<s345-bucket>'}
+            ]
             .stage = 'statistikk'
+
         """
         directory = self.snapshot_directory(
             product=product, process_stage=process_stage

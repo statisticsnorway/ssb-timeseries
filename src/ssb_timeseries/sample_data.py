@@ -8,11 +8,17 @@ import pandas as pd
 
 
 def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[str]:
-    """For `*args`, return permutations of elements as list[str] to be used as series names.
+    """Return all permutations of the elements of multiple groups of strings.
 
     Args:
-        `*args` (str | list | tuple | dict): Each arg in args should be a collection of names to be combined with the other.
-        `**kwargs` (str): One option: 'separator' defines a character sequence inserted between name elements. Defaults to '_'.
+        *args (str | list | tuple | dict): Each arg in args should be a collection of names to be combined with the other.
+        **kwargs (str): One option: 'separator' defines a character sequence inserted between name elements. Defaults to '_'.
+
+    Returns:
+        list[str]: List of names to be used as series names.
+
+    Raises:
+        ValueError: If an argument of an invalid type is passed.
 
     """
     separator = kwargs.get("separator", "_")
@@ -49,18 +55,18 @@ def create_df(
     freq: str = "D",
     interval: int = 1,
     separator: str = "_",
-    midpoint: int = 100,
-    variance: int = 10,
+    midpoint: int | float = 100,
+    variance: int | float = 10,
     temporality: str = "AT",
     decimals: int = 0,
 ) -> pd.DataFrame:
     """Generate sample data for specified date range and permutations over lists.
 
     Args:
-        `start_date` (datetime, optional): The start date of the date range. Defaults to negative infinity.
-        `end_date` (datetime, optional): The end date of the date range. Defaults to positive infinity.
-        `*lists` (list[str]): Lists of values to generate combinations from.
-        `freq` (str, optional): The frequency of date generation:
+        start_date (datetime): The start date of the date range. Optional, default is negative infinity.
+        end_date (datetime): The end date of the date range. Optional, default is positive infinity.
+        *lists (list[str]): Lists of values to generate combinations from.
+        freq (str): The frequency of date generation.
             'Y' for yearly at last day of year,
             'YS' for yearly at first day of year,
             'M' for monthly at last day of month,
@@ -71,14 +77,16 @@ def create_df(
             'T' for minutely,
             'S' for secondly,
             etc.
-            Default is 'D'.
-        `interval` (int, optional): The interval between dates. Default is 1.
-        `separator` (str, optional): The separator used to join combinations. Default is '_'.
-        `midpoint` (float, optional): The midpoint value for generating random data. Default is 100.
-        `variance` (float, optional): The variance value for generating random data. Default is 10.
+            Optional, default is 'D'.
+        interval (int): The interval between dates. ; optionalDefault is 1.
+        separator (str): The separator used to join combinations. Optional, default is '_'.
+        midpoint (float): The midpoint value for generating random data. Optional, default is 100.
+        variance (float): The variance value for generating random data. Optional, default is 10.
+        temporality (str): The temporality of the data. Default is 'AT'.
+        decimals (int): The number of decimal places to round to. Optional, default is 0.
 
     Returns:
-    - DataFrame: A DataFrame containing sample data.
+        DataFrame: A DataFrame containing sample data.
 
     Example:
     ```

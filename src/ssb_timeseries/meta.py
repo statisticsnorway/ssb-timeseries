@@ -20,34 +20,42 @@ class Taxonomy:
     """Wraps taxonomies defined in KLASS or json files in a object structure.
 
     Attributes:
-        definition (str): Descriptions of the taxonomy:
+        definition (str): Descriptions of the taxonomy.
             name:
             structure_type:     enum:   list | tree | graph
             levels: number of levels not counting the root node
         entities (pd.Dataframe): Entity definitions, represented as a dataframe with columns:
-            * code: str
-                A unique entity identifier within the taxonomy.
-                It may very well consist of numeric values, but will be represented as a string.
-            * parent:  str
-                "parentCode"
-                The code for the parent entity.
-            * name: str
-                A unique human readable name. Not nullable.
-            * short:
-                "shortName"
-                A short version / mnemonic for name, if applicable.
-            * presentationName
-                A "self explanatory" unique name, if applicable.
-            * validFrom
-            * validTo
-            * notes
+            code: str
+            A unique entity identifier within the taxonomy.
+            It may very well consist of numeric values, but will be represented as a string.
+
+            parent:  str
+            "parentCode"
+            The code for the parent entity.
+
+            name: str
+            A unique human readable name. Not nullable.
+
+            short:
+            "shortName"
+            A short version / mnemonic for name, if applicable.
+
+            presentationName
+            A "self explanatory" unique name, if applicable.
+
+            validFrom
+
+            validTo
+
+    Notes:
         structure:
             Relations between entities of the taxonomy.
             Both lists and trees will be represented as hierarchies; with the root node being the taxonomy.
             Level two will be the first item level, so a flat list will have two levels.
             Hierarchies with a natural top or "root" node should have a single node at level two.
+
         lookups:
-            Complete listing of supported names for all entities, mapping different categories of names of different standards and in different languages to a unique identifier.
+            Listing of supported names for all entities, mapping different categories of names of different standards and in different languages to a unique identifier.
     """
 
     def __init__(

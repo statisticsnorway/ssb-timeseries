@@ -91,27 +91,17 @@ class SeriesType:
         temporality: Temporality,
         is_sparse: bool = False,
     ) -> None:
-        """SeriesType constructor."""
+        """SeriesType constructor.
+
+        Args:
+            versioning (Versioning): The versioning of the series.
+            temporality (Temporality): The temporality of the series.
+            is_sparse (bool): Whether the series is sparse. Defaults to False.
+
+        """
         self.versioning = versioning
         self.temporality = temporality
         self.is_sparse = is_sparse
-
-        """match type.lower():
-            case "simple":
-                self.versioning = Versioning.NONE
-                self.temporality = Temporality.AT
-            case "from_to":
-                self.versioning = Versioning.NONE
-                self.temporality = Temporality.FROM_TO
-            case "estimate":
-                self.versioning = Versioning.AS_OF
-                self.temporality = Temporality.AT
-            case "as_of_from_to":
-                self.versioning = Versioning.AS_OF
-                self.temporality = Temporality.FROM_TO
-            case _:
-                pass
-        """
 
     @classmethod
     def none_at(cls) -> Self:
