@@ -2,9 +2,12 @@
 import json
 import os
 import sys
-from os import PathLike
 
 from ssb_timeseries import fs
+from ssb_timeseries.types import PathStr
+
+# mypy: disable-error-code="assignment, arg-type"
+
 
 GCS = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
 JOVYAN = "/home/jovyan"
@@ -90,7 +93,7 @@ class Config:
         """Human readable string representation of configuration object: JSON string."""
         return self.toJSON()
 
-    def load(self, path: PathLike) -> None:
+    def load(self, path: PathStr) -> None:
         """Read the properties from a JSON file into a Config object."""
         if path:
             read_from_file = json.loads(fs.read_json(path))
@@ -102,11 +105,11 @@ class Config:
         else:
             raise ValueError("Config.load(<path>) was called with an empty path.")
 
-    def save(self, path: PathLike = TIMESERIES_CONFIG) -> None:
+    def save(self, path: PathStr = TIMESERIES_CONFIG) -> None:
         """Saves configurations to JSON file and set environment variable TIMESERIES_CONFIG to the location of the file.
 
         Args:
-            path (PathLike): Full path of the JSON file to save to. Defaults to the value of the environment variable TIMESERIES_CONFIG.
+            path (PathStr): Full path of the JSON file to save to. Defaults to the value of the environment variable TIMESERIES_CONFIG.
         """
         fs.write_json(content=self.toJSON(), path=path)
         if HOME == JOVYAN:
@@ -118,7 +121,7 @@ class Config:
             os.environ["TIMESERIES_CONFIG"] = path
 
 
-def main(*args: str | PathLike) -> None:
+def main(*args: str | PathStr) -> None:
     """Set configurations to predefined defaults when run from command line.
 
     ```

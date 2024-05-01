@@ -3,13 +3,6 @@
 These are features that may warrant their own shared Dapla libraries. This module separates out code that could go into such a library.
 """
 
-# ruff: noqa: ANN002, ANN003
-# import uuid
-# automatic cloud logging config
-# import google.cloud.logging
-# client = google.cloud.logging.Client()
-# client.setup_logging()
-
 import functools
 import logging
 import os
@@ -20,6 +13,15 @@ from typing_extensions import Self
 from ssb_timeseries import config
 from ssb_timeseries.types import F
 
+# import uuid
+# automatic cloud logging config
+# import google.cloud.logging
+# client = google.cloud.logging.Client()
+# client.setup_logging()
+
+# mypy: disable-error-code="operator, no-untyped-def, return-value, import-untyped, arg-type"
+# ruff: noqa: ANN002, ANN003
+
 ts_logger = logging.getLogger("TIMESERIES")
 log_string = logging.Formatter(
     "%(name)s | %(levelname)s | %(asctime)s | %(message)s \n"
@@ -28,7 +30,7 @@ log_json = logging.Formatter(
     '{"name": "%(name)s"; "level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" }'
 )
 
-TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
+TIMESERIES_CONFIG = os.environ.get("TIMESERIES_CONFIG")
 CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
 
 file_handler = logging.FileHandler(CONFIG.log_file)

@@ -1,4 +1,5 @@
-# import uuid
+# type: ignore
+# ruff: noqa
 
 import logging
 
@@ -6,17 +7,15 @@ import pytest
 
 from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
-from ssb_timeseries.dates import date_utc  # now_utc,
+from ssb_timeseries.dates import date_utc
 from ssb_timeseries.io import CONFIG
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
-from ssb_timeseries.properties import SeriesType  # , Versioning, Temporality
+from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
 BUCKET = CONFIG.bucket
 PRODUCT = "sample-data-product"
-
-# mypy: ignore-errors
 
 
 @pytest.mark.skipif(False, reason="Don't skip.")

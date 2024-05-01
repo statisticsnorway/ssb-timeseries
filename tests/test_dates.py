@@ -1,11 +1,11 @@
+# type: ignore
+# ruff: noqa
 import logging
 from datetime import datetime
 from datetime import timedelta
 
 from ssb_timeseries.dates import Interval
 from ssb_timeseries.logging import ts_logger
-
-# mypy: ignore-errors
 
 
 def test_define_without_params() -> None:

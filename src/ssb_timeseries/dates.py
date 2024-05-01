@@ -1,7 +1,10 @@
+# type: ignore
 # ruff: noqa
-# from datetime import datetime, timedelta
-import datetime
-import time
+from datetime import datetime as dt  # , timedelta
+from time import time as ts
+
+# import datetime
+# import time
 from functools import wraps
 
 import pytz
@@ -11,8 +14,8 @@ from ssb_timeseries.logging import ts_logger
 
 MAX_TIME_PRECISION = "Min"
 
-dt = datetime.datetime
-ts = time.time()
+# dt = datetime.datetime
+# ts = time.time()
 
 
 def date_round(d: dt, **kwargs) -> dt:

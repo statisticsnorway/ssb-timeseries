@@ -1,21 +1,3 @@
-import datetime
-import glob
-import os
-import re
-
-# from os import PathStr
-import pandas
-
-from ssb_timeseries import config
-from ssb_timeseries import fs
-from ssb_timeseries import properties
-from ssb_timeseries.dates import Interval
-from ssb_timeseries.dates import utc_iso
-from ssb_timeseries.logging import ts_logger
-
-# from ssb_timeseries.types import F
-from ssb_timeseries.types import PathStr
-
 """The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
 
 TO DO: turn Dataset.io into a Protocol class?
@@ -29,9 +11,28 @@ Default configs may be created by running
 See `config` module docs for details.
 """
 
+import glob
+import os
+import re
+from datetime import datetime
+
+import pandas
+
+from ssb_timeseries import config
+from ssb_timeseries import fs
+from ssb_timeseries import properties
+from ssb_timeseries.dates import Interval
+from ssb_timeseries.dates import utc_iso
+from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.types import PathStr
+
+# from ssb_timeseries.types import F
 # from abc import ABC, abstractmethod
 # from typing import Protocol
 # import contextlib
+
+# mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
+
 
 TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
 CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
@@ -251,6 +252,7 @@ class FileSystem:
         files = fs.ls(directory, pattern=pattern)
         number_of_files = len(files)
 
+        # TODO: mypy --> error: Item "None" of "Match[str] | None" has no attribute "group"  [union-attr]
         vs = sorted(
             [int(re.search("(_v)([0-9]+)(.parquet)", f).group(2)) for f in files]
         )
@@ -289,7 +291,7 @@ class FileSystem:
         self,
         product: str,
         process_stage: str,
-        as_of_utc: datetime.datetime | None = None,
+        as_of_utc: datetime | None = None,
         period_from: str = "",
         period_to: str = "",
     ) -> PathStr:
@@ -338,9 +340,9 @@ class FileSystem:
         product: str,
         process_stage: str,
         sharing: dict | None = None,
-        as_of_tz: datetime.datetime | None = None,
-        period_from: datetime.datetime | None = None,
-        period_to: datetime.datetime | None = None,
+        as_of_tz: datetime | None = None,
+        period_from: datetime | None = None,
+        period_to: datetime | None = None,
     ) -> None:
         """Copies snapshots to bucket(s) according to processing stage and sharing configuration.
 
@@ -383,7 +385,7 @@ class FileSystem:
                     f"DATASET {self.set_name}: sharing with {s['team']}, snapshot copied to {s['path']}."
                 )
 
-    def search(self, pattern: str = "") -> list[str | PathStr]:
+    def search(self, pattern: str | PathStr = "") -> list[str | PathStr]:
         """Search for files in under timeseries root."""
         if pattern:
             pattern = f"*{pattern}*"
@@ -401,7 +403,7 @@ class FileSystem:
         return [f[2] for f in search_results]
 
     @classmethod
-    def dir(self, *args, **kwargs) -> str:  # noqa ANN002,ANN003
+    def dir(self, *args: str, **kwargs: bool) -> str:
         """Check that target directory is under BUCKET. If so, create it if it does not exist."""
         ts_logger.debug(f"{args}:")
         path = os.path.join(*args)

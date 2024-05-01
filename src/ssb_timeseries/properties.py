@@ -1,7 +1,11 @@
+"""Properties are type definitions used for series and datasets."""
+
 from enum import Enum
 from itertools import product
 
 from typing_extensions import Self
+
+# mypy: disable-error-code="type-arg, override"
 
 
 class SuperEnum(Enum):

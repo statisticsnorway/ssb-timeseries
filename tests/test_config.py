@@ -1,3 +1,5 @@
+# type: ignore
+# ruff: noqa
 import logging
 import os
 import uuid
@@ -8,10 +10,6 @@ from ssb_timeseries import config
 from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
 
-# mypy: ignore-errors
-
-# BUCKET = config.GCS
-# JOVYAN = config.JOVYAN
 
 HOME = os.getenv("HOME")
 TIMESERIES_CONFIG = os.getenv("TIMESERIES_CONFIG")
@@ -59,9 +57,6 @@ def test_config_change(remember_config) -> None:
     cfg_0.save()
 
 
-# @pytest.mark.skipif(
-#     not TIMESERIES_CONFIG, reason="No environment variable pointing to configurations."
-# )
 def test_read_config_from_file(remember_config, print_stuff) -> None:
 
     if fs.exists(TIMESERIES_CONFIG):

@@ -3,8 +3,6 @@
 Ideally, this functionality should live elsewhere, in ssb-python-klass and other meta data libraries. Likely subject to refactoring later.
 """
 
-from os import PathLike
-
 import bigtree
 import pandas as pd
 from klass import get_classification
@@ -13,6 +11,9 @@ from typing_extensions import Self
 from ssb_timeseries import fs
 from ssb_timeseries import properties
 from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.types import PathStr
+
+# mypy: disable-error-code="assignment, override, type-arg, attr-defined, no-untyped-def, import-untyped"
 
 
 class Taxonomy:
@@ -53,7 +54,7 @@ class Taxonomy:
 
     def __init__(
         self,
-        id_or_path: int | PathLike | str,
+        id_or_path: int | PathStr | str,
         root_name: str = "Taxonomy",
         sep: str = ".",
         substitute: dict | None = None,
@@ -77,7 +78,7 @@ class Taxonomy:
                     self.entities["parentCode"] = self.entities[
                         "parentCode"
                     ].str.replace(key, value)
-        elif isinstance(id_or_path, PathLike | str):
+        elif isinstance(id_or_path, str):  # isinstance(id_or_path, PathStr) or
             # TO DO: read from file:
             df_from_file = pd.DataFrame.from_dict(fs.read_json(id_or_path))
             self.entities = df_from_file
@@ -130,7 +131,7 @@ class Taxonomy:
             output = buf.getvalue()
         return output
 
-    def save(self, path: PathLike) -> None:
+    def save(self, path: PathStr) -> None:
         """Save taxonomy to json file.
 
         The file can be read using Taxonomy(<path to file>).

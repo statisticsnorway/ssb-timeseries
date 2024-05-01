@@ -4,6 +4,8 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
+# mypy: disable-error-code="type-arg, import-untyped, unreachable"
+
 
 def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[str]:
     """For *args, return permutations of elements as list[str] to be used as series names.
@@ -14,6 +16,7 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
     separator = kwargs.get("separator", "_")
 
     if isinstance(args, dict):
+        # TODO: fix mypy error: Statement is unreachable  [unreachable]
         return [value for value in args.values()]
 
     final_args = []

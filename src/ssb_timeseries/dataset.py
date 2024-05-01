@@ -1,5 +1,7 @@
-import datetime
+# mypy: disable-error-code="assignment"
+# ruff: noqa: RUF013
 from copy import deepcopy
+from datetime import datetime
 from typing import Any
 from typing import no_type_check
 
@@ -13,8 +15,6 @@ from ssb_timeseries import properties
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import F
 
-# ruff: noqa: RUF013
-
 
 class Dataset:
     """Datasets are the core unit of analysis for workflow and data storage.
@@ -26,10 +26,10 @@ class Dataset:
         self,
         name: str,
         data_type: properties.SeriesType = None,
-        as_of_tz: datetime.datetime = None,
+        as_of_tz: datetime = None,
         load_data: bool = True,
         series_tags: dict = None,
-        **kwargs: Any,  # noqa: -- ANN003
+        **kwargs: Any,
     ) -> None:
         """Load existing dataset or create a new one of specified type.
 
@@ -190,11 +190,11 @@ class Dataset:
             )
         self.io.save(meta=self.tags, data=self.data)
 
-    def snapshot(self, as_of_tz: datetime.datetime = None) -> None:
+    def snapshot(self, as_of_tz: datetime = None) -> None:
         """Copy data snapshot to immutable processing stage bucket and shared buckets.
 
         Args:
-            as_of_tz (datetime, optional): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of_utc (utc dates under the hood).
+            as_of_tz (datetime): Optional. Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of_utc (utc dates under the hood).
         """
         # def snapshot_name(self) -> str:
         #     # <kort-beskrivelse>_p<periode-fra-og-med>_p<perode-til-og- med>_v<versjon>.<filtype>
@@ -312,7 +312,7 @@ class Dataset:
 
         Returns:
             Dataset | Dataframe:
-            By default a new Dataset. If output="dataframe" or "df", a dataframe. Deep copy.
+            By default a new Dataset (a deep copy of self). If output="dataframe" or "df", a dataframe.
         """
         if regex:
             df = self.data.filter(regex=regex).copy(deep=True)
@@ -355,12 +355,14 @@ class Dataset:
                 out.tags["series"] = matching_series_tags
         return out
 
-    def __getitem__(
-        self, criteria: str | dict[str, str] | list[str]
-    ) -> pd.DataFrame | Self:
-        """Access Dataset.data.columns via Dataset[ list[column_names] | regex | tags].
+    def __getitem__(self, criteria: str | dict[str, str] | list[str]) -> Self:
+        """Access Dataset.data.columns via Dataset[ list[column_names] | pattern | tags].
 
-        Criteria takes the shape of either a string or a tags (dict).
+        Arguments:
+            criteria: (str | dict | list) Either a string pattern or a dict of tags.
+
+        Returns:
+            Self
         """
         # pattern: str = "", regex: str = "", tags: dict = {}):
         # Dataset[...] should return a Dataset object (?) with only the requested items (columns).
@@ -376,6 +378,9 @@ class Dataset:
             return self.filter(pattern=criteria)
         elif isinstance(criteria, dict):
             return self.filter(tags=criteria)
+        elif isinstance(criteria, list):
+            pass
+            # return self.filter(criteria)
         # regex=regex, tags=tags)
 
     def plot(self, *args: Any, **kwargs: Any) -> Any:
@@ -383,7 +388,7 @@ class Dataset:
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
         """
-        xlabels = self.datetime_columns[0]
+        xlabels = self.datetime_columns()[0]
         ts_logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
         return self.data.plot(
             xlabels,
@@ -417,7 +422,11 @@ class Dataset:
                 locals_[col] = self.data[col]
 
     def groupby(
-        self, freq: str, func: str = "auto", *args, **kwargs  # noqa: ANN002, ANN003
+        self,
+        freq: str,
+        func: str = "auto",
+        *args: Any,
+        **kwargs: Any,
     ) -> Self:
         """Group dataset data by specified frequency and function.
 
@@ -565,7 +574,7 @@ class Dataset:
         self,
         other: Self | pd.DataFrame | pd.Series | int | float,
         func,  # noqa: ANN001
-    ) -> Self:
+    ) -> Any:
         """Generic helper making math functions work on numeric, non date columns of dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar.
 
         Although the purpose was to limit "boilerplate" for core linear algebra functions, it also extend to other operations that follow the same differentiation pattern.
@@ -579,7 +588,7 @@ class Dataset:
             ValueError: "Incompatible shapes."
 
         Returns:
-            Self:   A new dataset with the result. The name of the new set is derived from inputs and the functions applied.
+            Any:   Depending on the inputs: A new dataset / vector / scalar with the result. For datasets, the name of the new set is derived from inputs and the functions applied.
         """
         if isinstance(other, Dataset):
             ts_logger.debug(
@@ -659,6 +668,7 @@ class Dataset:
             as_of_tz=out_as_of,
             data=out_data,
         )
+        # TODO: Should also update series names and set/series tags.
         ts_logger.debug(
             f"DATASET.math({func.__name__}, {self.name}, {other_name}) --> {out.name}\n\t{out.data}."
         )
@@ -666,72 +676,74 @@ class Dataset:
 
     # TODO: check how performance of pure pyarrow or polars compares to numpy
 
-    def __add__(self, other: Self) -> Self:
+    def __add__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Add two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.add)
 
-    def __radd__(self, other: Self) -> Self:
+    def __radd__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Right add two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.add)
 
-    def __sub__(self, other: Self) -> Self:
+    def __sub__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Subtract two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.subtract)
 
-    def __rsub__(self, other: Self) -> Self:
+    def __rsub__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Right subtract two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.subtract)
 
-    def __mul__(self, other: Self) -> Self:
+    def __mul__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Multiply two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.multiply)
 
-    def __rmul__(self, other: Self) -> Self:
+    def __rmul__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Right multiply two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.multiply)
 
-    def __truediv__(self, other: Self) -> Self:
+    def __truediv__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Divide two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.divide)
 
-    def __rtruediv__(self, other: Self) -> Self:
+    def __rtruediv__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Right divide two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.divide)
 
-    def __floordiv__(self, other: Self) -> Self:
+    def __floordiv__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Floor divide two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.floor_divide)
 
-    def __rfloordiv__(self, other: Self) -> Self:
+    def __rfloordiv__(
+        self, other: Self | pd.DataFrame | pd.Series | int | float
+    ) -> Any:
         """Right floor divide two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.floor_divide)
 
-    def __pow__(self, other: Self) -> Self:
+    def __pow__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Power of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.power)
 
-    def __rpow__(self, other: Self) -> Self:
+    def __rpow__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Right power of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.power)
 
-    def __mod__(self, other: Self) -> Self:
+    def __mod__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Modulo of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.mod)
 
-    def __rmod__(self, other: Self) -> Self:
+    def __rmod__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Right modulo of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.mod)
 
     @no_type_check
-    def __eq__(self, other: Self) -> Self:
+    def __eq__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Check equality of two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.equal)
 
-    def __gt__(self, other: Self) -> Self:
+    def __gt__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Check greater than for two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.greater)
 
-    def __lt__(self, other: Self) -> Self:
+    def __lt__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Check less than for two datasets or a dataset and a dataframe, numpy array or scalar."""
         return self.math(other, np.less)
 

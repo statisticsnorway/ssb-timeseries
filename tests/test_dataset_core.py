@@ -1,3 +1,5 @@
+# type: ignore
+# ruff: noqa
 import logging
 import uuid
 
@@ -13,8 +15,6 @@ from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.properties import Versioning
 from ssb_timeseries.sample_data import create_df
-
-# mypy: ignore-errors
 
 BUCKET = CONFIG.bucket
 
