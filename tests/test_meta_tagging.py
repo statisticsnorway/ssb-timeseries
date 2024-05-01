@@ -118,8 +118,10 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
 
 
 @log_start_stop
-def test_find_data_using_metadata_attributes(caplog: pytest.LogCaptureFixture) -> None:
-    """Filter series in set by series tags."""
+def test_find_data_using_single_metadata_attribute(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Filter series in set by series tag: {'A': 'a'}."""
     caplog.set_level(logging.DEBUG)
 
     set_name = f"test-datetimecols-{uuid.uuid4().hex}"
@@ -158,6 +160,106 @@ def test_find_data_using_metadata_attributes(caplog: pytest.LogCaptureFixture) -
         assert returned_series_tags[key]["A"] == "a"
 
     # raise AssertionError("In order to see DEBUG logs while testing.")
+
+
+@log_start_stop
+def test_find_data_using_multiple_metadata_attributes(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Filter series in set by series tags: {'A': 'a', 'B': 'q'}.
+
+    Returned series should satisfy {'A': 'a'} AND {'B': 'q'}
+    """
+    caplog.set_level(logging.DEBUG)
+
+    set_name = f"test-datetimecols-{uuid.uuid4().hex}"
+    set_tags = {
+        "About": "ImportantThings",
+        "Country": "Norway",
+    }
+    series_tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["z"]}
+    tag_values: list[list[str]] = [value for value in series_tags.values()]
+
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        tags=set_tags,
+        series_tags=series_tags,
+        data=create_df(
+            *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+        name_pattern=["A", "B", "C"],
+    )
+
+    x_attr_A_equals_a = x.filter(tags={"A": "a", "B": "q"})
+    expected_matches = ["a_q_z"]
+
+    ts_logger.debug(
+        f"x_attr_A_equals_a: \n\t{x_attr_A_equals_a.series()}\n vs expected:\n\t{expected_matches}"
+    )
+    assert isinstance(x_attr_A_equals_a, Dataset)
+    assert sorted(x_attr_A_equals_a.numeric_columns()) == sorted(expected_matches)
+
+    returned_series_tags = x_attr_A_equals_a.tags["series"]
+    for key in returned_series_tags.keys():
+        assert returned_series_tags[key]["dataset"] != set_name  # TODO: update metadata
+        assert returned_series_tags[key]["name"] == key
+        assert returned_series_tags[key]["A"] == "a"
+        assert returned_series_tags[key]["B"] == "q"
+
+    # raise AssertionError("In order to see DEBUG logs while testing.")
+
+
+@log_start_stop
+def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_values(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Filter series in set by series tags: {'A': ['a', 'b']}.
+
+    Returned series should satisfy {'A': 'a'} OR {'A': 'b'}
+    """
+    caplog.set_level(logging.DEBUG)
+
+    set_name = f"test-datetimecols-{uuid.uuid4().hex}"
+    set_tags = {
+        "About": "ImportantThings",
+        "Country": "Norway",
+    }
+    series_tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["z"]}
+    tag_values: list[list[str]] = [value for value in series_tags.values()]
+
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        tags=set_tags,
+        series_tags=series_tags,
+        data=create_df(
+            *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+        name_pattern=["A", "B", "C"],
+    )
+
+    x_attr_A_equals_a = x.filter(tags={"A": ["a", "b"]})
+    expected_matches = ["a_p_z", "a_q_z", "a_r_z", "b_p_z", "b_q_z", "b_r_z"]
+
+    ts_logger.debug(
+        f"x_attr_A_equals_a: \n\t{x_attr_A_equals_a.series()}\n vs expected:\n\t{expected_matches}"
+    )
+    assert isinstance(x_attr_A_equals_a, Dataset)
+    assert sorted(x_attr_A_equals_a.numeric_columns()) == sorted(expected_matches)
+
+    returned_series_tags = x_attr_A_equals_a.tags["series"]
+    for key in returned_series_tags.keys():
+        assert returned_series_tags[key]["dataset"] != set_name  # TODO: update metadata
+        assert returned_series_tags[key]["name"] == key
+        assert (
+            returned_series_tags[key]["A"] == "a"
+            or returned_series_tags[key]["A"] == "b"
+        )
+
+    raise AssertionError("In order to see DEBUG logs while testing.")
 
 
 @pytest.mark.skipif(True, reason="Not ready yet.")

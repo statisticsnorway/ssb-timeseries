@@ -1,5 +1,6 @@
 import datetime
 from copy import deepcopy
+from turtle import st
 from typing import Any
 from typing import no_type_check
 
@@ -294,6 +295,7 @@ class Dataset:
         tags: dict[Any, Any] = None,
         regex: str = "",
         output: str = "dataset",
+        new_name: str = "",
         **kwargs: str | list[str],
     ) -> pd.DataFrame | Self:
         """Filter dataset.data by textual pattern, regex or metadata tag dictionary.
@@ -305,8 +307,9 @@ class Dataset:
             regex (str): Expression for regex search in column names. Defaults to ''.
             tags (dict): Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
-            output (str): Output type. Defaults to 'dataset'.
-            **kwargs: if provided, goes into the init of a new Dataset.
+            output (str): Output type - dataset or dataframe.(df). Defaults to 'dataset'. Short forms 'df' or 'ds' are accepted.
+            new_name (str): Name of new Dataset. If not provided, a new name is generated.
+            **kwargs: if provided, goes into the init of the new set.
 
         Returns: By default a new Dataset. If output="dataframe" or "df", a dataframe. Deep copy.
         """
@@ -326,7 +329,7 @@ class Dataset:
             matching_series = [
                 name
                 for name, s_tags in series_tags.items()
-                if all(s_tags[k] == v for k, v in tags.items())
+                if all(s_tags[k] in v for k, v in tags.items())
             ]
             ts_logger.debug(f"DATASET.filter(tags) matched series:\n{matching_series} ")
             df = self.data[matching_series].copy(deep=True)
@@ -342,7 +345,8 @@ class Dataset:
             case "dataframe" | "df":
                 out = df
             case "dataset" | "ds" | _:
-                new_name = f"COPY of({self.name} FILTERED by pattern: {pattern}, regex: {regex} tags: {tags})"
+                if not new_name:
+                    new_name = f"COPY of({self.name} FILTERED by pattern: {pattern}, regex: {regex} tags: {tags})"
                 out = self.copy(new_name=new_name, data=df, **kwargs)
                 matching_series_tags = {
                     k: v for k, v in out.tags["series"].items() if k in matching_series
