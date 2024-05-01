@@ -1,6 +1,5 @@
 import datetime
 from copy import deepcopy
-from turtle import st
 from typing import Any
 from typing import no_type_check
 
@@ -178,7 +177,7 @@ class Dataset:
         """Persist the Dataset.
 
         Args:
-            as_of_tz (datetime, optional): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of._utc (utc dates under the hood).
+            as_of_tz (datetime): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of._utc (utc dates under the hood).
         """
         if as_of_tz is not None:
             self.as_of_utc = dates.date_utc(as_of_tz)
@@ -311,7 +310,9 @@ class Dataset:
             new_name (str): Name of new Dataset. If not provided, a new name is generated.
             **kwargs: if provided, goes into the init of the new set.
 
-        Returns: By default a new Dataset. If output="dataframe" or "df", a dataframe. Deep copy.
+        Returns:
+            Dataset | Dataframe:
+            By default a new Dataset. If output="dataframe" or "df", a dataframe. Deep copy.
         """
         if regex:
             df = self.data.filter(regex=regex).copy(deep=True)
