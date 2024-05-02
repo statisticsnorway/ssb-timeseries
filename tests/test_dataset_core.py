@@ -173,23 +173,14 @@ def test_metafile_exists_after_create_dataset_and_save(
 
 
 @log_start_stop
-def test_read_existing_simple_metadata(caplog: LogCaptureFixture) -> None:
+def test_read_existing_simple_metadata(
+    existing_simple_set: Dataset,
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    set_name = "persisted-example-simple"
-    x = Dataset(
-        name=set_name,
-        data_type=SeriesType.simple(),
-        series_tags=tags,
-    )
-    tag_values = [value for value in tags.values()]
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
+    set_name = existing_simple_set.name
+    x = Dataset(name=set_name, data_type=SeriesType.simple())
     if x.io.metadatafile_exists():
         ts_logger.debug(x.io.metadata_fullpath)
         ts_logger.debug(x.tags)
@@ -201,28 +192,18 @@ def test_read_existing_simple_metadata(caplog: LogCaptureFixture) -> None:
         ts_logger.debug(
             f"DATASET {x.name}: Metadata not found at {x.io.metadata_fullpath}. Writing."
         )
-        x.save()
         raise AssertionError
 
 
 @log_start_stop
-def test_read_existing_simple_data(caplog: LogCaptureFixture) -> None:
+def test_read_existing_simple_data(
+    existing_simple_set: Dataset,
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    set_name = "persisted-example-simple"
-    x = Dataset(
-        name=set_name,
-        data_type=SeriesType.simple(),
-        series_tags=tags,
-    )
-    tag_values = [value for value in tags.values()]
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
+    set_name = existing_simple_set.name
+    x = Dataset(name=set_name, data_type=SeriesType.simple())
     if x.io.datafile_exists():
         ts_logger.debug(x.io.data_fullpath)
         ts_logger.debug(x.data)
@@ -231,29 +212,24 @@ def test_read_existing_simple_data(caplog: LogCaptureFixture) -> None:
         ts_logger.debug(
             f"DATASET {x.name}: Data not found at {x.io.data_fullpath}. Writing."
         )
-        x.save()
         raise AssertionError
 
 
 @log_start_stop
-def test_read_existing_estimate_metadata(caplog: LogCaptureFixture) -> None:
+def test_read_existing_estimate_metadata(
+    existing_estimate_set: Dataset,
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    set_name = "persisted-example-estimate"
+    set_name = existing_estimate_set.name
+    as_of = existing_estimate_set.as_of_utc
     x = Dataset(
         name=set_name,
         data_type=SeriesType.estimate(),
-        as_of_tz=date_utc("2022-01-01"),
-        series_tags=tags,
+        as_of_tz=as_of,
     )
-    tag_values = [value for value in tags.values()]
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
+
     if x.io.metadatafile_exists():
         ts_logger.debug(x.io.metadata_fullpath)
         ts_logger.debug(x.tags)
@@ -263,32 +239,24 @@ def test_read_existing_estimate_metadata(caplog: LogCaptureFixture) -> None:
         ts_logger.warning(
             f"DATASET {x.name}: Metadata not found at {x.io.metadata_fullpath}. Writing."
         )
-        x.save()
         raise AssertionError
 
 
 @log_start_stop
-def test_read_existing_estimate_data(caplog: LogCaptureFixture) -> None:
+def test_read_existing_estimate_data(
+    existing_estimate_set: Dataset,
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    set_name = "persisted-example-estimate"
+    set_name = existing_estimate_set.name
+    as_of = existing_estimate_set.as_of_utc
     x = Dataset(
         name=set_name,
         data_type=SeriesType.estimate(),
-        as_of_tz=date_utc("2022-01-01"),
-        series_tags=tags,
+        as_of_tz=as_of,
     )
-    tag_values: list[list[str]] = [value for value in tags.values()]
-    ts_logger.debug(x.as_of_utc)
-    ts_logger.debug(x.data)
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2023-01-03",
-        freq="MS",
-    )
-    ts_logger.debug(x.data)
+
     if x.io.datafile_exists():
         ts_logger.debug(x)
         assert x.data.size == 364
@@ -296,7 +264,6 @@ def test_read_existing_estimate_data(caplog: LogCaptureFixture) -> None:
         ts_logger.warning(
             f"DATASET {x.name}: Data not found at {x.io.data_fullpath}. Writing."
         )
-        x.save()
         raise AssertionError
 
 
