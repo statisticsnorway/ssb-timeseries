@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+from pathlib import Path
 
 from ssb_timeseries import fs
 from ssb_timeseries.types import PathStr
@@ -11,7 +12,7 @@ from ssb_timeseries.types import PathStr
 
 GCS = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
 JOVYAN = "/home/jovyan"
-HOME = os.getenv("HOME")
+HOME = Path.home()
 
 DEFAULT_BUCKET = HOME
 DEFAULT_TIMESERIES_LOCATION = os.path.join(HOME, "series_data")
