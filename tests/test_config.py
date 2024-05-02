@@ -8,7 +8,7 @@ from ssb_timeseries import config
 from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
 
-# mypy: disable-error-code="no-untyped-def,type-var,arg-type"
+# mypy: disable-error-code="no-untyped-def,type-var,arg-type,comparison-overlap"
 
 
 HOME = os.getenv("HOME")
