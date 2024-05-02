@@ -73,6 +73,7 @@ def touch(path: PathStr) -> None:
         fs = FileClient.get_gcs_file_system()
         fs.touch(path)
     else:
+        mk_parent_dir(path)
         Path(path).touch()
 
 
