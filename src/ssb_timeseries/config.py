@@ -12,7 +12,7 @@ from ssb_timeseries.types import PathStr
 
 GCS = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
 JOVYAN = "/home/jovyan"
-HOME = Path.home()
+HOME = str(Path.home())
 
 DEFAULT_BUCKET = HOME
 DEFAULT_TIMESERIES_LOCATION = os.path.join(HOME, "series_data")
