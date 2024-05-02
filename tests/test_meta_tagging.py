@@ -1,5 +1,3 @@
-# type: ignore
-# ruff: noqa
 import logging
 import uuid
 

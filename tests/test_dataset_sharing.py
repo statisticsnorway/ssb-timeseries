@@ -1,6 +1,3 @@
-# type: ignore
-# ruff: noqa
-
 import logging
 
 import pytest
@@ -13,6 +10,9 @@ from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
+
+# mypy: disable-error-code="no-untyped-def,no-untyped-call,arg-type,attr-defined,assignment"
+
 
 BUCKET = CONFIG.bucket
 PRODUCT = "sample-data-product"
