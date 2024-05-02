@@ -1,5 +1,3 @@
-# type: ignore
-# ruff: noqa
 import logging
 import uuid
 
@@ -15,6 +13,10 @@ from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.properties import Versioning
 from ssb_timeseries.sample_data import create_df
+
+# magic comment disables mypy checks:
+# mypy: disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr"
+
 
 BUCKET = CONFIG.bucket
 

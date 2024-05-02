@@ -10,7 +10,7 @@ from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
-# mypy: ignore-errors
+# mypy: disable-error-code="attr-defined,no-untyped-def"
 
 
 @log_start_stop
@@ -39,7 +39,7 @@ def test_init_dataset_returns_expected_set_level_tags(caplog) -> None:
 
     # tags exist
     assert x.tags
-    assert x.series_tags
+    assert x.series_tags()
 
     """ We expect DATASET tags on the form:
     {
