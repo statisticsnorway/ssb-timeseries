@@ -48,9 +48,7 @@ class Config:
                 self.load(TIMESERIES_CONFIG)
                 self.save(configuration_file)
             else:
-                self.bucket = DEFAULT_BUCKET
-                self.timeseries_root = DEFAULT_TIMESERIES_LOCATION
-                self.log_file = DEFAULT_LOG_FILE_LOCATION
+                self.__set_default_config()
 
         elif fs.exists(TIMESERIES_CONFIG):
             self.load(TIMESERIES_CONFIG)
@@ -80,9 +78,7 @@ class Config:
                 self.product = product
 
         if not hasattr(self, "log_file"):
-            # if not self.get_attr("log_file", ""):
-            self.log_file = DEFAULT_LOG_FILE_LOCATION
-            fs.touch(self.log_file)
+            self.__set_default_config()
 
         self.save()
 
@@ -128,6 +124,14 @@ class Config:
             # os.system(f"echo '{cmd}' >> ~/.bashrc")
         else:
             os.environ["TIMESERIES_CONFIG"] = path
+
+    def __set_default_config(self) -> None:
+        self.bucket = DEFAULT_BUCKET
+        self.configuration_file = DEFAULT_CONFIG_LOCATION
+        self.log_file = DEFAULT_LOG_FILE_LOCATION
+        self.product = ""
+        self.timeseries_root = DEFAULT_TIMESERIES_LOCATION
+        fs.touch(self.log_file)
 
 
 def main(*args: str | PathStr) -> None:
