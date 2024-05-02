@@ -1,5 +1,3 @@
-# type: ignore
-# ruff: noqa
 import logging
 import os
 import uuid
@@ -9,6 +7,8 @@ import pytest
 from ssb_timeseries import config
 from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
+
+# mypy: disable-error-code=""
 
 
 HOME = os.getenv("HOME")
