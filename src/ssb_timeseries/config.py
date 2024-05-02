@@ -78,6 +78,10 @@ class Config:
             if product:
                 self.product = product
 
+        if not self.log_file:
+            self.log_file = DEFAULT_LOG_FILE_LOCATION
+            fs.touch(self.log_file)
+
         self.save()
 
     @property
