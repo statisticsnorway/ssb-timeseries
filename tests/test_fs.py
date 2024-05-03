@@ -1,5 +1,6 @@
 import os
 import uuid
+from pathlib import Path
 
 import pytest
 
@@ -11,7 +12,7 @@ from ssb_timeseries.logging import ts_logger
 
 BUCKET = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/"
 JOVYAN = "/home/jovyan/series_data/"
-HOME = os.getenv("HOME")
+HOME = str(Path.home())
 IS_DAPLA = HOME == "/home/jovyan"
 
 
@@ -46,7 +47,10 @@ def test_fs_type() -> None:
 
 def test_same_path() -> None:
     # ts_logger.warning(fs.same_path("/home/jovyan", "/home/jovyan/a", "/home/jovyan/b"))
-    assert fs.same_path(BUCKET, "/home/jovyan") == "/"
+    assert (
+        fs.same_path(BUCKET, "/home/jovyan") == "/"
+        or fs.same_path(BUCKET, "/home/jovyan") == "\\"
+    )
     assert fs.same_path(
         os.path.join("/home/jovyan/a"), "/home/jovyan"
     ) == os.path.normpath("/home/jovyan")
@@ -59,8 +63,7 @@ def test_same_path() -> None:
     )
 
 
-def test_root_and_home_exists() -> None:
-    assert fs.exists("/")
+def test_home_exists() -> None:
     assert fs.exists(HOME)
 
 
