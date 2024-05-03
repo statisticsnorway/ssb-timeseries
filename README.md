@@ -119,14 +119,15 @@ Yes, that _was_ the short version. The long version is still pending production.
 
 To be continued ...
 
-### How to contribute
-
-More information about this will come later, but contributions are welcome. If you want to contribute, just let us know.
-
 ### Other sources of documentation:
 
 - https://statistics-norway.atlassian.net/wiki/spaces/Arkitektur/pages/3581313026/Statistikkproduksjon
 - https://statistics-norway.atlassian.net/wiki/spaces/Arkitektur/pages/3595665419/Lagring+av+tidsserier
+
+## API-documentation
+
+The [documentation] is published on GitHub Pages. Se the Reference page for
+API-documentation.
 
 ## Contributing
 
