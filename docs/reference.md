@@ -48,14 +48,6 @@ ssb\_timeseries.fs module
    :undoc-members:
    :show-inheritance:
 
-ssb\_timeseries.functions module
---------------------------------
-
-.. automodule:: ssb_timeseries.functions
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ssb\_timeseries.io module
 -------------------------
 
