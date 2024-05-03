@@ -1,21 +1,26 @@
+import inspect
 import os
 
-# from typing import Generator
 import pytest
 
-# import logging
 from ssb_timeseries import config
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
-# from ssb_timeseries.logging import ts_logger
-
-# HOME = os.getenv("HOME")
-# TIMESERIES_CONFIG = os.getenv("TIMESERIES_CONFIG")
-
 # mypy: ignore-errors
+
+
+class Helpers:
+    @staticmethod
+    def function_name() -> str:
+        return str(inspect.stack()[1][3])
+
+
+@pytest.fixture(scope="function", autouse=False)
+def conftest() -> Helpers:
+    return Helpers
 
 
 @pytest.fixture(scope="function", autouse=False)
