@@ -26,12 +26,12 @@ def remove_prefix(path: PathStr) -> str:
 
 def is_gcs(path: PathStr) -> bool:
     """Check if path is on GCS."""
-    return path[:4] == "gs:/"
+    return str(path)[:4] == "gs:/"
 
 
 def is_local(path: PathStr) -> bool:
     """Check if path is local."""
-    return path[:4] != "gs:/"
+    return str(path)[:4] != "gs:/"
 
 
 def fs_type(path: PathStr) -> str:
@@ -56,7 +56,8 @@ def exists(path: PathStr) -> bool:
 def existing_subpath(path: PathStr) -> str:
     """Return the existing part of a path on local or GCS file system."""
     out = ""
-    parts = path.split(os.sep)
+    # TODO: redo this with pathlib
+    parts = str(path).split(os.sep)
     pp = ""
     for p in parts:
         if p:

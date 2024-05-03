@@ -60,7 +60,12 @@ def test_same_path() -> None:
             "/ssb-prod-dapla-felles-data-delt/poc-tidsserier/a",
         )
         == "/ssb-prod-dapla-felles-data-delt/poc-tidsserier"
-    )
+        or fs.same_path(
+            "/ssb-prod-dapla-felles-data-delt/poc-tidsserier",
+            "/ssb-prod-dapla-felles-data-delt/poc-tidsserier/a",
+        )
+        == "\\ssb-prod-dapla-felles-data-delt\poc-tidsserier"
+    )  # \\ssb-prod-dapla-... does not exist, but this sill pass on Windows
 
 
 def test_home_exists() -> None:
@@ -68,10 +73,10 @@ def test_home_exists() -> None:
 
 
 def test_existing_subpath() -> None:
-    long_path = os.path.join(HOME, f"this-dir-does-not-to-exist-{uuid.uuid4()}")
+    long_path = Path(HOME) / f"this-dir-does-not-to-exist-{uuid.uuid4()}"
     assert fs.exists(HOME)
     assert not fs.exists(long_path)
-    assert fs.existing_subpath(long_path) == HOME
+    assert str(fs.existing_subpath(long_path)) == str(HOME)
 
 
 @pytest.mark.skipif(True, reason="Can not see GCS.")
