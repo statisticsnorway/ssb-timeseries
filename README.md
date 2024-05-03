@@ -29,26 +29,22 @@
 
 Statistics Norway is building a new procuction system in the cloud.
 
-Responsibilities for maintaining the production environment is moved closer to the statistical processes owners.
+Moving towards modern architecture, development methodology and open source technologies: Python and R are replacing SAS for statistics production code. Oracle databases and ODI for ETL are being replaced by a data lake architecture relying heavily on Parquet files.
 
-Moving towards modern architecture, development methodology and open source technologies:
+Another big issue has been time series.Time series are essential to statistics production, so  the decision to phase out FAME while not having landed precisely what should replace it has left a huge gap.
 
- * Python and R are replacing SAS for production code.
- * Oracle databases and ODI for ETL are being replaced by a data lake architecture relying heavily on Parquet files.
- * The time series solution FAME is not moving along and a replacement has not been chosen.
+A complete solution will touch several areas of functionality:
 
-Time series are essential to statistics production, so this leaves a huge gap.
+ * The core is storage with performant read and write, search and filtering
+ * Good descriptive metadata is key to findability
+ * A wide selection of math and statistics libraries is key for calculations and models
+ * Visualisation tools play a role both in ad hoc and routine inspection and quality control
+ * Workflow integration with automation and process monitoring help keeping consistent quality
+ * Data lineage and process metadata is essential for quality control
 
-A complete solution will need cover several areas of functionality:
+ In Statistics Norway strict requirements for transparency and data quality are mandated by law and  commitment to international standards. The data itself has a wide variety, but time resolution and publishing frequencies are typically low. While volumes are some times significant, they are far from extreme. This shifts the focus from performance towards process and data control.
 
- * Basics: storage with performant read and write, search and filtering
- * Descriptive metadata
- * Calculation support: math and statistics libraries
- * Visualisation
- * Workflow integration and process monitoring
- * Data lineage and ad hoc inspection
-
-This PoC aims to demonstrate how the key functionality may be provided with the core technologies Python and Parquet, in alignment with architecture decisions and process model requirements. As such, it
+This project came out of a PoC to demonstrate how the key functionality may be provided with the core technologies Python and Parquet, in alignment with architecture decisions and process model requirements. Constructed to be an abstraction between the storage layer and the statistics production code, it provides a way forward while postponing some the technical choices.
 
  * Basic functionality for read/write, calculations, time aggregation and plotting was demonstrated December 2023.
  * Persisting snapshots in alignment with the process model, simple descriptive tagging and integrations with GCS buckets was added Q1 2024.
@@ -58,13 +54,14 @@ This PoC aims to demonstrate how the key functionality may be provided with the 
 See notebook files and tests, `demo.ipynb` and `tests/test_*.py` for examples of usage, and what works and in some cases what does not.
 
 Note that
- * The library *should* be platform independent, but has been developed and tested mainly in a Linux environment.
-~~ * the solution relies on env vars  TIMESERIES_ROOT and LOG_LOCATION being set. They *must* be set if `/home/jovyan/sample-data` is not reachable, but *should* be set anyway.~~
-* The environment variable TIMESERIES_CONFIG is expected to to point to a JSON file with configurations.
-* The command `poetry run timeseries-config home` can be run from a terminal in order to create the environment variable and a file with default configurations in the home directory, ie `/home/jovyan` in the Jupyter environment (or the equivalent running locally).
+ * The library is constructed to be platform independent, but top priority is making it work in  a Linux environment.
+* Install by way of `poetry add ssb_timeseries`. 
+* The library should work out of the box with default settings. Note that the defaults are for local testing, ie not be suitable for the production setting. 
+* To apply custom settings: The environment variable TIMESERIES_CONFIG should point to a JSON file with configurations.
+* The command `poetry run timeseries-config <...>` can be run from a terminal in order to shift between defauls.
+ * Run `poetry run timeseries-config home` to create the environment variable and a file with default configurations in the home directory, ie `/home/jovyan` in the Jupyter environment (or the equivalent running elsewhere.
 * The similar `poetry run timeseries-config gcs` will put configurations and logs in the home directory and time series data in a shared bucket `gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier`.
 * With the environment variable set and the configuration in place `poetry run pytest` should succeed.
-* That is, if the code is on the python path. A little bit down the road, we aim to make the library available on PyPi and installable by way of `poetry add <...>`. Till then, you will need to clone this repo and make sure the code is visible to your project.
 
 
 While the library is in a workable state and should work both locally and in JupyterLab, it is still in an exploratory phase. There is a risk that fundamental choices are reversed and breaking changes introduced.
