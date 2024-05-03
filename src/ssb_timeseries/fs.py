@@ -53,19 +53,31 @@ def exists(path: PathStr) -> bool:
         return Path(path).exists()
 
 
+# def existing_subpath(path: PathStr) -> str:
+#     """Return the existing part of a path on local or GCS file system."""
+#     out = ""
+#     # TODO: redo this with pathlib
+#     parts = str(path).split(os.sep)
+#     pp = ""
+#     for p in parts:
+#         if p:
+#             pp = os.sep.join([pp, p])
+#         if exists(pp):
+#             out = pp
+
+#     return out
+
+
+# redo above w pathlib
 def existing_subpath(path: PathStr) -> str:
     """Return the existing part of a path on local or GCS file system."""
-    out = ""
-    # TODO: redo this with pathlib
-    parts = str(path).split(os.sep)
-    pp = ""
-    for p in parts:
-        if p:
-            pp = os.sep.join([pp, p])
-        if exists(pp):
-            out = pp
-
-    return out
+    if Path(path).exists():
+        return str(path)
+    else:
+        p = Path(path).parent
+        while not p.exists():
+            p = Path(p).parent
+        return str(p)
 
 
 def touch(path: PathStr) -> None:
