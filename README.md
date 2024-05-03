@@ -55,8 +55,8 @@ See notebook files and tests, `demo.ipynb` and `tests/test_*.py` for examples of
 
 Note that
  * The library is constructed to be platform independent, but top priority is making it work in  a Linux environment.
-* Install by way of `poetry add ssb_timeseries`. 
-* The library should work out of the box with default settings. Note that the defaults are for local testing, ie not be suitable for the production setting. 
+* Install by way of `poetry add ssb_timeseries`.
+* The library should work out of the box with default settings. Note that the defaults are for local testing, ie not be suitable for the production setting.
 * To apply custom settings: The environment variable TIMESERIES_CONFIG should point to a JSON file with configurations.
 * The command `poetry run timeseries-config <...>` can be run from a terminal in order to shift between defauls.
  * Run `poetry run timeseries-config home` to create the environment variable and a file with default configurations in the home directory, ie `/home/jovyan` in the Jupyter environment (or the equivalent running elsewhere.

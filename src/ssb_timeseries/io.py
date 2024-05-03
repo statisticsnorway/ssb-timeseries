@@ -23,7 +23,6 @@ from ssb_timeseries import config
 from ssb_timeseries import fs
 from ssb_timeseries import properties
 from ssb_timeseries.dates import Interval
-from ssb_timeseries.dates import utc_iso
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import PathStr
 
@@ -65,7 +64,7 @@ class FileSystem:
             # ecxception if not
         else:
             # rounded_utc = as_of_utc
-            self.as_of_utc: datetime = as_of_utc.isoformat()
+            self.as_of_utc: datetime = as_of_utc.isoformat().replace(":", "")
 
     # def __new__(
     #     cls,
@@ -310,10 +309,13 @@ class FileSystem:
         )
         next_vs = self.last_version(directory=directory, pattern="*.parquet") + 1
 
+        def iso_no_colon(dt: datetime) -> str:
+            return dt.isoformat().replace(":", "")
+
         if as_of_utc:
-            out = f"{self.set_name}_p{utc_iso(period_from)}_p{utc_iso(period_to)}_v{utc_iso(as_of_utc)}_v{next_vs}"
+            out = f"{self.set_name}_p{iso_no_colon(period_from)}_p{iso_no_colon(period_to)}_v{iso_no_colon(as_of_utc)}_v{next_vs}"
         else:
-            out = f"{self.set_name}_p{utc_iso(period_from)}_p{utc_iso(period_to)}_v{next_vs}"
+            out = f"{self.set_name}_p{iso_no_colon(period_from)}_p{iso_no_colon(period_to)}_v{next_vs}"
 
             #  to comply with the naming standard we need to stuff about the data
             ts_logger.debug(
