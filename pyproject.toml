@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ssb-timeseries"
-version = "0.0.0"
+version = "0.2.0"
 description = "SSB Timeseries"
 authors = ["Bernhard Ryeng <bernhard.ryeng@ssb.no>"]
 license = "MIT"
