@@ -51,32 +51,24 @@ class Versioning(SuperEnum):
     """Versioning refers to how revisions of data are identified (named)."""
 
     NONE = 0
-    # ("NONE", "Version control only. Versions are not accessible through API.")
+    """Version control only. Versions are not accessible through API."""
     AS_OF = 1
-    # (
-    #     "AS_OF",
-    #     "Version identified by dates allows date arithemetic ('equals' | 'greater than'  | 'smaller than' | 'between').",
-    # )
+    """Version identified by dates allows date arithemetic ('equals' | 'greater than'  | 'smaller than' | 'between')."""
     NAMES = 2
-    # (
-    #     "NAMES",
-    #     "Consider adding support for: Versions identified by free text names.",
-    # )
+    """Consider adding support for: Versions identified by free text names."""
     SEMANTIC = 3
-    # (
-    #     "SEMANTIC",
-    #     "Consider adding support for: Versions identified by numbers on form X.Y.Z, ie. Major.Minor.Patch.",
-    # )
+    """Consider adding support for: Versions identified by numbers on form X.Y.Z, ie. Major.Minor.Patch."""
 
 
 class Temporality(SuperEnum):
     """Temporality describes the time dimensionality of each data point; notably duration or lack thereof."""
 
     NONE = 0
-    AT = 1  # (1, "Single points in time expressed with 'valid_at' dates.")
-    FROM_TO = (
-        2  # (2, "Duration from-to expressed with 'valid_from' and 'valid_to' dates.")
-    )
+    """No temporal dimension."""
+    AT = 1
+    """Single point in time expressed with 'valid_at' date."""
+    FROM_TO = 2
+    """Duration from-to expressed with 'valid_from' and 'valid_to' dates."""
 
 
 class SeriesType:
@@ -133,10 +125,6 @@ class SeriesType:
         """Same as SeriesType.as_of_at(): Shorthand for SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.AT)."""
         return cls.as_of_at()
 
-    # def describe(self) -> str:
-    #     """Helper for testing/logging; returns '<versioning>\n<temporality>'. Do not use in production code."""
-    #     return f"{self.versioning[1]}\n{self.temporality[1]}"
-
     @classmethod
     def permutations(cls) -> list[str]:
         """Helper; returns ['<versioning>_<temporality>', ...] ."""
@@ -158,3 +146,22 @@ class SeriesType:
 def estimate_types() -> list[str]:
     """Helper; returns list of SeriesTypes for which Versioning is not NONE."""
     return ["_".join(c) for c in product(["AS_OF"], Temporality.keys())]
+
+
+def seriestype_from_str(dir_name: str) -> SeriesType:
+    """Helper; returns SeriesType from directory name."""
+    match dir_name.lower():
+        case "none_at":
+            return SeriesType.none_at()
+        case "simple":
+            return SeriesType.simple()
+        case "from_to":
+            return SeriesType.from_to()
+        case "as_of_at":
+            return SeriesType.as_of_at()
+        case "as_of_from_to":
+            return SeriesType.as_of_from_to()
+        case "estimate":
+            return SeriesType.estimate()
+        case _:
+            raise ValueError(f"Invalid dir_name: {dir_name}")

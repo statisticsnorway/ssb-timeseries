@@ -16,6 +16,7 @@ import glob
 import os
 import re
 from datetime import datetime
+from typing import NamedTuple
 
 import pandas
 
@@ -36,6 +37,13 @@ from ssb_timeseries.types import PathStr
 
 TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
 CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
+
+
+class SearchResult(NamedTuple):
+    """Result item for search."""
+
+    name: str
+    type_directory: str
 
 
 class FileSystem:
@@ -396,7 +404,10 @@ class FileSystem:
                     f"DATASET {self.set_name}: sharing with {s['team']}, snapshot copied to {s['path']}."
                 )
 
-    def search(self, pattern: str | PathStr = "") -> list[str | PathStr]:
+    @classmethod
+    def search(
+        cls, pattern: str | PathStr = "", as_of: datetime | None = None
+    ) -> list[SearchResult]:
         """Search for files in under timeseries root."""
         if pattern:
             pattern = f"*{pattern}*"
@@ -405,16 +416,16 @@ class FileSystem:
 
         search_str = os.path.join(CONFIG.timeseries_root, "*", pattern)
         dirs = glob.glob(search_str)
-        ts_logger.warning(f"DATASET.IO.SEARCH: {search_str} dirs{dirs}")
+        ts_logger.debug(f"DATASET.IO.SEARCH: {search_str} dirs{dirs}")
         search_results = [
             d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
         ]
-        ts_logger.warning(f"DATASET.IO.SEARCH: search_results{search_results}")
+        ts_logger.debug(f"DATASET.IO.SEARCH: search_results{search_results}")
 
-        return [f[2] for f in search_results]
+        return [SearchResult(f[2], f[1]) for f in search_results]
 
     @classmethod
-    def dir(self, *args: str, **kwargs: bool) -> str:
+    def dir(cls, *args: str, **kwargs: bool) -> str:
         """Check that target directory is under BUCKET. If so, create it if it does not exist."""
         ts_logger.debug(f"{args}:")
         path = os.path.join(*args)
@@ -428,6 +439,27 @@ class FileSystem:
                 f"Directory {path} must be below {ts_root} in file tree."
             )
         return path
+
+
+def find_datasets(
+    pattern: str | PathStr = "", as_of: datetime | None = None
+) -> list[SearchResult]:
+    # ) -> list[str | PathStr]:
+    """Search for files in under timeseries root."""
+    if pattern:
+        pattern = f"*{pattern}*"
+    else:
+        pattern = "*"
+
+    search_str = os.path.join(CONFIG.timeseries_root, "*", pattern)
+    dirs = glob.glob(search_str)
+    ts_logger.debug(f"DATASET.IO.SEARCH: {search_str} dirs{dirs}")
+    search_results = [
+        d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
+    ]
+    ts_logger.debug(f"DATASET.IO.SEARCH: search_results{search_results}")
+
+    return [SearchResult(f[2], f[1]) for f in search_results]
 
 
 class DatasetIoException(Exception):

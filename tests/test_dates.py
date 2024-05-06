@@ -1,11 +1,70 @@
 import logging
 from datetime import datetime
 from datetime import timedelta
+from zoneinfo import ZoneInfo
 
 from ssb_timeseries.dates import Interval
+from ssb_timeseries.dates import date_cet
+from ssb_timeseries.dates import date_round
+from ssb_timeseries.dates import date_utc
+from ssb_timeseries.dates import utc_iso
+from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.logging import ts_logger
 
 # mypy: disable-error-code="no-untyped-def,attr-defined"
+
+
+def test_dateround_minutes_removes_seconds_keeps_minutes() -> None:
+    assert date_round(
+        date_utc("2024-03-31 15:17:47+00:00"), rounding="minute"
+    ) == datetime(2024, 3, 31, 15, 17, 0, tzinfo=ZoneInfo("UTC"))
+
+
+def test_utc_equals_utc_time_right_before_beginning_of_daylight_saving() -> None:
+    assert date_utc("2024-03-31 00:00:00+00:00") == datetime(
+        2024, 3, 31, 0, 0, 0, tzinfo=ZoneInfo("UTC")
+    )
+
+
+def test_utc_iso_strings() -> None:
+    tz_aware = datetime.fromisoformat("2024-03-31 00:00:00+00:00")
+    tz_naive = datetime.fromisoformat("2024-03-31 00:00:00")
+    assert utc_iso(tz_aware).replace(":", "") == utc_iso_no_colon(tz_aware)
+    assert utc_iso(tz_naive).replace(":", "") == utc_iso_no_colon(tz_naive)
+
+
+def test_conversions_right_before_beginning_of_daylight_saving() -> None:
+    assert date_cet("2024-03-31 01:00:00") == datetime(
+        2024, 3, 31, 1, 0, 0, tzinfo=ZoneInfo("Europe/Oslo")
+    )
+    assert (
+        date_cet("2024-03-31 01:00:00+01:00").isoformat()
+        == datetime(2024, 3, 31, 1, 0, 0, tzinfo=ZoneInfo("Europe/Oslo")).isoformat()
+    )
+
+
+def test_conversions_right_after_beginning_of_daylight_saving() -> None:
+    assert date_cet("2024-03-31 03:00:00") == datetime(
+        2024, 3, 31, 1, 0, 0, tzinfo=ZoneInfo("UTC")
+    )
+    assert date_utc("2024-03-31 3:00:00+02:00") == datetime(
+        2024, 3, 31, 3, 0, 0, tzinfo=ZoneInfo("Europe/Oslo")
+    )
+
+
+def test_conversions_right_before_end_of_daylight_saving() -> None:
+    assert date_cet("2024-11-03 01:45:00") == datetime(
+        2024, 11, 3, 1, 45, 0, tzinfo=ZoneInfo("Europe/Oslo")
+    )
+    assert date_cet("2024-11-03 01:45:00+01:00") == datetime(
+        2024, 11, 3, 1, 45, 0, tzinfo=ZoneInfo("Europe/Oslo")
+    )
+
+
+def test_conversions_right_after_end_of_daylight_saving() -> None:
+    assert date_cet("2024-11-03 02:15:00") == datetime(
+        2024, 11, 3, 1, 15, 0, tzinfo=ZoneInfo("UTC")
+    )
 
 
 def test_define_without_params() -> None:

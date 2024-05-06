@@ -59,12 +59,15 @@ class Dataset:
             # TODO: if the datatype is not provided, search by name,
             # throw error if a) no set is found or b) multiple sets are found
             # ... till then, just continue
-            self.data_type = data_type
-
-        # TODO: for versioned series, return latest if no as_of_tz is provided
+            look_for_it = search(name)
+            if isinstance(look_for_it, Dataset):
+                self.data_type = look_for_it.data_type
+            else:
+                raise ValueError(
+                    f"Dataset {name} not found. Specify data_type to initialise a new set."
+                )
+                # TODO: for versioned series, return latest if no as_of_tz is provided
         self.as_of_utc = date_utc(as_of_tz)
-
-        # self.series: dict = kwargs.get("series", {})
 
         self.io = io.FileSystem(
             set_name=self.name, set_type=self.data_type, as_of_utc=self.as_of_utc
@@ -288,10 +291,6 @@ class Dataset:
         # name, int index, List of name or index
         # if value not in self.series[item][attribute]:
         #    self.series[attribute].append(value)
-
-    def search(self, pattern: str = "*") -> list[str]:
-        """Search for datasets by name matching pattern."""
-        return self.io.search(pattern=pattern)
 
     def filter(
         self,
@@ -794,3 +793,22 @@ class Dataset:
                 self.data.reindex(p)
             case _:
                 self.data = self.data.set_index(self.datetime_columns(), *args)
+
+
+def search(
+    pattern: str = "*", as_of_tz: datetime = None
+) -> list[io.SearchResult] | Dataset | list[None]:
+    """Search for datasets by name matching pattern."""
+    found = io.find_datasets(pattern=pattern)
+    ts_logger.warning(f"DATASET.search returned:\n{found} ")
+
+    if len(found) == 1:
+        # raise NotImplementedError("TODO: extract name and type from result.")
+        return Dataset(
+            name=found[0].name,
+            data_type=properties.seriestype_from_str(found[0].type_directory),
+            as_of_tz=as_of_tz,
+        )
+    else:
+        # elif len(found) > 1:
+        return found

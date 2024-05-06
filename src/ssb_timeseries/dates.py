@@ -3,23 +3,60 @@
 """Date and time utilities."""
 
 from datetime import datetime as dt
+from datetime import tzinfo
 from typing import Any
+from zoneinfo import ZoneInfo
 
-import pytz
+# import pytz
 from dateutil import parser
 
 from ssb_timeseries.logging import ts_logger
 
-MAX_TIME_PRECISION = "Min"
+MAX_TIME_PRECISION = "second"
+OSLO = ZoneInfo("Europe/Oslo")  # Will shift between CET and CEST
+UTC = ZoneInfo("UTC")
 
 # dt = datetime.datetime
 # ts = time.time()
 
 
-def date_round(d: dt, **kwargs) -> dt:
-    """Round date to specified or default precision.
+def date_utc(some_date: dt | str | None, **kwargs) -> dt:
+    """Convert date to UTC.
 
-    Default precision is {MAX_TIME_PRECISION}.
+    If date has no timezone information, the data is assumed to be in CET.
+
+    The output will be rounded to the precision specified by kwarg 'rounding'. Max precision 'second' will be used if none is provided.
+    """
+    if some_date is None or some_date == "":
+        return date_round(now_utc())
+    else:
+        dt_type = ensure_datetime(some_date)
+        assert isinstance(dt_type, dt)
+        tz_aware = ensure_tz_aware(dt_type)
+        correct_tz = tz_aware.astimezone(tz=UTC)
+        return date_round(correct_tz, **kwargs)
+
+
+def date_cet(some_date: dt | str, **kwargs) -> dt:
+    """Convert date to Europe/Oslo timezone; ie shifting between CET and CEST.
+
+    If the date has no timezone information, the data is assumed to be in Oslo timezone.
+
+    The output will be rounded to the precision specified by kwarg 'rounding'. Default precision 'minute' will be used if none is provided.
+    """
+    dt_type = ensure_datetime(some_date)
+    tz_aware = ensure_tz_aware(dt_type)
+    print(tz_aware)
+    correct_tz = tz_aware.astimezone(tz=OSLO)
+    return date_round(correct_tz, **kwargs)
+
+
+def date_round(d: dt, **kwargs) -> dt:
+    """Round date to specified by kwarg 'rounding' or default precision.
+
+    Rounding can take the values 'none', 'day', 'd', 'hour', 'h', 'minute', 'min', 'm', 'second', 'sec', or 's'.
+
+    Default precision 'minute' is used if none is provided.
     """
 
     rounding = kwargs.get("rounding", MAX_TIME_PRECISION)
@@ -30,63 +67,80 @@ def date_round(d: dt, **kwargs) -> dt:
             out = d.replace(minute=0, second=0, microsecond=0)
         case "minute" | "min" | "m":
             out = d.replace(second=0, microsecond=0)
-        case "second" | "sec" | "s" | _:
+        case "second" | "sec" | "s":
             out = d.replace(microsecond=0)
+        case "none":
+            out = d
     return out
 
 
-def date_utc(d: dt | str, **kwargs) -> dt:
-    """Convert date to UTC.
+def ensure_datetime(some_date_representation: Any, **kwargs) -> dt:
+    """Make sure that we are dealing with a datetime object, convert if possible.
 
-    If date has no timezone information, the data is assumed to be in CET.
+    If input is None or empty strings will be converted to now_utc().
     """
-    if d is None:
-        d = now_utc()
-
-    # tz = kwargs.get("from_tz")
-
-    if not isinstance(d, dt):
+    if isinstance(some_date_representation, dt):
+        return some_date_representation
+    elif some_date_representation is None or some_date_representation == "":
+        date_as_dt = now_utc(**kwargs)
+    else:
         try:
-            d = d.to_datetime()
+            date_as_dt = some_date_representation.to_datetime()
         # except (ValueError, TypeError, AttributeError):
         except AttributeError:
             # d = dt.strptime(d, "%Y-%m-%d")
-            d = parser.parse(d)
+            date_as_dt = parser.parse(some_date_representation)
+        return date_as_dt
+    return date_as_dt
 
-    if d.tzinfo is None or d.tzinfo.utcoffset(d) is None:
+
+def ensure_tz_aware(some_date: dt) -> dt:
+    """Make sure that our datetime object is timezone aware.
+
+    Assume CET if timezone information is missing.
+    """
+    # if some_date.tzinfo is None or some_date.tzinfo.utcoffset(some_date) is None:
+    if is_tz_naive(some_date):
         ts_logger.debug(
-            "DATE_UTC catched a date without timezone info. This will become an error later."
+            "DATE_UTC catched a date without timezone info. This will become an error later. Assuming CET."
         )
         try:
-            d = d.tz_localize("CET")
-        # except (ValueError, TypeError, AttributeError):
-        except AttributeError:
-            d = d.replace(tzinfo=pytz.timezone("Europe/Oslo"))
-
-    return d.astimezone(tz=pytz.utc)
-
-
-def utc_iso(d: dt, timespec: str = "minutes", **kwargs: Any) -> str:
-    """Return date in UTC and ISO format.
-
-    Arguments:
-
-    """
-    return date_utc(d, **kwargs).isoformat(timespec=timespec)
+            tz_aware = some_date.astimezone(tz=OSLO)
+        except (ValueError, TypeError, AttributeError):
+            tz_aware = some_date.replace(tzinfo=OSLO)
+        return tz_aware
+    else:
+        return some_date
 
 
-def date_cet(d: dt, **kwargs) -> dt:
-    return d.astimezone(tz=pytz.timezone("Europe/Oslo"))
+def is_tz_aware(d: dt) -> bool:
+    return d.tzinfo is not None and d.tzinfo.utcoffset(d) is not None
+
+
+def is_tz_naive(d: dt) -> bool:
+    return d.tzinfo is None or d.tzinfo.utcoffset(d) is None
 
 
 def now_utc(**kwargs) -> dt:
-    t = dt.now(tz=pytz.utc)
+    """Return now in UTC."""
+    t = dt.now(tz=UTC)
     return date_round(t, **kwargs)
 
 
 def now_cet(**kwargs) -> dt:
-    t = dt.now(tz=pytz.timezone("Europe/Oslo"))
+    """Return now in CET."""
+    t = dt.now(tz=UTC)
     return date_round(t, **kwargs)
+
+
+def utc_iso(d: Any, timespec: str = "seconds") -> str:
+    """Convert date to UTC and return as an ISO formatted string."""
+    return date_utc(d).isoformat(timespec=timespec)
+
+
+def utc_iso_no_colon(d: dt, timespec: str = "seconds") -> str:
+    """Convert date to UTC and return as an ISO formatted string without the colons."""
+    return utc_iso(d).replace(":", "")
 
 
 class Interval:
