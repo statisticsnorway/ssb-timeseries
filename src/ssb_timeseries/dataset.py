@@ -6,7 +6,7 @@ from typing import Any
 from typing import no_type_check
 
 import numpy as np
-import pandas as pd  # type: ignore[import-untyped]
+import pandas as pd
 from typing_extensions import Self
 
 from ssb_timeseries import io
@@ -367,11 +367,14 @@ class Dataset:
         """Access Dataset.data.columns via Dataset[ list[column_names] | pattern | tags].
 
         Arguments:
-            criteria: (str | dict) Either a string pattern or a dict of tags.
+            criteria:  Either a string pattern or a dict of tags.
             kwargs: If criteria is empty, this is passed to filter().
 
         Returns:
             Self | None
+
+        Raises:
+            TypeError: If filter() returns another type than Dataset.
         """
         # pattern: str = "", regex: str = "", tags: dict = {}):
         # Dataset[...] should return a Dataset object (?) with only the requested items (columns).
@@ -384,14 +387,18 @@ class Dataset:
         # Or, is there a trick using dataframe views?
         # --->
         if criteria and isinstance(criteria, str):
-            return self.filter(pattern=criteria)
+            result = self.filter(pattern=criteria)
         elif criteria and isinstance(criteria, dict):
-            return self.filter(tags=criteria)
+            result = self.filter(tags=criteria)
         elif kwargs:
             ts_logger.debug(f"DATASET.__getitem__(:\n\t{kwargs} ")
-            return self.filter(**kwargs)
+            result = self.filter(**kwargs)
         else:
             return None
+        if isinstance(result, Dataset):
+            return result  # type: ignore[return-value]
+        else:
+            raise TypeError("Dataset.filter() did not return a Dataset type.")
 
     def plot(self, *args: Any, **kwargs: Any) -> Any:
         """Plot dataset data.
@@ -400,7 +407,7 @@ class Dataset:
         """
         xlabels = self.datetime_columns()[0]
         ts_logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
-        return self.data.plot(
+        return self.data.plot(  # type: ignore[call-overload]
             xlabels,
             *args,
             legend=len(self.data.columns) < 9,
@@ -452,28 +459,33 @@ class Dataset:
         period_index = pd.PeriodIndex(self.data[datetime_columns[0]], freq=freq)
         ts_logger.debug(f"DATASET {self.name}: period index\n{period_index}.")
 
+        # Fix for case when **kwargs contains numeric_only
+        if "numeric_only" in kwargs:
+            kwargs.pop("numeric_only")
+        numeric_only_value = True
+
         match func:
             case "mean":
-                out = self.data.groupby(period_index).mean(
-                    *args, numeric_only=True, **kwargs
+                out = self.data.groupby(period_index).mean(  # type: ignore[misc]
+                    *args, numeric_only=numeric_only_value, **kwargs
                 )
             case "sum":
-                out = self.data.groupby(period_index).sum(
-                    *args, numeric_only=True, **kwargs
+                out = self.data.groupby(period_index).sum(  # type: ignore[misc]
+                    *args, numeric_only=numeric_only_value, **kwargs
                 )
             case "auto":
                 # TODO: QA on exact logic / use "real" metadata
                 # in particular, how to check meta data and blend d1 and df2 values as appropriate
                 # (this implementation is just to show how it can be done)
                 # QUESTION: do we need a default for "other" series / what should it be?
-                df1 = self.data.groupby(period_index).mean(
-                    *args, numeric_only=True, **kwargs
+                df1 = self.data.groupby(period_index).mean(  # type: ignore[misc]
+                    *args, numeric_only=numeric_only_value, **kwargs
                 )
                 ts_logger.debug(f"groupby\n{df1}.")
 
                 df2 = (
                     self.data.groupby(period_index)
-                    .sum(*args, numeric_only=True, **kwargs)
+                    .sum(*args, numeric_only=numeric_only_value, **kwargs)  # type: ignore[misc]
                     .filter(regex="mendgde|volum|vekt")
                 )
                 ts_logger.warning(f"groupby\n{df2}.")
