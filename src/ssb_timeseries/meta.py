@@ -3,6 +3,8 @@
 Ideally, this functionality should live elsewhere, in ssb-python-klass and other meta data libraries. Likely subject to refactoring later.
 """
 
+import io
+
 import bigtree
 import bigtree.node
 import bigtree.tree
@@ -74,7 +76,7 @@ class Taxonomy:
         self.definition = {"name": root_name}
         if isinstance(id_or_path, int):
             # TO DO: handle versions of KLASS
-            klass = get_classification(id_or_path).get_codes().data
+            klass = get_classification(str(id_or_path)).get_codes().data
             self.entities = add_root_node(
                 klass, {"code": "0", "parentCode": None, "name": root_name}
             )
@@ -118,9 +120,11 @@ class Taxonomy:
         o_entities = other.entities[fields_to_compare].reset_index(drop=True)
 
         ts_logger.debug(
-            f"comparing:\n{s_entities.to_string()}\n...and:\n{s_entities.to_string()}"
+            f"comparing:\n{s_entities.to_string()}\n...and:\n{o_entities.to_string()}"
         )
-        ts_logger.debug(f".info:\n{s_entities.info()}\n...and:\n{s_entities.info()}")
+        ts_logger.debug(
+            f".info:\n{_df_info_as_string(s_entities)}\n...and:\n{_df_info_as_string(o_entities)}"
+        )
         entities_equal = all(s_entities == o_entities)
 
         return trees_equal and entities_equal
@@ -177,15 +181,15 @@ class Taxonomy:
         self.entities.to_json(path_or_buf=path)
 
 
-def add_root_node(df: pd.DataFrame, root_node: dict) -> pd.DataFrame:
+def add_root_node(df: pd.DataFrame, root_node: dict[str, str | None]) -> pd.DataFrame:
     """Prepend root node row to taxonomy dataframe."""
-    new_row = dict((c, None) for c in df.columns)
-    for k in root_node.keys():
+    new_row = {c: None for c in df.columns}
+    for k in root_node:
         new_row[k] = root_node[k]
     df.rename(columns={"name": "fullName"})
     df["parentCode"] = df["parentCode"].fillna(value=root_node["code"])
-    df.loc[-1] = root_node
-    df.index = df.index + 1
+    root_df = pd.DataFrame(root_node, index=[0])
+    df = pd.concat([root_df, df], ignore_index=True)
     df.sort_index(inplace=True)
     return df
 
@@ -306,3 +310,10 @@ class SeriesTags:
     def __repr__(self) -> str:
         """Return initialization for a copy of the series tag object: SeriesTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})."""
         return f"SeriesTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})"
+
+
+def _df_info_as_string(df: pd.DataFrame) -> str:
+    """Returns the content of df.info() as a string."""
+    with io.StringIO() as buffer:
+        df.info(buf=buffer)
+        return buffer.getvalue()

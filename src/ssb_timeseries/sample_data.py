@@ -114,7 +114,7 @@ def create_df(
         "T": "minutes",
         "S": "seconds",
     }
-    valid_to = valid_from + pd.DateOffset(**{freq_lookup[freq]: interval})
+    valid_to = valid_from + pd.DateOffset(**{freq_lookup[freq]: interval})  # type: ignore
 
     # BUGFIX: If *lists receives strings, permutations will be over chars by chars
     # Kombiner listene til en enkelt liste av lister
