@@ -3,9 +3,12 @@
 import logging
 import uuid
 
+# from numpy import log
 import pytest
 from bigtree import get_tree_diff
 from bigtree import print_tree
+from bigtree import levelordergroup_iter
+from bigtree import findall
 
 from ssb_timeseries import fs
 from ssb_timeseries.logging import log_start_stop
@@ -34,6 +37,42 @@ def test_read_hierarchical_code_set_from_klass_returns_multi_level_tree() -> Non
     assert energy_balance.structure.diameter == 6
     assert energy_balance.structure.max_depth == 4
     assert energy_balance.structure.max_depth == 4
+
+
+@log_start_stop
+def test_get_leaf_nodes_from_hierarchical_klass_code_set(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    energy_balance = Taxonomy(157)
+    leaves = [n.name for n in energy_balance.structure.root["1"].leaves]
+    ts_logger.debug(f"{print_tree(energy_balance.structure)} ...\n{leaves}")
+
+    assert leaves == [
+        "1.1.1",
+        "1.1.2",
+        "1.1.3",
+        "1.2",
+    ]
+
+
+@log_start_stop
+def test_get_parent_nodes_from_hierarchical_klass_code_set(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    energy_balance = Taxonomy(157)
+    tree = energy_balance.structure
+    leaves = [n.name for n in tree.root.leaves]
+    parents = [n.name for n in tree.root.children if n.name not in leaves]
+
+    # levelordergroup_iter(
+    #     energy_balance.structure,
+    #     filter_condition=None,
+    #     stop_condition=None,
+    #     max_depth=0,
+    # )
+
+    ts_logger.debug(f"{print_tree(tree)} ...\n{parents}")
+
+    assert sorted(parents) == sorted(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])
+    assert False
 
 
 @log_start_stop

@@ -14,7 +14,9 @@ from ssb_timeseries import properties
 from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
 from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
 from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.meta import Taxonomy
 from ssb_timeseries.types import F
+from ssb_timeseries.types import PathStr
 
 
 class Dataset:
@@ -774,8 +776,57 @@ class Dataset:
             }
         )
 
-    # unfinished business
+    def aggregate(
+        self,
+        attribute: str,
+        taxonomy: Taxonomy | int | PathStr,
+        aggregate_type: str = "sum",
+    ) -> Self:
+        """Aggregate dataset by taxonomy.
 
+        Args:
+            attribute: The attribute to aggregate by.
+            taxonomy (Taxonomy | int | PathStr): The values for `attribute`. A taxonomy object as returned by Taxonomy(klass_id_or_path), or the id or path to retrieve one.
+            aggregate_type (str | list[str]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
+
+        Returns:
+            Dataset: A dataset object with the aggregated data.
+            If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
+            If the taxonomy is a flat list, only a single 'total' aggregate series is calculated.
+        """
+        if isinstance(taxonomy, Taxonomy):
+            pass
+        else:
+            taxonomy = Taxonomy(taxonomy)
+
+        # TODO: alter to handle list of functions, eg ["mean", "10 percentile", "25 percentile", "median", "75 percentile", "90 percentile"]
+        match aggregate_type.lower():
+            case "mean" | "average":
+                raise NotImplementedError(
+                    "Aggregation method 'mean' is not implemented yet."
+                )
+            case "percentile":
+                raise NotImplementedError(
+                    "Aggregation method 'percentile' is not implemented yet."
+                )
+            case "count":
+                raise NotImplementedError(
+                    "Aggregation method 'count' is not implemented yet."
+                )
+            case "sum" | _:
+                for node in taxonomy.structure.parents():
+                    # df should be a new dataframe with same datetime columns as self and no numeric columns
+                    df = self.data.loc[:, self.datetime_columns].drop(
+                        columns=self.numeric_columns
+                    )
+                    leaf_nodes = node.leaves()
+                    leaf_node_subset = self.filter(tags={attribute: leaf_nodes})
+                    df[node["code"]] = leaf_node_subset.sum(axis=1)
+                    new_col_name = node["name"]
+                    df = df.rename(columns={node["code"]: new_col_name})
+        return self.copy(f"{self.name}.{aggregate_type}", data=df)
+
+    # unfinished business
     # mypy: disable-error-code="no-untyped-def"
     @no_type_check
     def reindex(
