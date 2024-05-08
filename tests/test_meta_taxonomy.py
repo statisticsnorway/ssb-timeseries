@@ -12,7 +12,6 @@ from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import Taxonomy
 
 
-@pytest.mark.skipif(False, reason="")
 @log_start_stop
 def test_read_flat_code_list_from_klass_returns_two_level_tree() -> None:
     activity = Taxonomy(697)
@@ -71,18 +70,24 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
     leaf_nodes = [n.name for n in tree.root.leaves]
     all_nodes = [n.name for n in tree.root.descendants]
     parent_nodes = [n for n in all_nodes if n not in leaf_nodes]
-    parent_nodes2 = [n for n in klass157.parent_nodes()]
-    # levelordergroup_iter(
-    #     klass157.structure,
-    #     filter_condition=None,
-    #     stop_condition=None,
-    #     max_depth=0,
-    # )
+    parent_nodes2 = [n.name for n in klass157.parent_nodes()]
 
     ts_logger.debug(f"All nodes:\n\t{all_nodes}")
 
     assert len(all_nodes) == len(leaf_nodes) + len(parent_nodes)
     assert sorted(parent_nodes) == sorted(parent_nodes2)
+
+
+@pytest.mark.skip(reason="WTF?")
+@log_start_stop
+def test_taxonomy_minus_subtree(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(157)
+    klass157_subtree = klass157.subtree("1.1")
+    ts_logger.debug(f"tree ...\n{bigtree.print_tree(klass157_subtree)}")
+    rest = bigtree.get_tree_diff(klass157.structure.root, klass157_subtree.root)
+    rest2 = klass157.structure - klass157_subtree
+    assert isinstance(rest, bigtree)
 
 
 @log_start_stop
@@ -110,14 +115,14 @@ def test_replace_chars_in_flat_codes(caplog) -> None:
     assert sorted(k697_names) == sorted(
         [
             "bruk.omvandl",
-            "bruk.råstoff",  # changed!
+            "bruk.råstoff",  # changed by substitution above!
             "bruk.red",
             "bruk.stasj",
             "bruk.trans",
             "eksport",
             "import",
-            "lagerendring",  # changed!
-            "lagerføring",  # changed!
+            "lagerendring",  # changed by substitution above!
+            "lagerføring",  # changed by substitution above!
             "prod.pri",
             "prod.sek",
             "svinn.annet",

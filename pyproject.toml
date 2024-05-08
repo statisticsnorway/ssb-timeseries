@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ssb-timeseries"
-version = "0.2.0"
+version = "0.2.1"
 description = "SSB Timeseries"
 authors = ["Bernhard Ryeng <bernhard.ryeng@ssb.no>"]
 license = "MIT"
@@ -20,12 +20,7 @@ pandas = "^2.1.1"
 pytest = "^7.4.3"
 ssb-klass-python = ">=0.0.7"
 pyarrow = "^14.0.0"
-google-cloud-logging = "^3.8.0"
-pytz = "^2023.3.post1"
-polars = "^0.19.18"
-duckdb = "^0.10.0"
 bigtree = "^0.17.0"
-click = "^8.1.7"
 typing-extensions = "^4.11.0"
 
 [tool.poetry.group.dev.dependencies]

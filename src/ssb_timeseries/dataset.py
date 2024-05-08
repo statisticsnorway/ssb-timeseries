@@ -291,6 +291,7 @@ class Dataset:
         # if value not in self.series[item][attribute]:
         #    self.series[attribute].append(value)
 
+    @no_type_check
     def filter(
         self,
         pattern: str = "",
@@ -328,9 +329,7 @@ class Dataset:
 
         if tags:
             series_tags = self.series_tags()
-            ts_logger.debug(
-                f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}"
-            )
+            # ts_logger.debug(f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}")
             matching_series = [
                 name
                 for name, s_tags in series_tags.items()
@@ -359,6 +358,7 @@ class Dataset:
                 out.tags["series"] = matching_series_tags
         return out
 
+    @no_type_check
     def __getitem__(
         self, criteria: str | dict[str, str] = "", **kwargs: Any
     ) -> Self | None:
@@ -798,7 +798,6 @@ class Dataset:
             pass
         else:
             taxonomy = Taxonomy(taxonomy)
-        tree = taxonomy.structure
 
         # TODO: alter to handle list of functions, eg ["mean", "10 percentile", "25 percentile", "median", "75 percentile", "90 percentile"]
         if isinstance(aggregate_type, str):
@@ -821,11 +820,11 @@ class Dataset:
                         leaf_node_subset = self.filter(
                             tags={attribute: taxonomy.leaf_nodes()}, output="df"
                         ).drop(columns=self.datetime_columns())
-                        df[node] = leaf_node_subset.sum(axis=1)
+                        df[node.name] = leaf_node_subset.sum(axis=1)
                         ts_logger.debug(
-                            f"DATASET.aggregate(): For node '{node}', column {aggregate_type} for input df:\n{leaf_node_subset}\nreturned:\n{df}"
+                            f"DATASET.aggregate(): For node '{node.name}', column {aggregate_type} for input df:\n{leaf_node_subset}\nreturned:\n{df}"
                         )
-                        new_col_name = node
+                        new_col_name = node.name
                         df = df.rename(columns={node: new_col_name})
         else:
             raise NotImplementedError(

@@ -3,11 +3,9 @@
 """Date and time utilities."""
 
 from datetime import datetime as dt
-from datetime import tzinfo
 from typing import Any
 from zoneinfo import ZoneInfo
 
-# import pytz
 from dateutil import parser
 
 from ssb_timeseries.logging import ts_logger
@@ -15,9 +13,6 @@ from ssb_timeseries.logging import ts_logger
 MAX_TIME_PRECISION = "second"
 OSLO = ZoneInfo("Europe/Oslo")  # Will shift between CET and CEST
 UTC = ZoneInfo("UTC")
-
-# dt = datetime.datetime
-# ts = time.time()
 
 
 def date_utc(some_date: dt | str | None, **kwargs) -> dt:

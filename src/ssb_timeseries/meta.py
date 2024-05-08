@@ -4,6 +4,8 @@ Ideally, this functionality should live elsewhere, in ssb-python-klass and other
 """
 
 import bigtree
+import bigtree.node
+import bigtree.tree
 import pandas as pd
 from klass import get_classification
 from typing_extensions import Self
@@ -123,12 +125,18 @@ class Taxonomy:
 
         return trees_equal and entities_equal
 
-    def __minus__(self, other: Self) -> Self:
+    def __minus__(self, other: Self) -> bigtree.tree:  # type: ignore
+        """Return the tree difference between the two taxonomy (tree) structures."""
         return bigtree.get_tree_diff(self.structure, other.structure)
 
-    def __getitem__(self, key: str) -> bigtree.node:
+    def __getitem__(self, key: str) -> bigtree.node:  # type: ignore
         """Get tree node by name (KLASS code)."""
         return bigtree.find_name(self.structure.root, key)
+
+    def subtree(self, key: str) -> bigtree.tree:  # type: ignore
+        """Get subtree of node identified by name (KLASS code)."""
+        the_node = bigtree.find_name(self.structure, key)
+        return bigtree.get_subtree(the_node)
 
     def print_tree(self, *args, **kwargs) -> str:  # noqa: ANN002, ANN003
         """Return a string with the tree structure.
@@ -144,18 +152,18 @@ class Taxonomy:
             output = buf.getvalue()
         return output
 
-    def all_nodes(self) -> list[bigtree.node]:
+    def all_nodes(self) -> list[bigtree.node]:  # type: ignore
         """Return all nodes in the taxonomy."""
-        return [n.name for n in self.structure.root.descendants]
+        return [n for n in self.structure.root.descendants]
 
-    def leaf_nodes(self) -> list[bigtree.node]:
+    def leaf_nodes(self) -> list[bigtree.node]:  # type: ignore
         """Return all leaf nodes in the taxonomy."""
-        return [n.name for n in self.structure.root.leaves]
+        return [n for n in self.structure.root.leaves]
 
-    def parent_nodes(self) -> list[bigtree.node]:
+    def parent_nodes(self) -> list[bigtree.node]:  # type: ignore
         """Return all non-leaf nodes in the taxonomy."""
         return [
-            n.name
+            n
             for n in self.structure.root.descendants
             if n not in self.structure.root.leaves
         ]

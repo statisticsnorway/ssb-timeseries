@@ -263,7 +263,7 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
     # raise AssertionError("In order to see DEBUG logs while testing.")
 
 
-@pytest.mark.skipif(True, reason="Not ready yet.")
+@pytest.mark.skip(reason="Not ready yet.")
 @log_start_stop
 def test_update_metadata_attributes() -> None:
     # TO DO:
@@ -275,7 +275,7 @@ def test_update_metadata_attributes() -> None:
     raise AssertionError()
 
 
-@pytest.mark.skipif(True, reason="Not ready yet.")
+@pytest.mark.skip(reason="Not ready yet.")
 def test_updated_tags_propagates_to_column_names_accordingly() -> None:
     # TO DO:
     # my_dataset.update_metadata('column_name', 'metadata_tag')
@@ -285,7 +285,6 @@ def test_updated_tags_propagates_to_column_names_accordingly() -> None:
     raise AssertionError()
 
 
-# @pytest.mark.skip(reason="Not ready yet.")
 @log_start_stop
 def test_aggregate_sums_for_hierarchical_taxonomy(
     conftest,
@@ -320,8 +319,10 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
     assert isinstance(y, Dataset)
     ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
     assert len(y.numeric_columns()) == len(klass157.parent_nodes())
-    assert sorted(y.numeric_columns()) == sorted(klass157.parent_nodes())
-    raise AssertionError("In order to see DEBUG logs while testing.")
+    assert sorted(y.numeric_columns()) == sorted(
+        [n.name for n in klass157.parent_nodes()]
+    )
+    # raise AssertionError("In order to see DEBUG logs while testing.")
 
 
 def test_aggregate_sum_for_flat_list_taxonomy(
