@@ -149,7 +149,7 @@ def test_find_data_using_single_metadata_attribute(
     expected_matches = ["a_p_z", "a_q_z", "a_r_z"]
 
     ts_logger.debug(
-        f"x_attr_A_equals_a: \n\t{x_attr_A_equals_a.series()}\n vs expected:\n\t{expected_matches}"  # type: ignore
+        f"x_attr_A_equals_a: \n\t{x_attr_A_equals_a.series()}\n vs expected:\n\t{expected_matches}"
     )
     assert isinstance(x_attr_A_equals_a, Dataset)
     assert sorted(x_attr_A_equals_a.numeric_columns()) == sorted(expected_matches)
@@ -197,7 +197,7 @@ def test_find_data_using_multiple_metadata_attributes(
     expected_matches = ["a_q_z"]
 
     ts_logger.debug(
-        f"x_attr_A_equals_a: \n\t{x_attr_A_equals_a.series()}\n vs expected:\n\t{expected_matches}"  # type: ignore
+        f"x_attr_A_equals_a: \n\t{x_attr_A_equals_a.series()}\n vs expected:\n\t{expected_matches}"
     )
     assert isinstance(x_attr_A_equals_a, Dataset)
     assert sorted(x_attr_A_equals_a.numeric_columns()) == sorted(expected_matches)
@@ -246,7 +246,7 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
     expected_matches = ["a_p_z", "a_q_z", "a_r_z", "b_p_z", "b_q_z", "b_r_z"]
 
     ts_logger.debug(
-        f"x_attr_A_equals_a: \n\t{x_attr_A_equals_a.series()}\n vs expected:\n\t{expected_matches}"  # type: ignore
+        f"x_attr_A_equals_a: \n\t{x_attr_A_equals_a.series()}\n vs expected:\n\t{expected_matches}"
     )
     assert isinstance(x_attr_A_equals_a, Dataset)
     assert sorted(x_attr_A_equals_a.numeric_columns()) == sorted(expected_matches)
@@ -317,7 +317,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
 
     y = x.aggregate("A", klass157, "sum")
     assert isinstance(y, Dataset)
-    ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
+    # ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
     assert len(y.numeric_columns()) == len(klass157.parent_nodes())
     assert sorted(y.numeric_columns()) == sorted(
         [n.name for n in klass157.parent_nodes()]

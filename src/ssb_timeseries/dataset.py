@@ -394,7 +394,7 @@ class Dataset:
         else:
             return None
         if isinstance(result, Dataset):
-            return result  # type: ignore[return-value]
+            return result
         else:
             raise TypeError("Dataset.filter() did not return a Dataset type.")
 
