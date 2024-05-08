@@ -285,7 +285,7 @@ def test_updated_tags_propagates_to_column_names_accordingly() -> None:
     raise AssertionError()
 
 
-@pytest.mark.skip(reason="Not ready yet.")
+# @pytest.mark.skip(reason="Not ready yet.")
 @log_start_stop
 def test_aggregate_sums_for_hierarchical_taxonomy(
     conftest,
@@ -314,13 +314,14 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
         name_pattern=["A", "B", "C"],
     )
 
-    ts_logger.debug(
-        f"{len(klass157_leaves)} leaf nodes in klass157 = {len(x.numeric_columns())} series in x \n{x.numeric_columns()}"
-    )
     assert len(x.numeric_columns()) == len(klass157_leaves)
 
     y = x.aggregate("A", klass157, "sum")
     assert isinstance(y, Dataset)
+    ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
+    assert len(y.numeric_columns()) == len(klass157.parent_nodes())
+    assert sorted(y.numeric_columns()) == sorted(klass157.parent_nodes())
+    raise AssertionError("In order to see DEBUG logs while testing.")
 
 
 def test_aggregate_sum_for_flat_list_taxonomy(

@@ -148,9 +148,6 @@ class Dataset:
                     for attribute, value in zip(name_pattern, name_parts, strict=False):
                         self.tags["series"][s][attribute] = value
 
-                    ts_logger.debug(
-                        f"DATASET {self.name}: series {s} {self.tags['series'][s]} "
-                    )
                     # [self.tags.series[k] = for k, a in zip(self.numeric_columns(), name_pattern]
 
         self.product: str = kwargs.get("product", "")
@@ -801,6 +798,7 @@ class Dataset:
             pass
         else:
             taxonomy = Taxonomy(taxonomy)
+        tree = taxonomy.structure
 
         # TODO: alter to handle list of functions, eg ["mean", "10 percentile", "25 percentile", "median", "75 percentile", "90 percentile"]
         if isinstance(aggregate_type, str):
@@ -818,30 +816,15 @@ class Dataset:
                         "Aggregation method 'count' is not implemented yet."
                     )
                 case "sum" | _:
-                    parent_nodes = [
-                        n.name
-                        for n in taxonomy.structure.root.descendants
-                        if n not in taxonomy.structure.root.leaves
-                    ]
-
                     df = self.data.copy().drop(columns=self.numeric_columns())
-                    for node in parent_nodes:
-                        ts_logger.warning(
-                            f"DATASET.aggregate() ... calculating for node: {node}"
-                        )
-                        leaf_nodes = [
-                            n.name for n in taxonomy.structure.root[node].leaves
-                        ]
+                    for node in taxonomy.parent_nodes():
                         leaf_node_subset = self.filter(
-                            tags={attribute: leaf_nodes}, output="df"
+                            tags={attribute: taxonomy.leaf_nodes()}, output="df"
+                        ).drop(columns=self.datetime_columns())
+                        df[node] = leaf_node_subset.sum(axis=1)
+                        ts_logger.debug(
+                            f"DATASET.aggregate(): For node '{node}', column {aggregate_type} for input df:\n{leaf_node_subset}\nreturned:\n{df}"
                         )
-                        ts_logger.warning(
-                            f"DATASET.aggregate() ... \n{leaf_node_subset}"
-                        )
-                        df[node] = leaf_node_subset.data.drop(
-                            columns=self.datetime_columns()
-                        ).sum(axis=1)
-                        ts_logger.warning(f"DATASET.aggregate() ... {node}\n{df}")
                         new_col_name = node
                         df = df.rename(columns={node: new_col_name})
         else:

@@ -123,6 +123,13 @@ class Taxonomy:
 
         return trees_equal and entities_equal
 
+    def __minus__(self, other: Self) -> Self:
+        return bigtree.get_tree_diff(self.structure, other.structure)
+
+    def __getitem__(self, key: str) -> bigtree.node:
+        """Get tree node by name (KLASS code)."""
+        return bigtree.find_name(self.structure.root, key)
+
     def print_tree(self, *args, **kwargs) -> str:  # noqa: ANN002, ANN003
         """Return a string with the tree structure.
 
@@ -136,6 +143,22 @@ class Taxonomy:
             bigtree.print_tree(self.structure, *args, **kwargs)
             output = buf.getvalue()
         return output
+
+    def all_nodes(self) -> list[bigtree.node]:
+        """Return all nodes in the taxonomy."""
+        return [n.name for n in self.structure.root.descendants]
+
+    def leaf_nodes(self) -> list[bigtree.node]:
+        """Return all leaf nodes in the taxonomy."""
+        return [n.name for n in self.structure.root.leaves]
+
+    def parent_nodes(self) -> list[bigtree.node]:
+        """Return all non-leaf nodes in the taxonomy."""
+        return [
+            n.name
+            for n in self.structure.root.descendants
+            if n not in self.structure.root.leaves
+        ]
 
     def save(self, path: PathStr) -> None:
         """Save taxonomy to json file.
