@@ -64,7 +64,7 @@ def test_same_path() -> None:
             "/ssb-prod-dapla-felles-data-delt/poc-tidsserier",
             "/ssb-prod-dapla-felles-data-delt/poc-tidsserier/a",
         )
-        == "\\ssb-prod-dapla-felles-data-delt\poc-tidsserier"
+        == r"\\ssb-prod-dapla-felles-data-delt\poc-tidsserier"
     )  # \\ssb-prod-dapla-... does not exist, but this sill pass on Windows
 
 
