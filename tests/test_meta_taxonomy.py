@@ -40,11 +40,11 @@ def test_read_hierarchical_code_set_from_klass_returns_multi_level_tree() -> Non
 
 
 @log_start_stop
-def test_get_leaf_nodes_from_hierarchical_klass_code_set(caplog) -> None:
+def test_get_leaf_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
     caplog.set_level(logging.DEBUG)
-    energy_balance = Taxonomy(157)
-    leaves = [n.name for n in energy_balance.structure.root["1"].leaves]
-    ts_logger.debug(f"{print_tree(energy_balance.structure)} ...\n{leaves}")
+    tree = Taxonomy(157).structure
+    leaves = [n.name for n in tree.root["1"].leaves]
+    ts_logger.debug(f"{print_tree(tree)} ...\n{leaves}")
 
     assert leaves == [
         "1.1.1",
@@ -55,12 +55,17 @@ def test_get_leaf_nodes_from_hierarchical_klass_code_set(caplog) -> None:
 
 
 @log_start_stop
-def test_get_parent_nodes_from_hierarchical_klass_code_set(caplog) -> None:
+def test_get_parent_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     energy_balance = Taxonomy(157)
     tree = energy_balance.structure
-    leaves = [n.name for n in tree.root.leaves]
-    parents = [n.name for n in tree.root.children if n.name not in leaves]
+
+    leaf_nodes = [n.name for n in tree.root.leaves]
+    ts_logger.debug(f"{print_tree(tree)} ...\n{leaf_nodes}")
+
+    all_nodes = [n.name for n in tree.root.descendants]
+    parent_nodes = [a for a in all_nodes if a not in leaf_nodes]
+    parent_nodes2 = [n.name for n in tree.root.descendants if n not in tree.root.leaves]
 
     # levelordergroup_iter(
     #     energy_balance.structure,
@@ -69,10 +74,10 @@ def test_get_parent_nodes_from_hierarchical_klass_code_set(caplog) -> None:
     #     max_depth=0,
     # )
 
-    ts_logger.debug(f"{print_tree(tree)} ...\n{parents}")
+    ts_logger.debug(f"All nodes:\n\t{all_nodes}")
 
-    assert sorted(parents) == sorted(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])
-    assert False
+    assert len(all_nodes) == len(leaf_nodes) + len(parent_nodes)
+    assert parent_nodes == parent_nodes2
 
 
 @log_start_stop

@@ -1,4 +1,4 @@
-# mypy: disable-error-code="assignment"
+# mypy: disable-error-code="assignment,attr-defined"
 # ruff: noqa: RUF013
 from copy import deepcopy
 from datetime import datetime
@@ -399,7 +399,7 @@ class Dataset:
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
         """
-        xlabels = self.datetime_columns()[0]
+        xlabels = self.datetime_columns()
         ts_logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
         return self.data.plot(
             xlabels,
@@ -780,7 +780,7 @@ class Dataset:
         self,
         attribute: str,
         taxonomy: Taxonomy | int | PathStr,
-        aggregate_type: str = "sum",
+        aggregate_type: str | list[str] = "sum",
     ) -> Self:
         """Aggregate dataset by taxonomy.
 
@@ -790,9 +790,12 @@ class Dataset:
             aggregate_type (str | list[str]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
 
         Returns:
-            Dataset: A dataset object with the aggregated data.
+            Self: A dataset object with the aggregated data.
             If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
             If the taxonomy is a flat list, only a single 'total' aggregate series is calculated.
+
+        Raises:
+            NotImplementedError: If the aggregation method is not implemented yet. --> TODO!
         """
         if isinstance(taxonomy, Taxonomy):
             pass
@@ -800,30 +803,51 @@ class Dataset:
             taxonomy = Taxonomy(taxonomy)
 
         # TODO: alter to handle list of functions, eg ["mean", "10 percentile", "25 percentile", "median", "75 percentile", "90 percentile"]
-        match aggregate_type.lower():
-            case "mean" | "average":
-                raise NotImplementedError(
-                    "Aggregation method 'mean' is not implemented yet."
-                )
-            case "percentile":
-                raise NotImplementedError(
-                    "Aggregation method 'percentile' is not implemented yet."
-                )
-            case "count":
-                raise NotImplementedError(
-                    "Aggregation method 'count' is not implemented yet."
-                )
-            case "sum" | _:
-                for node in taxonomy.structure.parents():
-                    # df should be a new dataframe with same datetime columns as self and no numeric columns
-                    df = self.data.loc[:, self.datetime_columns].drop(
-                        columns=self.numeric_columns
+        if isinstance(aggregate_type, str):
+            match aggregate_type.lower():
+                case "mean" | "average":
+                    raise NotImplementedError(
+                        "Aggregation method 'mean' is not implemented yet."
                     )
-                    leaf_nodes = node.leaves()
-                    leaf_node_subset = self.filter(tags={attribute: leaf_nodes})
-                    df[node["code"]] = leaf_node_subset.sum(axis=1)
-                    new_col_name = node["name"]
-                    df = df.rename(columns={node["code"]: new_col_name})
+                case "percentile":
+                    raise NotImplementedError(
+                        "Aggregation method 'percentile' is not implemented yet."
+                    )
+                case "count":
+                    raise NotImplementedError(
+                        "Aggregation method 'count' is not implemented yet."
+                    )
+                case "sum" | _:
+                    parent_nodes = [
+                        n.name
+                        for n in taxonomy.structure.root.descendants
+                        if n not in taxonomy.structure.root.leaves
+                    ]
+
+                    df = self.data.copy().drop(columns=self.numeric_columns())
+                    for node in parent_nodes:
+                        ts_logger.warning(
+                            f"DATASET.aggregate() ... calculating for node: {node}"
+                        )
+                        leaf_nodes = [
+                            n.name for n in taxonomy.structure.root[node].leaves
+                        ]
+                        leaf_node_subset = self.filter(
+                            tags={attribute: leaf_nodes}, output="df"
+                        )
+                        ts_logger.warning(
+                            f"DATASET.aggregate() ... \n{leaf_node_subset}"
+                        )
+                        df[node] = leaf_node_subset.data.drop(
+                            columns=self.datetime_columns()
+                        ).sum(axis=1)
+                        ts_logger.warning(f"DATASET.aggregate() ... {node}\n{df}")
+                        new_col_name = node
+                        df = df.rename(columns={node: new_col_name})
+        else:
+            raise NotImplementedError(
+                "Multiple aggregation methods is planned, but not yet implemented."
+            )
         return self.copy(f"{self.name}.{aggregate_type}", data=df)
 
     # unfinished business
@@ -851,7 +875,7 @@ def search(
 ) -> list[io.SearchResult] | Dataset | list[None]:
     """Search for datasets by name matching pattern."""
     found = io.find_datasets(pattern=pattern)
-    ts_logger.warning(f"DATASET.search returned:\n{found} ")
+    ts_logger.debug(f"DATASET.search returned:\n{found} ")
 
     if len(found) == 1:
         # raise NotImplementedError("TODO: extract name and type from result.")

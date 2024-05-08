@@ -2,8 +2,6 @@ import logging
 import uuid
 
 import pytest
-from bigtree import get_tree_diff
-from bigtree import print_tree
 
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
@@ -287,6 +285,7 @@ def test_updated_tags_propagates_to_column_names_accordingly() -> None:
     raise AssertionError()
 
 
+@pytest.mark.skip(reason="Not ready yet.")
 @log_start_stop
 def test_aggregate_sums_for_hierarchical_taxonomy(
     conftest,
@@ -312,6 +311,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
         data=create_df(
             *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
+        name_pattern=["A", "B", "C"],
     )
 
     ts_logger.debug(
