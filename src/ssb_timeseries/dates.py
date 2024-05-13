@@ -32,7 +32,7 @@ def date_utc(some_date: dt | str | None, **kwargs) -> dt:
         return date_round(correct_tz, **kwargs)
 
 
-def date_cet(some_date: dt | str, **kwargs) -> dt:
+def date_local(some_date: dt | str, **kwargs) -> dt:
     """Convert date to Europe/Oslo timezone; ie shifting between CET and CEST.
 
     If the date has no timezone information, the data is assumed to be in Oslo timezone.
@@ -81,8 +81,8 @@ def ensure_datetime(some_date_representation: Any, **kwargs) -> dt:
     else:
         try:
             date_as_dt = some_date_representation.to_datetime()
-        # except (ValueError, TypeError, AttributeError):
-        except AttributeError:
+        except (ValueError, TypeError, AttributeError):
+            # except AttributeError:
             # d = dt.strptime(d, "%Y-%m-%d")
             date_as_dt = parser.parse(some_date_representation)
         return date_as_dt

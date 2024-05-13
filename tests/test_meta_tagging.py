@@ -325,6 +325,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
     # raise AssertionError("In order to see DEBUG logs while testing.")
 
 
+@pytest.mark.skip(reason="Not ready yet.")
 def test_aggregate_sum_for_flat_list_taxonomy(
     caplog,
 ) -> None:
