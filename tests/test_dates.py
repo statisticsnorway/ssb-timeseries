@@ -42,8 +42,9 @@ def test_conversions_right_before_beginning_of_daylight_saving(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     d_utc = date_utc(date_local("2024-03-31 01:00:00"))
     d_local = date_local("2024-03-31 01:00:00")
-    ts_logger.debug(d_utc)
-    ts_logger.debug(d_local)
+    ts_logger.debug(
+        f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
+    )
     # right before beginning of daylight saving, Europe/Oslo = CET = UTC + 1h
     # assert d_local == d_utc
     assert date_utc(d_local) == d_utc
@@ -53,8 +54,9 @@ def test_conversions_right_after_beginning_of_daylight_saving(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     d_utc = date_utc(date_local("2024-03-31 03:00:00"))
     d_local = date_local("2024-03-31 03:00:00")
-    ts_logger.debug(d_utc)
-    ts_logger.debug(d_local)
+    ts_logger.debug(
+        f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
+    )
     # right after beginning of daylight saving, Europe/Oslo = CEST = UTC + 2h
     # assert d_local == d_utc
     assert date_utc(d_local) == d_utc
@@ -64,8 +66,9 @@ def test_conversions_right_before_end_of_daylight_saving(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     d_utc = date_utc(date_local("2024-10-27 01:45:00"))
     d_local = date_local("2024-10-27 01:45:00")
-    ts_logger.debug(d_utc)
-    ts_logger.debug(d_local)
+    ts_logger.debug(
+        f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
+    )
     # right before end of daylight saving, Europe/Oslo = CEST = UTC + 2h
     # assert d_local == d_utc
     assert date_utc(d_local) == d_utc
@@ -75,8 +78,9 @@ def test_conversions_right_after_end_of_daylight_saving(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     d_utc = date_utc(date_local("2024-10-27 02:15:00"))
     d_local = date_local("2024-10-27 02:15:00")
-    ts_logger.debug(d_utc)
-    ts_logger.debug(d_local)
+    ts_logger.debug(
+        f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
+    )
     # right after end of daylight saving, Europe/Oslo = CET = UTC + 1h
     # assert d_local == d_utc
     assert date_utc(d_local) == d_utc
