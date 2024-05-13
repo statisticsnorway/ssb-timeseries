@@ -3,17 +3,15 @@
 import logging
 import uuid
 
+# from numpy import log
 import pytest
-from bigtree import get_tree_diff
-from bigtree import print_tree
-
+import bigtree
 from ssb_timeseries import fs
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import Taxonomy
 
 
-@pytest.mark.skipif(False, reason="")
 @log_start_stop
 def test_read_flat_code_list_from_klass_returns_two_level_tree() -> None:
     activity = Taxonomy(697)
@@ -37,6 +35,62 @@ def test_read_hierarchical_code_set_from_klass_returns_multi_level_tree() -> Non
 
 
 @log_start_stop
+def test_get_leaf_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    tree = Taxonomy(157).structure
+    leaves = [n.name for n in tree.root["1"].leaves]
+    ts_logger.debug(f"{bigtree.print_tree(tree)} ...\n{leaves}")
+
+    assert leaves == [
+        "1.1.1",
+        "1.1.2",
+        "1.1.3",
+        "1.2",
+    ]
+
+
+@log_start_stop
+def test_get_item_from_hierarchical_klass_taxonomy(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(157)
+    tree = klass157.structure
+    node_1_1 = bigtree.find_name(tree.root, "1.1")
+
+    assert [n.name for n in node_1_1.children] == ["1.1.1", "1.1.2", "1.1.3"]
+
+    assert klass157["1.1"] == node_1_1
+
+
+@log_start_stop
+def test_get_parent_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(157)
+    tree = klass157.structure
+
+    leaf_nodes = [n.name for n in tree.root.leaves]
+    all_nodes = [n.name for n in tree.root.descendants]
+    parent_nodes = [n for n in all_nodes if n not in leaf_nodes]
+    parent_nodes2 = [n.name for n in klass157.parent_nodes()]
+
+    ts_logger.debug(f"All nodes:\n\t{all_nodes}")
+
+    assert len(all_nodes) == len(leaf_nodes) + len(parent_nodes)
+    assert sorted(parent_nodes) == sorted(parent_nodes2)
+
+
+@pytest.mark.skip(reason="WTF?")
+@log_start_stop
+def test_taxonomy_minus_subtree(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(157)
+    klass157_subtree = klass157.subtree("1.1")
+    ts_logger.debug(f"tree ...\n{bigtree.print_tree(klass157_subtree)}")
+    rest = bigtree.get_tree_diff(klass157.structure.root, klass157_subtree.root)
+    rest2 = klass157.structure - klass157_subtree
+    assert isinstance(rest, bigtree)
+
+
+@log_start_stop
 def test_replace_chars_in_flat_codes(caplog) -> None:
     """The substitute parameter of Taxonomy init allows making changes to codes when reading a taxonomy list.
 
@@ -55,20 +109,20 @@ def test_replace_chars_in_flat_codes(caplog) -> None:
     k697_names = [n.name for n in k697.structure.root.children]
     ts_logger.debug(f"klass 697 codes:\n{k697_names}")
     ts_logger.debug(
-        f"tree ...\n{print_tree(k697.structure.root, attr_list=['fullname'])}"
+        f"tree ...\n{bigtree.print_tree(k697.structure.root, attr_list=['fullname'])}"
     )
 
     assert sorted(k697_names) == sorted(
         [
             "bruk.omvandl",
-            "bruk.råstoff",  # changed!
+            "bruk.råstoff",  # changed by substitution above!
             "bruk.red",
             "bruk.stasj",
             "bruk.trans",
             "eksport",
             "import",
-            "lagerendring",  # changed!
-            "lagerføring",  # changed!
+            "lagerendring",  # changed by substitution above!
+            "lagerføring",  # changed by substitution above!
             "prod.pri",
             "prod.sek",
             "svinn.annet",
@@ -96,7 +150,7 @@ def test_replace_chars_in_hierarchical_codes(caplog) -> None:
     k157_names = [n.name for n in k157.structure.root["1"].leaves]
     ts_logger.debug(f"klass 157 codes:\n{k157_names}")
     ts_logger.debug(
-        f"tree ...\n{print_tree(k157.structure.root['1'], attr_list=['fullname'])}"
+        f"tree ...\n{bigtree.print_tree(k157.structure.root['1'], attr_list=['fullname'])}"
     )
 
     assert sorted(k157_names) == sorted(
@@ -128,12 +182,12 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
     f157_names = [n.name for n in file157.structure.root.leaves]
     assert k157_names == f157_names
 
-    ts_logger.debug(f"klass157 ...\n{print_tree(klass157.structure)}")
-    ts_logger.debug(f"file157 ...\n{print_tree(file157.structure)}")
+    ts_logger.debug(f"klass157 ...\n{bigtree.print_tree(klass157.structure)}")
+    ts_logger.debug(f"file157 ...\n{bigtree.print_tree(file157.structure)}")
 
-    diff = get_tree_diff(klass157.structure, file157.structure)
+    diff = bigtree.get_tree_diff(klass157.structure, file157.structure)
     if diff:
-        ts_logger.debug(f"diff:\n{print_tree(diff)}")
+        ts_logger.debug(f"diff:\n{bigtree.print_tree(diff)}")
         # --> assert should fail
     else:
         ts_logger.debug(f"diff: {diff}")

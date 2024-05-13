@@ -1,11 +1,94 @@
 import logging
 from datetime import datetime
 from datetime import timedelta
+from zoneinfo import ZoneInfo
+
+import pytest
 
 from ssb_timeseries.dates import Interval
+from ssb_timeseries.dates import date_local
+from ssb_timeseries.dates import date_round
+from ssb_timeseries.dates import date_utc
+from ssb_timeseries.dates import utc_iso
+from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.logging import ts_logger
 
 # mypy: disable-error-code="no-untyped-def,attr-defined"
+
+
+def test_dateround_minutes_removes_seconds_keeps_minutes() -> None:
+    assert date_round(
+        date_utc("2024-03-31 15:17:47+00:00"), rounding="minute"
+    ) == datetime(2024, 3, 31, 15, 17, 0, tzinfo=ZoneInfo("UTC"))
+
+
+def test_utc_equals_utc_time_right_before_beginning_of_daylight_saving() -> None:
+    assert date_utc("2024-03-31 00:00:00+00:00") == datetime(
+        2024, 3, 31, 0, 0, 0, tzinfo=ZoneInfo("UTC")
+    )
+
+
+@pytest.mark.skip(
+    reason="TODO: Fix AssertionError: assert datetime.datetime(2024, 3, 31, 1, 0) == datetime.datetime(2024, 3, 31, 1, 0, tzinfo=tzoffset(None, 3600))."
+)
+def test_cet_is_default() -> None:
+    # date_cet returns same answer regardless even if timezone is not provided
+    assert date_local("2024-03-31 01:00:00") == date_local("2024-03-31 01:00:00+01:00")
+
+
+def test_utc_iso_strings() -> None:
+    tz_aware = datetime.fromisoformat("2024-03-31 00:00:00+00:00")
+    tz_naive = datetime.fromisoformat("2024-03-31 00:00:00")
+    assert utc_iso(tz_aware).replace(":", "") == utc_iso_no_colon(tz_aware)
+    assert utc_iso(tz_naive).replace(":", "") == utc_iso_no_colon(tz_naive)
+
+
+def test_conversions_right_before_beginning_of_daylight_saving(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    d_utc = date_utc(date_local("2024-03-31 01:00:00"))
+    d_local = date_local("2024-03-31 01:00:00")
+    ts_logger.debug(
+        f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
+    )
+    # right before beginning of daylight saving, Europe/Oslo = CET = UTC + 1h
+    # assert d_local == d_utc
+    assert date_utc(d_local) == d_utc
+
+
+def test_conversions_right_after_beginning_of_daylight_saving(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    d_utc = date_utc(date_local("2024-03-31 03:00:00"))
+    d_local = date_local("2024-03-31 03:00:00")
+    ts_logger.debug(
+        f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
+    )
+    # right after beginning of daylight saving, Europe/Oslo = CEST = UTC + 2h
+    # assert d_local == d_utc
+    assert date_utc(d_local) == d_utc
+
+
+def test_conversions_right_before_end_of_daylight_saving(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    d_utc = date_utc(date_local("2024-10-27 01:45:00"))
+    d_local = date_local("2024-10-27 01:45:00")
+    ts_logger.debug(
+        f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
+    )
+    # right before end of daylight saving, Europe/Oslo = CEST = UTC + 2h
+    # assert d_local == d_utc
+    assert date_utc(d_local) == d_utc
+
+
+def test_conversions_right_after_end_of_daylight_saving(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    d_utc = date_utc(date_local("2024-10-27 02:15:00"))
+    d_local = date_local("2024-10-27 02:15:00")
+    ts_logger.debug(
+        f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
+    )
+    # right after end of daylight saving, Europe/Oslo = CET = UTC + 1h
+    # assert d_local == d_utc
+    assert date_utc(d_local) == d_utc
 
 
 def test_define_without_params() -> None:

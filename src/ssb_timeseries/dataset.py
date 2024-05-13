@@ -1,4 +1,4 @@
-# mypy: disable-error-code="assignment"
+# mypy: disable-error-code="assignment,attr-defined"
 # ruff: noqa: RUF013
 from copy import deepcopy
 from datetime import datetime
@@ -14,7 +14,9 @@ from ssb_timeseries import properties
 from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
 from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
 from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.meta import Taxonomy
 from ssb_timeseries.types import F
+from ssb_timeseries.types import PathStr
 
 
 class Dataset:
@@ -59,12 +61,15 @@ class Dataset:
             # TODO: if the datatype is not provided, search by name,
             # throw error if a) no set is found or b) multiple sets are found
             # ... till then, just continue
-            self.data_type = data_type
-
-        # TODO: for versioned series, return latest if no as_of_tz is provided
+            look_for_it = search(name)
+            if isinstance(look_for_it, Dataset):
+                self.data_type = look_for_it.data_type
+            else:
+                raise ValueError(
+                    f"Dataset {name} not found. Specify data_type to initialise a new set."
+                )
+                # TODO: for versioned series, return latest if no as_of_tz is provided
         self.as_of_utc = date_utc(as_of_tz)
-
-        # self.series: dict = kwargs.get("series", {})
 
         self.io = io.FileSystem(
             set_name=self.name, set_type=self.data_type, as_of_utc=self.as_of_utc
@@ -143,9 +148,6 @@ class Dataset:
                     for attribute, value in zip(name_pattern, name_parts, strict=False):
                         self.tags["series"][s][attribute] = value
 
-                    ts_logger.debug(
-                        f"DATASET {self.name}: series {s} {self.tags['series'][s]} "
-                    )
                     # [self.tags.series[k] = for k, a in zip(self.numeric_columns(), name_pattern]
 
         self.product: str = kwargs.get("product", "")
@@ -289,10 +291,7 @@ class Dataset:
         # if value not in self.series[item][attribute]:
         #    self.series[attribute].append(value)
 
-    def search(self, pattern: str = "*") -> list[str]:
-        """Search for datasets by name matching pattern."""
-        return self.io.search(pattern=pattern)
-
+    @no_type_check
     def filter(
         self,
         pattern: str = "",
@@ -330,9 +329,7 @@ class Dataset:
 
         if tags:
             series_tags = self.series_tags()
-            ts_logger.debug(
-                f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}"
-            )
+            # ts_logger.debug(f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}")
             matching_series = [
                 name
                 for name, s_tags in series_tags.items()
@@ -361,6 +358,7 @@ class Dataset:
                 out.tags["series"] = matching_series_tags
         return out
 
+    @no_type_check
     def __getitem__(
         self, criteria: str | dict[str, str] = "", **kwargs: Any
     ) -> Self | None:
@@ -396,7 +394,7 @@ class Dataset:
         else:
             return None
         if isinstance(result, Dataset):
-            return result  # type: ignore[return-value]
+            return result
         else:
             raise TypeError("Dataset.filter() did not return a Dataset type.")
 
@@ -405,7 +403,7 @@ class Dataset:
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
         """
-        xlabels = self.datetime_columns()[0]
+        xlabels = self.datetime_columns()
         ts_logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
         return self.data.plot(  # type: ignore[call-overload]
             xlabels,
@@ -787,8 +785,66 @@ class Dataset:
             }
         )
 
-    # unfinished business
+    def aggregate(
+        self,
+        attribute: str,
+        taxonomy: Taxonomy | int | PathStr,
+        aggregate_type: str | list[str] = "sum",
+    ) -> Self:
+        """Aggregate dataset by taxonomy.
 
+        Args:
+            attribute: The attribute to aggregate by.
+            taxonomy (Taxonomy | int | PathStr): The values for `attribute`. A taxonomy object as returned by Taxonomy(klass_id_or_path), or the id or path to retrieve one.
+            aggregate_type (str | list[str]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
+
+        Returns:
+            Self: A dataset object with the aggregated data.
+            If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
+            If the taxonomy is a flat list, only a single 'total' aggregate series is calculated.
+
+        Raises:
+            NotImplementedError: If the aggregation method is not implemented yet. --> TODO!
+        """
+        if isinstance(taxonomy, Taxonomy):
+            pass
+        else:
+            taxonomy = Taxonomy(taxonomy)
+
+        # TODO: alter to handle list of functions, eg ["mean", "10 percentile", "25 percentile", "median", "75 percentile", "90 percentile"]
+        if isinstance(aggregate_type, str):
+            match aggregate_type.lower():
+                case "mean" | "average":
+                    raise NotImplementedError(
+                        "Aggregation method 'mean' is not implemented yet."
+                    )
+                case "percentile":
+                    raise NotImplementedError(
+                        "Aggregation method 'percentile' is not implemented yet."
+                    )
+                case "count":
+                    raise NotImplementedError(
+                        "Aggregation method 'count' is not implemented yet."
+                    )
+                case "sum" | _:
+                    df = self.data.copy().drop(columns=self.numeric_columns())
+                    for node in taxonomy.parent_nodes():
+                        leaf_node_subset = self.filter(
+                            tags={attribute: taxonomy.leaf_nodes()}, output="df"
+                        ).drop(columns=self.datetime_columns())
+                        df[node.name] = leaf_node_subset.sum(axis=1)
+                        ts_logger.debug(
+                            f"DATASET.aggregate(): For node '{node.name}', column {aggregate_type} for input df:\n{leaf_node_subset}\nreturned:\n{df}"
+                        )
+                        new_col_name = node.name
+                        df = df.rename(columns={node: new_col_name})
+        else:
+            raise NotImplementedError(
+                "Multiple aggregation methods is planned, but not yet implemented."
+            )
+        return self.copy(f"{self.name}.{aggregate_type}", data=df)
+
+    # unfinished business
     # mypy: disable-error-code="no-untyped-def"
     @no_type_check
     def reindex(
@@ -806,3 +862,22 @@ class Dataset:
                 self.data.reindex(p)
             case _:
                 self.data = self.data.set_index(self.datetime_columns(), *args)
+
+
+def search(
+    pattern: str = "*", as_of_tz: datetime = None
+) -> list[io.SearchResult] | Dataset | list[None]:
+    """Search for datasets by name matching pattern."""
+    found = io.find_datasets(pattern=pattern)
+    ts_logger.debug(f"DATASET.search returned:\n{found} ")
+
+    if len(found) == 1:
+        # raise NotImplementedError("TODO: extract name and type from result.")
+        return Dataset(
+            name=found[0].name,
+            data_type=properties.seriestype_from_str(found[0].type_directory),
+            as_of_tz=as_of_tz,
+        )
+    else:
+        # elif len(found) > 1:
+        return found

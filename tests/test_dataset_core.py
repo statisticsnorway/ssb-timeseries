@@ -5,6 +5,7 @@ import pytest
 from pytest import LogCaptureFixture
 
 from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.dataset import search
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.io import CONFIG
@@ -290,20 +291,78 @@ def test_load_existing_set_without_loading_data(caplog: LogCaptureFixture) -> No
 
 
 @log_start_stop
-def test_search_for_dataset_by_part_of_name(caplog: LogCaptureFixture):
+def test_search_for_dataset_by_exact_name(caplog: LogCaptureFixture):
     caplog.set_level(logging.DEBUG)
     unique_new = uuid.uuid4().hex
-    x = Dataset(
-        name=f"test-find-{unique_new}", data_type=SeriesType.simple(), load_data=False
-    )
+    set_name = f"test-find-{unique_new}"
+    x = Dataset(name=set_name, data_type=SeriesType.simple(), load_data=False)
     tag_values = [["p", "q", "r"]]
     x.data = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
     x.save()
-    datasets = x.search(unique_new)
-    ts_logger.debug(f"datasets: {datasets!s}")
-    assert datasets == [f"test-find-{unique_new}"]
+    datasets_found = search(pattern=set_name)
+    ts_logger.debug(f"datasets: {datasets_found!s}")
+    # assert datasets_found
+    assert isinstance(datasets_found, Dataset)
+    assert datasets_found.name == set_name
+    assert datasets_found.data_type == SeriesType.simple()
+
+
+@log_start_stop
+def test_search_for_dataset_by_part_of_name_one_match(caplog: LogCaptureFixture):
+    caplog.set_level(logging.DEBUG)
+    unique_new = uuid.uuid4().hex
+    set_name = f"test-find-{unique_new}"
+    x = Dataset(name=set_name, data_type=SeriesType.simple(), load_data=False)
+    tag_values = [["p", "q", "r"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+    )
+    x.save()
+    datasets_found = search(pattern=unique_new)
+    ts_logger.debug(f"datasets: {datasets_found!s}")
+    assert isinstance(datasets_found, Dataset)
+    assert datasets_found.name == set_name
+    assert datasets_found.data_type == SeriesType.simple()
+
+
+def test_search_for_dataset_by_part_of_name_two_matches(
+    caplog: LogCaptureFixture,
+):
+    caplog.set_level(logging.DEBUG)
+    unique_new = uuid.uuid4()
+    set_name_1 = f"test-find-{unique_new}-1"
+    set_name_2 = f"test-find-{unique_new}-2"
+    tag_values = [["p", "q", "r"]]
+    df = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+    )
+    x = Dataset(name=set_name_1, data_type=SeriesType.simple(), data=df)
+    x.save()
+    y = Dataset(name=set_name_2, data_type=SeriesType.simple(), data=df)
+    y.save()
+    datasets_found = search(pattern=unique_new)
+    ts_logger.debug(f"datasets: {datasets_found!s}")
+    assert datasets_found
+    assert isinstance(datasets_found, list)
+    assert len(datasets_found) == 2
+
+
+@log_start_stop
+def test_search_for_nonexisting_dataset_returns_none(caplog: LogCaptureFixture):
+    caplog.set_level(logging.DEBUG)
+    unique_new = uuid.uuid4().hex
+    set_name = f"test-find-nonexisting-{unique_new}"
+    x = Dataset(name=set_name, data_type=SeriesType.simple(), load_data=False)
+    tag_values = [["p", "q", "r"]]
+    x.data = create_df(
+        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+    )
+    datasets_found = search(pattern=unique_new)
+
+    ts_logger.debug(f"datasets: {datasets_found!s}")
+    assert not datasets_found
 
 
 @log_start_stop

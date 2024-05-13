@@ -130,8 +130,12 @@ def create_df(
     # Opprett DataFrame med tilfeldige tall
     rows = len(valid_at)
     cols = len(series)
+    some_numbers = random_numbers(
+        rows, cols, midpoint=midpoint, variance=variance, decimals=decimals
+    )
     df = pd.DataFrame(
-        (midpoint + variance * np.random.randn(rows, cols)).round(decimals),
+        # (midpoint + variance * np.random.randn(rows, cols)).round(decimals),
+        some_numbers,
         columns=series,
         dtype="float32[pyarrow]",
     )
@@ -147,3 +151,16 @@ def create_df(
             df.set_index(["valid_from", "valid_to"])
 
     return df
+
+
+def random_numbers(
+    rows: int,
+    cols: int,
+    decimals: int = 0,
+    midpoint: int | float = 100,
+    variance: int | float = 10,
+) -> np.ndarray:
+    """Generate sample dataframe of specified dimensions."""
+    generator = np.random.default_rng(42)
+    random_matrix = generator.standard_normal(size=(rows, cols))
+    return midpoint + variance * random_matrix.round(decimals)
