@@ -2,7 +2,7 @@
 # ruff: noqa
 """Date and time utilities."""
 
-from datetime import datetime as dt
+from datetime import datetime as dt, tzinfo
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -11,7 +11,7 @@ from dateutil import parser
 from ssb_timeseries.logging import ts_logger
 
 MAX_TIME_PRECISION = "second"
-OSLO = ZoneInfo("Europe/Oslo")  # Will shift between CET and CEST
+DEFAULT_TZ = ZoneInfo("Europe/Oslo")  # Will shift between CET and CEST
 UTC = ZoneInfo("UTC")
 
 
@@ -39,10 +39,8 @@ def date_local(some_date: dt | str, **kwargs) -> dt:
 
     The output will be rounded to the precision specified by kwarg 'rounding'. Default precision 'minute' will be used if none is provided.
     """
-    dt_type = ensure_datetime(some_date)
-    tz_aware = ensure_tz_aware(dt_type)
-    print(tz_aware)
-    correct_tz = tz_aware.astimezone(tz=OSLO)
+    dt_type = ensure_datetime(some_date, tz=DEFAULT_TZ)
+    correct_tz = dt_type.astimezone(tz=DEFAULT_TZ)
     return date_round(correct_tz, **kwargs)
 
 
@@ -100,9 +98,9 @@ def ensure_tz_aware(some_date: dt) -> dt:
             "DATE_UTC catched a date without timezone info. This will become an error later. Assuming CET."
         )
         try:
-            tz_aware = some_date.astimezone(tz=OSLO)
+            tz_aware = some_date.astimezone(tz=DEFAULT_TZ)
         except (ValueError, TypeError, AttributeError):
-            tz_aware = some_date.replace(tzinfo=OSLO)
+            tz_aware = some_date.replace(tzinfo=DEFAULT_TZ)
         return tz_aware
     else:
         return some_date
