@@ -203,14 +203,6 @@ class Dataset:
         Args:
             as_of_tz (datetime): Optional. Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of_utc (utc dates under the hood).
         """
-        # def snapshot_name(self) -> str:
-        #     # <kort-beskrivelse>_p<periode-fra-og-med>_p<perode-til-og- med>_v<versjon>.<filtype>
-        #     date_from = np.min(self.data[self.datetime_columns()])
-        #     date_to = np.max(self.data[self.datetime_columns()])
-        #     version = self.io.last_version + 1
-        #     out = f"{self.name}_p{date_from}_p{date_to}_v{version}.parquet"
-        #     return out
-
         date_from = self.data[self.datetime_columns()].min().min()
         date_to = self.data[self.datetime_columns()].max().max()
         ts_logger.debug(
@@ -507,8 +499,8 @@ class Dataset:
         self,
         freq: str,
         func: F | str,
-        *args: Any,  # ---noqa: ANN002
-        **kwargs: Any,  # --noqa: ANN003
+        *args: Any,
+        **kwargs: Any,
     ) -> Self:
         """Alter frequency of dataset data."""
         # TODO: have a closer look at dates returned for last period when upsampling
@@ -666,8 +658,6 @@ class Dataset:
                 out_data[self.numeric_columns()] = func(
                     out_data[self.numeric_columns()], other
                 )
-
-                # return out_data
             else:
                 raise ValueError(
                     f"Incompatible shapes for element-wise {func.__name__}"
@@ -677,8 +667,6 @@ class Dataset:
         else:
             raise ValueError("Unsupported operand type")
 
-        # TODO: return (new) Dataset object instead!
-        # return out_data
         if other_as_of:
             out_as_of = max(self.as_of_utc, other_as_of)
         else:
@@ -789,63 +777,46 @@ class Dataset:
         self,
         attribute: str,
         taxonomy: Taxonomy | int | PathStr,
-        aggregate_type: str | list[str] = "sum",
+        aggregate_function: str | list[str] = "sum",
     ) -> Self:
         """Aggregate dataset by taxonomy.
 
         Args:
             attribute: The attribute to aggregate by.
             taxonomy (Taxonomy | int | PathStr): The values for `attribute`. A taxonomy object as returned by Taxonomy(klass_id_or_path), or the id or path to retrieve one.
-            aggregate_type (str | list[str]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
+            aggregate_function (str | list[str]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
 
         Returns:
             Self: A dataset object with the aggregated data.
             If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
             If the taxonomy is a flat list, only a single 'total' aggregate series is calculated.
-
-        Raises:
-            NotImplementedError: If the aggregation method is not implemented yet. --> TODO!
         """
         if isinstance(taxonomy, Taxonomy):
             pass
         else:
             taxonomy = Taxonomy(taxonomy)
 
-        # TODO: alter to handle list of functions, eg ["mean", "10 percentile", "25 percentile", "median", "75 percentile", "90 percentile"]
-        if isinstance(aggregate_type, str):
-            match aggregate_type.lower():
-                case "mean" | "average":
-                    raise NotImplementedError(
-                        "Aggregation method 'mean' is not implemented yet."
-                    )
-                case "percentile":
-                    raise NotImplementedError(
-                        "Aggregation method 'percentile' is not implemented yet."
-                    )
-                case "count":
-                    raise NotImplementedError(
-                        "Aggregation method 'count' is not implemented yet."
-                    )
-                case "sum" | _:
-                    df = self.data.copy().drop(columns=self.numeric_columns())
-                    for node in taxonomy.parent_nodes():
-                        leaf_node_subset = self.filter(
-                            tags={attribute: taxonomy.leaf_nodes()}, output="df"
-                        ).drop(columns=self.datetime_columns())
-                        df[node.name] = leaf_node_subset.sum(axis=1)
-                        ts_logger.debug(
-                            f"DATASET.aggregate(): For node '{node.name}', column {aggregate_type} for input df:\n{leaf_node_subset}\nreturned:\n{df}"
-                        )
-                        new_col_name = node.name
-                        df = df.rename(columns={node: new_col_name})
-        else:
-            raise NotImplementedError(
-                "Multiple aggregation methods is planned, but not yet implemented."
-            )
-        return self.copy(f"{self.name}.{aggregate_type}", data=df)
+        if isinstance(aggregate_function, str):
+            aggregate_function = [aggregate_function]
 
-    # unfinished business
-    # mypy: disable-error-code="no-untyped-def"
+        df = self.data.copy().drop(columns=self.numeric_columns())
+        for node in taxonomy.parent_nodes():
+            leaf_node_subset = self.filter(
+                tags={attribute: taxonomy.leaf_nodes()}, output="df"
+            ).drop(columns=self.datetime_columns())
+
+            for m in aggregate_function:
+                df[node.name] = calculate_aggregate(leaf_node_subset, m)
+                ts_logger.debug(
+                    f"DATASET.aggregate(): For node '{node.name}', column {m} for input df:\n{leaf_node_subset}\nreturned:\n{df}"
+                )
+                new_col_name = f"{m}({node.name})"
+                df = df.rename(columns={node: new_col_name})
+
+        return self.copy(f"{self.name}.{aggregate_function}", data=df)
+
+    # reindexing is a remainder of abandoned approach to avoid calculating on datatime columns?
+    # --> can be deleted if not used / or nice to have?
     @no_type_check
     def reindex(
         self,
@@ -864,6 +835,31 @@ class Dataset:
                 self.data = self.data.set_index(self.datetime_columns(), *args)
 
 
+def calculate_aggregate(df: pd.DataFrame, method: str) -> pd.Series | Any:
+    """Helper function to calculate aggregate over dataframe columns."""
+    match method.lower():
+        case "mean" | "average":
+            out = df.mean(axis=1)
+            # TODO: add test case
+        case "min" | "minimum":
+            out = df.min(axis=1)
+            # TODO: add test case
+        case "max" | "maximum":
+            out = df.max(axis=1)
+            # TODO: add test case
+        case "count":
+            out = df.count(axis=1)
+            # TODO: add test case
+        case "sum":
+            out = df.sum(axis=1)
+        case "percentile" | _:
+            raise NotImplementedError(
+                f"Aggregation method '{method}' is not implemented (yet)."
+            )
+            # TODO: add test case
+    return out
+
+
 def search(
     pattern: str = "*", as_of_tz: datetime = None
 ) -> list[io.SearchResult] | Dataset | list[None]:
@@ -872,12 +868,10 @@ def search(
     ts_logger.debug(f"DATASET.search returned:\n{found} ")
 
     if len(found) == 1:
-        # raise NotImplementedError("TODO: extract name and type from result.")
         return Dataset(
             name=found[0].name,
             data_type=properties.seriestype_from_str(found[0].type_directory),
             as_of_tz=as_of_tz,
         )
     else:
-        # elif len(found) > 1:
         return found
