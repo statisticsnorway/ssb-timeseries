@@ -806,12 +806,11 @@ class Dataset:
             ).drop(columns=self.datetime_columns())
 
             for m in aggregate_function:
-                df[node.name] = calculate_aggregate(leaf_node_subset, m)
+                new_col_name = f"{m}({node.name})"
+                df[new_col_name] = calculate_aggregate(leaf_node_subset, m)
                 ts_logger.debug(
                     f"DATASET.aggregate(): For node '{node.name}', column {m} for input df:\n{leaf_node_subset}\nreturned:\n{df}"
                 )
-                new_col_name = f"{m}({node.name})"
-                df = df.rename(columns={node: new_col_name})
 
         return self.copy(f"{self.name}.{aggregate_function}", data=df)
 

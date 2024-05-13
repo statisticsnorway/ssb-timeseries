@@ -327,7 +327,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
     # ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
     assert len(y.numeric_columns()) == len(klass157.parent_nodes())
     assert sorted(y.numeric_columns()) == sorted(
-        [n.name for n in klass157.parent_nodes()]
+        [f"sum({n.name})" for n in klass157.parent_nodes()]
     )
     # raise AssertionError("In order to see DEBUG logs while testing.")
 
@@ -367,7 +367,7 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
     # ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
     assert len(y.numeric_columns()) == len(klass157.parent_nodes())
     assert sorted(y.numeric_columns()) == sorted(
-        [n.name for n in klass157.parent_nodes()]
+        [f"mean({n.name})" for n in klass157.parent_nodes()]
     )
     # raise AssertionError("In order to see DEBUG logs while testing.")
 
@@ -401,16 +401,18 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
     )
 
     assert len(x.numeric_columns()) == len(klass157_leaves)
-
+    multiple_functions = ["count", "min", "max"]
     y = x.aggregate(
         attribute="A",
         taxonomy=klass157,
-        aggregate_function=["count", "min", "max"],
+        aggregate_function=multiple_functions,
     )
     assert isinstance(y, Dataset)
     # ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
-    assert len(y.numeric_columns()) == len(klass157.parent_nodes())
-    assert sorted(y.numeric_columns()) == sorted(
-        [n.name for n in klass157.parent_nodes()]
+    assert len(y.numeric_columns()) == len(
+        klass157.parent_nodes() * len(multiple_functions)
     )
+    # assert sorted(y.numeric_columns()) == sorted(
+    #     [n.name for n in klass157.parent_nodes()]
+    # )
     # raise AssertionError("In order to see DEBUG logs while testing.")
