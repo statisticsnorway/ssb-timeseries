@@ -839,23 +839,18 @@ def calculate_aggregate(df: pd.DataFrame, method: str) -> pd.Series | Any:
     match method.lower():
         case "mean" | "average":
             out = df.mean(axis=1)
-            # TODO: add test case
         case "min" | "minimum":
             out = df.min(axis=1)
-            # TODO: add test case
         case "max" | "maximum":
             out = df.max(axis=1)
-            # TODO: add test case
         case "count":
             out = df.count(axis=1)
-            # TODO: add test case
         case "sum":
             out = df.sum(axis=1)
         case "percentile" | _:
             raise NotImplementedError(
                 f"Aggregation method '{method}' is not implemented (yet)."
             )
-            # TODO: add test case
     return out
 
 

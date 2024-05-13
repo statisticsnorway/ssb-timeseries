@@ -384,26 +384,6 @@ class FileSystem:
                     f"DATASET {self.set_name}: sharing with {s['team']}, snapshot copied to {s['path']}."
                 )
 
-    # @classmethod
-    # def search(
-    #     cls, pattern: str | PathStr = "", as_of: datetime | None = None
-    # ) -> list[SearchResult]:
-    #     """Search for files in under timeseries root."""
-    #     if pattern:
-    #         pattern = f"*{pattern}*"
-    #     else:
-    #         pattern = "*"
-
-    #     search_str = os.path.join(CONFIG.timeseries_root, "*", pattern)
-    #     dirs = glob.glob(search_str)
-    #     ts_logger.debug(f"DATASET.IO.SEARCH: {search_str} dirs{dirs}")
-    #     search_results = [
-    #         d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
-    #     ]
-    #     ts_logger.debug(f"DATASET.IO.SEARCH: search_results{search_results}")
-
-    #     return [SearchResult(f[2], f[1]) for f in search_results]
-
     @classmethod
     def dir(cls, *args: str, **kwargs: bool) -> str:
         """Check that target directory is under BUCKET. If so, create it if it does not exist."""
