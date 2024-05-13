@@ -1,6 +1,7 @@
 import os
 import uuid
 from pathlib import Path
+from sys import platform
 
 import pytest
 
@@ -45,8 +46,8 @@ def test_fs_type() -> None:
     assert fs.fs_type("/home/jovyan") == "local"
 
 
+@pytest.mark.skipif(platform != "linux", reason="Can not see GCS.")
 def test_same_path() -> None:
-    # ts_logger.warning(fs.same_path("/home/jovyan", "/home/jovyan/a", "/home/jovyan/b"))
     assert (
         fs.same_path(BUCKET, "/home/jovyan") == "/"
         or fs.same_path(BUCKET, "/home/jovyan") == "\\"
@@ -60,12 +61,7 @@ def test_same_path() -> None:
             "/ssb-prod-dapla-felles-data-delt/poc-tidsserier/a",
         )
         == "/ssb-prod-dapla-felles-data-delt/poc-tidsserier"
-        or fs.same_path(
-            "/ssb-prod-dapla-felles-data-delt/poc-tidsserier",
-            "/ssb-prod-dapla-felles-data-delt/poc-tidsserier/a",
-        )
-        == r"\\ssb-prod-dapla-felles-data-delt\poc-tidsserier"
-    )  # \\ssb-prod-dapla-... does not exist, but this sill pass on Windows
+    )
 
 
 def test_home_exists() -> None:
