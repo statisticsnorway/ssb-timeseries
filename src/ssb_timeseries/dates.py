@@ -40,8 +40,8 @@ def date_local(some_date: dt | str, **kwargs) -> dt:
     The output will be rounded to the precision specified by kwarg 'rounding'. Default precision 'minute' will be used if none is provided.
     """
     dt_type = ensure_datetime(some_date, tz=DEFAULT_TZ)
-    correct_tz = dt_type.astimezone(tz=DEFAULT_TZ)
-    return date_round(correct_tz, **kwargs)
+    # correct_tz = dt_type.astimezone(tz=DEFAULT_TZ)
+    return date_round(dt_type, **kwargs)
 
 
 def date_round(d: dt, **kwargs) -> dt:
