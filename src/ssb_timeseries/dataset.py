@@ -4,7 +4,7 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any
 from typing import no_type_check
-
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from typing_extensions import Self
@@ -390,7 +390,7 @@ class Dataset:
         else:
             raise TypeError("Dataset.filter() did not return a Dataset type.")
 
-    def plot(self, *args: Any, **kwargs: Any) -> Any:
+    def plot(self, *args: Any, **kwargs: Any) -> plt:
         """Plot dataset data.
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
