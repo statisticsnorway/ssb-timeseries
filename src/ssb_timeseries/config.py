@@ -90,13 +90,13 @@ class Config:
         else:
             return "local"
 
-    def toJSON(self) -> str:
+    def to_json(self) -> str:
         """Return timeseries configurations as JSON string."""
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
     def __str__(self) -> str:
         """Human readable string representation of configuration object: JSON string."""
-        return self.toJSON()
+        return self.to_json()
 
     def load(self, path: PathStr) -> None:
         """Read the properties from a JSON file into a Config object."""
@@ -116,7 +116,7 @@ class Config:
         Args:
             path (PathStr): Full path of the JSON file to save to. Defaults to the value of the environment variable TIMESERIES_CONFIG.
         """
-        fs.write_json(content=self.toJSON(), path=path)
+        fs.write_json(content=self.to_json(), path=path)
         if HOME == JOVYAN:
             # For some reason `os.environ["TIMESERIES_CONFIG"] = path` does not work:
             cmd = f"export TIMESERIES_CONFIG={TIMESERIES_CONFIG}"
@@ -153,9 +153,6 @@ def main(*args: str | PathStr) -> None:
         ValueError: If args is not 'home' | 'gcs' | 'jovyan'.
 
     """
-    # for a, arg in enumerate(sys.argv[1:]):
-    #    print(f"{a} - {arg}")
-
     TIMESERIES_CONFIG = os.getenv("TIMESERIES_CONFIG", DEFAULT_CONFIG_LOCATION)
     if not TIMESERIES_CONFIG:
         print(

@@ -97,6 +97,5 @@ def test_read_config_from_missing_json_file(remember_config) -> None:
 @pytest.mark.skipif(HOME != "/home/bernhard", reason="None of your business.")
 def test_fail(remember_config, caplog):
     caplog.set_level(logging.DEBUG)
-    print("print to std out")
-    ts_logger.warning("ts_logger.warning: std out")
-    assert True
+    ts_logger.debug("ts_logger.warning: std out")
+    pass

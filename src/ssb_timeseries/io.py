@@ -24,6 +24,7 @@ from ssb_timeseries import config
 from ssb_timeseries import fs
 from ssb_timeseries import properties
 from ssb_timeseries.dates import Interval
+from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import PathStr
 
@@ -69,30 +70,9 @@ class FileSystem:
 
         if as_of_utc is None:
             pass
-            # ecxception if not
+            # exception if not
         else:
-            # rounded_utc = as_of_utc
-            self.as_of_utc: datetime = as_of_utc.isoformat().replace(":", "")
-
-    # def __new__(
-    #     cls,
-    #     set_name: str,
-    #     set_type: properties.SeriesType,
-    #     as_of_utc: datetime,
-    #     process_stage: str = "statistikk",
-    #     sharing: dict = {},
-    #     type_name="local",
-    #     *args,
-    #     **kwargs,
-    # ):
-
-    #     subclass_map = {
-    #         subclass.type_name: subclass for subclass in cls.__subclasses__()
-    #     }
-    #     subclass = subclass_map[type_name]
-    #     instance = super(FileSystem, subclass).__new__(subclass)
-    #     instance.init_fs()
-    #     return instance
+            self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
 
     @property
     def root(self) -> str:
@@ -405,26 +385,6 @@ class FileSystem:
                 )
 
     @classmethod
-    def search(
-        cls, pattern: str | PathStr = "", as_of: datetime | None = None
-    ) -> list[SearchResult]:
-        """Search for files in under timeseries root."""
-        if pattern:
-            pattern = f"*{pattern}*"
-        else:
-            pattern = "*"
-
-        search_str = os.path.join(CONFIG.timeseries_root, "*", pattern)
-        dirs = glob.glob(search_str)
-        ts_logger.debug(f"DATASET.IO.SEARCH: {search_str} dirs{dirs}")
-        search_results = [
-            d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
-        ]
-        ts_logger.debug(f"DATASET.IO.SEARCH: search_results{search_results}")
-
-        return [SearchResult(f[2], f[1]) for f in search_results]
-
-    @classmethod
     def dir(cls, *args: str, **kwargs: bool) -> str:
         """Check that target directory is under BUCKET. If so, create it if it does not exist."""
         ts_logger.debug(f"{args}:")
@@ -444,7 +404,6 @@ class FileSystem:
 def find_datasets(
     pattern: str | PathStr = "", as_of: datetime | None = None
 ) -> list[SearchResult]:
-    # ) -> list[str | PathStr]:
     """Search for files in under timeseries root."""
     if pattern:
         pattern = f"*{pattern}*"

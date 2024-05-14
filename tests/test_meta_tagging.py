@@ -285,6 +285,13 @@ def test_updated_tags_propagates_to_column_names_accordingly() -> None:
     raise AssertionError()
 
 
+@pytest.mark.skip(reason="Not ready yet.")
+def test_aggregate_sum_for_flat_list_taxonomy(
+    caplog,
+) -> None:
+    pass
+
+
 @log_start_stop
 def test_aggregate_sums_for_hierarchical_taxonomy(
     conftest,
@@ -320,13 +327,92 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
     # ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
     assert len(y.numeric_columns()) == len(klass157.parent_nodes())
     assert sorted(y.numeric_columns()) == sorted(
-        [n.name for n in klass157.parent_nodes()]
+        [f"sum({n.name})" for n in klass157.parent_nodes()]
     )
     # raise AssertionError("In order to see DEBUG logs while testing.")
 
 
-@pytest.mark.skip(reason="Not ready yet.")
-def test_aggregate_sum_for_flat_list_taxonomy(
+@log_start_stop
+def test_aggregate_mean_for_hierarchical_taxonomy(
+    conftest,
     caplog,
 ) -> None:
-    pass
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(157)
+    klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+
+    set_name = conftest.function_name()
+    set_tags = {
+        "Country": "Norway",
+    }
+    series_tags = {"A": klass157_leaves, "B": ["q"], "C": ["z"]}
+    tag_values: list[list[str]] = [value for value in series_tags.values()]
+
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        tags=set_tags,
+        series_tags=series_tags,
+        data=create_df(
+            *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+        name_pattern=["A", "B", "C"],
+    )
+
+    assert len(x.numeric_columns()) == len(klass157_leaves)
+
+    y = x.aggregate("A", klass157, "mean")
+    assert isinstance(y, Dataset)
+    # ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
+    assert len(y.numeric_columns()) == len(klass157.parent_nodes())
+    assert sorted(y.numeric_columns()) == sorted(
+        [f"mean({n.name})" for n in klass157.parent_nodes()]
+    )
+    # raise AssertionError("In order to see DEBUG logs while testing.")
+
+
+@log_start_stop
+def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
+    conftest,
+    caplog,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(157)
+    klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+
+    set_name = conftest.function_name()
+    set_tags = {
+        "Country": "Norway",
+    }
+    series_tags = {"A": klass157_leaves, "B": ["q"], "C": ["z"]}
+    tag_values: list[list[str]] = [value for value in series_tags.values()]
+
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        tags=set_tags,
+        series_tags=series_tags,
+        data=create_df(
+            *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+        name_pattern=["A", "B", "C"],
+    )
+
+    assert len(x.numeric_columns()) == len(klass157_leaves)
+    multiple_functions = ["count", "min", "max"]
+    y = x.aggregate(
+        attribute="A",
+        taxonomy=klass157,
+        aggregate_function=multiple_functions,
+    )
+    assert isinstance(y, Dataset)
+    # ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
+    assert len(y.numeric_columns()) == len(
+        klass157.parent_nodes() * len(multiple_functions)
+    )
+    # assert sorted(y.numeric_columns()) == sorted(
+    #     [n.name for n in klass157.parent_nodes()]
+    # )
+    # raise AssertionError("In order to see DEBUG logs while testing.")
