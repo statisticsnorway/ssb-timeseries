@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ssb-timeseries"
-version = "0.2.1"
+version = "0.2.2"
 description = "SSB Timeseries"
 authors = ["Bernhard Ryeng <bernhard.ryeng@ssb.no>"]
 license = "MIT"
@@ -23,6 +23,7 @@ bigtree = ">=0.17.0"
 typing-extensions = ">=4.11.0"
 python-dateutil = ">=2.9.0.post0"
 numpy = ">=1.26.4"
+matplotlib = "^3.8.4"
 
 [tool.poetry.group.dev.dependencies]
 pygments = ">=2.10.0"

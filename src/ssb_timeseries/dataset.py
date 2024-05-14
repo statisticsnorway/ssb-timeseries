@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any
 from typing import no_type_check
 
+import matplotlib.pyplot as plt  # noqa: F401
 import numpy as np
 import pandas as pd
 from typing_extensions import Self
