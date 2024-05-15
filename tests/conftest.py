@@ -104,7 +104,7 @@ def existing_estimate_set():
 
 
 @pytest.fixture(scope="function", autouse=False)
-def in_memory_none_at():
+def new_dataset_none_at():
     """A fixture to create simple dataset before running the test."""
     # create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
@@ -126,7 +126,7 @@ def in_memory_none_at():
 
 
 @pytest.fixture(scope="function", autouse=False)
-def in_memory_as_of_at():
+def new_dataset_as_of_at():
     """A fixture to create simple dataset before running the test."""
     # create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
@@ -149,7 +149,7 @@ def in_memory_as_of_at():
 
 
 @pytest.fixture(scope="function", autouse=False)
-def in_memory_as_of_from_to():
+def new_dataset_as_of_from_to():
     """A fixture to create simple dataset before running the test."""
     # create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
@@ -172,36 +172,13 @@ def in_memory_as_of_from_to():
 
 
 @pytest.fixture(scope="function", autouse=False)
-def in_memory_none_from_to():
+def new_dataset_none_from_to():
     """A fixture to create simple dataset before running the test."""
     # create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     x = Dataset(
         name="test-existing-simple-dataset",
         data_type=SeriesType.estimate(),
-        series_tags=tags,
-    )
-    tag_values = [value for value in tags.values()]
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
-
-    # tests run here
-    yield x
-
-
-@pytest.fixture(scope="function", autouse=False)
-def in_memory_as_of_from_to():
-    """A fixture to create simple dataset before running the test."""
-    # create dataset and save
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    x = Dataset(
-        name="test-existing-simple-dataset",
-        data_type=SeriesType.estimate(),
-        as_of_tz=date_utc("2022-01-01"),
         series_tags=tags,
     )
     tag_values = [value for value in tags.values()]
