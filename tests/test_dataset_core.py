@@ -419,43 +419,6 @@ def test_filter_dataset_by_regex_return_dataset(caplog):
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
 
-# repeated?
-# @log_start_stop
-# def test_filter_dataset_by_regex(caplog: LogCaptureFixture):
-#     caplog.set_level(logging.DEBUG)
-
-#     x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
-#     tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
-#     x.data = create_df(
-#         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
-#     )
-#     y = x.filter(regex="^x")
-#     ts_logger.debug(f"y = x.filter(regex='^x')\n{y.data}")
-
-#     assert isinstance(y, Dataset)
-#     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
-#     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
-
-
-# @log_start_stop
-# def test_filter_dataset_by_regex_new_dataset(caplog: LogCaptureFixture):
-#     caplog.set_level(logging.DEBUG)
-
-#     x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
-#     tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
-#     x.data = create_df(
-#         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
-#     )
-#     y = x.filter(
-#         regex="^x", name="test-filter", data_type=SeriesType.simple(), load_data=False
-#     )
-#     ts_logger.debug(f"datasets: {y}")
-#     ts_logger.debug(f"datasets: {x}")
-
-#     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
-#     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
-
-
 @log_start_stop
 def test_correct_datetime_columns_valid_at(caplog: LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)

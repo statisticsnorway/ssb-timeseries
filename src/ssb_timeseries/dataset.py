@@ -172,9 +172,8 @@ class Dataset:
         """Rename the Dataset.
 
         For use by .copy, and on very rare other occasions. Does not move or rename any previously stored data.
-
-        TODO: Fix that?
         """
+        # TODO: Fix that?
         self.name = new_name
 
         self.tags["dataset"] = new_name
@@ -248,10 +247,11 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
         """
+        # TODO: Implement this:
         if tags:
-            raise NotImplementedError("Not (yet) implemented. Planned for later.")
+            raise NotImplementedError()
         elif kwargs:
-            raise NotImplementedError("Not (yet) implemented. Planned for later.")
+            raise NotImplementedError()
             # if value not in self[attribute]:
             # self[attribute].append(value)
         else:
@@ -271,10 +271,11 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
         """
+        # TODO: Implement this:
         if tags:
-            raise NotImplementedError("Not (yet) implemented. Planned for later.")
+            raise NotImplementedError()
         elif kwargs:
-            raise NotImplementedError("Not (yet) implemented. Planned for later.")
+            raise NotImplementedError()
             # if value not in self[attribute]:
             # self[attribute].append(value)
         else:
@@ -396,7 +397,8 @@ class Dataset:
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
         """
-        xlabels = self.datetime_columns()
+        xlabels = self.datetime_columns()[0]
+        ts_logger.debug(f"DATAWSET.plot(): x labels = {xlabels}")
         ts_logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
         return self.data.plot(  # type: ignore[call-overload]
             xlabels,
@@ -792,9 +794,7 @@ class Dataset:
             If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
             If the taxonomy is a flat list, only a single 'total' aggregate series is calculated.
         """
-        if isinstance(taxonomy, Taxonomy):
-            pass
-        else:
+        if not isinstance(taxonomy, Taxonomy):
             taxonomy = Taxonomy(taxonomy)
 
         if isinstance(aggregate_function, str):
