@@ -366,23 +366,55 @@ def test_search_for_nonexisting_dataset_returns_none(caplog: LogCaptureFixture):
 
 
 @log_start_stop
-def test_dataset_getitem_by_string(caplog: LogCaptureFixture):
+def test_dataset_getitem_by_string(
+    new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
+):
     caplog.set_level(logging.DEBUG)
 
-    x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
-    tag_values = [["a", "b", "c"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2022-06-01", freq="MS"
-    )
-    y = x["b"]
+    x = new_dataset_as_of_at
+    y = x["b_q_z1"]
     assert isinstance(y, Dataset)
 
     ts_logger.debug(f"y = x['b']\n{y}")
     ts_logger.debug(f"{__name__}look at y:\n\t{y}")
     ts_logger.debug(f"{__name__}look at x:\n\t{x.data}")
-    assert list(y.data.columns) == ["valid_at", "b"]
-    assert list(x.data.columns) == ["valid_at", "a", "b", "c"]
-    # confirm that x and y are not the same object
+    assert id(x) != id(y)
+    assert list(y.data.columns) == ["valid_at", "b_q_z1"]
+
+
+@pytest.mark.skip()
+@log_start_stop
+def test_dataset_getitem_by_regex(
+    new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
+):
+    caplog.set_level(logging.DEBUG)
+
+    x = new_dataset_as_of_at
+    y = x["^x"]
+    assert isinstance(y, Dataset)
+
+    ts_logger.debug(f"y = x['b']\n{y}")
+    ts_logger.debug(f"{__name__}look at y:\n\t{y}")
+    ts_logger.debug(f"{__name__}look at x:\n\t{x.data}")
+    assert id(x) != id(y)
+    assert list(y.data.columns) == ["valid_at", "b_q_z1"]
+
+
+@log_start_stop
+def test_dataset_getitem_by_tags(
+    new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
+):
+    caplog.set_level(logging.DEBUG)
+
+    x = new_dataset_as_of_at
+    y = x[{"A": "a", "B": "q", "C": "z1"}]
+    assert isinstance(y, Dataset)
+
+    ts_logger.debug(f"y = x['b']\n{y}")
+    ts_logger.debug(f"{__name__}look at y:\n\t{y}")
+    ts_logger.debug(f"{__name__}look at x:\n\t{x.data}")
+    assert id(x) != id(y)
+    assert list(y.data.columns) == ["valid_at", "a_q_z1"]
 
 
 @log_start_stop
@@ -417,43 +449,6 @@ def test_filter_dataset_by_regex_return_dataset(caplog):
     assert isinstance(y, Dataset)
     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
-
-
-# repeated?
-# @log_start_stop
-# def test_filter_dataset_by_regex(caplog: LogCaptureFixture):
-#     caplog.set_level(logging.DEBUG)
-
-#     x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
-#     tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
-#     x.data = create_df(
-#         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
-#     )
-#     y = x.filter(regex="^x")
-#     ts_logger.debug(f"y = x.filter(regex='^x')\n{y.data}")
-
-#     assert isinstance(y, Dataset)
-#     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
-#     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
-
-
-# @log_start_stop
-# def test_filter_dataset_by_regex_new_dataset(caplog: LogCaptureFixture):
-#     caplog.set_level(logging.DEBUG)
-
-#     x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
-#     tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
-#     x.data = create_df(
-#         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
-#     )
-#     y = x.filter(
-#         regex="^x", name="test-filter", data_type=SeriesType.simple(), load_data=False
-#     )
-#     ts_logger.debug(f"datasets: {y}")
-#     ts_logger.debug(f"datasets: {x}")
-
-#     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
-#     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
 
 @log_start_stop
@@ -529,3 +524,19 @@ def test_versioning_none_appends_to_existing_file(caplog: LogCaptureFixture) -> 
 
     assert a.data.size < c.data.size
     assert b.data.size < c.data.size
+
+
+@log_start_stop
+def test_get_dataset_series_and_series_tags(
+    new_dataset_none_at: Dataset, caplog: LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    x = new_dataset_none_at
+    series_names = x.series
+    series_tags = x.series_tags
+    series_tags_keys = [k for k in series_tags.keys()]
+    assert isinstance(series_names, list)
+    assert isinstance(series_tags, dict)
+    assert len(series_names) == len(series_tags_keys)
+    assert sorted(series_names) == sorted(series_tags_keys)
+    # raise AssertionError
