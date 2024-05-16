@@ -225,9 +225,9 @@ class Dataset:
         return self.numeric_columns()
 
     @property
-    def series_tags(self) -> dict[str | list[str]]:
+    def series_tags(self) -> dict[str, str | list[str]]:
         """Get series tags."""
-        return self.tags["series"]
+        return self.tags["series"]  # type: ignore
 
     def tag_set(self, tags: dict[str, str] = None, **kwargs: str | list[str]) -> None:
         """Tag the set.
