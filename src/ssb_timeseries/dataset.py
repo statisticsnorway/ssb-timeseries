@@ -398,7 +398,7 @@ class Dataset:
         Convenience wrapper around Dataframe.plot() with sensible defaults.
         """
         xlabels = self.datetime_columns()[0]
-        ts_logger.debug(f"DATAWSET.plot(): x labels = {xlabels}")
+        ts_logger.debug(f"DATASET.plot(): x labels = {xlabels}")
         ts_logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
         return self.data.plot(  # type: ignore[call-overload]
             xlabels,
