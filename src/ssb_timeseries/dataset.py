@@ -225,7 +225,7 @@ class Dataset:
         return self.numeric_columns()
 
     @property
-    def series_tags(self) -> dict:
+    def series_tags(self) -> dict[str | list[str]]:
         """Get series tags."""
         return self.tags["series"]
 
