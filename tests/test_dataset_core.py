@@ -524,3 +524,19 @@ def test_versioning_none_appends_to_existing_file(caplog: LogCaptureFixture) -> 
 
     assert a.data.size < c.data.size
     assert b.data.size < c.data.size
+
+
+@log_start_stop
+def test_dataset_series(
+    new_dataset_none_at: Dataset, caplog: LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    x = new_dataset_none_at
+    series_names = x.series()
+    series_tags = x.series(what="tags")
+
+    assert isinstance(series_names, list)
+    assert isinstance(series_tags, dict)
+    assert series_names == [
+        k for k in series_tags.keys() for f in series_tags.items()
+    ]  # raise AssertionError
