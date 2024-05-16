@@ -527,16 +527,16 @@ def test_versioning_none_appends_to_existing_file(caplog: LogCaptureFixture) -> 
 
 
 @log_start_stop
-def test_dataset_series(
+def test_get_dataset_series_and_series_tags(
     new_dataset_none_at: Dataset, caplog: LogCaptureFixture
 ) -> None:
     caplog.set_level(logging.DEBUG)
     x = new_dataset_none_at
-    series_names = x.series()
-    series_tags = x.series(what="tags")
-
+    series_names = x.series
+    series_tags = x.series_tags
+    series_tags_keys = [k for k in series_tags.keys()]
     assert isinstance(series_names, list)
     assert isinstance(series_tags, dict)
-    assert series_names == [
-        k for k in series_tags.keys() for f in series_tags.items()
-    ]  # raise AssertionError
+    assert len(series_names) == len(series_tags_keys)
+    assert sorted(series_names) == sorted(series_tags_keys)
+    # raise AssertionError

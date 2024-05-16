@@ -219,21 +219,15 @@ class Dataset:
             period_to=date_to,
         )
 
-    def series(self, what: str = "names") -> Any:
-        """Get series names (default) or tags."""
-        if what.lower() == "names":
-            return self.data.columns
-        elif what.lower() == "tags":
-            return self.tags["series"]
-        else:
-            raise ValueError(f"Unrecognised return type {what}")
+    @property
+    def series(self) -> list[str]:
+        """Get series names."""
+        return self.numeric_columns()
 
-    def series_tags(self, series_name: str | list[str] = "") -> Any:  # remove this?
+    @property
+    def series_tags(self) -> dict:
         """Get series tags."""
-        if series_name:
-            return self.tags["series"][series_name]
-        else:
-            return self.tags["series"]
+        return self.tags["series"]
 
     def tag_set(self, tags: dict[str, str] = None, **kwargs: str | list[str]) -> None:
         """Tag the set.
@@ -322,7 +316,7 @@ class Dataset:
             matching_series = df.columns
 
         if tags:
-            series_tags = self.series_tags()
+            series_tags = self.series_tags
             # ts_logger.debug(f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}")
             matching_series = [
                 name
