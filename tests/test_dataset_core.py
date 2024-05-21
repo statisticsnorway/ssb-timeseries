@@ -8,6 +8,7 @@ from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import search
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import now_utc
+from ssb_timeseries.fs import file_count
 from ssb_timeseries.io import CONFIG
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
@@ -48,11 +49,8 @@ def test_dataset_instance_created_equals_repr(caplog: LogCaptureFixture) -> None
     ts_logger.warning(f"Dataset a: {a!r}")
     b = eval(repr(a))
     ts_logger.warning(f"Dataset b: {b!r}")
-    assert a is a
-    # TO DO: CHECK THIS
-    # assert a == a
-    # TEMPORARY DISABLED skip_<name>
-    # TO DO: fix __repr__ OR identical so that this works
+
+    # TODO: fix __repr__ OR identical so that this works
     assert a.identical(b)
 
 
@@ -303,7 +301,7 @@ def test_search_for_dataset_by_exact_name(caplog: LogCaptureFixture):
     x.save()
     datasets_found = search(pattern=set_name)
     ts_logger.debug(f"datasets: {datasets_found!s}")
-    # assert datasets_found
+
     assert isinstance(datasets_found, Dataset)
     assert datasets_found.name == set_name
     assert datasets_found.data_type == SeriesType.simple()
@@ -331,7 +329,7 @@ def test_search_for_dataset_by_part_of_name_two_matches(
     caplog: LogCaptureFixture,
 ):
     caplog.set_level(logging.DEBUG)
-    unique_new = uuid.uuid4()
+    unique_new = str(uuid.uuid4())
     set_name_1 = f"test-find-{unique_new}-1"
     set_name_2 = f"test-find-{unique_new}-2"
     tag_values = [["p", "q", "r"]]
@@ -382,7 +380,7 @@ def test_dataset_getitem_by_string(
     assert list(y.data.columns) == ["valid_at", "b_q_z1"]
 
 
-@pytest.mark.skip()
+@pytest.mark.skip("Regex has not been implemented for __getitem__.")
 @log_start_stop
 def test_dataset_getitem_by_regex(
     new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
@@ -429,7 +427,6 @@ def test_filter_dataset_by_regex_return_dataframe(caplog):
     y = x.filter(regex="^x", output="dataframe")
     ts_logger.debug(f"y = x.filter(regex='^x')\n{y}")
 
-    # assert isinstance(y, Dataset)
     assert list(y.columns) == ["valid_at", "xd", "xe"]
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
@@ -486,14 +483,19 @@ def test_correct_datetime_columns_valid_from_to(caplog: LogCaptureFixture) -> No
 
 
 @log_start_stop
-def test_versioning_as_of_creates_new_file(caplog: LogCaptureFixture) -> None:
+def test_versioning_as_of_creates_new_file(
+    existing_estimate_set: Dataset, caplog: LogCaptureFixture
+) -> None:
     caplog.set_level(logging.DEBUG)
 
-    # raise AssertionError
-    pass
-    # TO DO:
-    # Verify behaviours of data types / saving correctly:
-    # AS_OF --> new files, keep/compare multiple versions
+    x = existing_estimate_set
+    y = x * 1.1
+    files_before = file_count(x.io.data_dir)
+    x.as_of_utc = now_utc()
+    x.data = y.data
+    x.save()
+    files_after = file_count(x.io.data_dir)
+    assert files_after == files_before + 1
 
 
 @log_start_stop
@@ -539,4 +541,3 @@ def test_get_dataset_series_and_series_tags(
     assert isinstance(series_tags, dict)
     assert len(series_names) == len(series_tags_keys)
     assert sorted(series_names) == sorted(series_tags_keys)
-    # raise AssertionError

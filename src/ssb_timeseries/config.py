@@ -1,4 +1,3 @@
-# from dataclasses import dataclass
 import json
 import os
 import sys
@@ -13,11 +12,12 @@ from ssb_timeseries.types import PathStr
 GCS = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
 JOVYAN = "/home/jovyan"
 HOME = str(Path.home())
+LOGFILE = "timeseries.log"
 
 DEFAULT_BUCKET = HOME
 DEFAULT_TIMESERIES_LOCATION = os.path.join(HOME, "series_data")
 DEFAULT_CONFIG_LOCATION = os.path.join(HOME, "timeseries_config.json")
-DEFAULT_LOG_FILE_LOCATION: str = os.path.join(HOME, "logs", "timeseries.log")
+DEFAULT_LOG_FILE_LOCATION: str = os.path.join(HOME, "logs", LOGFILE)
 TIMESERIES_CONFIG: str = os.getenv("TIMESERIES_CONFIG", DEFAULT_CONFIG_LOCATION)
 
 
@@ -177,11 +177,11 @@ def main(*args: str | PathStr) -> None:
         case "gcs":
             bucket = GCS
             timeseries_root = os.path.join(GCS, "series_data")
-            log_file = os.path.join(HOME, "logs", "timeseries.log")
+            log_file = os.path.join(HOME, "logs", LOGFILE)
         case "jovyan":
             bucket = JOVYAN
             timeseries_root = os.path.join(JOVYAN, "series_data")
-            log_file = os.path.join(JOVYAN, "logs", "timeseries.log")
+            log_file = os.path.join(JOVYAN, "logs", LOGFILE)
         case _:
             raise ValueError(
                 f"Unrecognised named configuration preset '{named_config}'."

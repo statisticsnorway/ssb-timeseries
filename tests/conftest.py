@@ -6,6 +6,7 @@ import pytest
 from ssb_timeseries import config
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
+from ssb_timeseries.fs import rmtree
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -20,7 +21,8 @@ class Helpers:
 
 @pytest.fixture(scope="function", autouse=False)
 def conftest() -> Helpers:
-    return Helpers
+    h = Helpers()
+    return h
 
 
 @pytest.fixture(scope="function", autouse=False)
@@ -55,7 +57,7 @@ def print_stuff():
 @pytest.fixture(scope="function", autouse=False)
 def existing_simple_set():
     """A fixture to create simple dataset before running the test."""
-    # create dataset and save
+    # buildup: create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     x = Dataset(
         name="test-existing-simple-dataset",
@@ -74,13 +76,14 @@ def existing_simple_set():
     # tests run here
     yield x
 
-    # TODO: delete file after test
+    # teardown
+    rmtree(x.io.data_dir)
 
 
 @pytest.fixture(scope="function", autouse=False)
 def existing_estimate_set():
     """A fixture to create simple dataset before running the test."""
-    # create dataset and save
+    # buildup: create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     x = Dataset(
         name="test-existing-estimate-dataset",
@@ -100,19 +103,20 @@ def existing_estimate_set():
     # tests run here
     yield x
 
-    # TODO: delete file after test
+    # teardown
+    rmtree(x.io.data_dir)
 
 
 @pytest.fixture(scope="function", autouse=False)
 def new_dataset_none_at():
     """A fixture to create simple dataset before running the test."""
-    # create dataset and save
+    # buildup: create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
         name="test-existing-simple-dataset",
         data_type=SeriesType.simple(),
-        series_tags=tags,
+        series_tags={"D": "d"},
         data=create_df(
             *tag_values,
             start_date="2022-01-01",
@@ -124,6 +128,7 @@ def new_dataset_none_at():
 
     # tests run here
     yield x
+    # file was not saved, so no teardown is necessary
 
 
 @pytest.fixture(scope="function", autouse=False)
@@ -136,7 +141,7 @@ def new_dataset_as_of_at():
         name="test-existing-simple-dataset",
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
-        series_tags=tags,
+        series_tags={"D": "d"},
         data=create_df(
             *tag_values,
             start_date="2022-01-01",
@@ -147,6 +152,7 @@ def new_dataset_as_of_at():
     )
     # tests run here
     yield x
+    # file was not saved, so no teardown is necessary
 
 
 @pytest.fixture(scope="function", autouse=False)
@@ -159,7 +165,7 @@ def new_dataset_as_of_from_to():
         name="test-existing-simple-dataset",
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
-        series_tags=tags,
+        series_tags={"D": "d"},
         data=create_df(
             *tag_values,
             start_date="2022-01-01",
@@ -171,6 +177,7 @@ def new_dataset_as_of_from_to():
 
     # tests run here
     yield x
+    # file was not saved, so no teardown is necessary
 
 
 @pytest.fixture(scope="function", autouse=False)
@@ -182,7 +189,7 @@ def new_dataset_none_from_to():
     x = Dataset(
         name="test-existing-simple-dataset",
         data_type=SeriesType.estimate(),
-        series_tags=tags,
+        series_tags={"D": "d"},
         data=create_df(
             *tag_values,
             start_date="2022-01-01",
@@ -194,3 +201,4 @@ def new_dataset_none_from_to():
 
     # tests run here
     yield x
+    # file was not saved, so no teardown is necessary
