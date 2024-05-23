@@ -1,7 +1,5 @@
 import logging
 
-import pytest
-
 from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
@@ -18,7 +16,6 @@ BUCKET = CONFIG.bucket
 PRODUCT = "sample-data-product"
 
 
-@pytest.mark.skipif(False, reason="Don't skip.")
 @log_start_stop
 def test_snapshot_simple_set_has_higher_snapshot_file_count_after(caplog):
     caplog.set_level(logging.DEBUG)
@@ -37,15 +34,16 @@ def test_snapshot_simple_set_has_higher_snapshot_file_count_after(caplog):
     stage_path = x.io.snapshot_directory(
         product=x.product, process_stage=x.process_stage
     )
-    path_123 = x.io.dir(BUCKET, x.product, "shared", "s123")
-    path_234 = x.io.dir(BUCKET, x.product, "shared", "s234")
+    shared_base_path = x.io.dir(BUCKET, x.product, "shared", "all")
+    path_123 = shared_base_path
+    path_234 = shared_base_path
     x.sharing = [
         {
-            "team": "s123",
+            # should work even if tartget team is not specified(?
             "path": path_123,
         },
         {
-            "team": "s234",
+            "team": "",
             "path": path_234,
         },
     ]
@@ -80,7 +78,7 @@ def test_snapshot_simple_set_has_higher_snapshot_file_count_after(caplog):
 
 
 @log_start_stop
-def test_snapshot_estimate_has_higher_file_count_after(caplog):
+def test_snapshot_estimate_specified_has_higher_file_count_after(caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(
@@ -97,22 +95,22 @@ def test_snapshot_estimate_has_higher_file_count_after(caplog):
     stage_path = x.io.snapshot_directory(
         product=x.product, process_stage=x.process_stage
     )
-    path_123 = x.io.dir(BUCKET, x.product, "shared", "s123")
-    path_234 = x.io.dir(BUCKET, x.product, "shared", "s234")
+    shared_base_path = x.io.dir(BUCKET, x.product, "shared")
+    team_path_123 = x.io.dir(shared_base_path, "s123")
+    team_path_234 = x.io.dir(shared_base_path, "s234")
     x.sharing = [
         {
             "team": "s123",
-            "path": path_123,
+            "path": team_path_123,
         },
         {
             "team": "s234",
-            "path": path_234,
+            "path": team_path_234,
         },
     ]
 
-    path_123 = x.io.dir(path_123, x.name)
-    path_234 = x.io.dir(path_234, x.name)
-
+    path_123 = x.io.dir(team_path_123, x.name)
+    path_234 = x.io.dir(team_path_234, x.name)
     x.save()
     ts_logger.debug(f"SNAPSHOT conf.bucket {BUCKET}")
     ts_logger.debug(f"SNAPSHOT to {path_123}")
