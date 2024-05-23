@@ -4,6 +4,7 @@ import os
 import pytest
 
 from ssb_timeseries import config
+from ssb_timeseries.config import CONFIG as ORIGINAL_CONFIG
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.fs import rmtree
@@ -11,6 +12,8 @@ from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
 # mypy: ignore-errors
+
+CONFIGURATION_FILE = ORIGINAL_CONFIG.configuration_file
 
 
 class Helpers:
@@ -28,9 +31,11 @@ def conftest() -> Helpers:
 @pytest.fixture(scope="function", autouse=False)
 def remember_config():
     """A fixture to make sure that running tests do not change the configuration file."""
-    config_file = os.getenv("TIMESERIES_CONFIG")
-    if config_file:
-        configuration = config.Config(configuration_file=config_file)
+    # config_file = os.getenv("TIMESERIES_CONFIG")
+    # if config_file:
+    # configuration = config.Config(configuration_file=config_file)
+    if CONFIGURATION_FILE:
+        configuration = ORIGINAL_CONFIG
         print(
             f"Because TIMESERIES_CONFIG identifies a config file, before tests, read configuration: {configuration}"
         )
@@ -38,12 +43,12 @@ def remember_config():
     # tests run here
     yield
 
-    if config_file and os.path.isfile(config_file):
+    if CONFIGURATION_FILE and os.path.isfile(CONFIGURATION_FILE):
         print(
             f"To make sure the tests have not altered configurations:\n{config.Config()}"
         )
         print(f"revert to what we read above:\n{configuration}")
-        configuration.save(config_file)
+        configuration.save(CONFIGURATION_FILE)
 
 
 @pytest.fixture(scope="module", autouse=True)

@@ -179,7 +179,7 @@ class Dataset:
         # TODO: Fix that?
         self.name = new_name
 
-        self.tags["dataset"] = new_name
+        self.tags["name"] = new_name
         for _, v in self.tags["series"].items():
             v["dataset"] = new_name
 

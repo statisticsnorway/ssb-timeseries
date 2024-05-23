@@ -1,4 +1,4 @@
-# type: ignore
+# type: ignore #NOSONAR
 # ruff: noqa
 """Date and time utilities."""
 
@@ -11,6 +11,7 @@ from dateutil import parser
 from ssb_timeseries.logging import ts_logger
 
 MAX_TIME_PRECISION = "second"
+DEFAULT_TIMESPEC = "seconds"
 DEFAULT_TZ = ZoneInfo("Europe/Oslo")  # Will shift between CET and CEST
 UTC = ZoneInfo("UTC")
 
@@ -40,7 +41,6 @@ def date_local(some_date: dt | str, **kwargs) -> dt:
     The output will be rounded to the precision specified by kwarg 'rounding'. Default precision 'minute' will be used if none is provided.
     """
     dt_type = ensure_datetime(some_date, tz=DEFAULT_TZ)
-    # correct_tz = dt_type.astimezone(tz=DEFAULT_TZ)
     return date_round(dt_type, **kwargs)
 
 
@@ -126,14 +126,14 @@ def now_cet(**kwargs) -> dt:
     return date_round(t, **kwargs)
 
 
-def utc_iso(d: Any, timespec: str = "seconds") -> str:
+def utc_iso(d: Any, timespec: str = DEFAULT_TIMESPEC) -> str:
     """Convert date to UTC and return as an ISO formatted string."""
     return date_utc(d).isoformat(timespec=timespec)
 
 
-def utc_iso_no_colon(d: dt, timespec: str = "seconds") -> str:
+def utc_iso_no_colon(d: dt, timespec: str = DEFAULT_TIMESPEC) -> str:
     """Convert date to UTC and return as an ISO formatted string without the colons."""
-    return utc_iso(d).replace(":", "")
+    return utc_iso(d, timespec=timespec).replace(":", "")
 
 
 class Interval:
@@ -160,7 +160,7 @@ class Interval:
         begin = kwargs.get("begin")
         end = kwargs.get("end")
 
-        MAX_TIME_precision: str = kwargs.get("MAX_TIME_precision")
+        precision: str = kwargs.get("precision", MAX_TIME_PRECISION)
 
         ts_logger.debug(f"Interval.__init__ with kwargs:\n{kwargs}")
 
@@ -189,9 +189,9 @@ class Interval:
             or dt.max
         )
 
-        if MAX_TIME_precision:
+        if precision:
             # "round" to MAX_TIME_precision if provided
-            pass
+            ...
 
         ts_logger.debug(f"Interval.__init__ returns self:\n{self}")
 

@@ -90,13 +90,38 @@ def test_dataset_copy_creates_new_instance(caplog) -> None:
     copy = original.copy(new_name)
 
     assert isinstance(copy, Dataset)
+    assert id(original) != id(copy)
     assert copy.name == new_name
     assert copy.data_type == original.data_type
-    # TODO: pop dataset name from tags before comparing
-    # assert copy.tags == original.tags
+
+
+def test_dataset_copy_creates_has_near_identical_attributes(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    original = Dataset(name="test-copying-original-set", data_type=SeriesType.simple())
+    new_name = "test-copying-copied-set"
+    copy = original.copy(new_name)
+
+    assert id(copy) != id(original)
+    assert copy.name != original.name
+    assert copy.tags != original.tags
+    # popping dataset name from set and series tags before comparing should remove all differences:
+    # original.tags.pop("name")
+    # copy.tags.pop("name")
+    # for series in copy.tags["series"].values():
+    #     series.pop("dataset")
+    # for series in original.tags["series"].values():
+    #     series.pop("dataset")
+    # ... but renaming either object should have same effect:
+    copy.rename(original.name)
+    # this should still be true
+    assert id(copy) != id(original)
+    # ..buyt because
+    assert copy.name == original.name
+    assert copy.tags == original.tags
     assert all(copy.data == original.data)
-    ts_logger.warning(f"Original: {original}\nCopy: {copy}")
-    assert id(original) != id(copy)
+    # but this should now hold!
+    assert copy == original
 
 
 @log_start_stop

@@ -1,7 +1,10 @@
 import json
 import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
+
+from typing_extensions import Self
 
 from ssb_timeseries import fs
 from ssb_timeseries.types import PathStr
@@ -18,7 +21,53 @@ DEFAULT_BUCKET = HOME
 DEFAULT_TIMESERIES_LOCATION = os.path.join(HOME, "series_data")
 DEFAULT_CONFIG_LOCATION = os.path.join(HOME, "timeseries_config.json")
 DEFAULT_LOG_FILE_LOCATION: str = os.path.join(HOME, "logs", LOGFILE)
-TIMESERIES_CONFIG: str = os.getenv("TIMESERIES_CONFIG", DEFAULT_CONFIG_LOCATION)
+CONFIGURATION_FILE: str = os.getenv("TIMESERIES_CONFIG", DEFAULT_CONFIG_LOCATION)
+
+
+@dataclass(slots=True)
+class Cfg:
+    """Configuration class."""
+
+    configuration_file: str = CONFIGURATION_FILE
+    repository: str = DEFAULT_TIMESERIES_LOCATION
+    log_file: str = DEFAULT_LOG_FILE_LOCATION
+    bucket: str = DEFAULT_BUCKET
+    product: str = ""
+
+    def __str__(self) -> str:
+        """Return timeseries configurations as JSON string."""
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+    def save(self, path: PathStr = CONFIGURATION_FILE) -> None:
+        """Saves configurations to JSON file and set environment variable TIMESERIES_CONFIG to the location of the file.
+
+        Args:
+            path (PathStr): Full path of the JSON file to save to. Defaults to the value of the environment variable TIMESERIES_CONFIG.
+        """
+        fs.write_json(content=str(self), path=path)
+        if HOME == JOVYAN:
+            # For some reason `os.environ["TIMESERIES_CONFIG"] = path` does not work:
+            cmd = f"export TIMESERIES_CONFIG={CONFIGURATION_FILE}"
+            os.system(cmd)
+            # os.system(f"echo '{cmd}' >> ~/.bashrc")
+        else:
+            os.environ["TIMESERIES_CONFIG"] = path
+
+    @classmethod
+    def load(cls, path: PathStr) -> Self:
+        """Read the properties from a JSON file into a Config object."""
+        if path:
+            json_file = json.loads(fs.read_json(path))
+
+            return cls(
+                configuration_file=str(path),
+                bucket=json_file.get("bucket"),
+                repository=json_file.get("timeseries_root"),
+                product=json_file.get("product"),
+                log_file=json_file.get("log_file"),
+            )
+        else:
+            raise ValueError("cfg_from_file was called with an empty or invalid path.")
 
 
 class Config:
@@ -40,19 +89,19 @@ class Config:
             - log_file            - Exactly that. Defaults to '$HOME/series_data/'
         """
         if fs.exists(configuration_file):
-            self.load(configuration_file)
+            # self = Cfg.load(configuration_file) # NOSONAR # TODO: switch to Cfg class to simplify code
             self.configuration_file = configuration_file
             os.environ["TIMESERIES_CONFIG"] = configuration_file
         elif configuration_file:
-            if fs.exists(TIMESERIES_CONFIG):
-                self.load(TIMESERIES_CONFIG)
+            if fs.exists(CONFIGURATION_FILE):
+                self.load(CONFIGURATION_FILE)
                 self.save(configuration_file)
             else:
                 self.__set_default_config()
 
-        elif fs.exists(TIMESERIES_CONFIG):
-            self.load(TIMESERIES_CONFIG)
-            self.configuration_file = TIMESERIES_CONFIG
+        elif fs.exists(CONFIGURATION_FILE):
+            self.load(CONFIGURATION_FILE)
+            self.configuration_file = CONFIGURATION_FILE
 
         if kwargs:
             log_file = kwargs.get("log_file", "")
@@ -110,7 +159,7 @@ class Config:
         else:
             raise ValueError("Config.load(<path>) was called with an empty path.")
 
-    def save(self, path: PathStr = TIMESERIES_CONFIG) -> None:
+    def save(self, path: PathStr = CONFIGURATION_FILE) -> None:
         """Saves configurations to JSON file and set environment variable TIMESERIES_CONFIG to the location of the file.
 
         Args:
@@ -119,7 +168,7 @@ class Config:
         fs.write_json(content=self.to_json(), path=path)
         if HOME == JOVYAN:
             # For some reason `os.environ["TIMESERIES_CONFIG"] = path` does not work:
-            cmd = f"export TIMESERIES_CONFIG={TIMESERIES_CONFIG}"
+            cmd = f"export TIMESERIES_CONFIG={CONFIGURATION_FILE}"
             os.system(cmd)
             # os.system(f"echo '{cmd}' >> ~/.bashrc")
         else:
@@ -132,6 +181,9 @@ class Config:
         self.product = ""
         self.timeseries_root = DEFAULT_TIMESERIES_LOCATION
         fs.touch(self.log_file)
+
+
+CONFIG = Config(configuration_file=CONFIGURATION_FILE)
 
 
 def main(*args: str | PathStr) -> None:

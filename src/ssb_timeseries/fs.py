@@ -182,22 +182,32 @@ def same_path(*args) -> PathStr:
     return os.path.commonpath(paths)
 
 
-def find(path: PathStr, pattern: str = "") -> list[str]:
+def find(
+    path: PathStr,
+    pattern: str = "",
+    full_path: bool = False,
+    replace_root: bool = False,
+) -> list[str]:
     """Find files and subdirectories with names matching pattern. Should work for both local and GCS filesystems."""
     if pattern:
         pattern = f"*{pattern}*"
     else:
         pattern = "*"
-
+    search_str = os.path.join(path, "*", pattern)
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
-        return fs.glob(os.path.join(path, pattern))
+        found = fs.glob(search_str)
     else:
-        search_str = os.path.join(path, "*", pattern)
-        dirs = glob.glob(search_str)
-        search_results = [d.replace(path, "root").split(os.path.sep) for d in dirs]
+        found = glob.glob(search_str)
 
-        return [f[2] for f in search_results]
+    if replace_root:
+        # may be necessary if not returning full path? -> TODO: add tests
+        found = [f.replace(path, "root").split(os.path.sep) for f in found]
+
+    if full_path:
+        return found
+    else:
+        return [f[-1] for f in found]
 
 
 def read_parquet(path: PathStr) -> None:
@@ -266,6 +276,7 @@ def write_json(path: PathStr, content: str | dict) -> None:
             json.dump(content, file, indent=4, ensure_ascii=False)
 
 
+# nosonar: disable comment
 # from pyarrow import fs
 # local = fs.LocalFileSystem()
 # with local.open_output_stream('/tmp/pyarrowtest.dat') as stream:
