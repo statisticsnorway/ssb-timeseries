@@ -77,7 +77,6 @@ def test_snapshot_simple_set_has_higher_snapshot_file_count_after(caplog):
     assert count_before_snapshot < count_after_snapshot
     assert count_before_123 < count_after_123
     assert count_before_234 < count_after_234
-    # assert False
 
 
 @log_start_stop
@@ -140,4 +139,3 @@ def test_snapshot_estimate_has_higher_file_count_after(caplog):
     assert count_before_snapshot < count_after_snapshot
     assert count_before_123 < count_after_123
     assert count_before_234 < count_after_234
-    # assert False

@@ -110,8 +110,8 @@ class Dataset:
 
         kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
         if not kwarg_data.empty:
-            # TODO: if kwarg_data overlap data from file, overwrite with kwarg_data
-            # ... for all versioning types? Think it through!
+            # if kwarg_data overlaps data from file, overwrite with kwarg_data
+            # ... does this make sense for all versioning types? Verify!
             self.data = kwarg_data
             # self.data.set_index(self.datetime_columns())
             # will not work for valid_from_to
@@ -145,11 +145,14 @@ class Dataset:
             if name_pattern:
                 for s in self.tags["series"]:
                     name_parts = s.split("_")
-                    # [self.tags['series'][s][attribute] = value for attribute,  value in zip(name_pattern, name_parts)]
                     for attribute, value in zip(name_pattern, name_parts, strict=False):
                         self.tags["series"][s][attribute] = value
 
-                    # [self.tags.series[k] = for k, a in zip(self.numeric_columns(), name_pattern]
+            series_tags = kwargs.get("series_tags", {})
+            if series_tags:
+                for s in self.tags["series"]:
+                    for attribute, value in series_tags.items():
+                        self.tags["series"][s][attribute] = value
 
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
@@ -176,7 +179,7 @@ class Dataset:
         # TODO: Fix that?
         self.name = new_name
 
-        self.tags["dataset"] = new_name
+        self.tags["name"] = new_name
         for _, v in self.tags["series"].items():
             v["dataset"] = new_name
 
@@ -265,19 +268,19 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
         """
-        # TODO: Implement this:
-        if tags:
-            raise NotImplementedError()
-        elif kwargs:
-            raise NotImplementedError()
-            # if value not in self[attribute]:
-            # self[attribute].append(value)
-        else:
-            raise ValueError("Must provide either tags or kwargs.")
-        # should handle different datatypes for "item" :
-        # name, int index, List of name or index
-        # if value not in self.series[item][attribute]:
-        #    self.series[attribute].append(value)
+        if not tags:
+            tags = {}
+
+        tags.update(kwargs)
+
+        if not identifiers:
+            identifiers = self.series
+
+        for s in self[identifiers]:
+            if s in self.series:
+                self.tags["series"][s].update(tags)
+            else:
+                raise ValueError(f"{s} not in {self.series}.")
 
     @no_type_check
     def filter(
@@ -317,7 +320,9 @@ class Dataset:
 
         if tags:
             series_tags = self.series_tags
-            # ts_logger.debug(f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}")
+            ts_logger.warning(
+                f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}"
+            )
             matching_series = [
                 name
                 for name, s_tags in series_tags.items()
@@ -568,6 +573,9 @@ class Dataset:
 
         Returns:
             list[str]: The (common) datetime column names of self (and comparisons).
+
+        Raises:
+            ValueError: If comparisons are not of type Self or pd.DataFrame.
         """
         intersect = set(self.data.columns) & {"valid_at", "valid_from", "valid_to"}
         for c in comparisons:
@@ -576,7 +584,7 @@ class Dataset:
             elif isinstance(c, pd.DataFrame):
                 intersect = set(c.columns) & intersect
             else:
-                pass
+                raise ValueError(f"Unsupported type: {type(c)}")
 
         return list(intersect)
 

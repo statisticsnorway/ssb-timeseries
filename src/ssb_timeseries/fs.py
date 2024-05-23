@@ -10,8 +10,6 @@ from dapla import FileClient
 
 from ssb_timeseries.types import PathStr
 
-# from ssb_timeseries.logging import ts_logger  # , log_start_stop
-
 """This is an abstraction that allows file based io regardless of whether involved file systems are local or gcs.
 """
 
@@ -26,12 +24,12 @@ def remove_prefix(path: PathStr) -> str:
 
 def is_gcs(path: PathStr) -> bool:
     """Check if path is on GCS."""
-    return str(path)[:4] == "gs:/"
+    return str(path).startswith("gs:/")
 
 
 def is_local(path: PathStr) -> bool:
     """Check if path is local."""
-    return str(path)[:4] != "gs:/"
+    return not str(path).startswith("gs:/")
 
 
 def fs_type(path: PathStr) -> str:
@@ -53,22 +51,6 @@ def exists(path: PathStr) -> bool:
         return Path(path).exists()
 
 
-# def existing_subpath(path: PathStr) -> str:
-#     """Return the existing part of a path on local or GCS file system."""
-#     out = ""
-#     # TODO: redo this with pathlib
-#     parts = str(path).split(os.sep)
-#     pp = ""
-#     for p in parts:
-#         if p:
-#             pp = os.sep.join([pp, p])
-#         if exists(pp):
-#             out = pp
-
-#     return out
-
-
-# redo above w pathlib
 def existing_subpath(path: PathStr) -> str:
     """Return the existing part of a path on local or GCS file system."""
     if Path(path).exists():
@@ -90,24 +72,13 @@ def touch(path: PathStr) -> None:
         Path(path).touch()
 
 
-# def dir_name(path: PathStr):
-#     basename = os.path.basename(path)
-#     parts = os.path.splitext(basename)
-#     if len(parts) > 1:
-#         d = os.path.dirname(path)
-#     else:
-#         d = path
-
-#     return d  # os.path.normpath(d)
-
-
 def mkdir(path: PathStr) -> None:
     """Make directory regardless of filesystem is local or GCS."""
     # not good enough .. it is hard to distinguish between dirs and files that do not exist yet
     if is_local(path):
         os.makedirs(path, exist_ok=True)
     else:
-        pass
+        ...
 
 
 def mk_parent_dir(path: PathStr) -> None:
@@ -118,7 +89,7 @@ def mk_parent_dir(path: PathStr) -> None:
     if is_local(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
     else:
-        pass
+        ...
 
 
 def file_count(path: PathStr, create: bool = False) -> int:
@@ -179,10 +150,10 @@ def mv(from_path: PathStr, to_path: PathStr) -> None:
             fs.move(from_path, to_path)
 
 
-def rm(path: PathStr, *args) -> None:
+def rm(path: PathStr) -> None:
     """Remove file from local or GCS filesystem."""
     if is_gcs(path):
-        pass
+        ...
         # TO DO: implement this (but recursive)
         # fs = FileClient.get_gcs_file_system()
         # fs.rm(path)
@@ -190,10 +161,12 @@ def rm(path: PathStr, *args) -> None:
         os.remove(path)
 
 
-def rmtree(path: str, *args) -> None:
+def rmtree(
+    path: str,
+) -> None:
     """Remove all directory and all its files and subdirectories regardless of local or GCS filesystem."""
     if is_gcs(path):
-        pass
+        ...
         # TO DO: implement this (but recursive)
         # fs = FileClient.get_gcs_file_system()
         # fs.rm(path)
@@ -209,22 +182,32 @@ def same_path(*args) -> PathStr:
     return os.path.commonpath(paths)
 
 
-def find(path: PathStr, pattern: str = "", *args, **kwargs) -> list[str]:
+def find(
+    path: PathStr,
+    pattern: str = "",
+    full_path: bool = False,
+    replace_root: bool = False,
+) -> list[str]:
     """Find files and subdirectories with names matching pattern. Should work for both local and GCS filesystems."""
     if pattern:
         pattern = f"*{pattern}*"
     else:
         pattern = "*"
-
+    search_str = os.path.join(path, "*", pattern)
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
-        return fs.glob(os.path.join(path, pattern))
+        found = fs.glob(search_str)
     else:
-        search_str = os.path.join(path, "*", pattern)
-        dirs = glob.glob(search_str)
-        search_results = [d.replace(path, "root").split(os.path.sep) for d in dirs]
+        found = glob.glob(search_str)
 
-        return [f[2] for f in search_results]
+    if replace_root:
+        # may be necessary if not returning full path? -> TODO: add tests
+        found = [f.replace(path, "root").split(os.path.sep) for f in found]
+
+    if full_path:
+        return found
+    else:
+        return [f[-1] for f in found]
 
 
 def read_parquet(path: PathStr) -> None:
@@ -244,8 +227,6 @@ def write_parquet(
 
 def pandas_read_parquet(
     path: PathStr,
-    *args,
-    **kwargs,
 ) -> pandas.DataFrame:
     """Quick and dirty --> replace later."""
     if is_gcs(path):
@@ -285,14 +266,6 @@ def read_json(path: PathStr) -> dict:
 
 def write_json(path: PathStr, content: str | dict) -> None:
     """Write json file to path on either local fs or GCS."""
-    # Code does not make sense, but is not invoked:
-    # if not isinstance(path, str):
-    #     path = json.loads(path)
-    # more reasonable would be somehting like -->
-    # if not isinstance(content, str):
-    #     content = json.loads(content)
-    # ... but that caauses an error. --> Code is "too clever"?
-
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         with fs.open(path, "w") as file:
@@ -303,6 +276,7 @@ def write_json(path: PathStr, content: str | dict) -> None:
             json.dump(content, file, indent=4, ensure_ascii=False)
 
 
+# nosonar: disable comment
 # from pyarrow import fs
 # local = fs.LocalFileSystem()
 # with local.open_output_stream('/tmp/pyarrowtest.dat') as stream:
@@ -319,9 +293,3 @@ def write_json(path: PathStr, content: str | dict) -> None:
 # # using this to read a partitioned dataset
 # import pyarrow.dataset as ds
 # ds.dataset("data/", filesystem=fs)
-
-
-# @staticmethod
-# def funcname(parameter_list):
-#     """Docstring"""
-#     pass

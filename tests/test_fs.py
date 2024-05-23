@@ -5,7 +5,6 @@ from sys import platform
 
 import pytest
 
-# from ssb_timeseries.io import CONFIG
 from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
 
@@ -73,55 +72,3 @@ def test_existing_subpath() -> None:
     assert fs.exists(HOME)
     assert not fs.exists(long_path)
     assert str(fs.existing_subpath(long_path)) == str(HOME)
-
-
-@pytest.mark.skipif(True, reason="Can not see GCS.")
-def test_that_child_dir_is_not_outside_parent():
-    non_existing = str(uuid.uuid4())
-
-    gcs_parent = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
-    gcs_child = os.path.join(gcs_parent, non_existing)
-
-    local_parent = HOME
-    local_child = os.path.join(HOME, non_existing)
-
-    if False:
-        # ... I changed my mind about approach to problem when adding this test.
-        assert fs.existing_subpath(local_child) == local_parent
-        assert fs.existing_subpath(gcs_child) == gcs_parent
-
-    # ... the context for adding the test was
-    # E    timeseries.io.DatasetIoException:
-    # Directory gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/sample-data-product/shared/s123
-    # must be below gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier in file tree.
-    # --> os.path.commonpath([path, ts_root]) == ts_root
-    path = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/sample-data-product/shared/s123"
-    ts_root = "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier"
-    assert ts_root in path
-    # Failed because: assert os.path.commonpath([path, ts_root]) == ts_root
-    # because os.path.commonpath([path, ts_root]) turns gs:// into gs:/
-
-
-# @pytest.mark.skipif(not GCS_VISIBLE, reason="Can not see GCS.")
-# def test_mkdir_dapla() -> None:
-
-#     ts_logger.warning(f"Can see{BUCKET}")
-#     a = f"temp-dir-while-running-tests-{uuid.uuid4()}"
-#     fs.mkdir(os.path.join(BUCKET, "tests", a, "b", "c"))
-#     assert fs.exists(os.path.join(BUCKET, "tests", "a", "b", "c"))
-
-
-# # @pytest.mark.skipif(IS_DAPLA, reason="... now we are in Kansas!")
-# def test_mkdir_local() -> None:
-#     a = f"temp-dir-while-running-tests-{uuid.uuid4()}"
-#     short_path = os.path.join(HOME, a)
-#     if fs.exists(short_path):
-#         ts_logger.warning(f"The directory {short_path} already existed!")
-#         assert False
-#     else:
-#         long_path = os.path.join(HOME, a, "b", "c", "d")
-#         ts_logger.warning(f"Root: {CONFIG.bucket}")
-#         ts_logger.warning(f"Attempting to create local fs directory: {long_path}")
-#         fs.mkdir(long_path)
-
-#         assert fs.exists(long_path)

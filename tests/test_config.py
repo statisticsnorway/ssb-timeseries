@@ -72,7 +72,6 @@ def test_read_config_from_file(remember_config, print_stuff) -> None:
         )
         if isinstance(new_config, config.Config):
             new_config.save(path=TIMESERIES_CONFIG)
-            # os.environ["HOME"] = TIMESERIES_CONFIG
             ts_logger.warning(
                 f"Configuration file did not exist: {TIMESERIES_CONFIG}. Created."
             )
@@ -98,4 +97,4 @@ def test_read_config_from_missing_json_file(remember_config) -> None:
 def test_fail(remember_config, caplog):
     caplog.set_level(logging.DEBUG)
     ts_logger.debug("ts_logger.warning: std out")
-    pass
+    ...

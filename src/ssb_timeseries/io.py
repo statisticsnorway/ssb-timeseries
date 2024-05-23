@@ -1,3 +1,19 @@
+import glob
+import os
+import re
+from datetime import datetime
+from typing import NamedTuple
+
+import pandas
+
+from ssb_timeseries import fs
+from ssb_timeseries import properties
+from ssb_timeseries.config import CONFIG
+from ssb_timeseries.dates import Interval
+from ssb_timeseries.dates import utc_iso_no_colon
+from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.types import PathStr
+
 """The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
 
 TO DO: turn Dataset.io into a Protocol class?
@@ -12,32 +28,13 @@ Default configs may be created by running
 See `config` module docs for details.
 """
 
-import glob
-import os
-import re
-from datetime import datetime
-from typing import NamedTuple
-
-import pandas
-
-from ssb_timeseries import config
-from ssb_timeseries import fs
-from ssb_timeseries import properties
-from ssb_timeseries.dates import Interval
-from ssb_timeseries.dates import utc_iso_no_colon
-from ssb_timeseries.logging import ts_logger
-from ssb_timeseries.types import PathStr
-
+# consider:
 # from ssb_timeseries.types import F
 # from abc import ABC, abstractmethod
 # from typing import Protocol
 # import contextlib
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
-
-
-TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
-CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
 
 
 class SearchResult(NamedTuple):
@@ -69,8 +66,8 @@ class FileSystem:
         self.sharing = sharing
 
         if as_of_utc is None:
-            pass
-            # exception if not
+            ...
+            # exception if type is AS_OF
         else:
             self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
 
@@ -105,7 +102,7 @@ class FileSystem:
         elif "NAMED" in self.set_type_dir:
             file_name = f"{self.set_name}-NAMED-data.parquet"
         else:
-            raise Exception("Unhandled versioning.")
+            raise ValueError("Unhandled versioning.")
 
         ts_logger.debug(file_name)
         return file_name
@@ -245,9 +242,7 @@ class FileSystem:
         number_of_files = len(files)
 
         # TODO: mypy --> error: Item "None" of "Match[str] | None" has no attribute "group"  [union-attr]
-        vs = sorted(
-            [int(re.search("(_v)([0-9]+)(.parquet)", f).group(2)) for f in files]
-        )
+        vs = sorted([int(re.search("(_v)(\d+)(.parquet)", f).group(2)) for f in files])
         ts_logger.debug(
             f"DATASET {self.set_name}: io.last_version regex identified versions {vs} in {directory}."
         )
@@ -305,27 +300,24 @@ class FileSystem:
         else:
             out = f"{self.set_name}_p{iso_no_colon(period_from)}_p{iso_no_colon(period_to)}_v{next_vs}"
 
-            #  to comply with the naming standard we need to stuff about the data
+            #  to comply with the naming standard we need to know some things about the data
             ts_logger.debug(
                 f"DATASET last version {next_vs} from {period_from} to {period_to}.')"
             )
         return out
 
-    def sharing_directory(
-        self,
-        team: str,
-        bucket: str,
-    ) -> PathStr:
+    def sharing_directory(self, bucket: str, team: str = "") -> PathStr:
         """Get name of sharing directory based on dataset parameters and configuration.
 
         Creates the directory if it does not exist.
         """
-        # if team:
-        #     dir = os.path.join(bucket, team, self.set_name)
-        # else:
-        #     dir = os.path.join(bucket, self.set_name)
+        fix_test_cases_before_taking_this_approach = False
+        if team and fix_test_cases_before_taking_this_approach:
+            # allowing this breaks tests! --> TODO: adapt test cases
+            directory = os.path.join(bucket, team, self.set_name)
+        else:
+            directory = os.path.join(bucket, self.set_name)
 
-        directory = os.path.join(bucket, self.set_name)
         ts_logger.warning(f"DATASET.IO.SHARING_DIRECTORY: {directory}")
         fs.mkdir(directory)
         return directory
@@ -369,7 +361,7 @@ class FileSystem:
         fs.cp(self.metadata_fullpath, meta_publish_path)
 
         if sharing:
-            ts_logger.debug(f"Sharing configs: {sharing}")
+            ts_logger.warning(f"Sharing configs: {sharing}")
             for s in sharing:
                 ts_logger.debug(f"Sharing: {s}")
                 fs.cp(
@@ -402,7 +394,7 @@ class FileSystem:
 
 
 def find_datasets(
-    pattern: str | PathStr = "", as_of: datetime | None = None
+    pattern: str | PathStr = "",  # as_of: datetime | None = None
 ) -> list[SearchResult]:
     """Search for files in under timeseries root."""
     if pattern:
@@ -410,13 +402,20 @@ def find_datasets(
     else:
         pattern = "*"
 
-    search_str = os.path.join(CONFIG.timeseries_root, "*", pattern)
-    dirs = glob.glob(search_str)
-    ts_logger.debug(f"DATASET.IO.SEARCH: {search_str} dirs{dirs}")
+    dirs_old = glob.glob(os.path.join(CONFIG.timeseries_root, "*", pattern))
+    search_results_old = [
+        d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs_old
+    ]
+    dirs = fs.find(CONFIG.timeseries_root, pattern, full_path=True)
+    ts_logger.warning(
+        f"DATASET.IO.SEARCH: {pattern}:\n\t--> dirs\n\tnew: {dirs}\n\told: {dirs_old}"
+    )
     search_results = [
         d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
     ]
-    ts_logger.debug(f"DATASET.IO.SEARCH: search_results{search_results}")
+    ts_logger.warning(
+        f"DATASET.IO.SEARCH: results:\n\tnew: {search_results}\n\told: {search_results_old}"
+    )
 
     return [SearchResult(f[2], f[1]) for f in search_results]
 
