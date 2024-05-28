@@ -19,19 +19,16 @@ class SuperEnum(Enum):
     @classmethod
     def keys(cls) -> list:
         """Returns a list of all the enum keys."""
-        # return cls._member_names_
         return [item.name for item in cls]
 
     @classmethod
     def values(cls) -> list:
         """Returns a list of all the enum values."""
-        # return list(cls._value2member_map_.keys)
         return [item.value[0] for item in cls]
 
     @classmethod
     def descriptions(cls) -> list:
         """Returns a list of descriptions for all enum values."""
-        # return list(cls._value2member_map_.keys())
         return [item.value[1] for item in cls]
 
     def __eq__(self, other: Self) -> bool:

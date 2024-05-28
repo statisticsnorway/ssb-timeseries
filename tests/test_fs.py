@@ -45,6 +45,14 @@ def test_fs_type() -> None:
     assert fs.fs_type("/home/jovyan") == "local"
 
 
+def test_fs_path() -> None:
+    assert (
+        fs.path(BUCKET, "a", "b", "c")
+        == "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/a/b/c"
+    )
+    assert fs.path(JOVYAN, "a", "b", "c") == "/home/jovyan/series_data/a/b/c"
+
+
 @pytest.mark.skipif(platform != "linux", reason="Can not see GCS.")
 def test_same_path() -> None:
     assert (
