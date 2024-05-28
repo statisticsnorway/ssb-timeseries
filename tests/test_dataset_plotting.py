@@ -11,26 +11,26 @@ from ssb_timeseries.logging import ts_logger
 # arg-type,,union-attr
 
 
-def test_dataset_none_at_plot_returns_axes(
+def test_dataset_plot_none_at_returns_axes(
     new_dataset_none_at: Dataset, caplog: LogCaptureFixture
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = new_dataset_none_at
-    y = x.plot()
+    p = new_dataset_none_at.plot()
+    ts_logger.debug(f"p = dataset.plot(): {p}")
 
-    assert isinstance(y, plt.Axes)
+    assert isinstance(p, plt.Axes)
 
 
-def test_dataset_plot_as_of_at_plot_returns_axes(
+def test_dataset_plot_as_of_at_returns_axes(
     new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = new_dataset_as_of_at
-    y = x.plot()
+    p = new_dataset_as_of_at.plot()
+    ts_logger.debug(f"p = dataset.plot(): {p}")
 
-    assert isinstance(y, plt.Axes)
+    assert isinstance(p, plt.Axes)
 
 
 def test_dataset_plot_as_of_from_to_returns_axes(
@@ -38,11 +38,10 @@ def test_dataset_plot_as_of_from_to_returns_axes(
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = new_dataset_as_of_from_to
-    y = x.plot()
-    ts_logger.debug(f"y = x.filter(regex='^x')\n{y}")
+    p = new_dataset_as_of_from_to.plot()
+    ts_logger.debug(f"p = dataset.plot(): {p}")
 
-    assert isinstance(y, plt.Axes)
+    assert isinstance(p, plt.Axes)
 
 
 def test_dataset_plot_none_from_to_returns_axes(
@@ -50,11 +49,7 @@ def test_dataset_plot_none_from_to_returns_axes(
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = new_dataset_none_from_to
-    y = x.plot()
-    ts_logger.debug(f"y = x.filter(regex='^x')\n{y}")
+    p = new_dataset_none_from_to.plot()
+    ts_logger.debug(f"p = dataset.plot(): {p}")
 
-    assert isinstance(y, plt.Axes)
-
-
-# @pytest.mark.skip(reason="TODO: revisit dataset.__repr__.")
+    assert isinstance(p, plt.Axes)

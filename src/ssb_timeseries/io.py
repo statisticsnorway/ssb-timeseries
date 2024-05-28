@@ -201,7 +201,7 @@ class FileSystem:
 
     def write_metadata(self, meta: dict) -> None:
         """Write tags to the metadata file."""
-        os.makedirs(self.metadata_dir, exist_ok=True)
+        # no longer necessary: os.makedirs(self.metadata_dir, exist_ok=True)
         try:
             fs.write_json(self.metadata_fullpath, meta)
             ts_logger.info(
@@ -241,7 +241,6 @@ class FileSystem:
         files = fs.ls(directory, pattern=pattern)
         number_of_files = len(files)
 
-        # TODO: mypy --> error: Item "None" of "Match[str] | None" has no attribute "group"  [union-attr]
         vs = sorted([int(re.search("(_v)(\d+)(.parquet)", f).group(2)) for f in files])
         ts_logger.debug(
             f"DATASET {self.set_name}: io.last_version regex identified versions {vs} in {directory}."
@@ -306,17 +305,12 @@ class FileSystem:
             )
         return out
 
-    def sharing_directory(self, bucket: str, team: str = "") -> PathStr:
+    def sharing_directory(self, bucket: str) -> PathStr:
         """Get name of sharing directory based on dataset parameters and configuration.
 
         Creates the directory if it does not exist.
         """
-        fix_test_cases_before_taking_this_approach = False
-        if team and fix_test_cases_before_taking_this_approach:
-            # allowing this breaks tests! --> TODO: adapt test cases
-            directory = os.path.join(bucket, team, self.set_name)
-        else:
-            directory = os.path.join(bucket, self.set_name)
+        directory = os.path.join(bucket, self.set_name)
 
         ts_logger.warning(f"DATASET.IO.SHARING_DIRECTORY: {directory}")
         fs.mkdir(directory)
@@ -364,13 +358,15 @@ class FileSystem:
             ts_logger.warning(f"Sharing configs: {sharing}")
             for s in sharing:
                 ts_logger.debug(f"Sharing: {s}")
+                if "team" not in s.keys():
+                    s["team"] = "no team specified"
                 fs.cp(
                     data_publish_path,
-                    self.sharing_directory(bucket=s["path"], team=s["team"]),
+                    self.sharing_directory(bucket=s["path"]),
                 )
                 fs.cp(
                     meta_publish_path,
-                    self.sharing_directory(bucket=s["path"], team=s["team"]),
+                    self.sharing_directory(bucket=s["path"]),
                 )
                 ts_logger.warning(
                     f"DATASET {self.set_name}: sharing with {s['team']}, snapshot copied to {s['path']}."

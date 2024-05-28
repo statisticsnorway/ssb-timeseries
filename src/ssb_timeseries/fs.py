@@ -72,6 +72,14 @@ def touch(path: PathStr) -> None:
         Path(path).touch()
 
 
+def path(*args: PathStr) -> str:
+    """Join args to form path. Make sure that gcs paths are begins with double slash: gs://..."""
+    p = Path(args[0]).joinpath(*args[1:])
+    return str(p).replace("gs:/", "gs://")
+    # Feels dirty. Could instead do something like:
+    # str(Path(args[0]).joinpath(*args[1:])).replace("gs:/{[a-z]}", "gs://{1}")
+
+
 def mkdir(path: PathStr) -> None:
     """Make directory regardless of filesystem is local or GCS."""
     # not good enough .. it is hard to distinguish between dirs and files that do not exist yet
@@ -83,7 +91,7 @@ def mkdir(path: PathStr) -> None:
 
 def mk_parent_dir(path: PathStr) -> None:
     """Ensure a parent directory exists. ... regardless of wether fielsystem is local or GCS."""
-    # wanted a mkdir that could work with both file and directory paths,
+    # wanted a mkdir that could work seamlessly with both file and directory paths,
     # but it is hard to distinguish between dirs and files that do not exist yet
     # --> use this to create parent directory for files, mkdir() when the last part of path is a directory
     if is_local(path):
@@ -151,7 +159,7 @@ def mv(from_path: PathStr, to_path: PathStr) -> None:
 
 
 def rm(path: PathStr) -> None:
-    """Remove file from local or GCS filesystem."""
+    """Remove file from local or GCS filesystem. Nonrecursive. For a recursive variant, see rmtree()."""
     if is_gcs(path):
         ...
         # TO DO: implement this (but recursive)
@@ -164,7 +172,7 @@ def rm(path: PathStr) -> None:
 def rmtree(
     path: str,
 ) -> None:
-    """Remove all directory and all its files and subdirectories regardless of local or GCS filesystem."""
+    """Recursively remove a directory and all its subdirectories and files regardless of local or GCS filesystem."""
     if is_gcs(path):
         ...
         # TO DO: implement this (but recursive)

@@ -396,10 +396,38 @@ class Dataset:
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
         """
-        xlabels = self.datetime_columns()[0]
+        df = self.data.copy()
+
+        if self.data_type.temporality == properties.Temporality.FROM_TO:
+            interval_handling = kwargs.pop("interval_handling", "interval").lower()
+            match interval_handling:
+                case "interval":
+                    from_data = df
+                    to_data = df
+                    from_data["valid_to"] = from_data["valid_from"]
+                    df = pd.concat(
+                        [from_data, to_data],
+                        axis=0,
+                        ignore_index=True,
+                    ).sort_values(by=["valid_from", "valid_to"])
+                    df.drop(columns=["valid_to"], inplace=True)
+                    xlabels = "valid_from"
+                case "midpoint":
+                    xlabels = "midpoint"
+                    df["midpoint"] = df[self.datetime_columns()].median(axis=1)
+                    df.drop(columns=["valid_from", "valid_to"], inplace=True)
+
+                case _:
+                    raise ValueError(
+                        "Invalid option for interval_handling. Must be 'from', 'to', 'interval' or 'midpoint'."
+                    )
+        else:
+            xlabels = self.datetime_columns()[0]
+
         ts_logger.debug(f"DATASET.plot(): x labels = {xlabels}")
         ts_logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
-        return self.data.plot(  # type: ignore[call-overload]
+
+        return df.plot(  # type: ignore[call-overload]
             xlabels,
             *args,
             legend=len(self.data.columns) < 9,
