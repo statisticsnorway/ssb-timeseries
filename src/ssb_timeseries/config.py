@@ -93,6 +93,8 @@ class Config:
 
 
 CONFIG = Config(configuration_file=CONFIGURATION_FILE)
+if not fs.exists(CONFIG.log_file):
+    fs.touch(CONFIG.log_file)
 
 
 def main(*args: str | PathStr) -> None:
