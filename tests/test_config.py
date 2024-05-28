@@ -60,6 +60,7 @@ def test_init_config_timeseries_in_shared_bucket_logs_in_jovyan_home(caplog) -> 
 def test_config_defaults(reset_config_after) -> None:
 
     default_config_file = config.DEFAULTS["configuration_file"]
+    # all of these should result in the same information, but in different objects
     cfg_0 = config.Config()
     cfg_1 = config.Config(default_config_file)
     cfg_2 = config.Config(configuration_file=default_config_file)
