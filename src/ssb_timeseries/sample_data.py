@@ -4,7 +4,9 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-# mypy: disable-error-code="type-arg, import-untyped, unreachable"
+from ssb_timeseries.dates import date_utc
+
+# mypy: disable-error-code="arg-type, type-arg, import-untyped, unreachable, attr-defined"
 
 
 def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[str]:
@@ -31,7 +33,7 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
 
     for arg in args:
         if arg is None:
-            return ""
+            final_args.append([""])
         if isinstance(arg, str):
             final_args.append([arg])
         elif isinstance(arg, list):
@@ -100,8 +102,6 @@ def create_df(
     if end_date is None:
         end_date = datetime.max  # Representing positive infinity
 
-    valid_at = pd.date_range(start=start_date, end=end_date, freq=f"{interval}{freq}")
-    valid_from = pd.date_range(start=start_date, end=end_date, freq=freq)
     # Add other frequencies as needed
     freq_lookup = {
         "Y": "years",
@@ -114,7 +114,15 @@ def create_df(
         "T": "minutes",
         "S": "seconds",
     }
-    valid_to = valid_from + pd.DateOffset(**{freq_lookup[freq]: interval})  # type: ignore
+    offset = pd.DateOffset(**{freq_lookup[freq]: interval})
+    valid_at = pd.date_range(start=start_date, end=end_date, freq=f"{interval}{freq}")
+    valid_from = valid_at
+    valid_to = pd.date_range(
+        start=date_utc(start_date) + offset,
+        end=date_utc(end_date) + offset,
+        freq=f"{interval}{freq}",
+    )
+    # ... valid_to = valid_from + pd.DateOffset(**{freq_lookup[freq]: interval})  # type: ignore
 
     # BUGFIX: If *lists receives strings, permutations will be over chars by chars
     # Kombiner listene til en enkelt liste av lister

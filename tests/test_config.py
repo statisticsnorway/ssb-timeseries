@@ -6,7 +6,7 @@ from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
 
 # NOSONAR
-# mypy: disable-error-code="no-untyped-def,type-var"
+# mypy: disable-error-code="no-untyped-def"
 
 CONFIGURATION_FILE = config.CONFIGURATION_FILE
 DEFAULT_TS_ROOT = config.DEFAULTS["timeseries_root"]

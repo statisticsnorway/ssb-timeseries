@@ -1,3 +1,4 @@
+import functools
 import glob
 import json
 import os
@@ -8,13 +9,34 @@ import pandas
 import pyarrow
 from dapla import FileClient
 
+from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
 
-"""This is an abstraction that allows file based io regardless of whether involved file systems are local or gcs.
+"""
+This module allows file based io regardless of whether involved file systems are local or GCS.
 """
 
 # ruff: noqa: ANN002, ANN003
-# mypy: disable-error-code="arg-type, type-arg, no-any-return, no-untyped-def, import-untyped, attr-defined, type-var, index"
+# mypy: disable-error-code="arg-type, type-arg, no-any-return, no-untyped-def, import-untyped, attr-defined, type-var, index, return-value"
+
+
+def path_to_str(path: PathStr) -> PathStr:
+    """Normalise as strings.
+
+    This is a trick to make automated tests pass on Windows.
+    """
+    return str(Path(path)).replace("gs:/", "gs://")
+
+
+def wrap_return_as_str(func: F) -> F:
+    """Decorator to normalise outputs using path_to_str()."""
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        out = func(*args, **kwargs)
+        return path_to_str(out)
+
+    return wrapper
 
 
 def remove_prefix(path: PathStr) -> str:
@@ -51,7 +73,8 @@ def exists(path: PathStr) -> bool:
         return Path(path).exists()
 
 
-def existing_subpath(path: PathStr) -> str:
+@wrap_return_as_str
+def existing_subpath(path: PathStr) -> PathStr:
     """Return the existing part of a path on local or GCS file system."""
     if Path(path).exists():
         return str(path)
@@ -59,7 +82,7 @@ def existing_subpath(path: PathStr) -> str:
         p = Path(path).parent
         while not p.exists():
             p = Path(p).parent
-        return str(p)
+        return p
 
 
 def touch(path: PathStr) -> None:
@@ -72,10 +95,12 @@ def touch(path: PathStr) -> None:
         Path(path).touch()
 
 
+@wrap_return_as_str
 def path(*args: PathStr) -> str:
     """Join args to form path. Make sure that gcs paths are begins with double slash: gs://..."""
     p = Path(args[0]).joinpath(*args[1:])
-    return str(p).replace("gs:/", "gs://")
+    return p
+    # .replace("gs:/", "gs://")
     # Feels dirty. Could instead do something like:
     # str(Path(args[0]).joinpath(*args[1:])).replace("gs:/{[a-z]}", "gs://{1}")
 
@@ -84,7 +109,8 @@ def mkdir(path: PathStr) -> None:
     """Make directory regardless of filesystem is local or GCS."""
     # not good enough .. it is hard to distinguish between dirs and files that do not exist yet
     if is_local(path):
-        os.makedirs(path, exist_ok=True)
+        # os.makedirs(path, exist_ok=True)
+        Path(path).mkdir(parents=True, exist_ok=True)
     else:
         ...
 
@@ -95,7 +121,8 @@ def mk_parent_dir(path: PathStr) -> None:
     # but it is hard to distinguish between dirs and files that do not exist yet
     # --> use this to create parent directory for files, mkdir() when the last part of path is a directory
     if is_local(path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        # os.makedirs(os.path.dirname(path), exist_ok=True)
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
     else:
         ...
 
@@ -161,10 +188,8 @@ def mv(from_path: PathStr, to_path: PathStr) -> None:
 def rm(path: PathStr) -> None:
     """Remove file from local or GCS filesystem. Nonrecursive. For a recursive variant, see rmtree()."""
     if is_gcs(path):
-        ...
-        # TO DO: implement this (but recursive)
-        # fs = FileClient.get_gcs_file_system()
-        # fs.rm(path)
+        fs = FileClient.get_gcs_file_system()
+        fs.rm(path)
     else:
         os.remove(path)
 
@@ -182,6 +207,7 @@ def rmtree(
         shutil.rmtree(path)
 
 
+@wrap_return_as_str
 def same_path(*args) -> PathStr:
     """Return common part of path, for two or more files. Files must be on same file system, but the file system can be either local or GCS."""
     # TO DO: add support for Windows style paths?
@@ -191,7 +217,7 @@ def same_path(*args) -> PathStr:
 
 
 def find(
-    path: PathStr,
+    search_path: PathStr,
     pattern: str = "",
     full_path: bool = False,
     replace_root: bool = False,
@@ -201,7 +227,7 @@ def find(
         pattern = f"*{pattern}*"
     else:
         pattern = "*"
-    search_str = os.path.join(path, "*", pattern)
+    search_str = path(search_path, "*", pattern)
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         found = fs.glob(search_str)

@@ -1,4 +1,3 @@
-import os
 import uuid
 from pathlib import Path
 from sys import platform
@@ -46,22 +45,25 @@ def test_fs_type() -> None:
 
 
 def test_fs_path() -> None:
-    assert (
-        fs.path(BUCKET, "a", "b", "c")
-        == "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/a/b/c"
+    assert fs.path(BUCKET, "a", "b", "c") == fs.path_to_str(
+        "gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier/a/b/c"
     )
-    assert fs.path(JOVYAN, "a", "b", "c") == "/home/jovyan/series_data/a/b/c"
+    assert fs.path(JOVYAN, "a", "b", "c") == fs.path_to_str(
+        "/home/jovyan/series_data/a/b/c"
+    )
 
 
 @pytest.mark.skipif(platform != "linux", reason="Can not see GCS.")
 def test_same_path() -> None:
     assert (
-        fs.same_path(BUCKET, "/home/jovyan") == "/"
-        or fs.same_path(BUCKET, "/home/jovyan") == "\\"
+        fs.same_path(BUCKET, "/home/jovyan")
+        == fs.path_to_str("/")
+        # or fs.same_path(BUCKET, "/home/jovyan") == "\\"
     )
     assert fs.same_path(
-        os.path.join("/home/jovyan/a"), "/home/jovyan"
-    ) == os.path.normpath("/home/jovyan")
+        fs.path("/home/jovyan/a"),
+        fs.path("/home/jovyan"),
+    ) == fs.path("/home/jovyan")
     assert (
         fs.same_path(
             "/ssb-prod-dapla-felles-data-delt/poc-tidsserier",

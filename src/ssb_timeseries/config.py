@@ -61,6 +61,8 @@ class Config:
             path (PathStr): Full path of the JSON file to save to. Defaults to the value of the environment variable TIMESERIES_CONFIG.
         """
         fs.write_json(content=self.to_json(), path=path)
+        if not fs.exists(self.log_file):
+            fs.touch(self.log_file)
         if HOME == JOVYAN:
             # For some reason `os.environ["TIMESERIES_CONFIG"] = path` does not work:
             cmd = f"export TIMESERIES_CONFIG={CONFIGURATION_FILE}"
@@ -93,6 +95,7 @@ class Config:
 
 
 CONFIG = Config(configuration_file=CONFIGURATION_FILE)
+CONFIG.save()
 
 
 def main(*args: str | PathStr) -> None:

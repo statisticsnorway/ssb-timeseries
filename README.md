@@ -17,6 +17,7 @@
 
 [pypi status]: https://pypi.org/project/ssb-timeseries/
 [documentation]: https://statisticsnorway.github.io/ssb-timeseries
+[API reference]: https://statisticsnorway.github.io/ssb-timeseries/reference.html
 [tests]: https://github.com/statisticsnorway/ssb-timeseries/actions?workflow=Tests
 [sonarcov]: https://sonarcloud.io/summary/overall?id=statisticsnorway_ssb-timeseries
 [sonarquality]: https://sonarcloud.io/summary/overall?id=statisticsnorway_ssb-timeseries
@@ -26,62 +27,39 @@
 
 ## Background
 
-Statistics Norway is building a new procuction system in the cloud.
+Statistics Norway is the national statistics agency in Norway. We are building a new procuction system in the cloud and moving towards a modern architecture based on open source technologies.
 
-Moving towards modern architecture, development methodology and open source technologies: Python and R are replacing SAS for statistics production code. Oracle databases and ODI for ETL are being replaced by a data lake architecture relying heavily on Parquet files.
+**Time series** play a key role in the statistics production process.
 
-Another big issue has been time series.Time series are essential to statistics production, so the decision to phase out FAME while not having landed precisely what should replace it has left a huge gap.
+Our mission comes with strict requirements for transparency and data quality. Some are mandated by law, others stem from commitment to international standards.
 
-A complete solution will touch several areas of functionality:
+The data itself has a wide variety, but time resolution and publishing frequencies are typically low. While volumes are sometimes significant, they are far from extreme. Quality and reliability is by far more important than latency. This shifts the focus towards process and data control.
 
-- The core is storage with performant read and write, search and filtering
+This libarary came out of a PoC to demonstrate how key functionality could be provided in alignment with architecture decisions and process model requirements.
+
+- At the core is storage with performant read and write, search and filtering
 - Good descriptive metadata is key to findability
 - A wide selection of math and statistics libraries is key for calculations and models
 - Visualisation tools play a role both in ad hoc and routine inspection and quality control
 - Workflow integration with automation and process monitoring help keeping consistent quality
 - Data lineage and process metadata is essential for quality control
 
-In Statistics Norway strict requirements for transparency and data quality are mandated by law and commitment to international standards. The data itself has a wide variety, but time resolution and publishing frequencies are typically low. While volumes are some times significant, they are far from extreme. This shifts the focus from performance towards process and data control.
-
-This project came out of a PoC to demonstrate how the key functionality may be provided with the core technologies Python and Parquet, in alignment with architecture decisions and process model requirements. Constructed to be an abstraction between the storage layer and the statistics production code, it provides a way forward while postponing some the technical choices.
-
-- Basic functionality for read/write, calculations, time aggregation and plotting was demonstrated December 2023.
-- Persisting snapshots in alignment with the process model, simple descriptive tagging and integrations with GCS buckets was added Q1 2024.
+It is constructed to be an abstraction between the storage and automation layers and the statistics production code. providing a way forward while postponing some technical choices.
 
 ## How to get started?
 
-See notebook files and tests, `demo.ipynb` and `tests/test_*.py` for examples of usage, and what works and in some cases what does not.
-
-Note that
-
-- The library is constructed to be platform independent, but top priority is making it work in a Linux environment.
 - Install by way of `poetry add ssb_timeseries`.
 - The library should work out of the box with default settings. Note that the defaults are for local testing, ie not be suitable for the production setting.
 - To apply custom settings: The environment variable TIMESERIES_CONFIG should point to a JSON file with configurations.
 - The command `poetry run timeseries-config <...>` can be run from a terminal in order to shift between defauls.
-- Run `poetry run timeseries-config home` to create the environment variable and a file with default configurations in the home directory, ie `/home/jovyan` in the Jupyter environment (or the equivalent running elsewhere.
-- The similar `poetry run timeseries-config gcs` will put configurations and logs in the home directory and time series data in a shared bucket `gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier`.
-- With the environment variable set and the configuration in place `poetry run pytest` should succeed.
+- Run `poetry run timeseries-config home` to create the environment variable and a file with default configurations in the home directory, ie `/home/jovyan` in the SSB Jupyter environment (or the equivalent running elsewhere).
+- The similar `poetry run timeseries-config gcs` will put configurations and logs in the home directory and time series data in a shared GCS bucket `gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier`. Take appropriate steps to make sure you have access. The library does not attempt to facilitate that.
+- With the environment variable set and the configuration in place you should be all set. See the reference https://statisticsnorway.github.io/ssb-timeseries/reference.html
 
-While the library is in a workable state and should work both locally and in JupyterLab, it is still in an exploratory phase. There is a risk that fundamental choices are reversed and breaking changes introduced.
+**Note that** while the library is in a workable state and should work both locally and (for SSB users) in JupyterLab, it is still in early development. There is a risk that fundamental choices are reversed and breaking changes introduced.
 
-With that disclaimer, feel free to explore and experiment, and do not be shy about asking questions or giving feedback. At this stage, feedback is all important.
+With that disclaimer, feel free to explore and experiment, and do not be shy about asking questions or giving feedback.
 
-Assuming you have Python working with a standard SSB setup for git and poetry etc, the following should get you going:
-
-```bash
-# Get the poc package
-git clone https://github.com/statisticsnorway/arkitektur-poc-tidsserier.git
-
-# Run inside a poetry controlled venv:
-poetry shell
-## Create default config
-poetry run timeseries-config home
-# Run the tests to check that everything is OK:
-poetry run pytest
-# A couple of the test cases *are expected* fail when running for the first time in a new location.
-# They should create the structures they need and should succeed in subsequent runs.
-```
 
 ## Functionality overview
 
@@ -117,22 +95,37 @@ The Dataset.io attribute connects the dataset to a helper class that takes care 
 
 Yes, that _was_ the short version. The long version is still pending production.
 
-To be continued ...
 
-### Other sources of documentation:
+### Internal documentation:
 
 - https://statistics-norway.atlassian.net/wiki/spaces/Arkitektur/pages/3581313026/Statistikkproduksjon
 - https://statistics-norway.atlassian.net/wiki/spaces/Arkitektur/pages/3595665419/Lagring+av+tidsserier
 
 ## API-documentation
 
-The [documentation] is published on GitHub Pages. Se the Reference page for
-API-documentation.
+The [documentation] is published on GitHub Pages. See the [API reference]  for API-documentation.
 
 ## Contributing
 
 Contributions are very welcome.
-To learn more, see the [Contributor Guide].
+
+For SSB internals, assuming you have Python working with a standard SSB setup for git and poetry etc, the following should get you going:
+
+```bash
+# Get the poc package
+git clone https://github.com/statisticsnorway/arkitektur-poc-tidsserier.git
+
+# Run inside a poetry controlled venv:
+poetry shell
+## Create default config
+poetry run timeseries-config home
+# Run the tests to check that everything is OK:
+poetry run pytest
+# A couple of the test cases *are expected* fail when running for the first time in a new location.
+# They should create the structures they need and should succeed in subsequent runs.
+```
+
+See the [Contributor Guide] to learn more.
 
 ## License
 
