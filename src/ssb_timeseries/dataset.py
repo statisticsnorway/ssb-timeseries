@@ -195,7 +195,7 @@ class Dataset:
         self.io = io.FileSystem(self.name, self.data_type, self.as_of_utc)
         ts_logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")
         if not self.tags:
-            ts_logger.warning(
+            ts_logger.debug(
                 f"DATASET {self.name}: attempt to save empty tags = {self.tags}."
             )
         self.io.save(meta=self.tags, data=self.data)
@@ -320,7 +320,7 @@ class Dataset:
 
         if tags:
             series_tags = self.series_tags
-            ts_logger.warning(
+            ts_logger.debug(
                 f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}"
             )
             matching_series = [
@@ -472,7 +472,7 @@ class Dataset:
         datetime_columns = list(
             set(self.data.columns) & {"valid_at", "valid_to", "valid_from"}
         )
-        ts_logger.warning(f"DATASET {self.name}: datetime columns: {datetime_columns}.")
+        ts_logger.debug(f"DATASET {self.name}: datetime columns: {datetime_columns}.")
 
         # works for datetime_columns = "valid_at", untested for others
         # TODO: add support for ["valid_from", "valid_to"]
@@ -508,13 +508,13 @@ class Dataset:
                     .sum(*args, numeric_only=numeric_only_value, **kwargs)  # type: ignore[misc]
                     .filter(regex="mendgde|volum|vekt")
                 )
-                ts_logger.warning(f"groupby\n{df2}.")
+                ts_logger.debug(f"groupby\n{df2}.")
 
                 df1[df2.columns] = df2[df2.columns]
 
                 out = df1
-                ts_logger.warning(f"groupby\n{out}.")
-                ts_logger.warning(f"DATASET {self.name}: groupby\n{out}.")
+                ts_logger.debug(f"groupby\n{out}.")
+                ts_logger.debug(f"DATASET {self.name}: groupby\n{out}.")
 
         new_name = f"({self.name}.groupby({freq},{func})"
 
@@ -582,7 +582,7 @@ class Dataset:
 
     def all(self) -> bool:
         """Check if all values in series columns evaluate to true."""
-        ts_logger.warning(all(self.data))
+        ts_logger.debug(all(self.data))
         return all(self.data[self.numeric_columns()])
 
     def any(self) -> bool:
