@@ -326,9 +326,12 @@ class Dataset:
             matching_series = [
                 name
                 for name, s_tags in series_tags.items()
-                if all(s_tags[k] in v for k, v in tags.items())
+                # if all(s_tags[k] in v for k, v in tags.items())
+                if s_tags.items() >= tags.items()
             ]
-            ts_logger.debug(f"DATASET.filter(tags) matched series:\n{matching_series} ")
+            ts_logger.warning(
+                f"DATASET.filter(tags) matched series:\n{matching_series} "
+            )
             df = self.data[matching_series].copy(deep=True)
 
         df = pd.concat([self.data[self.datetime_columns()], df], axis=1)
@@ -840,7 +843,7 @@ class Dataset:
                 new_col_name = f"{m}({node.name})"
                 df[new_col_name] = calculate_aggregate(leaf_node_subset, m)
                 ts_logger.debug(
-                    f"DATASET.aggregate(): For node '{node.name}', column {m} for input df:\n{leaf_node_subset}\nreturned:\n{df}"
+                    f"DATASET.aggregate(): node '{node}', column {m} input df:\n{leaf_node_subset.columns}\nreturned:\n{df[new_col_name]}"
                 )
 
         return self.copy(f"{self.name}.{aggregate_function}", data=df)
@@ -869,7 +872,7 @@ def calculate_aggregate(df: pd.DataFrame, method: str) -> pd.Series | Any:
     """Helper function to calculate aggregate over dataframe columns."""
     match method.lower():
         case "mean" | "average":
-            out = df.mean(axis=1)
+            out = np.mean(df, axis=1)
         case "min" | "minimum":
             out = df.min(axis=1)
         case "max" | "maximum":

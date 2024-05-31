@@ -4,7 +4,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from ssb_timeseries.dates import date_utc
+from ssb_timeseries.dates import date_utc, now_cet
 
 # mypy: disable-error-code="arg-type, type-arg, import-untyped, unreachable, attr-defined"
 
@@ -169,6 +169,6 @@ def random_numbers(
     variance: int | float = 10,
 ) -> np.ndarray:
     """Generate sample dataframe of specified dimensions."""
-    generator = np.random.default_rng(42)
+    generator = np.random.default_rng(now_cet().microsecond)
     random_matrix = generator.standard_normal(size=(rows, cols))
     return midpoint + variance * random_matrix.round(decimals)

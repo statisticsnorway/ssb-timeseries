@@ -364,7 +364,7 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
         tags=set_tags,
         series_tags=series_tags,
         data=create_df(
-            *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+            *tag_values, start_date="2020-01-01", end_date="2024-01-03", freq="YS"
         ),
         name_pattern=["A", "B", "C"],
     )
@@ -377,6 +377,7 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
     assert sorted(y.numeric_columns()) == sorted(
         [f"mean({n.name})" for n in klass157.parent_nodes()]
     )
+    assert 0
 
 
 @log_start_stop
