@@ -377,7 +377,9 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
     assert sorted(y.numeric_columns()) == sorted(
         [f"mean({n.name})" for n in klass157.parent_nodes()]
     )
-    assert 0
+    assert not y.data[y.numeric_columns()].isna().all()
+    assert not all(y.data[y.numeric_columns()].isna())
+    assert not all(y.data[y.numeric_columns()] == 0)
 
 
 @log_start_stop
@@ -424,3 +426,6 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
     # assert sorted(y.numeric_columns()) == sorted(
     #     [n.name for n in klass157.parent_nodes()]
     # )
+    assert not y.data[y.numeric_columns()].isna().all()
+    assert not all(y.data[y.numeric_columns()].isna())
+    assert not all(y.data[y.numeric_columns()] == 0)
