@@ -16,6 +16,7 @@ from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
 from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import Taxonomy
+from ssb_timeseries.meta import search_by_tags
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
 
@@ -113,12 +114,7 @@ class Dataset:
             # if kwarg_data overlaps data from file, overwrite with kwarg_data
             # ... does this make sense for all versioning types? Verify!
             self.data = kwarg_data
-            # self.data.set_index(self.datetime_columns())
-            # will not work for valid_from_to
-            # self.data.set_index(self.datetime_columns()).to_period()
-            ts_logger.debug(
-                f"DATASET {self.name}: Merged {kwarg_data.size} datapoints:\n{self.data}"
-            )
+            # ts_logger.verbose(f"DATASET {self.name}: Merged {kwarg_data.size} datapoints:\n{self.data}")
             # TODO: update series tags
             # tags may come in through `stored_tags['series]` with additional ones in parameter `series_tags`
             # this will add new tags or overwrite existing ones
@@ -129,9 +125,6 @@ class Dataset:
             inherit_from_set_tags = {"dataset": self.name, **self.tags}
             [inherit_from_set_tags.pop(key) for key in set_only_tags]
 
-            ts_logger.debug(
-                f"DATASET {self.name}: .tags:\n\t{self.tags}\n\tinherited: {inherit_from_set_tags} "
-            )
             # TODO: apply tags provided in parameter series_tags
             # ... or just be content with the autotag?
             # kwarg_series_tags = kwargs.get("series_tags", {})
@@ -143,16 +136,19 @@ class Dataset:
 
             name_pattern = kwargs.get("name_pattern", "")
             if name_pattern:
+                separator = kwargs.get("separator", "_")
                 for s in self.tags["series"]:
-                    name_parts = s.split("_")
+                    name_parts = s.split(separator)
                     for attribute, value in zip(name_pattern, name_parts, strict=False):
                         self.tags["series"][s][attribute] = value
+                        # ts_logger.debug(f"attribute:\t{attribute}\nvalue:\t{value}")
 
             series_tags = kwargs.get("series_tags", {})
             if series_tags:
                 for s in self.tags["series"]:
                     for attribute, value in series_tags.items():
-                        self.tags["series"][s][attribute] = value
+                        self.tags["series"][s][attribute] = str(value)
+            # ts_logger.debug(f"DATASET {self.name}: .tags:\n\t{self.tags}")
 
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
@@ -286,7 +282,7 @@ class Dataset:
     def filter(
         self,
         pattern: str = "",
-        tags: dict[Any, Any] = None,
+        tags: dict[str, str | list[str]] = None,
         regex: str = "",
         output: str = "dataset",
         new_name: str = "",
@@ -319,27 +315,26 @@ class Dataset:
             matching_series = df.columns
 
         if tags:
-            series_tags = self.series_tags
-            ts_logger.debug(
-                f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}"
-            )
-            matching_series = [
-                name
-                for name, s_tags in series_tags.items()
-                # if all(s_tags[k] in v for k, v in tags.items())
-                if s_tags.items() >= tags.items()
-            ]
-            ts_logger.warning(
-                f"DATASET.filter(tags) matched series:\n{matching_series} "
-            )
+            # series_tags = self.series_tags
+            # ts_logger.debug(
+            #     f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}"
+            # )
+            # matching_series = [
+            #     name
+            #     for name, s_tags in series_tags.items()
+            #     if all(s_tags[k] in v for k, v in tags.items())
+            #     # if s_tags.items() >= tags.items()
+            # ]
+            matching_series = search_by_tags(self.tags["series"], tags)
+            ts_logger.debug(f"DATASET.filter(tags) matched series:\n{matching_series} ")
             df = self.data[matching_series].copy(deep=True)
 
         df = pd.concat([self.data[self.datetime_columns()], df], axis=1)
 
-        # TODO: add interval parameter to filter on datetime? Similar to:
-        # if interval:
-        #    df = df[interval, :]
-        # ... or is it better to do this in another function?
+        interval = kwargs.get("interval")
+        if interval:
+            ...
+            # TODO: add interval filter on datetime
 
         match output:
             case "dataframe" | "df":
@@ -356,7 +351,7 @@ class Dataset:
 
     @no_type_check
     def __getitem__(
-        self, criteria: str | dict[str, str] = "", **kwargs: Any
+        self, criteria: str | dict[str, str | list[str]] = "", **kwargs: Any
     ) -> Self | None:
         """Access Dataset.data.columns via Dataset[ list[column_names] | pattern | tags].
 
@@ -563,7 +558,7 @@ class Dataset:
             data=out,
         )
 
-    # TODO: Add these? (needed to make all() and any() work?)
+    # TODO: Add these?
     # def __iter__(self):
     #     self.n = 0
     #     return self
@@ -835,16 +830,15 @@ class Dataset:
 
         df = self.data.copy().drop(columns=self.numeric_columns())
         for node in taxonomy.parent_nodes():
-            leaf_node_subset = self.filter(
-                tags={attribute: taxonomy.leaf_nodes()}, output="df"
-            ).drop(columns=self.datetime_columns())
+            leaves = taxonomy.leaf_nodes(node.name)
+            ts_logger.debug(f"DATASET.aggregate(): node '{node.name}' leaves {leaves}.")
+            leaf_node_subset = self.filter(tags={attribute: leaves}, output="df")
+            # .drop(columns=self.datetime_columns())
 
             for m in aggregate_function:
                 new_col_name = f"{m}({node.name})"
-                df[new_col_name] = calculate_aggregate(leaf_node_subset, m)
-                ts_logger.debug(
-                    f"DATASET.aggregate(): node '{node}', column {m} input df:\n{leaf_node_subset.columns}\nreturned:\n{df[new_col_name]}"
-                )
+                df[new_col_name] = column_aggregate(leaf_node_subset, m)
+                # ts_logger.debug(f"DATASET.aggregate(): node '{node}', column {m} input:\n{leaf_node_subset.columns}\nreturned:\n{df[new_col_name]}")
 
         return self.copy(f"{self.name}.{aggregate_function}", data=df)
 
@@ -868,19 +862,20 @@ class Dataset:
                 self.data = self.data.set_index(self.datetime_columns(), *args)
 
 
-def calculate_aggregate(df: pd.DataFrame, method: str) -> pd.Series | Any:
+def column_aggregate(df: pd.DataFrame, method: str) -> pd.Series | Any:
     """Helper function to calculate aggregate over dataframe columns."""
+    ts_logger.debug(f"DATASET.column_aggregate '{method}' over columns:\n{df.columns}")
     match method.lower():
         case "mean" | "average":
-            out = np.mean(df, axis=1)
+            out = df.mean(axis=1, numeric_only=True)
         case "min" | "minimum":
-            out = df.min(axis=1)
+            out = df.min(axis=1, numeric_only=True)
         case "max" | "maximum":
-            out = df.max(axis=1)
+            out = df.max(axis=1, numeric_only=True)
         case "count":
-            out = df.count(axis=1)
+            out = df.count(axis=1, numeric_only=True)
         case "sum":
-            out = df.sum(axis=1)
+            out = df.sum(axis=1, numeric_only=True)
         case "percentile" | _:
             raise NotImplementedError(
                 f"Aggregation method '{method}' is not implemented (yet)."
