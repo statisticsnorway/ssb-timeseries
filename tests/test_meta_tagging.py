@@ -421,7 +421,6 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
         aggregate_function=multiple_functions,
     )
     assert isinstance(y, Dataset)
-    ts_logger.debug(f"calculated: \n{y.data.info()}\n{y.data}")
     assert len(y.numeric_columns()) == len(
         klass157.parent_nodes() * len(multiple_functions)
     )

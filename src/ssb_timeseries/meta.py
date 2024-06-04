@@ -4,16 +4,13 @@ Ideally, this functionality should live elsewhere, in ssb-python-klass and other
 """
 
 import io
+from typing import Any
 
 import bigtree
-import bigtree.node
-import bigtree.tree
-import duckdb
 import pandas as pd
-import pyarrow as pa
+from bigtree import get_tree_diff
+from bigtree import print_tree
 from klass import get_classification
-from treelib import Node
-from treelib import Tree
 from typing_extensions import Self
 
 from ssb_timeseries import fs
@@ -97,7 +94,7 @@ class Taxonomy:
             df_from_file = pd.DataFrame.from_dict(fs.read_json(id_or_path))
             self.entities = df_from_file
 
-        self.structure: bigtree.tree = bigtree.dataframe_to_tree_by_relation(
+        self.structure = bigtree.dataframe_to_tree_by_relation(
             data=self.entities,
             child_col="code",
             parent_col="parentCode",
@@ -113,7 +110,7 @@ class Taxonomy:
 
     def __eq__(self, other: Self) -> bool:
         """Checks for equality. Taxonomies are considered equal if their codes and hierarchical relations are the same."""
-        tree_diff = bigtree.get_tree_diff(self.structure, other.structure)
+        tree_diff = get_tree_diff(self.structure, other.structure)
         if tree_diff:
             trees_equal = False
         else:
@@ -133,11 +130,14 @@ class Taxonomy:
 
         return trees_equal and entities_equal
 
-    def __minus__(self, other: Self) -> bigtree.tree:  # type: ignore
+    def __minus__(self, other: bigtree.Node | Self) -> bigtree.Node:  # type: ignore
         """Return the tree difference between the two taxonomy (tree) structures."""
-        return bigtree.get_tree_diff(self.structure, other.structure)
+        if isinstance(other, bigtree.Node):
+            return get_tree_diff(self.structure.root, other.root)
+        else:
+            return get_tree_diff(self.structure.root, other.structure.root)
 
-    def __getitem__(self, key: str) -> bigtree.node:  # type: ignore
+    def __getitem__(self, key: str) -> bigtree.Node:  # type: ignore
         """Get tree node by name (KLASS code)."""
         return bigtree.find_name(self.structure.root, key)
 
@@ -156,7 +156,7 @@ class Taxonomy:
         from contextlib import redirect_stdout
 
         with io.StringIO() as buf, redirect_stdout(buf):
-            bigtree.print_tree(self.structure, *args, **kwargs)
+            print_tree(self.structure, *args, **kwargs)
             output = buf.getvalue()
         return output
 
@@ -164,10 +164,10 @@ class Taxonomy:
         """Return all nodes in the taxonomy."""
         return [n for n in self.structure.root.descendants]
 
-    def leaf_nodes(self, name: Node | str = "") -> list[bigtree.node]:  # type: ignore
+    def leaf_nodes(self, name: bigtree.Node | str = "") -> list[bigtree.node]:  # type: ignore
         """Return all leaf nodes in the taxonomy."""
         if name:
-            if isinstance(name, Node):
+            if isinstance(name, bigtree.Node):
                 leaves = [n.name for n in name.leaves]
             else:
                 leaves = [n.name for n in self.subtree(name).leaves]
@@ -211,7 +211,7 @@ def add_root_node(df: pd.DataFrame, root_node: dict[str, str | None]) -> pd.Data
     return df
 
 
-def matches_criteria(tag: dict[str, any], criteria: dict[str, str | list[str]]) -> bool:
+def matches_criteria(tag: dict[str, Any], criteria: dict[str, str | list[str]]) -> bool:
     """Check if a tag matches the specified criteria.
 
     Args:
@@ -233,8 +233,8 @@ def matches_criteria(tag: dict[str, any], criteria: dict[str, str | list[str]]) 
 
 
 def filter_tags(
-    tags: dict[str, dict[str, any]], criteria: dict[str, str | list[str]]
-) -> dict[str, dict[str, any]]:
+    tags: dict[str, dict[str, Any]], criteria: dict[str, str | list[str]]
+) -> dict[str, dict[str, Any]]:
     """Filter tags based on the specified criteria.
 
     Args:
@@ -249,7 +249,7 @@ def filter_tags(
 
 
 def search_by_tags(
-    tags: dict[str, dict[str, any]], criteria: dict[str, str | list[str]]
+    tags: dict[str, dict[str, Any]], criteria: dict[str, str | list[str]]
 ) -> list[str]:
     """Filter tags based on the specified criteria.
 

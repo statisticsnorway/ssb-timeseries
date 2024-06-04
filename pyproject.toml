@@ -24,8 +24,6 @@ typing-extensions = ">=4.11.0"
 python-dateutil = ">=2.9.0.post0"
 numpy = ">=1.26.4"
 matplotlib = "^3.8.4"
-duckdb = ">=0.10.3"
-treelib = "^1.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pygments = ">=2.10.0"
