@@ -172,7 +172,7 @@ def test_find_data_using_single_metadata_attribute(
 
     returned_series_tags = x_filtered_on_attribute_a.tags["series"]
     for key in returned_series_tags.keys():
-        assert returned_series_tags[key]["dataset"] != set_name  # TODO: update metadata
+        assert returned_series_tags[key]["dataset"] != set_name
         assert returned_series_tags[key]["name"] == key
         assert returned_series_tags[key]["A"] == "a"
 
@@ -219,7 +219,7 @@ def test_find_data_using_multiple_metadata_attributes(
 
     returned_series_tags = x_filtered_on_attribute_a_and_b.tags["series"]
     for key in returned_series_tags.keys():
-        assert returned_series_tags[key]["dataset"] != set_name  # TODO: update metadata
+        assert returned_series_tags[key]["dataset"] != set_name
         assert returned_series_tags[key]["name"] == key
         assert returned_series_tags[key]["A"] == "a"
         assert returned_series_tags[key]["B"] == "q"
@@ -267,7 +267,7 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
 
     returned_series_tags = x_filtered_on_attribute_a.tags["series"]
     for key in returned_series_tags.keys():
-        assert returned_series_tags[key]["dataset"] != set_name  # TODO: update metadata
+        assert returned_series_tags[key]["dataset"] != set_name
         assert returned_series_tags[key]["name"] == key
         assert (
             returned_series_tags[key]["A"] == "a"
@@ -275,38 +275,97 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
         )
 
 
-@pytest.mark.skip(reason="Not ready yet.")
 @log_start_stop
-def test_update_metadata_attributes() -> None:
-    # TO DO:
-    # Updating metadata by changing an attribute value should
-    # ... update metadata.json
-    # ... keep previous version
+def test_tag_set_with_kwargs(new_dataset_as_of_at: Dataset) -> None:
+    new_dataset_as_of_at.tag_dataset(
+        example_1="string_1",
+        example_2=["a", "b", "c"],
+    )
+    # check that the tags are applied to the dataset
+    assert new_dataset_as_of_at.tags["example_1"] == "string_1"
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
 
-    ts_logger.debug("don't worrry, be happy ...")
-    raise AssertionError()
+    # check that the tags propagate to series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
 
 
-@pytest.mark.skip(reason="Not ready yet.")
-def test_updated_tags_propagates_to_column_names_accordingly() -> None:
-    # TO DO:
-    # my_dataset.update_metadata('column_name', 'metadata_tag')
-    # ... --> versioning
+@log_start_stop
+def test_tag_set_with_dict(new_dataset_as_of_at: Dataset) -> None:
+    new_dataset_as_of_at.tag_dataset(
+        tags={"example_1": "string_1", "example_2": ["a", "b", "c"]}
+    )
+    # check that the tags are applied to the dataset
+    assert new_dataset_as_of_at.tags["example_1"] == "string_1"
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
 
-    ts_logger.debug("don't worrry, be happy ...")
-    raise AssertionError()
+    # check that the tags propagate to series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+
+@log_start_stop
+def test_tag_set_with_both_dict_and_kwargs(new_dataset_as_of_at: Dataset) -> None:
+    new_dataset_as_of_at.tag_dataset(
+        tags={"example_1": "string_1"}, example_2=["a", "b", "c"]
+    )
+    # check that the tags are applied to the dataset
+    assert new_dataset_as_of_at.tags["example_1"] == "string_1"
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
+
+    # check that the tags propagate to series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+
+@log_start_stop
+def test_tagging_set_second_time_overwrites(new_dataset_as_of_at: Dataset) -> None:
+    new_dataset_as_of_at.tag_dataset(
+        tags={"example_1": "string_1"}, example_2=["a", "b", "c"]
+    )
+    new_dataset_as_of_at.tag_dataset(tags={"example_1": "string_2"})
+    # check that the new tag is applied correctly to the dataset
+    assert new_dataset_as_of_at.tags["example_1"] == "string_2"
+    # while the second tag stays the same
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
+
+    # ... and that this is true also for the series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["example_1"] == "string_2"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+
+@log_start_stop
+def test_tagging_with_empty_dict_does_nothing(new_dataset_as_of_at: Dataset) -> None:
+    new_dataset_as_of_at.tag_dataset(example_1="string_1", example_2=["a", "b", "c"])
+    new_dataset_as_of_at.tag_dataset(tags={})
+    new_dataset_as_of_at.tag_dataset()
+
+    # check that set tags stay the same
+    assert new_dataset_as_of_at.tags["name"] == "test-new-dataset-as-of-at"
+    assert new_dataset_as_of_at.tags["example_1"] == "string_1"
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
+
+    # ... and that this is true also for the series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["dataset"] == "test-new-dataset-as-of-at"
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
 
 
 @pytest.mark.skip(reason="Not ready yet.")
 def test_aggregate_sum_for_flat_list_taxonomy(
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None: ...
 
 
 @log_start_stop
 def test_aggregate_sums_for_hierarchical_taxonomy(
     conftest,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
@@ -347,7 +406,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
 @log_start_stop
 def test_aggregate_mean_for_hierarchical_taxonomy(
     conftest,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
@@ -388,7 +447,7 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
 @log_start_stop
 def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
     conftest,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)

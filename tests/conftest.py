@@ -142,7 +142,7 @@ def new_dataset_none_at():
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
-        name="test-existing-dataset-none-at",
+        name="test-new-dataset-none-at",
         data_type=SeriesType.simple(),
         series_tags={"D": "d"},
         data=create_df(
@@ -166,7 +166,7 @@ def new_dataset_as_of_at():
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
-        name="test-existing-dataset-as-of-at",
+        name="test-new-dataset-as-of-at",
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
         series_tags={"D": "d"},
@@ -190,7 +190,7 @@ def new_dataset_as_of_from_to():
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
-        name="test-existing-as-of-from-to",
+        name="test-new-as-of-from-to",
         data_type=SeriesType.as_of_from_to(),
         as_of_tz=date_utc("2022-01-01"),
         series_tags={"D": "d"},
@@ -216,7 +216,7 @@ def new_dataset_none_from_to():
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
-        name="test-existing-dataset-none-from-to",
+        name="test-new-dataset-none-from-to",
         data_type=SeriesType.from_to(),
         series_tags={"D": "d"},
         data=create_df(

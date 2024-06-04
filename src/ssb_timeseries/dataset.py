@@ -77,20 +77,6 @@ class Dataset:
             set_name=self.name, set_type=self.data_type, as_of_utc=self.as_of_utc
         )
 
-        # metadata: defaults overwritten by stored overwritten by kwargs
-        default_tags = {
-            "name": name,
-            "versioning": str(self.data_type.versioning),
-            "temporality": str(self.data_type.temporality),
-            "series": {},
-        }
-        stored_tags = self.io.read_metadata()
-        kwarg_tags = kwargs.get("tags", {})
-
-        self.tags = {**default_tags, **stored_tags, **kwarg_tags}
-
-        # ts_logger.debug(f"DATASET {self.name}: .......... coalesce:\n\tdefault_tags {default_tags}\n\tkwarg_tags {kwarg_tags}\n\tstored_tags {stored_tags}\n\t--> {self.tags} "        )
-
         # data scenarios:
         #   - IF versioning = NONE
         #      ... simple, just load everything
@@ -114,41 +100,21 @@ class Dataset:
             # if kwarg_data overlaps data from file, overwrite with kwarg_data
             # ... does this make sense for all versioning types? Verify!
             self.data = kwarg_data
-            # ts_logger.verbose(f"DATASET {self.name}: Merged {kwarg_data.size} datapoints:\n{self.data}")
-            # TODO: update series tags
-            # tags may come in through `stored_tags['series]` with additional ones in parameter `series_tags`
-            # this will add new tags or overwrite existing ones
-            # (to delete or append values to an existing tag will need explicit actions)
 
-            set_only_tags = ["series", "name"]
-            # inherit_from_set_tags = {key, d[key] for key in self.tags.items() if key not in set_only_tags}
-            inherit_from_set_tags = {"dataset": self.name, **self.tags}
-            [inherit_from_set_tags.pop(key) for key in set_only_tags]
+        self.tags = self.io.read_metadata()
+        kwarg_tags = kwargs.get("tags", {})
 
-            # TODO: apply tags provided in parameter series_tags
-            # ... or just be content with the autotag?
-            # kwarg_series_tags = kwargs.get("series_tags", {})
+        self.tag_dataset(tags={**kwarg_tags})
 
-            self.tags["series"] = {
-                n: {"name": n, "dataset": self.name, **inherit_from_set_tags}
-                for n in self.numeric_columns()
-            }
-
+        if not self.data.empty:
             name_pattern = kwargs.get("name_pattern", "")
-            if name_pattern:
-                separator = kwargs.get("separator", "_")
-                for s in self.tags["series"]:
-                    name_parts = s.split(separator)
-                    for attribute, value in zip(name_pattern, name_parts, strict=False):
-                        self.tags["series"][s][attribute] = value
-                        # ts_logger.debug(f"attribute:\t{attribute}\nvalue:\t{value}")
-
+            separator = kwargs.get("separator", "_")
             series_tags = kwargs.get("series_tags", {})
-            if series_tags:
-                for s in self.tags["series"]:
-                    for attribute, value in series_tags.items():
-                        self.tags["series"][s][attribute] = str(value)
-            # ts_logger.debug(f"DATASET {self.name}: .tags:\n\t{self.tags}")
+            self.tag_series(
+                tags=series_tags,
+                name_pattern=name_pattern,
+                separator=separator,
+            )
 
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
@@ -221,14 +187,19 @@ class Dataset:
     @property
     def series(self) -> list[str]:
         """Get series names."""
-        return self.numeric_columns()
+        if self.__getattribute__("data") is None:
+            return []
+        else:
+            return self.numeric_columns()
 
     @property
     def series_tags(self) -> dict[str, str | list[str]]:
         """Get series tags."""
         return self.tags["series"]  # type: ignore
 
-    def tag_set(self, tags: dict[str, str] = None, **kwargs: str | list[str]) -> None:
+    def tag_dataset(
+        self, tags: dict[str, str] | None = None, **kwargs: str | list[str] | set[str]
+    ) -> None:
         """Tag the set.
 
         Tags may be provided as dictionary of tags, or as kwargs.
@@ -240,18 +211,35 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
         """
-        # TODO: Implement this:
-        if tags:
-            raise NotImplementedError()
-        elif kwargs:
-            raise NotImplementedError()
-            # if value not in self[attribute]:
-            # self[attribute].append(value)
-        else:
-            raise ValueError("Must provide either tags or kwargs.")
+        if self.__getattribute__("tags") is None:
+            self.tags = {}
+
+        self.tags["name"] = self.name
+        self.tags["versioning"] = str(self.data_type.versioning)
+        self.tags["temporality"] = str(self.data_type.temporality)
+        if not self.tags.get("series"):
+            self.tags["series"] = {s: {"name:": s} for s in self.series}
+
+        if tags is not None:
+            self.tags.update(tags)
+
+        if kwargs:
+            self.tags.update(kwargs)
+
+        set_only_tags = ["series", "name"]
+        inherit_from_set_tags = {"dataset": self.name, **self.tags}
+        [inherit_from_set_tags.pop(key) for key in set_only_tags]
+
+        for s in self.tags["series"]:
+            self.tags["series"][s].update(inherit_from_set_tags)
 
     def tag_series(
-        self, identifiers: str | list[str], tags: dict[str, str] = None, **kwargs: str
+        self,
+        identifiers: str | list[str] | None = None,
+        name_pattern: list[str] | None = None,
+        separator: str = "_",
+        tags: dict[str, str] | None = None,
+        **kwargs: str | list[str],
     ) -> None:
         """Tag the series.
 
@@ -268,15 +256,24 @@ class Dataset:
             tags = {}
 
         tags.update(kwargs)
-
         if not identifiers:
             identifiers = self.series
 
-        for s in self[identifiers]:
-            if s in self.series:
-                self.tags["series"][s].update(tags)
-            else:
-                raise ValueError(f"{s} not in {self.series}.")
+        set_only_tags = ["series", "name"]
+        inherit_from_set_tags = {"dataset": self.name, **self.tags}
+        [inherit_from_set_tags.pop(key) for key in set_only_tags]
+
+        for ident in identifiers:
+            self.tags["series"][ident] = {
+                "name": ident,
+            }
+            self.tags["series"][ident].update({**inherit_from_set_tags, **tags})  # type: ignore[operator]tags)
+
+        if name_pattern:
+            for s in self.tags["series"]:
+                name_parts = s.split(separator)
+                for attribute, value in zip(name_pattern, name_parts, strict=False):
+                    self.tags["series"][s][attribute] = value
 
     @no_type_check
     def filter(

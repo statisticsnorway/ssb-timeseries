@@ -6,7 +6,6 @@ import pytest
 from bigtree import get_tree_diff
 from bigtree import print_tree
 
-from ssb_timeseries import fs
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import Taxonomy
@@ -17,7 +16,7 @@ from ssb_timeseries.meta import search_by_tags
 
 
 @log_start_stop
-def test_search_by_tags(new_dataset_none_at, caplog) -> None:
+def test_search_by_tags(new_dataset_none_at, caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
     series_tags = new_dataset_none_at.tags["series"]
     ts_logger.debug(f"test filter_by_tags ... series tags: {series_tags}")
@@ -27,7 +26,7 @@ def test_search_by_tags(new_dataset_none_at, caplog) -> None:
 
 
 @log_start_stop
-def test_filter_tags(new_dataset_none_at, caplog) -> None:
+def test_filter_tags(new_dataset_none_at, caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
     series_tags = new_dataset_none_at.tags["series"]
     ts_logger.debug(f"test filter_by_tags ... series tags: {series_tags}")
@@ -83,7 +82,7 @@ def test_read_hierarchical_code_set_from_klass_returns_multi_level_tree() -> Non
 
 
 @log_start_stop
-def test_taxonomy_subtree(caplog) -> None:
+def test_taxonomy_subtree(caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
     klass157_subtree = klass157.subtree("1.1")
@@ -97,7 +96,9 @@ def test_taxonomy_subtree(caplog) -> None:
 
 
 @log_start_stop
-def test_get_leaf_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
+def test_get_leaf_nodes_from_hierarchical_klass_taxonomy(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
     tree = Taxonomy(157).structure
     leaves = [n.name for n in tree.root["1"].leaves]
@@ -113,7 +114,9 @@ def test_get_leaf_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
 
 
 @log_start_stop
-def test_get_leaf_nodes_from_middle_of_hierarchical_klass_taxonomy(caplog) -> None:
+def test_get_leaf_nodes_from_middle_of_hierarchical_klass_taxonomy(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
     subtree = klass157.subtree("1.1")
@@ -128,7 +131,9 @@ def test_get_leaf_nodes_from_middle_of_hierarchical_klass_taxonomy(caplog) -> No
 
 
 @log_start_stop
-def test_get_item_from_hierarchical_klass_taxonomy(caplog) -> None:
+def test_get_item_from_hierarchical_klass_taxonomy(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
     tree = klass157.structure
@@ -140,7 +145,9 @@ def test_get_item_from_hierarchical_klass_taxonomy(caplog) -> None:
 
 
 @log_start_stop
-def test_get_parent_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
+def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
     tree = klass157.structure
@@ -158,7 +165,7 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
 
 @pytest.mark.xfail(reason="Tree diff error?")
 @log_start_stop
-def test_taxonomy_minus_subtree(caplog) -> None:
+def test_taxonomy_minus_subtree(caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
     klass157_subtree = klass157.subtree("1.1")
@@ -170,7 +177,7 @@ def test_taxonomy_minus_subtree(caplog) -> None:
 
 
 @log_start_stop
-def test_replace_chars_in_flat_codes(caplog) -> None:
+def test_replace_chars_in_flat_codes(caplog: pytest.LogCaptureFixture) -> None:
     """The substitute parameter of Taxonomy init allows making changes to codes when reading a taxonomy list.
 
     While best practice calls for direct match to KLASS, this allows mappings with (minor) deviations.
@@ -213,7 +220,7 @@ def test_replace_chars_in_flat_codes(caplog) -> None:
 
 
 @log_start_stop
-def test_replace_chars_in_hierarchical_codes(caplog) -> None:
+def test_replace_chars_in_hierarchical_codes(caplog: pytest.LogCaptureFixture) -> None:
     """The substitute parameter of Taxonomy init allows making changes to codes when reading a taxonomy list.
 
     While best practice calls for direct match to KLASS, this allows mappings with (minor) deviations.
@@ -245,17 +252,17 @@ def test_replace_chars_in_hierarchical_codes(caplog) -> None:
 
 @log_start_stop
 def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are_identical(
-    caplog,
+    caplog: pytest.LogCaptureFixture, tmp_path_factory: pytest.TempPathFactory
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
 
-    temp_file = f"temp-{uuid.uuid4()}.json"
-    try:
-        klass157.save(temp_file)
-        file157 = Taxonomy(temp_file)
-    finally:
-        fs.rm(temp_file)
+    temp_file = tmp_path_factory.mktemp("temp") / f"temp-{uuid.uuid4()}.json"
+
+    klass157.save(temp_file)
+    file157 = Taxonomy(temp_file)
+    # finally:
+    #    fs.rm(temp_file)
 
     # compare all leaf nodes of sub tree
     k157_names = [n.name for n in klass157.structure.root.leaves]

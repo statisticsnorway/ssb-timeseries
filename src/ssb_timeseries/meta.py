@@ -4,7 +4,9 @@ Ideally, this functionality should live elsewhere, in ssb-python-klass and other
 """
 
 import io
+from dataclasses import dataclass
 from typing import Any
+from typing import Protocol
 
 import bigtree
 import pandas as pd
@@ -89,9 +91,8 @@ class Taxonomy:
                     self.entities["parentCode"] = self.entities[
                         "parentCode"
                     ].str.replace(key, value)
-        elif isinstance(id_or_path, str):  # isinstance(id_or_path, PathStr) or
-            # TO DO: read from file:
-            df_from_file = pd.DataFrame.from_dict(fs.read_json(id_or_path))
+        else:
+            df_from_file = pd.DataFrame.from_dict(fs.read_json(str(id_or_path)))
             self.entities = df_from_file
 
         self.structure = bigtree.dataframe_to_tree_by_relation(
@@ -194,8 +195,7 @@ class Taxonomy:
 
         The file can be read using Taxonomy(<path to file>).
         """
-        # TODO: make this work with timeseries.fs
-        self.entities.to_json(path_or_buf=path)
+        fs.write_json(path, self.entities.to_dict())
 
 
 def add_root_node(df: pd.DataFrame, root_node: dict[str, str | None]) -> pd.DataFrame:
@@ -284,119 +284,116 @@ def search_by_tags(
 #     return objects
 
 
-# A different apporach for tagging sets and series was considered.
+# A different approach for tagging sets and series was considered.
 # DatasetTags and SeriesTags classes are currently not used, but kept as the decision may be revisited.
 
+# define class Condition?
 
-class DatasetTags:
-    """Dataset Tags: key value pairs with dataset metadata. Methods for manipulating tags."""
 
-    def __init__(
+@dataclass
+class Tags:
+    """Tags for an object. Methods for manipulating tags."""
+
+    name: str
+    """The name of the tagged object."""
+
+    def add(
         self,
-        name: str,
-        versioning: properties.Versioning,
-        temporality: properties.Temporality,
+        tags: dict[str, str | list[str]] | None = None,
+        condition: dict | None = None,
         **kwargs: str | list[str],
     ) -> None:
-        """Initialise Dataset Tags."""
-        self.name: str = name
-        self.versioning: properties.Versioning = versioning
-        self.temporality: properties.Temporality = temporality
-        self.series: list[SeriesTags] = []
-        self.series_tags: dict = kwargs.get(
-            "series_tags", ""
-        )  # Series(dataset=self.name, versioning=self.versioning
-
-        series_in_set = kwargs.get("series", [])
-
-        # TO DO: for series in set, add SeriesTags
-        ts_logger.debug(series_in_set)
-
-    def tag_set(
-        self,
-        tags: dict | None = None,
-        operation: str = "add",
-        **kwargs: str | list[str],
-    ) -> None:
-        """Tag the dataset.
+        """Add tags if they are not already present.
 
         Tags may be specified as kwargs or as a tags dict.
-        Operation (optional: 'add' (default) | 'remove') specifies the action to perform.
         """
-        pass
-        # if value not in self[attribute]:
+        ...
+        # -- if value not in self[attribute]:
         #    self[attribute].append(value)
 
-    def tag_series(
+    def remove(
         self,
-        identifiers: str | list[str] = "*",
-        tags: dict | None = None,
-        operation: str = "add",
+        tags: dict[str, str | list[str]] | None = None,
+        condition: dict | None = None,
         **kwargs: str | list[str],
     ) -> None:
-        """Tag (identified) series in the dataset.
+        """Remove tags if they are present.
+
+        Tags may be specified as kwargs or as a tags dict.
+        """
+        ...
+        # -- if value  in self[attribute]:
+        #    self[attribute].remove(value)
+
+    def replace(
+        self,
+        tags: dict[str, str | list[str]] | None = None,
+        **kwargs: str | list[str],
+    ) -> None:
+        """Remove tags if they are present.
+
+        Tags may be specified as kwargs or as a tags dict.
+        """
+        ...
+        # -- if value1  in self[attribute]:
+        #    self[attribute].remove(value1)
+        #    self[attribute].add(value2)
+
+    def propagate(
+        self,
+        operation: str = "add",
+        fields: str | list[str] = "",
+        **kwargs: str | list[str],
+    ) -> None:
+        """Propagate tagging operation to <field>.
 
         Series may be identified by series names or index, a list of series names or list of series indexes, or a dict of tags.
         Tags may be specified as kwargs or as a tags dict.
         Operation (optional: 'add' (default) | 'replace' | 'remove') specifies the action to perform on the identified series.
         """
-        pass
-        # should handle different datatypes for "item" :
-        # name, int index, List of name or index
-        # if value not in self.series[item][attribute]:
-        #    self.series[attribute].append(value)
+        for f in fields:
+            for k, v in kwargs.items():
+                match operation:
+                    case "add":
+                        self.__getattribute__(f)[k].add(v)
+                    case "replace":
+                        self.__getattribute__(f)[k].replace(v)
+                    case "remove":
+                        self.__getattribute__(f)[k].remove(v)
+                    case _:
+                        raise ValueError(f"Invalid operation: {operation}.")
+
+
+@dataclass
+class SeriesTags(Tags):
+    """Series Tags: key value pairs with series metadata."""
+
+    dataset: str
+    name: str
+    index: int
+    tags: dict
+
+
+@dataclass
+class DatasetTags(Tags):
+    """Dataset Tags: key value pairs with dataset metadata. Methods for manipulating tags."""
+
+    name: str
+    versioning: str
+    temporality: str
+    series: SeriesTags
+
+    def __get_item__(self, identifiers: str | list[str]) -> SeriesTags:
+        """Get tags for on or more series of the dataset tag object."""
+        ...
 
     def __eq__(self, other: Self) -> bool:
-        """Check if dataset tags are the same."""
-        return (self.name, self.versioning, self.temporality, self.tags) == (
-            other.name,
-            other.versioning,
-            other.temporality,
-            other.tags,
-        )
+        """Check if two dataset tag objects are equal; ie if all attributes have the same values."""
+        ...
 
     def __repr__(self) -> str:
         """Return initialization for a copy of the dataset tag object: DatasetTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})."""
         return f"DatasetTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})"
-
-
-class SeriesTags:
-    """Series Tags: key value pairs with series metadata. Methods for manipulating tags."""
-
-    def __init__(
-        self,
-        dataset: str,
-        name: str,
-        index: int | None = None,
-        tags: dict | None = None,
-        lineage: dict | None = None,
-        stats: dict | None = None,
-    ) -> None:
-        """Initialise Series Tags.
-
-        Should inherit from Dataset_Tags.
-        """
-        self.dataset = dataset
-        self.name = name
-        self.fullname = f"{self.dataset}_{self.name}"
-        self.index = index
-        self.tags = tags
-        self.lineage = lineage
-
-    # ---
-    # def to_str(self, attributes: list(str) = None, separator: str = "_") -> list[str]:
-    #     # [{'A': "a", 'B': "b"}, {'A': "aa", 'B': "bb"},{'A': "aaa", 'B': "bbb"}]
-    #     # ->   ["a_b", "aa_bb", "aaa_bbb"]
-    #     if attributes:
-    #         result = []
-    #     # for tag_dict in self:
-    #     #    joined_values = "_".join([",".join(tag_dict[attr]) for attr in attributes])
-    #     #    result.append(joined_values)
-    #     return result
-
-    def __repr__(self) -> str:
-        """Return initialization for a copy of the series tag object: SeriesTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})."""
-        return f"SeriesTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})"
 
 
 def _df_info_as_string(df: pd.DataFrame) -> str:
