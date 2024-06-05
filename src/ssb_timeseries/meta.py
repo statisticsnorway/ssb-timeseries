@@ -4,9 +4,7 @@ Ideally, this functionality should live elsewhere, in ssb-python-klass and other
 """
 
 import io
-from dataclasses import dataclass
 from typing import Any
-from typing import Protocol
 
 import bigtree
 import pandas as pd
@@ -16,11 +14,17 @@ from klass import get_classification
 from typing_extensions import Self
 
 from ssb_timeseries import fs
-from ssb_timeseries import properties
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import PathStr
 
 # mypy: disable-error-code="assignment, override, type-arg, attr-defined, no-untyped-def, import-untyped"
+
+
+def _df_info_as_string(df: pd.DataFrame) -> str:
+    """Returns the content of df.info() as a string."""
+    with io.StringIO() as buffer:
+        df.info(buf=buffer)
+        return buffer.getvalue()
 
 
 class Taxonomy:
@@ -290,114 +294,111 @@ def search_by_tags(
 # define class Condition?
 
 
-@dataclass
-class Tags:
-    """Tags for an object. Methods for manipulating tags."""
+# NO SONAR
+# @dataclass
+# class TaggedObject:
+#     """Tags for an object. Methods for manipulating tags."""
 
-    name: str
-    """The name of the tagged object."""
+#     name: str
+#     """The name of the object."""
 
-    def add(
-        self,
-        tags: dict[str, str | list[str]] | None = None,
-        condition: dict | None = None,
-        **kwargs: str | list[str],
-    ) -> None:
-        """Add tags if they are not already present.
+#     tags: dict[str | list[str]]
+#     """The tags of the object."""
 
-        Tags may be specified as kwargs or as a tags dict.
-        """
-        ...
-        # -- if value not in self[attribute]:
-        #    self[attribute].append(value)
+#     def __get_item__(self, identifiers: str | list[str]) -> Self:
+#         """Get specifed tags object."""
+#         ...
+#         return self.tags[identifiers]
 
-    def remove(
-        self,
-        tags: dict[str, str | list[str]] | None = None,
-        condition: dict | None = None,
-        **kwargs: str | list[str],
-    ) -> None:
-        """Remove tags if they are present.
+#     def add(
+#         self,
+#         tags: dict[str, str | list[str]] | None = None,
+#         condition: dict | None = None,
+#         **kwargs: str | list[str],
+#     ) -> None:
+#         """Add tags if they are not already present.
 
-        Tags may be specified as kwargs or as a tags dict.
-        """
-        ...
-        # -- if value  in self[attribute]:
-        #    self[attribute].remove(value)
+#         Tags may be specified as kwargs or as a tags dict.
+#         """
+#         ...
+#         # -- if value not in self[attribute]:
+#         #    self[attribute].append(value)
 
-    def replace(
-        self,
-        tags: dict[str, str | list[str]] | None = None,
-        **kwargs: str | list[str],
-    ) -> None:
-        """Remove tags if they are present.
+#     def remove(
+#         self,
+#         tags: dict[str, str | list[str]] | None = None,
+#         condition: dict | None = None,
+#         **kwargs: str | list[str],
+#     ) -> None:
+#         """Remove tags if they are present.
 
-        Tags may be specified as kwargs or as a tags dict.
-        """
-        ...
-        # -- if value1  in self[attribute]:
-        #    self[attribute].remove(value1)
-        #    self[attribute].add(value2)
+#         Tags may be specified as kwargs or as a tags dict.
+#         """
+#         ...
+#         # -- if value  in self[attribute]:
+#         #    self[attribute].remove(value)
 
-    def propagate(
-        self,
-        operation: str = "add",
-        fields: str | list[str] = "",
-        **kwargs: str | list[str],
-    ) -> None:
-        """Propagate tagging operation to <field>.
+#     def replace(
+#         self,
+#         tags: dict[str, str | list[str]] | None = None,
+#         **kwargs: str | list[str],
+#     ) -> None:
+#         """Remove tags if they are present.
 
-        Series may be identified by series names or index, a list of series names or list of series indexes, or a dict of tags.
-        Tags may be specified as kwargs or as a tags dict.
-        Operation (optional: 'add' (default) | 'replace' | 'remove') specifies the action to perform on the identified series.
-        """
-        for f in fields:
-            for k, v in kwargs.items():
-                match operation:
-                    case "add":
-                        self.__getattribute__(f)[k].add(v)
-                    case "replace":
-                        self.__getattribute__(f)[k].replace(v)
-                    case "remove":
-                        self.__getattribute__(f)[k].remove(v)
-                    case _:
-                        raise ValueError(f"Invalid operation: {operation}.")
+#         Tags may be specified as kwargs or as a tags dict.
+#         """
+#         ...
+#         # -- if value1  in self[attribute]:
+#         #    self[attribute].remove(value1)
+#         #    self[attribute].add(value2)
 
+#     def propagate(
+#         self,
+#         operation: str = "add",
+#         fields: str | list[str] = "",
+#         **kwargs: str | list[str],
+#     ) -> None:
+#         """Propagate tagging operation to <field>.
 
-@dataclass
-class SeriesTags(Tags):
-    """Series Tags: key value pairs with series metadata."""
-
-    dataset: str
-    name: str
-    index: int
-    tags: dict
-
-
-@dataclass
-class DatasetTags(Tags):
-    """Dataset Tags: key value pairs with dataset metadata. Methods for manipulating tags."""
-
-    name: str
-    versioning: str
-    temporality: str
-    series: SeriesTags
-
-    def __get_item__(self, identifiers: str | list[str]) -> SeriesTags:
-        """Get tags for on or more series of the dataset tag object."""
-        ...
-
-    def __eq__(self, other: Self) -> bool:
-        """Check if two dataset tag objects are equal; ie if all attributes have the same values."""
-        ...
-
-    def __repr__(self) -> str:
-        """Return initialization for a copy of the dataset tag object: DatasetTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})."""
-        return f"DatasetTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})"
+#         Series may be identified by series names or index, a list of series names or list of series indexes, or a dict of tags.
+#         Tags may be specified as kwargs or as a tags dict.
+#         Operation (optional: 'add' (default) | 'replace' | 'remove') specifies the action to perform on the identified series.
+#         """
+#         for f in fields:
+#             for k, v in kwargs.items():
+#                 match operation:
+#                     case "add":
+#                         self.__getattribute__(f)[k].add(v)
+#                     case "replace":
+#                         self.__getattribute__(f)[k].replace(v)
+#                     case "remove":
+#                         self.__getattribute__(f)[k].remove(v)
+#                     case _:
+#                         raise ValueError(f"Invalid operation: {operation}.")
 
 
-def _df_info_as_string(df: pd.DataFrame) -> str:
-    """Returns the content of df.info() as a string."""
-    with io.StringIO() as buffer:
-        df.info(buf=buffer)
-        return buffer.getvalue()
+# NO SONAR
+# @dataclass
+# class SeriesTags(TaggedObject):
+#     """Series Tags: key value pairs with series metadata."""
+
+#     dataset: str
+#     name: str
+#     index: int
+#     tags: dict[str, str | list[str]]
+
+#     def __get_item__(self, identifiers: str | list[str]) -> str | list[str]:
+#         """Get tags for one or more series of the dataset tag object."""
+#         ...
+#         return self.tags[identifiers]
+
+
+# NO SONAR
+# # @dataclass
+# class DatasetTags(TaggedObject):
+#     """Dataset Tags: key value pairs with dataset metadata. Methods for manipulating tags."""
+
+#     name: str
+#     versioning: str
+#     temporality: str
+#     series: dict[str, SeriesTags]

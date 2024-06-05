@@ -12,6 +12,7 @@ from typing_extensions import Self
 
 from ssb_timeseries import io
 from ssb_timeseries import properties
+from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
 from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
 from ssb_timeseries.logging import ts_logger
@@ -68,15 +69,24 @@ class Dataset:
                 self.data_type = look_for_it.data_type
             else:
                 raise ValueError(
-                    f"Dataset {name} not found. Specify data_type to initialise a new set."
+                    f"Dataset {name} not found. Specify data_type if you intendto initialise a new set."
                 )
-                # TODO: for versioned series, return latest if no as_of_tz is provided
+
+        if self.data_type.versioning == properties.Versioning.AS_OF and not as_of_tz:
+            # return latest if no as_of_tz is provided
+            self.io = io.FileSystem(
+                set_name=self.name, set_type=self.data_type, as_of_utc=None
+            )
+            lookup_as_of = self.versions()[-1]
+            if isinstance(lookup_as_of, datetime):
+                as_of_tz = lookup_as_of
         self.as_of_utc = date_utc(as_of_tz)
 
         self.io = io.FileSystem(
-            set_name=self.name, set_type=self.data_type, as_of_utc=self.as_of_utc
+            set_name=self.name,
+            set_type=self.data_type,
+            as_of_utc=self.as_of_utc,
         )
-
         # data scenarios:
         #   - IF versioning = NONE
         #      ... simple, just load everything
@@ -155,7 +165,7 @@ class Dataset:
             self.as_of_utc = date_utc(as_of_tz)
 
         self.io = io.FileSystem(self.name, self.data_type, self.as_of_utc)
-        ts_logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")
+        # ts_logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")
         if not self.tags:
             ts_logger.debug(
                 f"DATASET {self.name}: attempt to save empty tags = {self.tags}."
@@ -184,6 +194,34 @@ class Dataset:
             period_to=date_to,
         )
 
+    def versions(self, **kwargs: Any) -> list[datetime | str]:
+        """Get list of all series version markers (`as_of` dates or version names).
+
+        By default `as_of` dates will be returned in local timezone. Provide `return_type = 'utc'` to return in UTC, 'raw' to return as-is.
+        """
+        versions = self.io.list_versions(
+            file_pattern="*.parquet", pattern=self.data_type.versioning
+        )
+        if not versions:
+            return []
+        else:
+            ts_logger.debug(f"DATASET {self.name}: versions: {versions}.")
+
+        if self.data_type.versioning == properties.Versioning.AS_OF:
+            return_type = kwargs.get("return_type", "local")
+        else:
+            return_type = "raw"
+
+        match return_type:
+            case "local":
+                return [date_local(v) for v in versions]
+            case "utc":
+                return [date_utc(v) for v in versions]
+            case "utc_iso":
+                return [utc_iso(v) for v in versions]
+            case _:
+                return versions
+
     @property
     def series(self) -> list[str]:
         """Get series names."""
@@ -198,7 +236,9 @@ class Dataset:
         return self.tags["series"]  # type: ignore
 
     def tag_dataset(
-        self, tags: dict[str, str] | None = None, **kwargs: str | list[str] | set[str]
+        self,
+        tags: dict[str, Any] | None = None,
+        **kwargs: str | list[str] | set[str],
     ) -> None:
         """Tag the set.
 
@@ -255,7 +295,7 @@ class Dataset:
         if not tags:
             tags = {}
 
-        tags.update(kwargs)
+        tags.update(kwargs)  # type: ignore[arg-type]
         if not identifiers:
             identifiers = self.series
 
@@ -267,7 +307,7 @@ class Dataset:
             self.tags["series"][ident] = {
                 "name": ident,
             }
-            self.tags["series"][ident].update({**inherit_from_set_tags, **tags})  # type: ignore[operator]tags)
+            self.tags["series"][ident].update({**inherit_from_set_tags, **tags})
 
         if name_pattern:
             for s in self.tags["series"]:
@@ -711,8 +751,6 @@ class Dataset:
             f"DATASET.math({func.__name__}, {self.name}, {other_name}) --> {out.name}\n\t{out.data}."
         )
         return out
-
-    # TODO: check how performance of pure pyarrow or polars compares to numpy
 
     def __add__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Add two datasets or a dataset and a dataframe, numpy array or scalar."""

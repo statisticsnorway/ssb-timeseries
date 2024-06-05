@@ -483,10 +483,10 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
     assert len(y.numeric_columns()) == len(
         klass157.parent_nodes() * len(multiple_functions)
     )
-    # TODO: double check this:
-    # assert sorted(y.numeric_columns()) == sorted(
-    #     [n.name for n in klass157.parent_nodes()]
-    # )
+    for func in multiple_functions:
+        assert sorted(y.filter(func).numeric_columns()) == sorted(
+            [f"{func}({n.name})" for n in klass157.parent_nodes()]
+        )
     y_data = y.data[y.numeric_columns()]
     ts_logger.debug(f"{set_name} --> \n{y_data}")
     assert all(y_data.notna())
