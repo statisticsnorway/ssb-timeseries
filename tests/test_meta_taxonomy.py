@@ -1,15 +1,63 @@
-# type: ignore
-# ruff: noqa
 import logging
 import uuid
 
-# from numpy import log
-import pytest
 import bigtree
+import pytest
+from bigtree import get_tree_diff
+from bigtree import print_tree
+
 from ssb_timeseries import fs
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import Taxonomy
+from ssb_timeseries.meta import filter_tags
+from ssb_timeseries.meta import search_by_tags
+
+# mypy: disable-error-code="no-untyped-def,attr-defined,func-returns-value,operator"
+
+
+@log_start_stop
+def test_search_by_tags(new_dataset_none_at, caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    series_tags = new_dataset_none_at.tags["series"]
+    ts_logger.debug(f"test filter_by_tags ... series tags: {series_tags}")
+    out = search_by_tags(series_tags, {"A": ["a", "b"], "B": "p", "C": "z1"})
+    assert isinstance(out, list)
+    assert sorted(out) == sorted(["a_p_z1", "b_p_z1"])
+
+
+@log_start_stop
+def test_filter_tags(new_dataset_none_at, caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    series_tags = new_dataset_none_at.tags["series"]
+    ts_logger.debug(f"test filter_by_tags ... series tags: {series_tags}")
+    out = filter_tags(series_tags, {"A": ["a", "b"], "B": "q", "C": "z1"})
+    ts_logger.debug(f"test filter_by_tags ... {out}")
+    assert isinstance(out, dict)
+    assert sorted(out) == sorted(
+        {
+            "b_q_z1": {
+                "name": "b_q_z1",
+                "dataset": "test-existing-dataset-none-at",
+                "versioning": "NONE",
+                "temporality": "AT",
+                "A": "b",
+                "B": "q",
+                "C": "z1",
+                "D": "d",
+            },
+            "a_q_z1": {
+                "name": "a_q_z1",
+                "dataset": "test-existing-dataset-none-at",
+                "versioning": "NONE",
+                "temporality": "AT",
+                "A": "a",
+                "B": "q",
+                "C": "z1",
+                "D": "d",
+            },
+        }
+    )
 
 
 @log_start_stop
@@ -35,17 +83,47 @@ def test_read_hierarchical_code_set_from_klass_returns_multi_level_tree() -> Non
 
 
 @log_start_stop
+def test_taxonomy_subtree(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(157)
+    klass157_subtree = klass157.subtree("1.1")
+    ts_logger.debug(f"tree ...\n{klass157_subtree}")
+    assert isinstance(klass157_subtree, bigtree.Node)
+    assert klass157_subtree.root.name == "1.1"
+    assert klass157_subtree.diameter == 2
+    assert klass157_subtree.max_depth == 2
+
+    assert [n.name for n in klass157_subtree.leaves] == ["1.1.1", "1.1.2", "1.1.3"]
+
+
+@log_start_stop
 def test_get_leaf_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     tree = Taxonomy(157).structure
     leaves = [n.name for n in tree.root["1"].leaves]
-    ts_logger.debug(f"{bigtree.print_tree(tree)} ...\n{leaves}")
+    # ts_logger.debug(f"{print_tree(tree)} ...\n{leaves}")
+    ts_logger.debug(f"{tree} ...\n{leaves}")
 
     assert leaves == [
         "1.1.1",
         "1.1.2",
         "1.1.3",
         "1.2",
+    ]
+
+
+@log_start_stop
+def test_get_leaf_nodes_from_middle_of_hierarchical_klass_taxonomy(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(157)
+    subtree = klass157.subtree("1.1")
+    leaves = [n.name for n in subtree.root.leaves]
+    # ts_logger.debug(f"{print_tree(subtree)} ...\n{leaves}")
+
+    assert leaves == [
+        "1.1.1",
+        "1.1.2",
+        "1.1.3",
     ]
 
 
@@ -78,16 +156,17 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(caplog) -> None:
     assert sorted(parent_nodes) == sorted(parent_nodes2)
 
 
-@pytest.mark.skip(reason="WTF?")
+@pytest.mark.xfail(reason="Tree diff error?")
 @log_start_stop
 def test_taxonomy_minus_subtree(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
     klass157_subtree = klass157.subtree("1.1")
-    ts_logger.debug(f"tree ...\n{bigtree.print_tree(klass157_subtree)}")
-    rest = bigtree.get_tree_diff(klass157.structure.root, klass157_subtree.root)
-    rest2 = klass157.structure - klass157_subtree
-    assert isinstance(rest, bigtree)
+    ts_logger.warning(f"tree ...\n{klass157_subtree}")
+    # rest = bigtree.get_tree_diff(klass157.structure.root, klass157_subtree)
+    # rest = klass157.structure.root - klass157_subtree
+    rest = klass157 - klass157_subtree
+    assert isinstance(rest, bigtree.Node)
 
 
 @log_start_stop
@@ -109,7 +188,7 @@ def test_replace_chars_in_flat_codes(caplog) -> None:
     k697_names = [n.name for n in k697.structure.root.children]
     ts_logger.debug(f"klass 697 codes:\n{k697_names}")
     ts_logger.debug(
-        f"tree ...\n{bigtree.print_tree(k697.structure.root, attr_list=['fullname'])}"
+        f"tree ...\n{print_tree(k697.structure.root, attr_list=['fullname'])}"
     )
 
     assert sorted(k697_names) == sorted(
@@ -147,10 +226,11 @@ def test_replace_chars_in_hierarchical_codes(caplog) -> None:
         },
     )
     # compare for leaf nodes of sub tree
-    k157_names = [n.name for n in k157.structure.root["1"].leaves]
+    # k157_names = [n.name for n in k157.structure.root["1"].leaves]
+    k157_names = [n.name for n in k157["1"].leaves]
     ts_logger.debug(f"klass 157 codes:\n{k157_names}")
     ts_logger.debug(
-        f"tree ...\n{bigtree.print_tree(k157.structure.root['1'], attr_list=['fullname'])}"
+        f"tree ...\n{print_tree(k157.structure['1'], attr_list=['fullname'])}"
     )
 
     assert sorted(k157_names) == sorted(
@@ -182,12 +262,12 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
     f157_names = [n.name for n in file157.structure.root.leaves]
     assert k157_names == f157_names
 
-    ts_logger.debug(f"klass157 ...\n{bigtree.print_tree(klass157.structure)}")
-    ts_logger.debug(f"file157 ...\n{bigtree.print_tree(file157.structure)}")
+    ts_logger.debug(f"klass157 ...\n{print_tree(klass157.structure)}")
+    ts_logger.debug(f"file157 ...\n{print_tree(file157.structure)}")
 
-    diff = bigtree.get_tree_diff(klass157.structure, file157.structure)
+    diff = get_tree_diff(klass157.structure, file157.structure)
     if diff:
-        ts_logger.debug(f"diff:\n{bigtree.print_tree(diff)}")
+        ts_logger.debug(f"diff:\n{print_tree(diff)}")
         # --> assert should fail
     else:
         ts_logger.debug(f"diff: {diff}")

@@ -4,11 +4,12 @@ Ideally, this functionality should live elsewhere, in ssb-python-klass and other
 """
 
 import io
+from typing import Any
 
 import bigtree
-import bigtree.node
-import bigtree.tree
 import pandas as pd
+from bigtree import get_tree_diff
+from bigtree import print_tree
 from klass import get_classification
 from typing_extensions import Self
 
@@ -109,7 +110,7 @@ class Taxonomy:
 
     def __eq__(self, other: Self) -> bool:
         """Checks for equality. Taxonomies are considered equal if their codes and hierarchical relations are the same."""
-        tree_diff = bigtree.get_tree_diff(self.structure, other.structure)
+        tree_diff = get_tree_diff(self.structure, other.structure)
         if tree_diff:
             trees_equal = False
         else:
@@ -129,11 +130,14 @@ class Taxonomy:
 
         return trees_equal and entities_equal
 
-    def __minus__(self, other: Self) -> bigtree.tree:  # type: ignore
+    def __minus__(self, other: bigtree.Node | Self) -> bigtree.Node:  # type: ignore
         """Return the tree difference between the two taxonomy (tree) structures."""
-        return bigtree.get_tree_diff(self.structure, other.structure)
+        if isinstance(other, bigtree.Node):
+            return get_tree_diff(self.structure.root, other.root)
+        else:
+            return get_tree_diff(self.structure.root, other.structure.root)
 
-    def __getitem__(self, key: str) -> bigtree.node:  # type: ignore
+    def __getitem__(self, key: str) -> bigtree.Node:  # type: ignore
         """Get tree node by name (KLASS code)."""
         return bigtree.find_name(self.structure.root, key)
 
@@ -152,7 +156,7 @@ class Taxonomy:
         from contextlib import redirect_stdout
 
         with io.StringIO() as buf, redirect_stdout(buf):
-            bigtree.print_tree(self.structure, *args, **kwargs)
+            print_tree(self.structure, *args, **kwargs)
             output = buf.getvalue()
         return output
 
@@ -160,9 +164,22 @@ class Taxonomy:
         """Return all nodes in the taxonomy."""
         return [n for n in self.structure.root.descendants]
 
-    def leaf_nodes(self) -> list[bigtree.node]:  # type: ignore
+    def leaf_nodes(self, name: bigtree.Node | str = "") -> list[bigtree.node]:  # type: ignore
         """Return all leaf nodes in the taxonomy."""
-        return [n for n in self.structure.root.leaves]
+        if name:
+            if isinstance(name, bigtree.Node):
+                leaves = [n.name for n in name.leaves]
+            else:
+                leaves = [n.name for n in self.subtree(name).leaves]
+                # --- alternative:
+                # leaves = [n.name for n in self.__getitem__(name).leaves]
+                # tree_node = bigtree.find_name(self.structure.root, name)[0]
+                # tree_node = bigtree.get_subtree(self.structure.root, name)[0]
+
+            ts_logger.debug(f"leaves: {leaves}")
+            return leaves
+        else:
+            return [n.name for n in self.structure.leaves]
 
     def parent_nodes(self) -> list[bigtree.node]:  # type: ignore
         """Return all non-leaf nodes in the taxonomy."""
@@ -192,6 +209,79 @@ def add_root_node(df: pd.DataFrame, root_node: dict[str, str | None]) -> pd.Data
     df = pd.concat([root_df, df], ignore_index=True)
     df.sort_index(inplace=True)
     return df
+
+
+def matches_criteria(tag: dict[str, Any], criteria: dict[str, str | list[str]]) -> bool:
+    """Check if a tag matches the specified criteria.
+
+    Args:
+        tag (dict[str, any]): The tag to check.
+        criteria (dict[str, str | list[str]]): The criteria to match against.
+            Values can be single strings or lists of strings.
+
+    Returns:
+        bool: True if the tag matches the criteria, False otherwise.
+    """
+    for key, value in criteria.items():
+        if isinstance(value, list):
+            if tag.get(key) not in value:
+                return False
+        else:
+            if tag.get(key) != value:
+                return False
+    return True
+
+
+def filter_tags(
+    tags: dict[str, dict[str, Any]], criteria: dict[str, str | list[str]]
+) -> dict[str, dict[str, Any]]:
+    """Filter tags based on the specified criteria.
+
+    Args:
+        tags (dict[str, dict[str, any]]): The dictionary of tags to filter.
+        criteria (dict[str, str | list[str]]): The criteria to filter by.
+            Values can be single strings or lists of strings.
+
+    Returns:
+        dict[str, dict[str, any]]: A dictionary of tags that match the criteria.
+    """
+    return {k: v for k, v in tags.items() if matches_criteria(v, criteria)}
+
+
+def search_by_tags(
+    tags: dict[str, dict[str, Any]], criteria: dict[str, str | list[str]]
+) -> list[str]:
+    """Filter tags based on the specified criteria.
+
+    Args:
+        tags (dict[str, dict[str, any]]): The dictionary of tags to filter.
+        criteria (dict[str, str | list[str]]): The criteria to filter by.
+            Values can be single strings or lists of strings.
+
+    Returns:
+        dict[str, dict[str, any]]: A dictionary of tags that match the criteria.
+    """
+    return [k for k in filter_tags(tags, criteria).keys()]
+
+
+# A different approach: duckdb to search within tags .
+# -------------------
+# def duckdb_query(query: str, **kwargs: pa.Table) -> pa.Table:  # -- noqa: E999 #NOSONAR
+#     """Run a query on duckdb."""
+#     return duckdb.sql(query)
+# -------------------
+# def duck_filter_by_tags(
+#     object_tags: dict[str, str | list[str]], filter_tags: dict[str, str | list[str]]
+# ) -> list[str]:
+#     """Check object tagss, return keys for which all filter tags are satisfied."""
+#     query = """
+#     SELECT * FROM objects
+#     """
+#     #    INTERSECT  SELECT * FROM tags
+#     objects = (pa.Table.from_pydict(object_tags),)
+#     tags = (pa.Table.from_pydict(filter_tags),)
+#     out = duckdb_query(query, objects=objects, tags=tags)
+#     return objects
 
 
 # A different apporach for tagging sets and series was considered.
@@ -293,19 +383,16 @@ class SeriesTags:
         self.tags = tags
         self.lineage = lineage
 
-    """
-    def to_str(self, attributes: list(str) = None, separator: str = "_") -> list[str]:
-        # [{'A': "a", 'B': "b"}, {'A': "aa", 'B': "bb"},{'A': "aaa", 'B': "bbb"}]
-        # ->   ["a_b", "aa_bb", "aaa_bbb"]
-        if attributes:
-            result = []
-
-        # for tag_dict in self:
-        #    joined_values = "_".join([",".join(tag_dict[attr]) for attr in attributes])
-        #    result.append(joined_values)
-
-        return result
-    """
+    # ---
+    # def to_str(self, attributes: list(str) = None, separator: str = "_") -> list[str]:
+    #     # [{'A': "a", 'B': "b"}, {'A': "aa", 'B': "bb"},{'A': "aaa", 'B': "bbb"}]
+    #     # ->   ["a_b", "aa_bb", "aaa_bbb"]
+    #     if attributes:
+    #         result = []
+    #     # for tag_dict in self:
+    #     #    joined_values = "_".join([",".join(tag_dict[attr]) for attr in attributes])
+    #     #    result.append(joined_values)
+    #     return result
 
     def __repr__(self) -> str:
         """Return initialization for a copy of the series tag object: SeriesTags(name={self.name}, versioning={self.versioning}, temporality={self.temporality}, tags={self.tags})."""
