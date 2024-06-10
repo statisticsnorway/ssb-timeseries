@@ -268,6 +268,14 @@ def search_by_tags(
     return [k for k in filter_tags(tags, criteria).keys()]
 
 
+def inherited_set_tags(tags: dict) -> dict:
+    """Return the tags that are inherited from the set."""
+    set_only_tags = ["series", "name"]
+    inherit_from_set_tags = {"dataset": tags["name"], **tags}
+    [inherit_from_set_tags.pop(key) for key in set_only_tags]
+    return inherit_from_set_tags
+
+
 # A different approach: duckdb to search within tags .
 # -------------------
 # def duckdb_query(query: str, **kwargs: pa.Table) -> pa.Table:  # -- noqa: E999 #NOSONAR

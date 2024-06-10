@@ -356,6 +356,83 @@ def test_tagging_with_empty_dict_does_nothing(new_dataset_as_of_at: Dataset) -> 
         assert series_tags["example_2"] == ["a", "b", "c"]
 
 
+@log_start_stop
+def test_detag_dataset_removes_tags(new_dataset_as_of_at: Dataset) -> None:
+
+    # 1) tag the set!
+    new_dataset_as_of_at.tag_dataset(example_1="string_1", example_2=["a", "b", "c"])
+
+    # check that the tags are applied to the dataset
+    assert new_dataset_as_of_at.tags["name"] == "test-new-dataset-as-of-at"
+    assert new_dataset_as_of_at.tags["example_1"] == "string_1"
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
+    # ... and  propagate to series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+    # 2) detag the set!
+    new_dataset_as_of_at.detag_dataset("example_1", example_2="b")
+
+    # check that the tags are removed correctly from the dataset
+    assert new_dataset_as_of_at.tags["name"] == "test-new-dataset-as-of-at"
+    assert new_dataset_as_of_at.tags.get("example_1") is None
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "c"]
+    # ... and remove propagate correctly to series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags.get("example_1") is None
+        assert series_tags["example_2"] == ["a", "c"]
+
+
+@log_start_stop
+def test_detag_series_removes_tags_from_series_but_not_from_set(
+    caplog: pytest.LogCaptureFixture,
+    existing_small_set: Dataset,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    # tag the set!
+    existing_small_set.tag_dataset(example_1="string_1", example_2=["a", "b", "c"])
+
+    # check that the tags are applied to the set
+    assert existing_small_set.tags["example_1"] == "string_1"
+    assert existing_small_set.tags["example_2"] == ["a", "b", "c"]
+    # ... and the series
+    for series_tags in existing_small_set.tags["series"].values():
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+    existing_small_set.save()
+    # detag the series!
+    y = Dataset(existing_small_set.name)
+    y.detag_series("example_1", example_2="b")
+
+    # check that the tags are removed from the series
+    ts_logger.debug(f"existing_small_set.tags: {existing_small_set.tags}")
+    for series_tags in y.tags["series"].values():
+        assert series_tags.get("example_1") is None
+        assert series_tags["example_2"] == ["a", "c"]
+    # ..but not from the set
+    assert y.tags["example_1"] == "string_1"
+    assert y.tags["example_2"] == ["a", "b", "c"]
+
+
+@pytest.mark.skip(reason="Exerimental.")
+@log_start_stop
+def test_experiment(
+    caplog: pytest.LogCaptureFixture,
+    existing_small_set: Dataset,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    my_list = ["a", "b", "c"]
+    d1 = {"a": my_list, "b": my_list}
+    d1["a"].remove("b")
+    d2 = {"a": ["a", "b", "c"], "b": ["a", "b", "c"]}
+    d2["a"].remove("b")
+    ts_logger.debug(f"\nd1: {d1}\nd2: {d2}")
+    assert 0
+
+
 @pytest.mark.skip(reason="Not ready yet.")
 def test_aggregate_sum_for_flat_list_taxonomy(
     caplog: pytest.LogCaptureFixture,

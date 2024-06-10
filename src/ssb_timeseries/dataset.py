@@ -17,6 +17,7 @@ from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
 from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import Taxonomy
+from ssb_timeseries.meta import inherited_set_tags
 from ssb_timeseries.meta import search_by_tags
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
@@ -58,18 +59,15 @@ class Dataset:
         Data is kept in memory and not stored before explicit call to .save.
         """
         self.name: str = name
-        if data_type:  # self.exists():
+        if data_type:
             self.data_type = data_type
         else:
-            # TODO: if the datatype is not provided, search by name,
-            # throw error if a) no set is found or b) multiple sets are found
-            # ... till then, just continue
             look_for_it = search(name)
             if isinstance(look_for_it, Dataset):
                 self.data_type = look_for_it.data_type
             else:
                 raise ValueError(
-                    f"Dataset {name} not found. Specify data_type if you intendto initialise a new set."
+                    f"Dataset {name} did not give a unique match. Specify data_type if you intend to initialise a new set."
                 )
 
         if self.data_type.versioning == properties.Versioning.AS_OF and not as_of_tz:
@@ -87,16 +85,6 @@ class Dataset:
             set_type=self.data_type,
             as_of_utc=self.as_of_utc,
         )
-        # data scenarios:
-        #   - IF versioning = NONE
-        #      ... simple, just load everything
-        #   - IF versioning = AS_OF
-        #      ... if as_of_tz is provided, load that, otherwise the latest
-        # c) load_data = False and versioning = AS_OF -->
-        #      ... if as_of_tz is provided, use it, otherwise set to utc_now()
-
-        # THEN, if kwarg_data, append/merge
-        #   if as_of_tz is not provided, set set to utc_now()
 
         if load_data and self.data_type.versioning == properties.Versioning.NONE:
             self.data = self.io.read_data()
@@ -105,25 +93,23 @@ class Dataset:
         else:
             self.data = pd.DataFrame()
 
+        # if kwarg_data overlaps data from file, overwrite with kwarg_data
+        # Verify that this makes sense for all versioning types?!
         kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
         if not kwarg_data.empty:
-            # if kwarg_data overlaps data from file, overwrite with kwarg_data
-            # ... does this make sense for all versioning types? Verify!
             self.data = kwarg_data
 
         self.tags = self.io.read_metadata()
-        kwarg_tags = kwargs.get("tags", {})
-
-        self.tag_dataset(tags={**kwarg_tags})
+        self.tag_dataset(
+            tags={**kwargs.get("tags", {}), **kwargs.get("dataset_tags", {})}
+        )
 
         if not self.data.empty:
             name_pattern = kwargs.get("name_pattern", "")
             separator = kwargs.get("separator", "_")
             series_tags = kwargs.get("series_tags", {})
             self.tag_series(
-                tags=series_tags,
-                name_pattern=name_pattern,
-                separator=separator,
+                tags=series_tags, name_pattern=name_pattern, separator=separator
             )
 
         self.product: str = kwargs.get("product", "")
@@ -266,12 +252,44 @@ class Dataset:
         if kwargs:
             self.tags.update(kwargs)
 
-        set_only_tags = ["series", "name"]
-        inherit_from_set_tags = {"dataset": self.name, **self.tags}
-        [inherit_from_set_tags.pop(key) for key in set_only_tags]
+        inherit_from_set_tags = inherited_set_tags(self.tags)
 
         for s in self.tags["series"]:
             self.tags["series"][s].update(inherit_from_set_tags)
+        self.tags = deepcopy(self.tags)
+
+    def detag_dataset(
+        self,
+        *args: str,
+        propagate: bool = True,
+        **kwargs: Any,
+    ) -> None:
+        """Detag selected attributes of the set.
+
+        Tags to be removed may be provided as dictionary of tags, or as kwargs.
+        """
+        if self.__getattribute__("tags") is None:
+            return
+
+        self.tags["name"] = self.name
+        self.tags["versioning"] = str(self.data_type.versioning)
+        self.tags["temporality"] = str(self.data_type.temporality)
+
+        if not self.tags.get("series"):
+            self.tags["series"] = {s: {"name:": s} for s in self.series}
+
+        if args:
+            self.tags.pop(*args)
+
+        if kwargs:
+            for attribute, value in kwargs.items():
+                if self.tags[attribute] == value:
+                    self.tags.pop(attribute)
+                elif value in self.tags[attribute]:
+                    self.tags[attribute].remove(value)
+
+        if propagate:
+            self.detag_series(*args, **kwargs)
 
     def tag_series(
         self,
@@ -291,6 +309,23 @@ class Dataset:
         Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
+
+        Examples:
+            **Dependencies**
+            >>> from ssb_timeseries.dataset import Dataset
+            >>> from ssb_timeseries.properties import SeriesType
+
+            **Tag by kwargs**
+
+            >>> some_data = create_df(["x, "y", "z"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
+            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
+            >>> x.tag_series(example_1="string_1", example_2=["a", "b", "c"])
+
+            **Tag by dict**
+
+            >>> some_data = create_df(["x, "y", "z"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
+            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
+            >>> x.tag_series({'example_1': 'string_1', 'example_2': ['a', 'b', 'c'])
         """
         if not tags:
             tags = {}
@@ -299,9 +334,7 @@ class Dataset:
         if not identifiers:
             identifiers = self.series
 
-        set_only_tags = ["series", "name"]
-        inherit_from_set_tags = {"dataset": self.name, **self.tags}
-        [inherit_from_set_tags.pop(key) for key in set_only_tags]
+        inherit_from_set_tags = inherited_set_tags(self.tags)
 
         for ident in identifiers:
             self.tags["series"][ident] = {
@@ -314,6 +347,38 @@ class Dataset:
                 name_parts = s.split(separator)
                 for attribute, value in zip(name_pattern, name_parts, strict=False):
                     self.tags["series"][s][attribute] = value
+
+        self.tags["series"] = deepcopy(self.tags["series"])
+
+    def detag_series(
+        self,
+        *args: str,
+        **kwargs: Any,
+    ) -> None:
+        """Detag selected attributes of series in the set.
+
+        Tags to be removed may be specified by args or kwargs.
+        Attributes listed in `args` will be removed from all series.
+
+        For kwargs, attributes will be removed from the series if the value matches. If the value is a list, the matching value is removed.
+        """
+        if args:
+            for series_tags in self.tags["series"].values():
+                # self.tags["series"][series_key].pop(*args)
+                ts_logger.debug(f"pop args: {args}")
+                series_tags.pop(*args)
+
+        if kwargs:
+            for attribute, value in kwargs.items():
+                for series_key, series_tags in self.tags["series"].items():
+                    if series_tags.get(attribute) == value:
+                        series_tags.pop(attribute)
+                        ts_logger.warning(f"pop attribute: {attribute}")
+                    elif value in series_tags.get(attribute):
+                        self.tags["series"][series_key][attribute].remove(value)
+                        ts_logger.warning(
+                            f"{series_key}:\n{self.tags['series'][series_key]}\nremove value: {value}"
+                        )
 
     @no_type_check
     def filter(

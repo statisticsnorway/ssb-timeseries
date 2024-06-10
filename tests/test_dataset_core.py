@@ -409,11 +409,11 @@ def test_list_versions(caplog: LogCaptureFixture, existing_estimate_set: Dataset
 
 @log_start_stop
 def test_list_versions_return_empty_list_for_set_not_saved(
-    caplog: LogCaptureFixture, new_dataset_as_of_at: Dataset
+    caplog: LogCaptureFixture, new_dataset_none_from_to: Dataset
 ):
     caplog.set_level(logging.DEBUG)
 
-    assert new_dataset_as_of_at.versions() == []
+    assert new_dataset_none_from_to.versions() == []
 
 
 @log_start_stop
@@ -427,11 +427,11 @@ def test_list_versions_return_latest_for_not_versioned_set(
 
 @log_start_stop
 def test_dataset_getitem_by_string(
-    new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
+    existing_simple_set: Dataset, caplog: LogCaptureFixture
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = new_dataset_as_of_at
+    x = existing_simple_set
     y = x["b_q_z1"]
     assert isinstance(y, Dataset)
 
@@ -445,11 +445,11 @@ def test_dataset_getitem_by_string(
 @pytest.mark.skip("Regex has not been implemented for __getitem__.")
 @log_start_stop
 def test_dataset_getitem_by_regex(
-    new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
+    existing_simple_set: Dataset, caplog: LogCaptureFixture
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = new_dataset_as_of_at
+    x = existing_simple_set
     y = x["^x"]
     assert isinstance(y, Dataset)
 
@@ -462,11 +462,11 @@ def test_dataset_getitem_by_regex(
 
 @log_start_stop
 def test_dataset_getitem_by_tags(
-    new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
+    new_dataset_none_at: Dataset, caplog: LogCaptureFixture
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = new_dataset_as_of_at
+    x = new_dataset_none_at
     y = x[{"A": "a", "B": "q", "C": "z1"}]
     assert isinstance(y, Dataset)
 
