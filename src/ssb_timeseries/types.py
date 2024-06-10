@@ -4,7 +4,6 @@ from collections.abc import Callable
 from os import PathLike
 from typing import Any
 from typing import TypeAlias
-from typing import TypeVar
 
 # --- typing aliases
 # F = TypeVar("F", bound=Callable[..., Any])
