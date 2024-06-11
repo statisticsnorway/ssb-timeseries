@@ -10,3 +10,7 @@ from typing import TypeAlias
 # PathStr = TypeVar("PathStr", str, PathLike[str])
 PathStr: TypeAlias = str | PathLike[str]
 F: TypeAlias = Callable[..., Any]
+
+Tags: TypeAlias = dict[str, str | list[str]] | None
+SeriesTags: TypeAlias = dict[str, Tags] | None
+DatasetTags: TypeAlias = dict[str, Tags | SeriesTags] | None

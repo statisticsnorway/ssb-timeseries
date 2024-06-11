@@ -21,6 +21,7 @@ from ssb_timeseries.meta import inherited_set_tags
 from ssb_timeseries.meta import search_by_tags
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
+from ssb_timeseries.types import Tags
 
 
 class Dataset:
@@ -86,18 +87,17 @@ class Dataset:
             as_of_utc=self.as_of_utc,
         )
 
-        if load_data and self.data_type.versioning == properties.Versioning.NONE:
-            self.data = self.io.read_data()
-        elif load_data and self.data_type.versioning == properties.Versioning.AS_OF:
-            self.data = self.io.read_data(self.as_of_utc)
-        else:
-            self.data = pd.DataFrame()
-
-        # if kwarg_data overlaps data from file, overwrite with kwarg_data
-        # Verify that this makes sense for all versioning types?!
+        # If data is provided by kwarg, use it.
+        # Otherwise, load it unless told not to.
         kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
         if not kwarg_data.empty:
             self.data = kwarg_data
+        # elif load_data and self.data_type.versioning == properties.Versioning.NONE:
+        #    self.data = self.io.read_data()
+        elif load_data:  # and self.data_type.versioning == properties.Versioning.AS_OF:
+            self.data = self.io.read_data(self.as_of_utc)
+        else:
+            self.data = pd.DataFrame()
 
         self.tags = self.io.read_metadata()
         self.tag_dataset(
@@ -223,7 +223,7 @@ class Dataset:
 
     def tag_dataset(
         self,
-        tags: dict[str, Any] | None = None,
+        tags: Tags = None,
         **kwargs: str | list[str] | set[str],
     ) -> None:
         """Tag the set.
@@ -296,7 +296,7 @@ class Dataset:
         identifiers: str | list[str] | None = None,
         name_pattern: list[str] | None = None,
         separator: str = "_",
-        tags: dict[str, str] | None = None,
+        tags: Tags = None,
         **kwargs: str | list[str],
     ) -> None:
         """Tag the series.
@@ -330,7 +330,7 @@ class Dataset:
         if not tags:
             tags = {}
 
-        tags.update(kwargs)  # type: ignore[arg-type]
+        tags.update(kwargs)
         if not identifiers:
             identifiers = self.series
 
@@ -379,6 +379,19 @@ class Dataset:
                         ts_logger.warning(
                             f"{series_key}:\n{self.tags['series'][series_key]}\nremove value: {value}"
                         )
+
+    def replace_tags(
+        self,
+        *args: tuple[Tags, Tags],
+    ) -> None:
+        """Retag selected attributes of series in the set.
+
+        The tags to be replaced and their replacements should be specified as tuple(s) of dictionaries for `(old_tags, new_tags)`. Both can contain multiple tags.
+         * Each tuple is evaluated independently for each series in the set.
+         * If the old tags dict contains multiple tags, all must match for tags to be replaced.
+         * If the new tags dict contains multiple tags, all are added where there is a match.
+        """
+        ...
 
     @no_type_check
     def filter(
