@@ -122,14 +122,15 @@ class FileSystem:
     @property
     def data_file(self) -> str:
         """The name of the data file for the dataset."""
-        if "AS_OF" in self.set_type_dir:
-            file_name = f"{self.set_name}-as_of_{self.as_of_utc}-data.parquet"
-        elif "NONE" in self.set_type_dir:
-            file_name = f"{self.set_name}-latest-data.parquet"
-        elif "NAMED" in self.set_type_dir:
-            file_name = f"{self.set_name}-NAMED-data.parquet"
-        else:
-            raise ValueError("Unhandled versioning.")
+        match str(self.data_type.versioning):
+            case "AS_OF":
+                file_name = f"{self.set_name}-as_of_{self.as_of_utc}-data.parquet"
+            case "NONE":
+                file_name = f"{self.set_name}-latest-data.parquet"
+            case "NAMED":
+                file_name = f"{self.set_name}-NAMED-data.parquet"
+            case _:
+                raise ValueError("Unhandled versioning.")
 
         ts_logger.debug(file_name)
         return file_name
