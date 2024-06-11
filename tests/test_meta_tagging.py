@@ -172,7 +172,7 @@ def test_find_data_using_single_metadata_attribute(
 
     returned_series_tags = x_filtered_on_attribute_a.tags["series"]
     for key in returned_series_tags.keys():
-        assert returned_series_tags[key]["dataset"] != set_name  # TODO: update metadata
+        assert returned_series_tags[key]["dataset"] != set_name
         assert returned_series_tags[key]["name"] == key
         assert returned_series_tags[key]["A"] == "a"
 
@@ -219,7 +219,7 @@ def test_find_data_using_multiple_metadata_attributes(
 
     returned_series_tags = x_filtered_on_attribute_a_and_b.tags["series"]
     for key in returned_series_tags.keys():
-        assert returned_series_tags[key]["dataset"] != set_name  # TODO: update metadata
+        assert returned_series_tags[key]["dataset"] != set_name
         assert returned_series_tags[key]["name"] == key
         assert returned_series_tags[key]["A"] == "a"
         assert returned_series_tags[key]["B"] == "q"
@@ -267,7 +267,7 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
 
     returned_series_tags = x_filtered_on_attribute_a.tags["series"]
     for key in returned_series_tags.keys():
-        assert returned_series_tags[key]["dataset"] != set_name  # TODO: update metadata
+        assert returned_series_tags[key]["dataset"] != set_name
         assert returned_series_tags[key]["name"] == key
         assert (
             returned_series_tags[key]["A"] == "a"
@@ -275,38 +275,174 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
         )
 
 
-@pytest.mark.skip(reason="Not ready yet.")
 @log_start_stop
-def test_update_metadata_attributes() -> None:
-    # TO DO:
-    # Updating metadata by changing an attribute value should
-    # ... update metadata.json
-    # ... keep previous version
+def test_tag_set_with_kwargs(new_dataset_as_of_at: Dataset) -> None:
+    new_dataset_as_of_at.tag_dataset(
+        example_1="string_1",
+        example_2=["a", "b", "c"],
+    )
+    # check that the tags are applied to the dataset
+    assert new_dataset_as_of_at.tags["example_1"] == "string_1"
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
 
-    ts_logger.debug("don't worrry, be happy ...")
-    raise AssertionError()
+    # check that the tags propagate to series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
 
 
-@pytest.mark.skip(reason="Not ready yet.")
-def test_updated_tags_propagates_to_column_names_accordingly() -> None:
-    # TO DO:
-    # my_dataset.update_metadata('column_name', 'metadata_tag')
-    # ... --> versioning
+@log_start_stop
+def test_tag_set_with_dict(new_dataset_as_of_at: Dataset) -> None:
+    new_dataset_as_of_at.tag_dataset(
+        tags={"example_1": "string_1", "example_2": ["a", "b", "c"]}
+    )
+    # check that the tags are applied to the dataset
+    assert new_dataset_as_of_at.tags["example_1"] == "string_1"
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
 
-    ts_logger.debug("don't worrry, be happy ...")
-    raise AssertionError()
+    # check that the tags propagate to series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+
+@log_start_stop
+def test_tag_set_with_both_dict_and_kwargs(new_dataset_as_of_at: Dataset) -> None:
+    new_dataset_as_of_at.tag_dataset(
+        tags={"example_1": "string_1"}, example_2=["a", "b", "c"]
+    )
+    # check that the tags are applied to the dataset
+    assert new_dataset_as_of_at.tags["example_1"] == "string_1"
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
+
+    # check that the tags propagate to series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+
+@log_start_stop
+def test_tagging_set_second_time_overwrites(new_dataset_as_of_at: Dataset) -> None:
+    new_dataset_as_of_at.tag_dataset(
+        tags={"example_1": "string_1"}, example_2=["a", "b", "c"]
+    )
+    new_dataset_as_of_at.tag_dataset(tags={"example_1": "string_2"})
+    # check that the new tag is applied correctly to the dataset
+    assert new_dataset_as_of_at.tags["example_1"] == "string_2"
+    # while the second tag stays the same
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
+
+    # ... and that this is true also for the series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["example_1"] == "string_2"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+
+@log_start_stop
+def test_tagging_with_empty_dict_does_nothing(new_dataset_as_of_at: Dataset) -> None:
+    new_dataset_as_of_at.tag_dataset(example_1="string_1", example_2=["a", "b", "c"])
+    new_dataset_as_of_at.tag_dataset(tags={})
+    new_dataset_as_of_at.tag_dataset()
+
+    # check that set tags stay the same
+    assert new_dataset_as_of_at.tags["name"] == "test-new-dataset-as-of-at"
+    assert new_dataset_as_of_at.tags["example_1"] == "string_1"
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
+
+    # ... and that this is true also for the series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["dataset"] == "test-new-dataset-as-of-at"
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+
+@log_start_stop
+def test_detag_dataset_removes_tags(new_dataset_as_of_at: Dataset) -> None:
+
+    # 1) tag the set!
+    new_dataset_as_of_at.tag_dataset(example_1="string_1", example_2=["a", "b", "c"])
+
+    # check that the tags are applied to the dataset
+    assert new_dataset_as_of_at.tags["name"] == "test-new-dataset-as-of-at"
+    assert new_dataset_as_of_at.tags["example_1"] == "string_1"
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
+    # ... and  propagate to series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+    # 2) detag the set!
+    new_dataset_as_of_at.detag_dataset("example_1", example_2="b")
+
+    # check that the tags are removed correctly from the dataset
+    assert new_dataset_as_of_at.tags["name"] == "test-new-dataset-as-of-at"
+    assert new_dataset_as_of_at.tags.get("example_1") is None
+    assert new_dataset_as_of_at.tags["example_2"] == ["a", "c"]
+    # ... and remove propagate correctly to series in set
+    for series_tags in new_dataset_as_of_at.tags["series"].values():
+        assert series_tags.get("example_1") is None
+        assert series_tags["example_2"] == ["a", "c"]
+
+
+@log_start_stop
+def test_detag_series_removes_tags_from_series_but_not_from_set(
+    caplog: pytest.LogCaptureFixture,
+    existing_small_set: Dataset,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    # tag the set!
+    existing_small_set.tag_dataset(example_1="string_1", example_2=["a", "b", "c"])
+
+    # check that the tags are applied to the set
+    assert existing_small_set.tags["example_1"] == "string_1"
+    assert existing_small_set.tags["example_2"] == ["a", "b", "c"]
+    # ... and the series
+    for series_tags in existing_small_set.tags["series"].values():
+        assert series_tags["example_1"] == "string_1"
+        assert series_tags["example_2"] == ["a", "b", "c"]
+
+    existing_small_set.save()
+    # detag the series!
+    y = Dataset(existing_small_set.name)
+    y.detag_series("example_1", example_2="b")
+
+    # check that the tags are removed from the series
+    ts_logger.debug(f"existing_small_set.tags: {existing_small_set.tags}")
+    for series_tags in y.tags["series"].values():
+        assert series_tags.get("example_1") is None
+        assert series_tags["example_2"] == ["a", "c"]
+    # ..but not from the set
+    assert y.tags["example_1"] == "string_1"
+    assert y.tags["example_2"] == ["a", "b", "c"]
+
+
+@pytest.mark.skip(reason="Exerimental.")
+@log_start_stop
+def test_experiment(
+    caplog: pytest.LogCaptureFixture,
+    existing_small_set: Dataset,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    my_list = ["a", "b", "c"]
+    d1 = {"a": my_list, "b": my_list}
+    d1["a"].remove("b")
+    d2 = {"a": ["a", "b", "c"], "b": ["a", "b", "c"]}
+    d2["a"].remove("b")
+    ts_logger.debug(f"\nd1: {d1}\nd2: {d2}")
+    assert 0
 
 
 @pytest.mark.skip(reason="Not ready yet.")
 def test_aggregate_sum_for_flat_list_taxonomy(
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None: ...
 
 
 @log_start_stop
 def test_aggregate_sums_for_hierarchical_taxonomy(
     conftest,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
@@ -347,7 +483,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
 @log_start_stop
 def test_aggregate_mean_for_hierarchical_taxonomy(
     conftest,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
@@ -388,7 +524,7 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
 @log_start_stop
 def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
     conftest,
-    caplog,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
@@ -424,10 +560,10 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
     assert len(y.numeric_columns()) == len(
         klass157.parent_nodes() * len(multiple_functions)
     )
-    # TODO: double check this:
-    # assert sorted(y.numeric_columns()) == sorted(
-    #     [n.name for n in klass157.parent_nodes()]
-    # )
+    for func in multiple_functions:
+        assert sorted(y.filter(func).numeric_columns()) == sorted(
+            [f"{func}({n.name})" for n in klass157.parent_nodes()]
+        )
     y_data = y.data[y.numeric_columns()]
     ts_logger.debug(f"{set_name} --> \n{y_data}")
     assert all(y_data.notna())

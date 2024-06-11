@@ -136,13 +136,39 @@ def existing_estimate_set():
 
 
 @pytest.fixture(scope="function", autouse=False)
+def existing_small_set():
+    """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
+    # buildup: create dataset and save
+    tags = {"A": ["a1", "a2", "a3"], "B": ["b"], "C": ["c"]}
+    x = Dataset(
+        name="test-existing-small-dataset",
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+    )
+    tag_values = [value for value in tags.values()]
+    x.data = create_df(
+        *tag_values,
+        start_date="2022-01-01",
+        end_date="2024-01-03",
+        freq="YS",
+    )
+    x.save()
+
+    # tests run here
+    yield x
+
+    # teardown
+    fs.rmtree(x.io.data_dir)
+
+
+@pytest.fixture(scope="function", autouse=False)
 def new_dataset_none_at():
     """A fixture to create simple dataset before running the test."""
     # buildup: create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
-        name="test-existing-dataset-none-at",
+        name="test-new-dataset-none-at",
         data_type=SeriesType.simple(),
         series_tags={"D": "d"},
         data=create_df(
@@ -166,7 +192,7 @@ def new_dataset_as_of_at():
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
-        name="test-existing-dataset-as-of-at",
+        name="test-new-dataset-as-of-at",
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
         series_tags={"D": "d"},
@@ -184,15 +210,14 @@ def new_dataset_as_of_at():
 
 
 @pytest.fixture(scope="function", autouse=False)
-def new_dataset_as_of_from_to():
+def new_dataset_none_from_to():
     """A fixture to create simple dataset before running the test."""
     # create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
-        name="test-existing-as-of-from-to",
-        data_type=SeriesType.as_of_from_to(),
-        as_of_tz=date_utc("2022-01-01"),
+        name="test-new-dataset-none-from-to",
+        data_type=SeriesType.from_to(),
         series_tags={"D": "d"},
         data=create_df(
             *tag_values,
@@ -210,14 +235,15 @@ def new_dataset_as_of_from_to():
 
 
 @pytest.fixture(scope="function", autouse=False)
-def new_dataset_none_from_to():
+def new_dataset_as_of_from_to():
     """A fixture to create simple dataset before running the test."""
     # create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
-        name="test-existing-dataset-none-from-to",
-        data_type=SeriesType.from_to(),
+        name="test-new-as-of-from-to",
+        data_type=SeriesType.as_of_from_to(),
+        as_of_tz=date_utc("2022-01-01"),
         series_tags={"D": "d"},
         data=create_df(
             *tag_values,

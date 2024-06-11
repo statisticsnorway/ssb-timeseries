@@ -41,7 +41,7 @@ def wrap_return_as_str(func: F) -> F:
 
 def remove_prefix(path: PathStr) -> str:
     """Helper function to compensate for some os.* functions shorten gs://<path> to gs:/<path>."""
-    return path.replace("//", "/").replace("gs:/", "")
+    return str(path).replace("//", "/").replace("gs:/", "")
 
 
 def is_gcs(path: PathStr) -> bool:

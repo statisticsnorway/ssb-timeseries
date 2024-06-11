@@ -1,4 +1,3 @@
-import glob
 import os
 import re
 from datetime import datetime
@@ -10,6 +9,7 @@ from ssb_timeseries import fs
 from ssb_timeseries import properties
 from ssb_timeseries.config import CONFIG
 from ssb_timeseries.dates import Interval
+from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import PathStr
@@ -37,6 +37,33 @@ See `config` module docs for details.
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 
 
+def version_from_file_name(
+    file_name: str, pattern: str | properties.Versioning = "as_of", group: int = 2
+) -> str:
+    """For known name patterns, extract version marker."""
+    if isinstance(pattern, properties.Versioning):
+        pattern = str(pattern)
+
+    match pattern.lower():
+        case "persisted":
+            regex = "(_v)(\d+)(.parquet)"
+        case "as_of":
+            regex = "(as_of_)(.*)(-data.parquet)"
+        case "names":
+            # type is not implemented
+            regex = "(_v)(*)(-data.parquet)"
+        case "none":
+            regex = "(.*)(latest)(-data.parquet)"
+        case _:
+            regex = pattern
+
+    vs = re.search(regex, file_name).group(group)
+    ts_logger.debug(
+        f"file: {file_name} pattern:{pattern}, regex{regex} \n--> version: {vs} "
+    )
+    return vs
+
+
 class SearchResult(NamedTuple):
     """Result item for search."""
 
@@ -51,7 +78,7 @@ class FileSystem:
         self,
         set_name: str,
         set_type: properties.SeriesType,
-        as_of_utc: datetime,
+        as_of_utc: datetime | None = None,
         process_stage: str = "statistikk",
         sharing: dict | None = None,
     ) -> None:
@@ -67,7 +94,7 @@ class FileSystem:
 
         if as_of_utc is None:
             ...
-            # exception if type is AS_OF
+            # exception if type is AS_OF?
         else:
             self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
 
@@ -138,21 +165,19 @@ class FileSystem:
         ts_logger.debug(interval)
         if fs.exists(self.data_fullpath):
             ts_logger.debug(
-                f"DATASET {self.set_name}: Reading data from file {self.data_fullpath}"
+                f"DATASET.read.start {self.set_name}: Reading data from file {self.data_fullpath}"
             )
             try:
                 df = fs.pandas_read_parquet(self.data_fullpath)
-                ts_logger.info(f"DATASET {self.set_name}: Read data.")
+                ts_logger.info(f"DATASET.read.success {self.set_name}: Read data.")
             except FileNotFoundError:
                 ts_logger.exception(
-                    f"DATASET {self.set_name}: Read data failed. File not found: {self.data_fullpath}"
+                    f"DATASET.read.error {self.set_name}: Read data failed. File not found: {self.data_fullpath}"
                 )
                 df = pandas.DataFrame()
 
         else:
             df = pandas.DataFrame()
-
-        ts_logger.debug(f"DATASET {self.set_name}: read data:\n{df}")
         return df
 
     def write_data(self, new: pandas.DataFrame) -> None:
@@ -176,17 +201,16 @@ class FileSystem:
                 ).drop_duplicates(date_cols, keep="last")
 
         ts_logger.info(
-            f"DATASET {self.set_name}: starting writing data to file {self.data_fullpath}."
+            f"DATASET.write.start {self.set_name}: writing data to file\n\t{self.data_fullpath}\nstarted."
         )
         try:
-            ts_logger.debug(df)
             fs.pandas_write_parquet(df, self.data_fullpath)
         except Exception as e:
             ts_logger.exception(
-                f"DATASET {self.set_name}: failed writing data to {self.data_fullpath}, exception returned: {e}."
+                f"DATASET.write.error {self.set_name}: writing data to file\n\t{self.data_fullpath}\nreturned exception: {e}."
             )
         ts_logger.info(
-            f"DATASET {self.set_name}: done writing data to file {self.data_fullpath}."
+            f"DATASET.write.success {self.set_name}: writing data to file\n\t{self.data_fullpath}\nended."
         )
 
     def read_metadata(self) -> dict:
@@ -194,7 +218,7 @@ class FileSystem:
         meta: dict = {"name": self.set_name}
         if fs.exists(self.metadata_fullpath):
             ts_logger.info(
-                f"DATASET {self.set_name}: START: Reading metadata from file {self.metadata_fullpath}."
+                f"DATASET.read.success {self.set_name}: reading metadata from file {self.metadata_fullpath}\nended."
             )
             meta = fs.read_json(self.metadata_fullpath)
         return meta
@@ -209,7 +233,7 @@ class FileSystem:
             )
         except Exception as e:
             ts_logger.exception(
-                f"DATASET {self.set_name}: ERROR: Writing metadata to file {self.metadata_fullpath} returned exception {e}."
+                f"DATASET {self.set_name}: Writing metadata to file {self.metadata_fullpath} returned exception {e}."
             )
 
     def datafile_exists(self) -> bool:
@@ -236,12 +260,14 @@ class FileSystem:
                 f"DATASET {self.set_name}: Data is empty. Nothing to write."
             )
 
-    def last_version(self, directory: str, pattern: str = "*.parquet") -> str:
+    def last_version_number_by_regex(self, directory: str, pattern: str = "*") -> str:
         """Check directory and get max version number from files matching regex pattern."""
         files = fs.ls(directory, pattern=pattern)
         number_of_files = len(files)
 
-        vs = sorted([int(re.search("(_v)(\d+)(.parquet)", f).group(2)) for f in files])
+        vs = sorted(
+            [int(version_from_file_name(fname, "persisted")) for fname in files]
+        )
         ts_logger.debug(
             f"DATASET {self.set_name}: io.last_version regex identified versions {vs} in {directory}."
         )
@@ -256,6 +282,28 @@ class FileSystem:
             f"DATASET {self.set_name}: io.last_version searched directory: \n\t{directory}\n\tfor '{pattern}' found {number_of_files!s} files, regex identified version {read_from_filenames!s} --> vs {out!s}."
         )
         return out
+
+    def list_versions(
+        self, file_pattern: str = "*", pattern: str | properties.Versioning = "as_of"
+    ) -> list[str | datetime]:
+        """Check data directory and list version marker ('as-of' or 'name') of data files."""
+        files = fs.ls(self.data_dir, pattern=file_pattern)
+
+        if files:
+            vs_strings = [
+                version_from_file_name(str(fname), pattern, group=2) for fname in files
+            ]
+            match pattern:
+                case properties.Versioning.AS_OF:
+                    return sorted([date_utc(as_of) for as_of in vs_strings])
+                case properties.Versioning.NAMES:
+                    return sorted([name for name in vs_strings])
+                case properties.Versioning.NONE:
+                    return [late for late in vs_strings]
+                case _:
+                    raise ValueError(f"pattern '{pattern}' not recognized.")
+        else:
+            return []
 
     def snapshot_directory(
         self, product: str, process_stage: str = "statistikk"
@@ -289,7 +337,10 @@ class FileSystem:
         directory = self.snapshot_directory(
             product=product, process_stage=process_stage
         )
-        next_vs = self.last_version(directory=directory, pattern="*.parquet") + 1
+        next_vs = (
+            self.last_version_number_by_regex(directory=directory, pattern="*.parquet")
+            + 1
+        )
 
         def iso_no_colon(dt: datetime) -> str:
             return dt.isoformat().replace(":", "")
@@ -312,7 +363,7 @@ class FileSystem:
         """
         directory = os.path.join(bucket, self.set_name)
 
-        ts_logger.warning(f"DATASET.IO.SHARING_DIRECTORY: {directory}")
+        ts_logger.debug(f"DATASET.IO.SHARING_DIRECTORY: {directory}")
         fs.mkdir(directory)
         return directory
 
@@ -355,7 +406,7 @@ class FileSystem:
         fs.cp(self.metadata_fullpath, meta_publish_path)
 
         if sharing:
-            ts_logger.warning(f"Sharing configs: {sharing}")
+            ts_logger.debug(f"Sharing configs: {sharing}")
             for s in sharing:
                 ts_logger.debug(f"Sharing: {s}")
                 if "team" not in s.keys():
@@ -368,7 +419,7 @@ class FileSystem:
                     meta_publish_path,
                     self.sharing_directory(bucket=s["path"]),
                 )
-                ts_logger.warning(
+                ts_logger.debug(
                     f"DATASET {self.set_name}: sharing with {s['team']}, snapshot copied to {s['path']}."
                 )
 
@@ -398,20 +449,11 @@ def find_datasets(
     else:
         pattern = "*"
 
-    dirs_old = glob.glob(os.path.join(CONFIG.timeseries_root, "*", pattern))
-    search_results_old = [
-        d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs_old
-    ]
     dirs = fs.find(CONFIG.timeseries_root, pattern, full_path=True)
-    ts_logger.warning(
-        f"DATASET.IO.SEARCH: {pattern}:\n\t--> dirs\n\tnew: {dirs}\n\told: {dirs_old}"
-    )
     search_results = [
         d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
     ]
-    ts_logger.warning(
-        f"DATASET.IO.SEARCH: results:\n\tnew: {search_results}\n\told: {search_results_old}"
-    )
+    ts_logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
 
     return [SearchResult(f[2], f[1]) for f in search_results]
 

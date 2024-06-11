@@ -12,13 +12,16 @@ from typing_extensions import Self
 
 from ssb_timeseries import io
 from ssb_timeseries import properties
+from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
 from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import Taxonomy
+from ssb_timeseries.meta import inherited_set_tags
 from ssb_timeseries.meta import search_by_tags
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
+from ssb_timeseries.types import Tags
 
 
 class Dataset:
@@ -57,98 +60,57 @@ class Dataset:
         Data is kept in memory and not stored before explicit call to .save.
         """
         self.name: str = name
-        if data_type:  # self.exists():
+        if data_type:
             self.data_type = data_type
         else:
-            # TODO: if the datatype is not provided, search by name,
-            # throw error if a) no set is found or b) multiple sets are found
-            # ... till then, just continue
             look_for_it = search(name)
             if isinstance(look_for_it, Dataset):
                 self.data_type = look_for_it.data_type
             else:
                 raise ValueError(
-                    f"Dataset {name} not found. Specify data_type to initialise a new set."
+                    f"Dataset {name} did not give a unique match. Specify data_type if you intend to initialise a new set."
                 )
-                # TODO: for versioned series, return latest if no as_of_tz is provided
+
+        if self.data_type.versioning == properties.Versioning.AS_OF and not as_of_tz:
+            # return latest if no as_of_tz is provided
+            self.io = io.FileSystem(
+                set_name=self.name, set_type=self.data_type, as_of_utc=None
+            )
+            lookup_as_of = self.versions()[-1]
+            if isinstance(lookup_as_of, datetime):
+                as_of_tz = lookup_as_of
         self.as_of_utc = date_utc(as_of_tz)
 
         self.io = io.FileSystem(
-            set_name=self.name, set_type=self.data_type, as_of_utc=self.as_of_utc
+            set_name=self.name,
+            set_type=self.data_type,
+            as_of_utc=self.as_of_utc,
         )
 
-        # metadata: defaults overwritten by stored overwritten by kwargs
-        default_tags = {
-            "name": name,
-            "versioning": str(self.data_type.versioning),
-            "temporality": str(self.data_type.temporality),
-            "series": {},
-        }
-        stored_tags = self.io.read_metadata()
-        kwarg_tags = kwargs.get("tags", {})
-
-        self.tags = {**default_tags, **stored_tags, **kwarg_tags}
-
-        # ts_logger.debug(f"DATASET {self.name}: .......... coalesce:\n\tdefault_tags {default_tags}\n\tkwarg_tags {kwarg_tags}\n\tstored_tags {stored_tags}\n\t--> {self.tags} "        )
-
-        # data scenarios:
-        #   - IF versioning = NONE
-        #      ... simple, just load everything
-        #   - IF versioning = AS_OF
-        #      ... if as_of_tz is provided, load that, otherwise the latest
-        # c) load_data = False and versioning = AS_OF -->
-        #      ... if as_of_tz is provided, use it, otherwise set to utc_now()
-
-        # THEN, if kwarg_data, append/merge
-        #   if as_of_tz is not provided, set set to utc_now()
-
-        if load_data and self.data_type.versioning == properties.Versioning.NONE:
-            self.data = self.io.read_data()
-        elif load_data and self.data_type.versioning == properties.Versioning.AS_OF:
+        # If data is provided by kwarg, use it.
+        # Otherwise, load it unless told not to.
+        kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
+        if not kwarg_data.empty:
+            self.data = kwarg_data
+        # elif load_data and self.data_type.versioning == properties.Versioning.NONE:
+        #    self.data = self.io.read_data()
+        elif load_data:  # and self.data_type.versioning == properties.Versioning.AS_OF:
             self.data = self.io.read_data(self.as_of_utc)
         else:
             self.data = pd.DataFrame()
 
-        kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
-        if not kwarg_data.empty:
-            # if kwarg_data overlaps data from file, overwrite with kwarg_data
-            # ... does this make sense for all versioning types? Verify!
-            self.data = kwarg_data
-            # ts_logger.verbose(f"DATASET {self.name}: Merged {kwarg_data.size} datapoints:\n{self.data}")
-            # TODO: update series tags
-            # tags may come in through `stored_tags['series]` with additional ones in parameter `series_tags`
-            # this will add new tags or overwrite existing ones
-            # (to delete or append values to an existing tag will need explicit actions)
+        self.tags = self.io.read_metadata()
+        self.tag_dataset(
+            tags={**kwargs.get("tags", {}), **kwargs.get("dataset_tags", {})}
+        )
 
-            set_only_tags = ["series", "name"]
-            # inherit_from_set_tags = {key, d[key] for key in self.tags.items() if key not in set_only_tags}
-            inherit_from_set_tags = {"dataset": self.name, **self.tags}
-            [inherit_from_set_tags.pop(key) for key in set_only_tags]
-
-            # TODO: apply tags provided in parameter series_tags
-            # ... or just be content with the autotag?
-            # kwarg_series_tags = kwargs.get("series_tags", {})
-
-            self.tags["series"] = {
-                n: {"name": n, "dataset": self.name, **inherit_from_set_tags}
-                for n in self.numeric_columns()
-            }
-
+        if not self.data.empty:
             name_pattern = kwargs.get("name_pattern", "")
-            if name_pattern:
-                separator = kwargs.get("separator", "_")
-                for s in self.tags["series"]:
-                    name_parts = s.split(separator)
-                    for attribute, value in zip(name_pattern, name_parts, strict=False):
-                        self.tags["series"][s][attribute] = value
-                        # ts_logger.debug(f"attribute:\t{attribute}\nvalue:\t{value}")
-
+            separator = kwargs.get("separator", "_")
             series_tags = kwargs.get("series_tags", {})
-            if series_tags:
-                for s in self.tags["series"]:
-                    for attribute, value in series_tags.items():
-                        self.tags["series"][s][attribute] = str(value)
-            # ts_logger.debug(f"DATASET {self.name}: .tags:\n\t{self.tags}")
+            self.tag_series(
+                tags=series_tags, name_pattern=name_pattern, separator=separator
+            )
 
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
@@ -189,7 +151,7 @@ class Dataset:
             self.as_of_utc = date_utc(as_of_tz)
 
         self.io = io.FileSystem(self.name, self.data_type, self.as_of_utc)
-        ts_logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")
+        # ts_logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")
         if not self.tags:
             ts_logger.debug(
                 f"DATASET {self.name}: attempt to save empty tags = {self.tags}."
@@ -218,17 +180,52 @@ class Dataset:
             period_to=date_to,
         )
 
+    def versions(self, **kwargs: Any) -> list[datetime | str]:
+        """Get list of all series version markers (`as_of` dates or version names).
+
+        By default `as_of` dates will be returned in local timezone. Provide `return_type = 'utc'` to return in UTC, 'raw' to return as-is.
+        """
+        versions = self.io.list_versions(
+            file_pattern="*.parquet", pattern=self.data_type.versioning
+        )
+        if not versions:
+            return []
+        else:
+            ts_logger.debug(f"DATASET {self.name}: versions: {versions}.")
+
+        if self.data_type.versioning == properties.Versioning.AS_OF:
+            return_type = kwargs.get("return_type", "local")
+        else:
+            return_type = "raw"
+
+        match return_type:
+            case "local":
+                return [date_local(v) for v in versions]
+            case "utc":
+                return [date_utc(v) for v in versions]
+            case "utc_iso":
+                return [utc_iso(v) for v in versions]
+            case _:
+                return versions
+
     @property
     def series(self) -> list[str]:
         """Get series names."""
-        return self.numeric_columns()
+        if self.__getattribute__("data") is None:
+            return []
+        else:
+            return self.numeric_columns()
 
     @property
     def series_tags(self) -> dict[str, str | list[str]]:
         """Get series tags."""
         return self.tags["series"]  # type: ignore
 
-    def tag_set(self, tags: dict[str, str] = None, **kwargs: str | list[str]) -> None:
+    def tag_dataset(
+        self,
+        tags: Tags = None,
+        **kwargs: str | list[str] | set[str],
+    ) -> None:
         """Tag the set.
 
         Tags may be provided as dictionary of tags, or as kwargs.
@@ -240,18 +237,67 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
         """
-        # TODO: Implement this:
-        if tags:
-            raise NotImplementedError()
-        elif kwargs:
-            raise NotImplementedError()
-            # if value not in self[attribute]:
-            # self[attribute].append(value)
-        else:
-            raise ValueError("Must provide either tags or kwargs.")
+        if self.__getattribute__("tags") is None:
+            self.tags = {}
+
+        self.tags["name"] = self.name
+        self.tags["versioning"] = str(self.data_type.versioning)
+        self.tags["temporality"] = str(self.data_type.temporality)
+        if not self.tags.get("series"):
+            self.tags["series"] = {s: {"name:": s} for s in self.series}
+
+        if tags is not None:
+            self.tags.update(tags)
+
+        if kwargs:
+            self.tags.update(kwargs)
+
+        inherit_from_set_tags = inherited_set_tags(self.tags)
+
+        for s in self.tags["series"]:
+            self.tags["series"][s].update(inherit_from_set_tags)
+        self.tags = deepcopy(self.tags)
+
+    def detag_dataset(
+        self,
+        *args: str,
+        propagate: bool = True,
+        **kwargs: Any,
+    ) -> None:
+        """Detag selected attributes of the set.
+
+        Tags to be removed may be provided as dictionary of tags, or as kwargs.
+        """
+        if self.__getattribute__("tags") is None:
+            return
+
+        self.tags["name"] = self.name
+        self.tags["versioning"] = str(self.data_type.versioning)
+        self.tags["temporality"] = str(self.data_type.temporality)
+
+        if not self.tags.get("series"):
+            self.tags["series"] = {s: {"name:": s} for s in self.series}
+
+        if args:
+            self.tags.pop(*args)
+
+        if kwargs:
+            for attribute, value in kwargs.items():
+                if self.tags[attribute] == value:
+                    self.tags.pop(attribute)
+                elif value in self.tags[attribute]:
+                    self.tags[attribute].remove(value)
+
+        if propagate:
+            self.detag_series(*args, **kwargs)
 
     def tag_series(
-        self, identifiers: str | list[str], tags: dict[str, str] = None, **kwargs: str
+        self,
+        identifiers: str | list[str] | None = None,
+        name_pattern: list[str] | None = None,
+        separator: str = "_",
+        tags: Tags = None,
+        **kwargs: str | list[str],
     ) -> None:
         """Tag the series.
 
@@ -263,20 +309,89 @@ class Dataset:
         Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
+
+        Examples:
+            **Dependencies**
+            >>> from ssb_timeseries.dataset import Dataset
+            >>> from ssb_timeseries.properties import SeriesType
+
+            **Tag by kwargs**
+
+            >>> some_data = create_df(["x, "y", "z"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
+            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
+            >>> x.tag_series(example_1="string_1", example_2=["a", "b", "c"])
+
+            **Tag by dict**
+
+            >>> some_data = create_df(["x, "y", "z"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
+            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
+            >>> x.tag_series({'example_1': 'string_1', 'example_2': ['a', 'b', 'c'])
         """
         if not tags:
             tags = {}
 
         tags.update(kwargs)
-
         if not identifiers:
             identifiers = self.series
 
-        for s in self[identifiers]:
-            if s in self.series:
-                self.tags["series"][s].update(tags)
-            else:
-                raise ValueError(f"{s} not in {self.series}.")
+        inherit_from_set_tags = inherited_set_tags(self.tags)
+
+        for ident in identifiers:
+            self.tags["series"][ident] = {
+                "name": ident,
+            }
+            self.tags["series"][ident].update({**inherit_from_set_tags, **tags})
+
+        if name_pattern:
+            for s in self.tags["series"]:
+                name_parts = s.split(separator)
+                for attribute, value in zip(name_pattern, name_parts, strict=False):
+                    self.tags["series"][s][attribute] = value
+
+        self.tags["series"] = deepcopy(self.tags["series"])
+
+    def detag_series(
+        self,
+        *args: str,
+        **kwargs: Any,
+    ) -> None:
+        """Detag selected attributes of series in the set.
+
+        Tags to be removed may be specified by args or kwargs.
+        Attributes listed in `args` will be removed from all series.
+
+        For kwargs, attributes will be removed from the series if the value matches. If the value is a list, the matching value is removed.
+        """
+        if args:
+            for series_tags in self.tags["series"].values():
+                # self.tags["series"][series_key].pop(*args)
+                ts_logger.debug(f"pop args: {args}")
+                series_tags.pop(*args)
+
+        if kwargs:
+            for attribute, value in kwargs.items():
+                for series_key, series_tags in self.tags["series"].items():
+                    if series_tags.get(attribute) == value:
+                        series_tags.pop(attribute)
+                        ts_logger.warning(f"pop attribute: {attribute}")
+                    elif value in series_tags.get(attribute):
+                        self.tags["series"][series_key][attribute].remove(value)
+                        ts_logger.warning(
+                            f"{series_key}:\n{self.tags['series'][series_key]}\nremove value: {value}"
+                        )
+
+    def replace_tags(
+        self,
+        *args: tuple[Tags, Tags],
+    ) -> None:
+        """Retag selected attributes of series in the set.
+
+        The tags to be replaced and their replacements should be specified as tuple(s) of dictionaries for `(old_tags, new_tags)`. Both can contain multiple tags.
+         * Each tuple is evaluated independently for each series in the set.
+         * If the old tags dict contains multiple tags, all must match for tags to be replaced.
+         * If the new tags dict contains multiple tags, all are added where there is a match.
+        """
+        ...
 
     @no_type_check
     def filter(
@@ -714,8 +829,6 @@ class Dataset:
             f"DATASET.math({func.__name__}, {self.name}, {other_name}) --> {out.name}\n\t{out.data}."
         )
         return out
-
-    # TODO: check how performance of pure pyarrow or polars compares to numpy
 
     def __add__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Add two datasets or a dataset and a dataframe, numpy array or scalar."""

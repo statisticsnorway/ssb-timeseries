@@ -1,5 +1,6 @@
 import logging
 import uuid
+from datetime import timedelta
 
 import pytest
 from pytest import LogCaptureFixture
@@ -389,12 +390,48 @@ def test_search_for_nonexisting_dataset_returns_none(caplog: LogCaptureFixture):
 
 
 @log_start_stop
-def test_dataset_getitem_by_string(
-    new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
+def test_list_versions(caplog: LogCaptureFixture, existing_estimate_set: Dataset):
+    caplog.set_level(logging.DEBUG)
+
+    versions_before_saving = existing_estimate_set.versions()
+    assert len(versions_before_saving) == 1
+
+    for d in ["2024-01-01", "2024-02-01", "2024-03-01"]:
+        existing_estimate_set.as_of_utc = date_utc(d)
+        existing_estimate_set.data = create_df(
+            ["p", "q", "r"], start_date="2023-01-01", end_date=d, freq="MS"
+        )
+        existing_estimate_set.save()
+
+    versions_after_saving = existing_estimate_set.versions()
+    assert len(versions_after_saving) == 4
+
+
+@log_start_stop
+def test_list_versions_return_empty_list_for_set_not_saved(
+    caplog: LogCaptureFixture, new_dataset_none_from_to: Dataset
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = new_dataset_as_of_at
+    assert new_dataset_none_from_to.versions() == []
+
+
+@log_start_stop
+def test_list_versions_return_latest_for_not_versioned_set(
+    caplog: LogCaptureFixture, existing_simple_set: Dataset
+):
+    caplog.set_level(logging.DEBUG)
+
+    assert existing_simple_set.versions() == ["latest"]
+
+
+@log_start_stop
+def test_dataset_getitem_by_string(
+    existing_simple_set: Dataset, caplog: LogCaptureFixture
+):
+    caplog.set_level(logging.DEBUG)
+
+    x = existing_simple_set
     y = x["b_q_z1"]
     assert isinstance(y, Dataset)
 
@@ -408,11 +445,11 @@ def test_dataset_getitem_by_string(
 @pytest.mark.skip("Regex has not been implemented for __getitem__.")
 @log_start_stop
 def test_dataset_getitem_by_regex(
-    new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
+    existing_simple_set: Dataset, caplog: LogCaptureFixture
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = new_dataset_as_of_at
+    x = existing_simple_set
     y = x["^x"]
     assert isinstance(y, Dataset)
 
@@ -425,11 +462,11 @@ def test_dataset_getitem_by_regex(
 
 @log_start_stop
 def test_dataset_getitem_by_tags(
-    new_dataset_as_of_at: Dataset, caplog: LogCaptureFixture
+    new_dataset_none_at: Dataset, caplog: LogCaptureFixture
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = new_dataset_as_of_at
+    x = new_dataset_none_at
     y = x[{"A": "a", "B": "q", "C": "z1"}]
     assert isinstance(y, Dataset)
 
@@ -495,6 +532,7 @@ def test_correct_datetime_columns_valid_from_to(caplog: LogCaptureFixture) -> No
     a = Dataset(
         name=f"test-datetimecols-{uuid.uuid4().hex}",
         data_type=SeriesType.as_of_from_to(),
+        as_of_tz=now_utc(),
         data=create_df(
             ["x", "y", "z"],
             start_date="2022-01-01",
@@ -521,6 +559,32 @@ def test_versioning_as_of_creates_new_file(
     x.save()
     files_after = file_count(x.io.data_dir)
     assert files_after == files_before + 1
+
+
+@log_start_stop
+def test_versioning_as_of_init_without_version_selects_latest(
+    existing_estimate_set: Dataset, caplog: LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    x = Dataset(existing_estimate_set.name)
+    ts_logger.debug(
+        f"Init with only name of existing versioned set: {x.name}\n\t... identified {x.as_of_utc} as latest version."
+    )
+    assert isinstance(x, Dataset)
+    assert x.as_of_utc == existing_estimate_set.versions()[-1]
+
+    as_of = [now_utc() - timedelta(hours=n) for n in range(4)]
+    ts_logger.debug(f"As of dates:\n {as_of}")
+    for d in as_of:
+        x.as_of_utc = date_utc(d)
+        x.data = create_df(
+            x.series, start_date="2024-01-01", end_date="2024-12-03", freq="MS"
+        )
+        x.save()
+    y = Dataset(existing_estimate_set.name)
+    assert isinstance(y, Dataset)
+    assert y.as_of_utc == max(as_of)
 
 
 @log_start_stop

@@ -4,8 +4,7 @@ import uuid
 import pytest
 
 from ssb_timeseries.dataset import Dataset
-
-# from ssb_timeseries.dates import date_utc, now_utc
+from ssb_timeseries.dates import date_utc
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
@@ -36,6 +35,7 @@ def test_correct_datetime_columns_valid_from_to(caplog) -> None:
     a = Dataset(
         name=f"test-datetimecols-{uuid.uuid4().hex}",
         data_type=SeriesType.as_of_from_to(),
+        as_of_tz=date_utc("2024-05-01"),
         data=create_df(
             ["x", "y", "z"],
             start_date="2022-01-01",
