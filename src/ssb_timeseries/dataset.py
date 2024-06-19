@@ -1036,7 +1036,21 @@ def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
                 out = df.sum(axis=1, numeric_only=True)
             case "median":
                 out = df.quantile(0.5, axis=1, numeric_only=True)
-            case "percentile" | _:
+            case ["quantile" | "percentile", *args]:
+                if len(args) > 1:
+                    interpolation = args[1]
+                else:
+                    interpolation = "linear"
+                quantile = float(args[0])
+                if quantile > 1:
+                    quantile /= 100
+                out = df.quantile(
+                    quantile,
+                    axis=1,
+                    numeric_only=True,
+                    interpolation=interpolation,
+                )
+            case _:
                 raise NotImplementedError(
                     f"Aggregation method '{method}' is not implemented (yet)."
                 )
