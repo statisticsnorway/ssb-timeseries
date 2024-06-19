@@ -140,17 +140,20 @@ def existing_small_set():
     """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     # buildup: create dataset and save
     tags = {"A": ["a1", "a2", "a3"], "B": ["b"], "C": ["c"]}
+    tag_values = [value for value in tags.values()]
     x = Dataset(
         name="test-existing-small-dataset",
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
-    )
-    tag_values = [value for value in tags.values()]
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2024-01-03",
-        freq="YS",
+        data=create_df(
+            *tag_values,
+            start_date="2022-01-01",
+            end_date="2024-01-03",
+            freq="YS",
+        ),
+        name_pattern=["A", "B", "C"],
+        series_tags={"D": "d"},
+        dataset_tags={"E": "e", "F": ["f1", "f2"]},
     )
     x.save()
 
@@ -178,6 +181,7 @@ def new_dataset_none_at():
             freq="MS",
         ),
         name_pattern=["A", "B", "C"],
+        dataset_tags={"E": "Eee"},
     )
 
     # tests run here
@@ -203,6 +207,7 @@ def new_dataset_as_of_at():
             freq="MS",
         ),
         name_pattern=["A", "B", "C"],
+        dataset_tags={"E": "Eee"},
     )
     # tests run here
     yield x
@@ -227,6 +232,7 @@ def new_dataset_none_from_to():
             temporality="FROM_TO",
         ),
         name_pattern=["A", "B", "C"],
+        dataset_tags={"E": "Eee"},
     )
 
     # tests run here
@@ -253,8 +259,29 @@ def new_dataset_as_of_from_to():
             temporality="FROM_TO",
         ),
         name_pattern=["A", "B", "C"],
+        dataset_tags={"E": "Eee"},
     )
 
+    # tests run here
+    yield x
+    # file was not saved, so no teardown is necessary
+
+
+@pytest.fixture(scope="function", autouse=False)
+def one_new_set_for_each_data_type(
+    new_dataset_none_at,
+    new_dataset_none_from_to,
+    new_dataset_as_of_at,
+    new_dataset_as_of_from_to,
+):
+    """A fixture returning one example dataset for each data type in a list."""
+    # collect test datasets into a list for test cases to loop over
+    x = [
+        new_dataset_none_at,
+        new_dataset_none_from_to,
+        new_dataset_as_of_at,
+        new_dataset_as_of_from_to,
+    ]
     # tests run here
     yield x
     # file was not saved, so no teardown is necessary

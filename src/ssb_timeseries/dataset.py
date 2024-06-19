@@ -1,5 +1,6 @@
 # mypy: disable-error-code="assignment,attr-defined"
 # ruff: noqa: RUF013
+import re
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
@@ -11,17 +12,22 @@ import pandas as pd
 from typing_extensions import Self
 
 from ssb_timeseries import io
+from ssb_timeseries import meta
 from ssb_timeseries import properties
 from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
 from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
 from ssb_timeseries.logging import ts_logger
-from ssb_timeseries.meta import Taxonomy
-from ssb_timeseries.meta import inherited_set_tags
-from ssb_timeseries.meta import search_by_tags
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
-from ssb_timeseries.types import Tags
+
+# from ssb_timeseries.meta import DatasetTagDict
+# from ssb_timeseries.meta import TagDict
+# from ssb_timeseries.meta import Taxonomy
+# from ssb_timeseries.meta import meta.delete_dataset_tags
+# from ssb_timeseries.meta import inherit_set_tags
+# from ssb_timeseries.meta import replace_dataset_tags_in_dictionary
+# from ssb_timeseries.meta import search_by_tags
 
 
 class Dataset:
@@ -92,26 +98,24 @@ class Dataset:
         kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
         if not kwarg_data.empty:
             self.data = kwarg_data
-        # elif load_data and self.data_type.versioning == properties.Versioning.NONE:
-        #    self.data = self.io.read_data()
         elif load_data:  # and self.data_type.versioning == properties.Versioning.AS_OF:
             self.data = self.io.read_data(self.as_of_utc)
         else:
             self.data = pd.DataFrame()
 
-        self.tags = self.io.read_metadata()
-        self.tag_dataset(
-            tags={**kwargs.get("tags", {}), **kwargs.get("dataset_tags", {})}
-        )
+        self.tags = self.default_tags()
+        self.tags.update(self.io.read_metadata())
+        self.tag_dataset(tags=kwargs.get("dataset_tags", {}))
 
+        # autotag:
         if not self.data.empty:
-            name_pattern = kwargs.get("name_pattern", "")
-            separator = kwargs.get("separator", "_")
-            series_tags = kwargs.get("series_tags", {})
-            self.tag_series(
-                tags=series_tags, name_pattern=name_pattern, separator=separator
+            self.tag_series(tags=kwargs.get("series_tags", {}))
+            self.series_names_to_tags(
+                attributes=kwargs.get("name_pattern", ""),
+                separator=kwargs.get("separator", "_"),
             )
 
+        # would it be a good idea to turn these into tags?
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
         self.sharing: dict[str, str] = kwargs.get("sharing", {})
@@ -134,7 +138,6 @@ class Dataset:
 
         For use by .copy, and on very rare other occasions. Does not move or rename any previously stored data.
         """
-        # TODO: Fix that?
         self.name = new_name
 
         self.tags["name"] = new_name
@@ -223,7 +226,7 @@ class Dataset:
 
     def tag_dataset(
         self,
-        tags: Tags = None,
+        tags: meta.TagDict = None,
         **kwargs: str | list[str] | set[str],
     ) -> None:
         """Tag the set.
@@ -237,66 +240,97 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
         """
-        if self.__getattribute__("tags") is None:
-            self.tags = {}
+        if not self.__getattribute__("tags"):
+            # should not be possible, hence
+            raise ValueError(f"Tags not defined for dataset: {self.name}.")
 
-        self.tags["name"] = self.name
-        self.tags["versioning"] = str(self.data_type.versioning)
-        self.tags["temporality"] = str(self.data_type.temporality)
-        if not self.tags.get("series"):
-            self.tags["series"] = {s: {"name:": s} for s in self.series}
-
-        if tags is not None:
-            self.tags.update(tags)
+        if not tags and not kwargs:
+            return
+        elif not tags:
+            tags = {}
 
         if kwargs:
-            self.tags.update(kwargs)
-
-        inherit_from_set_tags = inherited_set_tags(self.tags)
-
-        for s in self.tags["series"]:
-            self.tags["series"][s].update(inherit_from_set_tags)
-        self.tags = deepcopy(self.tags)
+            tags.update(**kwargs)
+        propagate = tags.pop("propagate", True)
+        if tags:
+            self.tags = meta.replace_dataset_tags_in_dictionary(
+                self.tags, replace={}, new=tags, propagate=propagate
+            )
 
     def detag_dataset(
         self,
         *args: str,
-        propagate: bool = True,
         **kwargs: Any,
     ) -> None:
         """Detag selected attributes of the set.
 
-        Tags to be removed may be provided as dictionary of tags, or as kwargs.
+        Tags to be removed may be provided as list of attribute names or as kwargs with attribute-value pairs.
         """
-        if self.__getattribute__("tags") is None:
-            return
+        self.tags = meta.delete_dataset_tags(
+            self.tags,
+            *args,  # [a for a in args if isinstance(a, str)]
+            propagate=True,
+            **kwargs,
+        )
 
-        self.tags["name"] = self.name
-        self.tags["versioning"] = str(self.data_type.versioning)
-        self.tags["temporality"] = str(self.data_type.temporality)
+    def default_tags(self) -> meta.DatasetTagDict:
+        """Apply default and existing tags for set and series."""
+        return {
+            "name": self.name,
+            "versioning": str(self.data_type.versioning),
+            "temporality": str(self.data_type.temporality),
+            "series": {s: {"dataset": self.name, "name:": s} for s in self.series},
+        }
 
-        if not self.tags.get("series"):
-            self.tags["series"] = {s: {"name:": s} for s in self.series}
+    def series_names_to_tags(
+        self,
+        attributes: list[str] | None = None,
+        separator: str = "_",
+        regex: str = "",
+    ) -> None:
+        """Tag all series in the dataset based on a series 'attributes', ie a list of attributes matching positions in the series names when split on 'separator'.
 
-        if args:
-            self.tags.pop(*args)
+        Alternatively, a regular expression with groups that match the attributes may be provided.
+        Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
 
-        if kwargs:
-            for attribute, value in kwargs.items():
-                if self.tags[attribute] == value:
-                    self.tags.pop(attribute)
-                elif value in self.tags[attribute]:
-                    self.tags[attribute].remove(value)
+        Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
 
-        if propagate:
-            self.detag_series(*args, **kwargs)
+        Examples:
+            **Tag by name_pattern**
+
+            >>> some_data = create_df(["x_a, "y_b", "z_c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
+            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
+            >>> x.series_names_to_tags(atttributes=['XYZ', 'ABC'])
+
+            **Tag by regex**
+
+            >>> some_data = create_df(["x_1,,a, "y...b..", "z..1.1-23..c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
+            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
+            >>> x.series_names_to_tags(atttributes=['XYZ', 'ABC'], regex=r'([a-z])*([a-z])')
+
+            In this case, a separator will not do the trick. Note that the regex have the same number of groups as the attribute list.
+        """
+        for series_key in self.series:
+            self.tags["series"].get(series_key, {}).update(
+                meta.inherit_set_tags(self.tags)
+            )
+
+        if attributes:
+            for series_key in self.tags["series"].keys():
+                if regex:
+                    name_parts = re.search(regex, series_key)
+                else:
+                    name_parts = series_key.split(separator)
+
+                for attribute, value in zip(attributes, name_parts, strict=False):
+                    self.tags["series"][series_key][attribute] = deepcopy(value)
 
     def tag_series(
         self,
         identifiers: str | list[str] | None = None,
         name_pattern: list[str] | None = None,
         separator: str = "_",
-        tags: Tags = None,
+        tags: meta.TagDict = None,
         **kwargs: str | list[str],
     ) -> None:
         """Tag the series.
@@ -329,12 +363,12 @@ class Dataset:
         """
         if not tags:
             tags = {}
-
         tags.update(kwargs)
+
         if not identifiers:
             identifiers = self.series
 
-        inherit_from_set_tags = inherited_set_tags(self.tags)
+        inherit_from_set_tags = meta.inherit_set_tags(self.tags)
 
         for ident in identifiers:
             self.tags["series"][ident] = {
@@ -343,12 +377,7 @@ class Dataset:
             self.tags["series"][ident].update({**inherit_from_set_tags, **tags})
 
         if name_pattern:
-            for s in self.tags["series"]:
-                name_parts = s.split(separator)
-                for attribute, value in zip(name_pattern, name_parts, strict=False):
-                    self.tags["series"][s][attribute] = value
-
-        self.tags["series"] = deepcopy(self.tags["series"])
+            self.series_names_to_tags(attributes=name_pattern, separator=separator)
 
     def detag_series(
         self,
@@ -382,7 +411,7 @@ class Dataset:
 
     def replace_tags(
         self,
-        *args: tuple[Tags, Tags],
+        *args: tuple[meta.TagDict, meta.TagDict],
     ) -> None:
         """Retag selected attributes of series in the set.
 
@@ -440,7 +469,7 @@ class Dataset:
             #     if all(s_tags[k] in v for k, v in tags.items())
             #     # if s_tags.items() >= tags.items()
             # ]
-            matching_series = search_by_tags(self.tags["series"], tags)
+            matching_series = meta.search_by_tags(self.tags["series"], tags)
             ts_logger.debug(f"DATASET.filter(tags) matched series:\n{matching_series} ")
             df = self.data[matching_series].copy(deep=True)
 
@@ -448,8 +477,9 @@ class Dataset:
 
         interval = kwargs.get("interval")
         if interval:
-            ...
-            # TODO: add interval filter on datetime
+            ts_logger.warning(
+                f"DATASET.__filter__: Attempted call with argument 'interval' = {interval} is not supported. --> TO DO!"
+            )
 
         match output:
             case "dataframe" | "df":
@@ -675,13 +705,13 @@ class Dataset:
 
     # TODO: Add these?
     # def __iter__(self):
-    #     self.n = 0
+    #     self.n = 0 # start at latest version
     #     return self
     #
     # def __next__(self):
     #     if self.n <= self.data.columns:
     #         x = self.n
-    #         self.n += 1
+    #         self.n += 1 # return previous version
     #         return x
     #     else:
     #         raise StopIteration
@@ -920,7 +950,7 @@ class Dataset:
     def aggregate(
         self,
         attribute: str,
-        taxonomy: Taxonomy | int | PathStr,
+        taxonomy: meta.Taxonomy | int | PathStr,
         aggregate_function: str | list[str] = "sum",
     ) -> Self:
         """Aggregate dataset by taxonomy.
@@ -935,8 +965,8 @@ class Dataset:
             If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
             If the taxonomy is a flat list, only a single 'total' aggregate series is calculated.
         """
-        if not isinstance(taxonomy, Taxonomy):
-            taxonomy = Taxonomy(taxonomy)
+        if not isinstance(taxonomy, meta.Taxonomy):
+            taxonomy = meta.Taxonomy(taxonomy)
 
         if isinstance(aggregate_function, str):
             aggregate_function = [aggregate_function]
