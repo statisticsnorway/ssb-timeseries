@@ -291,7 +291,7 @@ def series_tag_dict_edit(
     existing: SeriesTagDict,
     replace: TagDict,
     new: TagDict,
-    dataset_tags: DatasetTagDict = None,
+    # dataset_tags: DatasetTagDict = None,
 ) -> SeriesTagDict:
     """Alter selected attributes in a Dataset.tag['series'] dictionary.
 
@@ -334,7 +334,7 @@ def rm_tag(
 
     Values to remove and in tags can be string or list of strings.
     """
-    ts_logger.warning(
+    ts_logger.debug(
         f"rm_tag - from tag:\n\t{input_tags}, \nremove value(s): {tags_to_remove}."
     )
     tags = deepcopy(input_tags)
@@ -361,7 +361,7 @@ def rm_tag(
     return tags
 
 
-def replace_dataset_tags_in_dictionary(
+def replace_dataset_tags(
     existing: DatasetTagDict,
     replace: TagDict,
     new: TagDict,
@@ -402,7 +402,7 @@ def replace_dataset_tags_in_dictionary(
             existing=out["series"],
             replace=replace,
             new=new,
-            dataset_tags=existing,
+            # dataset_tags=existing,
         )
 
     return out
@@ -420,7 +420,7 @@ def delete_dataset_tags(
         return inherit_set_tags(dictionary)
     else:
         out = deepcopy(dictionary)
-        ts_logger.warning(
+        ts_logger.debug(
             f"meta.edit_dataset_tags_delete: remove {kwargs}\nfrom existing {out}"
         )
         if args:
@@ -479,14 +479,14 @@ def delete_series_tags(
                 output_tags.pop(k)
 
     elif args or kwargs:
-        ts_logger.warning(
+        ts_logger.debug(
             f"meta.delete_series_tags: remove {kwargs}\nfrom series tags: {output_tags}"
         )
         # remove attribute, regardless of values
         if args:
             for o in output_tags.values():
                 o.pop(*args)
-        ts_logger.warning(f"meta.delete_series_tags: preliminary out {output_tags}")
+        ts_logger.debug(f"meta.delete_series_tags: preliminary out {output_tags}")
 
         # remove matching values and empty attributes
         for k, v in kwargs.items():
@@ -496,28 +496,18 @@ def delete_series_tags(
                 elif v in tags[k]:
                     match len(tags[k]):
                         case 1:
-
-                            ts_logger.debug(
-                                f"pop attribute {k} after removing last value {v}"
-                            )
                             tags.pop(k)
                         case 2:
                             tags[k].remove(v)
                             tags[k] = tags[k][0]
-                            ts_logger.debug(
-                                f"attribute {k}: convert single remaining value {tags[k]} to string after removing {v}."
-                            )
                         case _:
                             tags[k].remove(v)
-                            ts_logger.debug(
-                                f"attribute {k}: values {tags[k]} remain after removing {v}"
-                            )
 
         # refactor - something like this?
         # for tags in output_tags.values():
         #     tags = rm_tag(tags, {**kwargs})
     else:
-        ts_logger.warning(f"Nothing to remove: {args} {kwargs}")
+        ts_logger.debug(f"Nothing to remove: {args} {kwargs}")
 
     return output_tags
 

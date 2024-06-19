@@ -253,7 +253,7 @@ class Dataset:
             tags.update(**kwargs)
         propagate = tags.pop("propagate", True)
         if tags:
-            self.tags = meta.replace_dataset_tags_in_dictionary(
+            self.tags = meta.replace_dataset_tags(
                 self.tags, replace={}, new=tags, propagate=propagate
             )
 
@@ -402,10 +402,10 @@ class Dataset:
                 for series_key, series_tags in self.tags["series"].items():
                     if series_tags.get(attribute) == value:
                         series_tags.pop(attribute)
-                        ts_logger.warning(f"pop attribute: {attribute}")
+                        ts_logger.debug(f"pop attribute: {attribute}")
                     elif value in series_tags.get(attribute):
                         self.tags["series"][series_key][attribute].remove(value)
-                        ts_logger.warning(
+                        ts_logger.debug(
                             f"{series_key}:\n{self.tags['series'][series_key]}\nremove value: {value}"
                         )
 

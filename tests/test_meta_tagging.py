@@ -1,3 +1,5 @@
+# mypy: ignore-errors = True
+
 import logging
 import uuid
 
@@ -11,7 +13,7 @@ from ssb_timeseries.meta import Taxonomy
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
-# mypy: disable-error-code="attr-defined,no-untyped-def"
+# ---mypy: disable-error-code="attr-defined,no-untyped-def,union-attr,index,call-overload"
 
 
 @log_start_stop

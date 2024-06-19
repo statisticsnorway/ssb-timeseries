@@ -1,3 +1,4 @@
+# mypy: ignore-errors = True
 import logging
 import uuid
 from datetime import timedelta
@@ -193,7 +194,7 @@ def test_metafile_exists_after_create_dataset_and_save(
     )
 
     x.save()
-    ts_logger.warning(x.io.metadata_fullpath)
+    ts_logger.debug(x.io.metadata_fullpath)
     assert x.io.metadatafile_exists()
 
 
