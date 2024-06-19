@@ -669,6 +669,55 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
 
 
 @log_start_stop
+def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
+    conftest,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(157)
+    klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+
+    set_name = conftest.function_name()
+    set_tags = {
+        "Country": "Norway",
+    }
+    series_tags = {"A": klass157_leaves, "B": ["pq"], "C": ["xyz"]}
+    tag_values: list[list[str]] = [value for value in series_tags.values()]
+
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        data=create_df(
+            *tag_values, start_date="2020-01-01", end_date="2024-01-03", freq="YS"
+        ),
+        tags=set_tags,
+        name_pattern=["A", "B", "C"],
+    )
+
+    assert len(x.numeric_columns()) == len(klass157_leaves)
+    multiple_functions = [
+        ["quantile", 10],
+        ["percentile", 50, "nearest"],
+        ["quantile", 90],
+    ]
+
+    y = x.aggregate("A", klass157, multiple_functions)
+    assert isinstance(y, Dataset)
+    assert len(y.numeric_columns()) == 3 * len(klass157.parent_nodes())
+    expected_names = [
+        f"{f[0]}{f[1]}({n.name})"
+        for n in klass157.parent_nodes()
+        for f in multiple_functions
+    ]
+    assert sorted(y.numeric_columns()) == sorted(expected_names)
+    y_data = y.data[y.numeric_columns()]
+    ts_logger.debug(f"{set_name} --> \n{y_data}")
+    assert all(y_data.notna())
+    assert all(y_data.notnull())
+
+
+@log_start_stop
 def test_aggregate_callable_for_hierarchical_taxonomy(
     conftest,
     caplog: pytest.LogCaptureFixture,

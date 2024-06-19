@@ -990,6 +990,8 @@ class Dataset:
             for func in aggregate_function:
                 if isinstance(func, str):
                     new_col_name = f"{func}({node.name})"
+                elif isinstance(func, list):
+                    new_col_name = f"{func[0]}{func[1]}({node.name})"
                 else:
                     new_col_name = f"{func.__name__}({node.name})"
                 df[new_col_name] = column_aggregate(leaf_node_subset, func)
@@ -1023,7 +1025,7 @@ def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
     if isinstance(method, Callable):
         out = method(df)
     else:
-        match method.lower():
+        match method:
             case "mean" | "average":
                 out = df.mean(axis=1, numeric_only=True)
             case "min" | "minimum":
@@ -1036,7 +1038,7 @@ def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
                 out = df.sum(axis=1, numeric_only=True)
             case "median":
                 out = df.quantile(0.5, axis=1, numeric_only=True)
-            case ["quantile" | "percentile", *args]:
+            case ["quantile", *args] | ["percentile", *args]:
                 if len(args) > 1:
                     interpolation = args[1]
                 else:
