@@ -1,6 +1,7 @@
 # mypy: disable-error-code="assignment,attr-defined"
 # ruff: noqa: RUF013
 import re
+from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
@@ -12,7 +13,7 @@ import pandas as pd
 from typing_extensions import Self
 
 from ssb_timeseries import io
-from ssb_timeseries import meta
+from ssb_timeseries import meta  # type: ignore[attr-defined]
 from ssb_timeseries import properties
 from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
@@ -951,24 +952,32 @@ class Dataset:
         self,
         attribute: str,
         taxonomy: meta.Taxonomy | int | PathStr,
-        aggregate_function: str | list[str] = "sum",
+        aggregate_function: str | list[str | F] | F = "sum",
     ) -> Self:
         """Aggregate dataset by taxonomy.
 
         Args:
-            attribute: The attribute to aggregate by.
+            attribute: The attribute to aggregate by. TODO: support multiple attributes.
             taxonomy (Taxonomy | int | PathStr): The values for `attribute`. A taxonomy object as returned by Taxonomy(klass_id_or_path), or the id or path to retrieve one.
-            aggregate_function (str | list[str]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
+            aggregate_function (str | Callable | list[str | Callable]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
 
         Returns:
             Self: A dataset object with the aggregated data.
             If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
             If the taxonomy is a flat list, only a single 'total' aggregate series is calculated.
+
+        Examples:
+            To calculate 10 and 90 percentiles and median for the dataset 'x' where codes from KLASS 157 ('energy_balance') distinguishes between series in the set.
+            >>>    def perc10(x):
+            >>>        return x.quantile(.1, axis=1, numeric_only=True, interpolation="linear")
+            >>>    def perc90(x):
+            >>>        return x.quantile(.9, axis=1, numeric_only=True, interpolation="linear")
+            >>>    y = x.aggregate("energy_balance", 157, [perc10, 'median', perc90])
         """
         if not isinstance(taxonomy, meta.Taxonomy):
             taxonomy = meta.Taxonomy(taxonomy)
 
-        if isinstance(aggregate_function, str):
+        if not isinstance(aggregate_function, list):
             aggregate_function = [aggregate_function]
 
         df = self.data.copy().drop(columns=self.numeric_columns())
@@ -978,9 +987,12 @@ class Dataset:
             leaf_node_subset = self.filter(tags={attribute: leaves}, output="df")
             # .drop(columns=self.datetime_columns())
 
-            for m in aggregate_function:
-                new_col_name = f"{m}({node.name})"
-                df[new_col_name] = column_aggregate(leaf_node_subset, m)
+            for func in aggregate_function:
+                if isinstance(func, str):
+                    new_col_name = f"{func}({node.name})"
+                else:
+                    new_col_name = f"{func.__name__}({node.name})"
+                df[new_col_name] = column_aggregate(leaf_node_subset, func)
                 # ts_logger.debug(f"DATASET.aggregate(): node '{node}', column {m} input:\n{leaf_node_subset.columns}\nreturned:\n{df[new_col_name]}")
 
         return self.copy(f"{self.name}.{aggregate_function}", data=df)
@@ -1005,24 +1017,29 @@ class Dataset:
                 self.data = self.data.set_index(self.datetime_columns(), *args)
 
 
-def column_aggregate(df: pd.DataFrame, method: str) -> pd.Series | Any:
+def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
     """Helper function to calculate aggregate over dataframe columns."""
     ts_logger.debug(f"DATASET.column_aggregate '{method}' over columns:\n{df.columns}")
-    match method.lower():
-        case "mean" | "average":
-            out = df.mean(axis=1, numeric_only=True)
-        case "min" | "minimum":
-            out = df.min(axis=1, numeric_only=True)
-        case "max" | "maximum":
-            out = df.max(axis=1, numeric_only=True)
-        case "count":
-            out = df.count(axis=1, numeric_only=True)
-        case "sum":
-            out = df.sum(axis=1, numeric_only=True)
-        case "percentile" | _:
-            raise NotImplementedError(
-                f"Aggregation method '{method}' is not implemented (yet)."
-            )
+    if isinstance(method, Callable):
+        out = method(df)
+    else:
+        match method.lower():
+            case "mean" | "average":
+                out = df.mean(axis=1, numeric_only=True)
+            case "min" | "minimum":
+                out = df.min(axis=1, numeric_only=True)
+            case "max" | "maximum":
+                out = df.max(axis=1, numeric_only=True)
+            case "count":
+                out = df.count(axis=1, numeric_only=True)
+            case "sum":
+                out = df.sum(axis=1, numeric_only=True)
+            case "median":
+                out = df.quantile(0.5, axis=1, numeric_only=True)
+            case "percentile" | _:
+                raise NotImplementedError(
+                    f"Aggregation method '{method}' is not implemented (yet)."
+                )
     return out
 
 

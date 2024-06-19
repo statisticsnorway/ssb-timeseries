@@ -666,3 +666,53 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
     assert all(y_data.notna())
     assert all(y_data.notnull())
     assert all(y_data["mean(12.3)"] == y_data["sum(12.3)"] / y_data["count(12.3)"])
+
+
+@log_start_stop
+def test_aggregate_callable_for_hierarchical_taxonomy(
+    conftest,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(157)
+    klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+
+    set_name = conftest.function_name()
+    set_tags = {
+        "Country": "Norway",
+    }
+    series_tags = {"A": klass157_leaves, "B": ["pq"], "C": ["xyz"]}
+    tag_values: list[list[str]] = [value for value in series_tags.values()]
+
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        data=create_df(
+            *tag_values, start_date="2020-01-01", end_date="2024-01-03", freq="YS"
+        ),
+        tags=set_tags,
+        name_pattern=["A", "B", "C"],
+    )
+
+    assert len(x.numeric_columns()) == len(klass157_leaves)
+
+    def perc10(x):
+        return x.quantile(0.1, axis=1, numeric_only=True)
+
+    def perc90(x):
+        return x.quantile(0.9, axis=1, numeric_only=True)
+
+    y = x.aggregate("A", klass157, [perc10, perc90])
+    assert isinstance(y, Dataset)
+    assert len(y.numeric_columns()) == 2 * len(klass157.parent_nodes())
+    expected_names = [
+        f"{f.__name__}({n.name})"
+        for n in klass157.parent_nodes()
+        for f in [perc10, perc90]
+    ]
+    assert sorted(y.numeric_columns()) == sorted(expected_names)
+    y_data = y.data[y.numeric_columns()]
+    ts_logger.debug(f"{set_name} --> \n{y_data}")
+    assert all(y_data.notna())
+    assert all(y_data.notnull())

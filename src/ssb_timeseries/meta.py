@@ -20,10 +20,10 @@ from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import PathStr
 
 # mypy: disable-error-code="assignment, override, type-arg, attr-defined, no-untyped-def, import-untyped"
-Tag = str | list[str]
-TagDict: TypeAlias = dict[str, Tag] | None
-SeriesTagDict: TypeAlias = dict[str, TagDict] | None
-DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict] | None
+TagValue: TypeAlias = str | list[str]  # type ignore
+TagDict: TypeAlias = dict[str, TagValue] | None  # type ignore
+SeriesTagDict: TypeAlias = dict[str, TagDict] | None  # type ignore
+DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict] | None  # type ignore
 
 
 def _df_info_as_string(df: pd.DataFrame) -> str:
@@ -462,7 +462,7 @@ def delete_dataset_tags(
 def delete_series_tags(
     dictionary: SeriesTagDict | DatasetTagDict,
     *args: str,
-    **kwargs: Tag | bool,
+    **kwargs: TagValue | bool,
 ) -> SeriesTagDict:
     """Remove selected series attributes from series or dataset tag dictionary."""
     remove_all: bool = kwargs.pop("all", False)
