@@ -1,4 +1,4 @@
-# mypy: disable-error-code="assignment,attr-defined"
+# mypy: disable-error-code="assignment,attr-defined,index,union-attr"
 # ruff: noqa: RUF013
 import re
 from collections.abc import Callable
@@ -21,14 +21,6 @@ from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
-
-# from ssb_timeseries.meta import DatasetTagDict
-# from ssb_timeseries.meta import TagDict
-# from ssb_timeseries.meta import Taxonomy
-# from ssb_timeseries.meta import meta.delete_dataset_tags
-# from ssb_timeseries.meta import inherit_set_tags
-# from ssb_timeseries.meta import replace_dataset_tags_in_dictionary
-# from ssb_timeseries.meta import search_by_tags
 
 
 class Dataset:
@@ -213,15 +205,15 @@ class Dataset:
                 return versions
 
     @property
-    def series(self) -> list[str]:
+    def series(self) -> set[str]:
         """Get series names."""
         if self.__getattribute__("data") is None:
-            return []
+            return set()
         else:
             return self.numeric_columns()
 
     @property
-    def series_tags(self) -> dict[str, str | list[str]]:
+    def series_tags(self) -> meta.SeriesTagDict:
         """Get series tags."""
         return self.tags["series"]  # type: ignore
 
@@ -952,7 +944,8 @@ class Dataset:
         self,
         attribute: str,
         taxonomy: meta.Taxonomy | int | PathStr,
-        aggregate_function: str | list[str | F] | F = "sum",
+        # aggregate_function: str | list[str | F] | F = "sum",
+        aggregate_function: set[str | F] = "sum",
     ) -> Self:
         """Aggregate dataset by taxonomy.
 

@@ -291,7 +291,6 @@ def series_tag_dict_edit(
     existing: SeriesTagDict,
     replace: TagDict,
     new: TagDict,
-    # dataset_tags: DatasetTagDict = None,
 ) -> SeriesTagDict:
     """Alter selected attributes in a Dataset.tag['series'] dictionary.
 
@@ -402,7 +401,6 @@ def replace_dataset_tags(
             existing=out["series"],
             replace=replace,
             new=new,
-            # dataset_tags=existing,
         )
 
     return out
