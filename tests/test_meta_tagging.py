@@ -514,26 +514,93 @@ def test_detag_series_removes_tags_from_series_but_not_from_set(
     assert y.tags["example_2"] == ["a", "b", "c"]
 
 
-@pytest.mark.skip(reason="Exerimental.")
-@log_start_stop
-def test_experiment(
+# @pytest.mark.skip(reason="Not ready yet.")
+def test_aggregate_sum_for_flat_list_taxonomy(
+    conftest,
     caplog: pytest.LogCaptureFixture,
-    existing_small_set: Dataset,
 ) -> None:
     caplog.set_level(logging.DEBUG)
-    my_list = ["a", "b", "c"]
-    d1 = {"a": my_list, "b": my_list}
-    d1["a"].remove("b")
-    d2 = {"a": ["a", "b", "c"], "b": ["a", "b", "c"]}
-    d2["a"].remove("b")
-    ts_logger.debug(f"\nd1: {d1}\nd2: {d2}")
-    assert 0
+    klass48 = Taxonomy(48)
+    klass48_leaves = [f"{n.name:s}" for n in klass48.structure.root.leaves]
+
+    set_name = conftest.function_name()
+    set_tags = {
+        "Country": "Norway",
+    }
+    series_tags = {"A": klass48_leaves, "B": ["q"], "C": ["z"]}
+    tag_values: list[list[str]] = [value for value in series_tags.values()]
+
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        tags=set_tags,
+        data=create_df(
+            *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+        name_pattern=["A", "B", "C"],
+    )
+
+    assert len(x.numeric_columns()) == len(klass48_leaves)
+    ts_logger.warning(f"{set_name}:\n{x.data}")
+
+    y = x.aggregate(attribute="A", taxonomy=klass48, functions=["sum"])
+    assert isinstance(y, Dataset)
+    assert len(y.numeric_columns()) == len(klass48.parent_nodes())
+    assert sorted(y.numeric_columns()) == sorted(
+        [f"sum({n.name})" for n in klass48.parent_nodes()]
+    )
+    y_data = y.data[y.numeric_columns()]
+    ts_logger.warning(f"{set_name}: \n{y_data}")
+    assert all(y_data.notna())
+    assert all(y_data.notnull())
 
 
-@pytest.mark.skip(reason="Not ready yet.")
-def test_aggregate_sum_for_flat_list_taxonomy(
+def test_aggregate_multiple_functions_for_flat_list_taxonomy(
+    conftest,
     caplog: pytest.LogCaptureFixture,
-) -> None: ...
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass48 = Taxonomy(48)
+    klass48_leaves = [f"{n.name:s}" for n in klass48.structure.root.leaves]
+
+    set_name = conftest.function_name()
+    set_tags = {
+        "Country": "Norway",
+    }
+    series_tags = {"A": klass48_leaves, "B": ["q"], "C": ["z"]}
+    tag_values: list[list[str]] = [value for value in series_tags.values()]
+
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        tags=set_tags,
+        data=create_df(
+            *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+        name_pattern=["A", "B", "C"],
+    )
+
+    assert len(x.numeric_columns()) == len(klass48_leaves)
+
+    def custom_func_perc10(x):
+        return x.quantile(0.1, axis=1, numeric_only=True)
+
+    aggregate_functions = [custom_func_perc10, "median", ["quantile", 0.9]]
+    ts_logger.debug(f"{set_name}:\n{x.data}")
+    y = x.aggregate(attribute="A", taxonomy=klass48, functions=aggregate_functions)
+    assert isinstance(y, Dataset)
+    assert len(y.numeric_columns()) == len(klass48.parent_nodes()) * len(
+        aggregate_functions
+    )
+    assert sorted(y.numeric_columns()) == sorted(
+        ["custom_func_perc10(0)", "median(0)", "quantile0.9(0)"]
+    )
+    y_data = y.data[y.numeric_columns()]
+    ts_logger.debug(f"{y.name}: \n{y_data}")
+    assert all(y_data.notna())
+    assert all(y_data.notnull())
 
 
 @log_start_stop
@@ -565,7 +632,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
 
     assert len(x.numeric_columns()) == len(klass157_leaves)
 
-    y = x.aggregate("A", klass157, "sum")
+    y = x.aggregate("A", klass157, {"sum"})
     assert isinstance(y, Dataset)
     assert len(y.numeric_columns()) == len(klass157.parent_nodes())
     assert sorted(y.numeric_columns()) == sorted(
@@ -606,7 +673,7 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
 
     assert len(x.numeric_columns()) == len(klass157_leaves)
 
-    y = x.aggregate("A", klass157, "mean")
+    y = x.aggregate("A", klass157, {"mean"})
     assert isinstance(y, Dataset)
     assert len(y.numeric_columns()) == len(klass157.parent_nodes())
     assert sorted(y.numeric_columns()) == sorted(
@@ -644,14 +711,13 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
         ),
         name_pattern=["A", "B", "C"],
     )
-    # ts_logger.debug(f"Dataset: {x.name}\nSeries:\n{x.tags['series']}\nx.tags")
 
     assert len(x.numeric_columns()) == len(klass157_leaves)
     multiple_functions = ["count", "sum", "mean"]
     y = x.aggregate(
         attribute="A",
         taxonomy=klass157,
-        aggregate_function=multiple_functions,
+        functions=multiple_functions,
     )
     assert isinstance(y, Dataset)
     assert len(y.numeric_columns()) == len(

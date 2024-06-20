@@ -153,7 +153,7 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
     tree = klass157.structure
 
     leaf_nodes = [n.name for n in tree.root.leaves]
-    all_nodes = [n.name for n in tree.root.descendants]
+    all_nodes = [n.name for n in tree.root.descendants] + [tree.root.name]
     parent_nodes = [n for n in all_nodes if n not in leaf_nodes]
     parent_nodes2 = [n.name for n in klass157.parent_nodes()]
 

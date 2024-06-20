@@ -194,11 +194,13 @@ class Taxonomy:
 
     def parent_nodes(self) -> list[bigtree.node]:  # type: ignore
         """Return all non-leaf nodes in the taxonomy."""
-        return [
+        parents = [
             n
             for n in self.structure.root.descendants
             if n not in self.structure.root.leaves
-        ]
+        ] + [self.structure.root]
+        ts_logger.warning(f"parents: {parents}")
+        return parents
 
     def save(self, path: PathStr) -> None:
         """Save taxonomy to json file.
@@ -291,6 +293,7 @@ def series_tag_dict_edit(
     existing: SeriesTagDict,
     replace: TagDict,
     new: TagDict,
+    # dataset_tags: DatasetTagDict = None,
 ) -> SeriesTagDict:
     """Alter selected attributes in a Dataset.tag['series'] dictionary.
 

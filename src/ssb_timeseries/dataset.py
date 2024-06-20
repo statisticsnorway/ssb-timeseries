@@ -945,14 +945,14 @@ class Dataset:
         attribute: str,
         taxonomy: meta.Taxonomy | int | PathStr,
         # aggregate_function: str | list[str | F] | F = "sum",
-        aggregate_function: set[str | F] = "sum",
+        functions: set[str | F] | list[str | F],
     ) -> Self:
         """Aggregate dataset by taxonomy.
 
         Args:
             attribute: The attribute to aggregate by. TODO: support multiple attributes.
             taxonomy (Taxonomy | int | PathStr): The values for `attribute`. A taxonomy object as returned by Taxonomy(klass_id_or_path), or the id or path to retrieve one.
-            aggregate_function (str | Callable | list[str | Callable]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
+            functions (list[str | Callable] | set[str | Callable]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
 
         Returns:
             Self: A dataset object with the aggregated data.
@@ -970,8 +970,10 @@ class Dataset:
         if not isinstance(taxonomy, meta.Taxonomy):
             taxonomy = meta.Taxonomy(taxonomy)
 
-        if not isinstance(aggregate_function, list):
-            aggregate_function = [aggregate_function]
+        # if isinstance(aggregate_function, list):
+        #     aggregate_function = set(*aggregate_function)
+        # elif not isinstance(aggregate_function, set):
+        #     aggregate_function = set(aggregate_function)
 
         df = self.data.copy().drop(columns=self.numeric_columns())
         for node in taxonomy.parent_nodes():
@@ -980,7 +982,7 @@ class Dataset:
             leaf_node_subset = self.filter(tags={attribute: leaves}, output="df")
             # .drop(columns=self.datetime_columns())
 
-            for func in aggregate_function:
+            for func in functions:
                 if isinstance(func, str):
                     new_col_name = f"{func}({node.name})"
                 elif isinstance(func, list):
@@ -990,7 +992,7 @@ class Dataset:
                 df[new_col_name] = column_aggregate(leaf_node_subset, func)
                 # ts_logger.debug(f"DATASET.aggregate(): node '{node}', column {m} input:\n{leaf_node_subset.columns}\nreturned:\n{df[new_col_name]}")
 
-        return self.copy(f"{self.name}.{aggregate_function}", data=df)
+        return self.copy(f"{self.name}.{functions}", data=df)
 
     # reindexing is a remainder of abandoned approach to avoid calculating on datatime columns?
     # --> can be deleted if not used / or nice to have?
