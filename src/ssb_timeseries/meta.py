@@ -201,7 +201,7 @@ class Taxonomy:
             for n in self.structure.root.descendants
             if n not in self.structure.root.leaves
         ] + [self.structure.root]
-        ts_logger.warning(f"parents: {parents}")
+        ts_logger.debug(f"parents: {parents}")
         return parents
 
     def save(self, path: PathStr) -> None:
