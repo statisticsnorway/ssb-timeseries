@@ -1,7 +1,6 @@
-# mypy: disable-error-code="assignment,attr-defined,index,union-attr"
+# mypy: disable-error-code="assignment,attr-defined,union-attr,dict-item,arg-type,call-overload,no-untyped-call"
 # ruff: noqa: RUF013
 import re
-from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
@@ -13,7 +12,7 @@ import pandas as pd
 from typing_extensions import Self
 
 from ssb_timeseries import io
-from ssb_timeseries import meta  # type: ignore[attr-defined]
+from ssb_timeseries import meta
 from ssb_timeseries import properties
 from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
@@ -135,7 +134,7 @@ class Dataset:
 
         self.tags["name"] = new_name
         for _, v in self.tags["series"].items():
-            v["dataset"] = new_name
+            v["dataset"] = new_name  # type: ignore
 
     def save(self, as_of_tz: datetime = None) -> None:
         """Persist the Dataset.
@@ -205,10 +204,10 @@ class Dataset:
                 return versions
 
     @property
-    def series(self) -> set[str]:
+    def series(self) -> list[str]:
         """Get series names."""
         if self.__getattribute__("data") is None:
-            return set()
+            return []
         else:
             return self.numeric_columns()
 
@@ -275,6 +274,7 @@ class Dataset:
             "series": {s: {"dataset": self.name, "name:": s} for s in self.series},
         }
 
+    @no_type_check
     def series_names_to_tags(
         self,
         attributes: list[str] | None = None,
@@ -372,6 +372,7 @@ class Dataset:
         if name_pattern:
             self.series_names_to_tags(attributes=name_pattern, separator=separator)
 
+    @no_type_check  # "operator"
     def detag_series(
         self,
         *args: str,
@@ -944,7 +945,6 @@ class Dataset:
         self,
         attribute: str,
         taxonomy: meta.Taxonomy | int | PathStr,
-        # aggregate_function: str | list[str | F] | F = "sum",
         functions: set[str | F] | list[str | F],
     ) -> Self:
         """Aggregate dataset by taxonomy.
@@ -970,23 +970,17 @@ class Dataset:
         if not isinstance(taxonomy, meta.Taxonomy):
             taxonomy = meta.Taxonomy(taxonomy)
 
-        # if isinstance(aggregate_function, list):
-        #     aggregate_function = set(*aggregate_function)
-        # elif not isinstance(aggregate_function, set):
-        #     aggregate_function = set(aggregate_function)
-
         df = self.data.copy().drop(columns=self.numeric_columns())
         for node in taxonomy.parent_nodes():
             leaves = taxonomy.leaf_nodes(node.name)
             ts_logger.debug(f"DATASET.aggregate(): node '{node.name}' leaves {leaves}.")
             leaf_node_subset = self.filter(tags={attribute: leaves}, output="df")
-            # .drop(columns=self.datetime_columns())
 
             for func in functions:
                 if isinstance(func, str):
                     new_col_name = f"{func}({node.name})"
                 elif isinstance(func, list):
-                    new_col_name = f"{func[0]}{func[1]}({node.name})"
+                    new_col_name = f"{func[0]}{func[1]}({node.name})"  # type: ignore[unreachable]
                 else:
                     new_col_name = f"{func.__name__}({node.name})"
                 df[new_col_name] = column_aggregate(leaf_node_subset, func)
@@ -994,31 +988,31 @@ class Dataset:
 
         return self.copy(f"{self.name}.{functions}", data=df)
 
-    # reindexing is a remainder of abandoned approach to avoid calculating on datatime columns?
-    # --> can be deleted if not used / or nice to have?
-    @no_type_check
-    def reindex(
-        self,
-        index_type: str = "dt",
-        freq: str = "",
-        *args,  # noqa: ANN002
-    ) -> None:
-        """Reindex dataset by datetime or period."""
-        match index_type:
-            case "dt" | "datetime":
-                self.data = self.data.set_index(self.datetime_columns(), *args)
-            case "p" | "period":
-                p = pd.PeriodIndex(self.data[self.datetime_columns], freq=freq)
-                self.data.reindex(p)
-            case _:
-                self.data = self.data.set_index(self.datetime_columns(), *args)
+    # # reindexing is a remainder of abandoned approach to avoid calculating on datatime columns?
+    # # --> can be deleted if not used / or nice to have?
+    # @no_type_check
+    # def reindex(
+    #     self,
+    #     index_type: str = "dt",
+    #     freq: str = "",
+    #     *args,
+    # ) -> None:
+    #     """Reindex dataset by datetime or period."""
+    #     match index_type:
+    #         case "dt" | "datetime":
+    #             self.data = self.data.set_index(self.datetime_columns(), *args)
+    #         case "p" | "period":
+    #             p = pd.PeriodIndex(self.data[self.datetime_columns], freq=freq)
+    #             self.data.reindex(p)
+    #         case _:
+    #             self.data = self.data.set_index(self.datetime_columns(), *args)
 
 
 def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
     """Helper function to calculate aggregate over dataframe columns."""
     ts_logger.debug(f"DATASET.column_aggregate '{method}' over columns:\n{df.columns}")
-    if isinstance(method, Callable):
-        out = method(df)
+    if isinstance(method, F):  # type: ignore
+        out = method(df)  # type: ignore[operator]
     else:
         match method:
             case "mean" | "average":
@@ -1033,12 +1027,12 @@ def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
                 out = df.sum(axis=1, numeric_only=True)
             case "median":
                 out = df.quantile(0.5, axis=1, numeric_only=True)
-            case ["quantile", *args] | ["percentile", *args]:
-                if len(args) > 1:
-                    interpolation = args[1]
+            case ["quantile", *params] | ["percentile", *params]:
+                if len(params) > 1:  # type: ignore[unreachable]
+                    interpolation: str = params[1]
                 else:
                     interpolation = "linear"
-                quantile = float(args[0])
+                quantile = float(params[0])
                 if quantile > 1:
                     quantile /= 100
                 out = df.quantile(

@@ -587,7 +587,7 @@ def test_aggregate_multiple_functions_for_flat_list_taxonomy(
     def custom_func_perc10(x):
         return x.quantile(0.1, axis=1, numeric_only=True)
 
-    aggregate_functions = [custom_func_perc10, "median", ["quantile", 0.9]]
+    aggregate_functions = [custom_func_perc10, "median", ["quantile", 0.9, "nearest"]]
     ts_logger.debug(f"{set_name}:\n{x.data}")
     y = x.aggregate(attribute="A", taxonomy=klass48, functions=aggregate_functions)
     assert isinstance(y, Dataset)

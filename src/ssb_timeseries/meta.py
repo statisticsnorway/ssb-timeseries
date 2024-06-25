@@ -7,6 +7,7 @@ import io
 from copy import deepcopy
 from typing import Any
 from typing import TypeAlias
+from typing import no_type_check
 
 import bigtree
 import pandas as pd
@@ -19,11 +20,12 @@ from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import PathStr
 
-# mypy: disable-error-code="assignment, override, type-arg, attr-defined, no-untyped-def, import-untyped"
-TagValue: TypeAlias = str | list[str]  # type ignore
-TagDict: TypeAlias = dict[str, TagValue] | None  # type ignore
-SeriesTagDict: TypeAlias = dict[str, TagDict] | None  # type ignore
-DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict] | None  # type ignore
+# mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-untyped-call,operator"
+
+TagValue: TypeAlias = str | list[str]
+TagDict: TypeAlias = dict[str, TagValue]
+SeriesTagDict: TypeAlias = dict[str, TagDict]
+DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict]
 
 
 def _df_info_as_string(df: pd.DataFrame) -> str:
@@ -276,7 +278,7 @@ def search_by_tags(
     return [k for k in filter_tags(tags, criteria).keys()]
 
 
-def inherit_set_tags(tags: DatasetTagDict) -> SeriesTagDict:
+def inherit_set_tags(tags: DatasetTagDict) -> dict[str, Any]:  # -> TagDict:
     """Return the tags that are inherited from the set."""
     set_only_tags = ["series", "name"]
     inherit_from_set_tags = deepcopy(
@@ -327,6 +329,7 @@ def series_tag_dict_edit(
     return out
 
 
+@no_type_check
 def rm_tag(
     input_tags: TagDict,
     tags_to_remove: TagDict,
@@ -363,6 +366,7 @@ def rm_tag(
     return tags
 
 
+@no_type_check  # "no any return
 def replace_dataset_tags(
     existing: DatasetTagDict,
     replace: TagDict,
@@ -409,6 +413,7 @@ def replace_dataset_tags(
     return out
 
 
+@no_type_check  # "comparison-overlap
 def delete_dataset_tags(
     dictionary: DatasetTagDict,
     *args: str,
@@ -460,10 +465,11 @@ def delete_dataset_tags(
         return out
 
 
+@no_type_check
 def delete_series_tags(
     dictionary: SeriesTagDict | DatasetTagDict,
     *args: str,
-    **kwargs: TagValue | bool,
+    **kwargs: TagValue,  # | bool,
 ) -> SeriesTagDict:
     """Remove selected series attributes from series or dataset tag dictionary."""
     remove_all: bool = kwargs.pop("all", False)
