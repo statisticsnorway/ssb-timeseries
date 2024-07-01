@@ -59,6 +59,7 @@ def test_init_dataset_returns_expected_set_level_tags(caplog) -> None:
     }
     with *at least* the above provided attributes (possibly / quite likely many more)
     """
+    ts_logger.debug(f"tags: {x.tags}")
     assert x.tags["name"] == set_name
     assert x.tags["versioning"] == str(x.data_type.versioning)
     assert x.tags["temporality"] == str(x.data_type.temporality)
@@ -138,15 +139,16 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
 def test_tag_set_with_kwargs(
     new_dataset_as_of_at: Dataset, caplog: pytest.LogCaptureFixture
 ) -> None:
+    caplog.set_level(logging.DEBUG)
     new_dataset_as_of_at.tag_dataset(
         example_1="string_1",
         example_2=["a", "b", "c"],
     )
-    caplog.set_level(logging.DEBUG)
+    ts_logger.debug(f"tags: {new_dataset_as_of_at.tags}")
+
     # check that the tags are applied to the dataset
     assert new_dataset_as_of_at.tags["example_1"] == "string_1"
     assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
-
     # check that the tags propagate to series in set
     for series_tags in new_dataset_as_of_at.tags["series"].values():
         assert series_tags["example_1"] == "string_1"
@@ -187,7 +189,7 @@ def test_tag_set_with_both_dict_and_kwargs(new_dataset_as_of_at: Dataset) -> Non
 
 
 @log_start_stop
-def test_tagging_set_second_time_overwrites(
+def test_tagging_set_second_time_appends(
     new_dataset_as_of_at: Dataset,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -196,13 +198,13 @@ def test_tagging_set_second_time_overwrites(
     )
     new_dataset_as_of_at.tag_dataset(tags={"example_1": "string_2"})
     # check that the new tag is applied correctly to the dataset
-    assert new_dataset_as_of_at.tags["example_1"] == "string_2"
+    assert new_dataset_as_of_at.tags["example_1"] == ["string_1", "string_2"]
     # while the second tag stays the same
     assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
 
     # ... and that this is true also for the series in set
     for series_tags in new_dataset_as_of_at.tags["series"].values():
-        assert series_tags["example_1"] == "string_2"
+        assert series_tags["example_1"] == ["string_1", "string_2"]
         assert series_tags["example_2"] == ["a", "b", "c"]
 
 
@@ -329,7 +331,7 @@ def test_detag_dataset_kwarg_removes_only_specified_value_from_tag_with_multiple
         assert series_tags["F"] == ["f1", "f2"]
 
     existing_small_set.detag_dataset(F="f1")
-    ts_logger.warning(f"Tags:\n\tF: {existing_small_set.tags.get('F')}")
+    ts_logger.debug(f"Tags:\n\tF: {existing_small_set.tags.get('F')}")
 
     # ... BUT NOT AFTER (only 'f1' has been removed,
     # the attribute remains, now left with a *string* value 'f2')
@@ -379,14 +381,12 @@ def test_retag_dataset(
     caplog.set_level(logging.DEBUG)
 
     x = existing_small_set.filter(tags={"A": "a1"})
-    ts_logger.warning(f"Series:\t{x.tags}")
+    ts_logger.debug(f"Series:\t{x.tags}")
     assert x.series == ["a1_b_c"]
 
     existing_small_set.replace_tags(({"A": "a1"}, {"A1": "a11", "A2": "a21"}))
-    ts_logger.warning(f"Series:\t{existing_small_set.tags}")
+    ts_logger.warning(f"Series:\t{existing_small_set['a1_b_c'].tags}")
 
     assert existing_small_set.filter(tags={"A": "a1"}).series == []
     assert existing_small_set.filter(tags={"A1": "a11"}).series == ["a1_b_c"]
-    assert existing_small_set.filter(tags={"A2": "a12"}).series == ["a1_b_c"]
-
-    assert 0
+    assert existing_small_set.filter(tags={"A2": "a21"}).series == ["a1_b_c"]

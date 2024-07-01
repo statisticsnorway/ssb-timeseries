@@ -330,8 +330,40 @@ def series_tag_dict_edit(
 
 
 @no_type_check
-def rm_tag(
-    input_tags: TagDict,
+def add_tag_values(
+    old: TagDict,
+    additions: TagDict,
+    recursive: bool = False,
+) -> TagDict:
+    """Add tag values to a tag dict.
+
+    Will append new tags as a list if any values already exist. With parameters recursive=True, nested dicts are also traversed.
+    """
+    ts_logger.debug(
+        f"add_tag_values - to existing tags:\n\t{old}, \nadd value(s): {additions=}."
+    )
+    new = deepcopy(old)
+    for attr, new_value in additions.items():
+        old_value = old.get(attr)
+        if old_value is None:
+            new[attr] = new_value
+        elif isinstance(old_value, list):
+            new_value = [new_value] if not isinstance(new_value, list) else new_value
+            new[attr].extend(new_value)
+        elif isinstance(old_value, str):
+            new[attr] = [old_value]
+            new_value = [new_value] if not isinstance(new_value, list) else new_value
+            new[attr].extend(new_value)
+
+    if recursive and "series" in new:
+        for series_key, tags in new["series"].items():
+            new["series"][series_key] = add_tag_values(tags, additions, False)
+    return new
+
+
+@no_type_check
+def rm_tag_values(
+    existing: TagDict,
     tags_to_remove: TagDict,
     recursive: bool = False,
 ) -> TagDict:
@@ -340,76 +372,66 @@ def rm_tag(
     Values to remove and in tags can be string or list of strings.
     """
     ts_logger.debug(
-        f"rm_tag - from tag:\n\t{input_tags}, \nremove value(s): {tags_to_remove}."
+        f"rm_tag - from tag:\n\t{existing}, \nremove value(s): {tags_to_remove}."
     )
-    tags = deepcopy(input_tags)
-    for attr, val in tags.items():
+    new = deepcopy(existing)
+    for attr, val in existing.items():
         for rm_key, rm_value in tags_to_remove.items():
             if (rm_key, rm_value) == (attr, val):
-                tags.pop(attr)
+                new.pop(attr)
             elif rm_key == attr and rm_value is None:
-                tags.pop(attr)
+                new.pop(attr)
             elif isinstance(val, list) and rm_value in val:
                 match len(val):
                     case 2:
-                        tags[attr].remove(rm_value)
-                        tags[attr] = tags[attr][0]
+                        new[attr].remove(rm_value)
+                        new[attr] = new[attr][0]
                     case 1:
-                        tags.pop(attr)
+                        new.pop(attr)
                     case _:
-                        tags[attr].remove(rm_value)
-            elif isinstance(val, dict) and recursive:
-                tags[attr] = rm_tag(tags[attr], tags_to_remove, recursive)
-            else:
-                continue
+                        new[attr].remove(rm_value)
 
-    return tags
+    if recursive and "series" in new:
+        for series_key, tags in new["series"].items():
+            new["series"][series_key] = rm_tag_values(tags, tags_to_remove, False)
+
+    return new
 
 
 @no_type_check  # "no any return
 def replace_dataset_tags(
-    existing: DatasetTagDict,
-    replace: TagDict,
+    existing: TagDict,
+    old: TagDict,
     new: TagDict,
-    propagate: bool = False,
+    recursive: bool = False,
 ) -> DatasetTagDict:
-    """Alter selected attributes in dataset tag dictionary.
+    """Alter selected attributes value pairs in a tag dictionary."""
+    if old == new:
+        ts_logger.debug(f"replace_tags: old: {old} == new: {new}")
+        out = existing
 
-    Either 'replace' or 'new' (or both) must be specified.
-    If 'replace == {}', new tags are appended (aka 'tag_dataset').
-    If 'new == {}', 'replace' tags are deleted (aka 'detag_dataset').
-    If both are specified, 'replace' are deleted before 'new' are appended.
-    """
-    if new and not existing:
-        tags: DatasetTagDict = new
-        if propagate:
-            tags["series"] = series_tag_dict_edit({}, replace, new)
-        return tags
-
-    if replace == new:
-        if replace == {} and new == {}:
-            raise ValueError("Either 'replace' or 'new' must be specified.")
-        return existing
-
-    out = deepcopy(existing)
-    # for tags in existing.values():
-    if replace == {}:
-        out.update(new)
-    elif new == {}:
-        return delete_dataset_tags(dictionary=out, remove=replace, propagate=propagate)
-    elif replace <= existing:
+    elif existing.items() >= old.items():
         ts_logger.debug(
-            f"alter_dataset_tags: ... replace:\t{replace} -->  update with:\n\t{new}"
-        )
-        out.update(new)
-
-    if propagate:
-        out["series"] = series_tag_dict_edit(
-            existing=out["series"],
-            replace=replace,
-            new=new,
+            f"replace_tags: {old} found in existing dataset tags,\n-->  update with:\n\t{new}"
         )
 
+        out = rm_tag_values(existing, old, recursive=False)
+        out = add_tag_values(out, new, recursive=False)
+
+    else:
+        ts_logger.debug(
+            f"replace_tags: tags to be replaced {old} were not found in existing dataset: {existing}"
+        )
+        out = existing
+    if recursive and "series" in out:
+        for series_key, tags in out["series"].items():
+            if tags.items() >= old.items():
+                ts_logger.debug(
+                    f"replace_tags: {old} found in existing series tags,\n-->  update with:\n\t{new}"
+                )
+                tags = rm_tag_values(tags, old, recursive=False)
+                tags = add_tag_values(tags, new, recursive=False)
+            out["series"][series_key] = tags
     return out
 
 

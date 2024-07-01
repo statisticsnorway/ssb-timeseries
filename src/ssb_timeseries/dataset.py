@@ -240,14 +240,15 @@ class Dataset:
             return
         elif not tags:
             tags = {}
-
         if kwargs:
             tags.update(**kwargs)
+
         propagate = tags.pop("propagate", True)
         if tags:
-            self.tags = meta.replace_dataset_tags(
-                self.tags, replace={}, new=tags, propagate=propagate
-            )
+            # self.tags = meta.replace_dataset_tags(
+            #     self.tags, replace={}, new=tags, propagate=propagate
+            # )
+            self.tags = meta.add_tag_values(self.tags, tags, recursive=propagate)
 
     def detag_dataset(
         self,
@@ -316,7 +317,8 @@ class Dataset:
                     name_parts = series_key.split(separator)
 
                 for attribute, value in zip(attributes, name_parts, strict=False):
-                    self.tags["series"][series_key][attribute] = deepcopy(value)
+                    # not necessary? self.tags["series"][series_key][attribute] = deepcopy(value)
+                    self.tags["series"][series_key][attribute] = value
 
     def tag_series(
         self,
@@ -411,10 +413,22 @@ class Dataset:
 
         The tags to be replaced and their replacements should be specified as tuple(s) of dictionaries for `(old_tags, new_tags)`. Both can contain multiple tags.
          * Each tuple is evaluated independently for each series in the set.
-         * If the old tags dict contains multiple tags, all must match for tags to be replaced.
-         * If the new tags dict contains multiple tags, all are added where there is a match.
+         * If the tag dict to be replaced contains multiple tags, all must match for tags to be replaced.
+         * If the new tag dict contains multiple tags, all are added where there is a match.
         """
-        ...
+        for a in args:
+            old = a[0]
+            new = a[1]
+
+            self.tags = meta.replace_dataset_tags(self.tags, old, new, recursive=True)
+            # matching = meta.search_by_tags(self.tags["series"], old)
+            # for s in self.series:
+            #     if s in matching:
+            #         self.tags["series"][s] = meta.rm_tag_values()(old)
+            #         self.tags["series"][s].update(new)
+            #         # to pop or not to pop?
+
+            # self.tag_series(**a[0], **a[1])
 
     @no_type_check
     def filter(
