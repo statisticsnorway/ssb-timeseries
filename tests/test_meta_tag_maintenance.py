@@ -292,7 +292,7 @@ def test_detag_dataset_kwarg_removes_single_value_tags(
     # ... BUT NOT AFTER (value is removed --> attribure is removed)
     assert existing_small_set.tags.get("E") is None
     for series_tags in existing_small_set.tags["series"].values():
-        ts_logger.warning(series_tags)
+        ts_logger.debug(series_tags)
         assert series_tags.get("E") is None
 
 

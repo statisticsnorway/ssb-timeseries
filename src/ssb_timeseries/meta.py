@@ -278,24 +278,29 @@ def search_by_tags(
     return [k for k in filter_tags(tags, criteria).keys()]
 
 
-def inherit_set_tags(tags: DatasetTagDict) -> dict[str, Any]:  # -> TagDict:
+def inherit_set_tags(
+    tags: DatasetTagDict | SeriesTagDict,
+) -> dict[str, Any]:  # -> TagDict:
     """Return the tags that are inherited from the set."""
-    set_only_tags = ["series", "name"]
-    inherit_from_set_tags = deepcopy(
-        {
-            "dataset": tags["name"],
-            **tags,
-        }
-    )
-    [inherit_from_set_tags.pop(key) for key in set_only_tags]
-    return inherit_from_set_tags
+    if "dataset" in tags:
+        tags["series"] = inherit_set_tags(tags)
+        return tags
+    else:
+        set_only_tags = ["series", "name"]
+        inherited_from_set_tags = deepcopy(
+            {
+                "dataset": tags["name"],
+                **tags,
+            }
+        )
+        [inherited_from_set_tags.pop(key) for key in set_only_tags]
+        return inherited_from_set_tags
 
 
 def series_tag_dict_edit(
     existing: SeriesTagDict,
     replace: TagDict,
     new: TagDict,
-    # dataset_tags: DatasetTagDict = None,
 ) -> SeriesTagDict:
     """Alter selected attributes in a Dataset.tag['series'] dictionary.
 
@@ -392,6 +397,9 @@ def rm_tag_values(
                         new[attr].remove(rm_value)
 
     if recursive and "series" in new:
+        ts_logger.warning(
+            f"rm_tag - from tag:\n\t{existing}, \nrecursively remove value(s): {tags_to_remove}."
+        )
         for series_key, tags in new["series"].items():
             new["series"][series_key] = rm_tag_values(tags, tags_to_remove, False)
 
@@ -487,58 +495,35 @@ def delete_dataset_tags(
         return out
 
 
-@no_type_check
 def delete_series_tags(
     dictionary: SeriesTagDict | DatasetTagDict,
     *args: str,
     **kwargs: TagValue,  # | bool,
-) -> SeriesTagDict:
+) -> SeriesTagDict | DatasetTagDict:
     """Remove selected series attributes from series or dataset tag dictionary."""
+    is_dataset = "series" in dictionary
     remove_all: bool = kwargs.pop("all", False)
 
-    is_dataset = "series" in dictionary
-    if is_dataset:
-        output_tags = deepcopy(dictionary["series"])
+    if remove_all:
+        return inherit_set_tags(dictionary)
+
     else:
         output_tags = deepcopy(dictionary)
-
-    if remove_all:
-        for k in output_tags.keys():
-            if k not in ["dataset", "name", "versioning", "temporality"]:
-                output_tags.pop(k)
-
-    elif args or kwargs:
-        ts_logger.debug(
-            f"meta.delete_series_tags: remove {kwargs}\nfrom series tags: {output_tags}"
-        )
-        # remove attribute, regardless of values
-        if args:
-            for o in output_tags.values():
-                o.pop(*args)
-        ts_logger.debug(f"meta.delete_series_tags: preliminary out {output_tags}")
-
-        # remove matching values and empty attributes
-        for k, v in kwargs.items():
-            for tags in output_tags.values():
-                if tags[k] == v:
-                    tags.pop(k)
-                elif v in tags[k]:
-                    match len(tags[k]):
-                        case 1:
-                            tags.pop(k)
-                        case 2:
-                            tags[k].remove(v)
-                            tags[k] = tags[k][0]
-                        case _:
-                            tags[k].remove(v)
-
-        # refactor - something like this?
-        # for tags in output_tags.values():
-        #     tags = rm_tag(tags, {**kwargs})
-    else:
-        ts_logger.debug(f"Nothing to remove: {args} {kwargs}")
-
-    return output_tags
+        if is_dataset:
+            output_tags["series"] = delete_series_tags(
+                output_tags["series"], *args, **kwargs
+            )
+        else:
+            for series_key, tags in output_tags.items():
+                if args:
+                    tags.pop(*args)
+                if kwargs:
+                    for k, v in kwargs.items():
+                        ts_logger.warning(f"meta.delete_series_tags: {k=} {v=}")
+                        tags = rm_tag_values(tags, {k: v}, recursive=False)
+                        ts_logger.warning(f"meta.delete_series_tags: {tags=}")
+                output_tags[series_key] = tags
+        return output_tags
 
 
 # A different approach: duckdb to search within tags .
