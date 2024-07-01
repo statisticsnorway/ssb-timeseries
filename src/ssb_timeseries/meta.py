@@ -511,7 +511,7 @@ def delete_series_tags(
         output_tags = deepcopy(dictionary)
         if is_dataset:
             output_tags["series"] = delete_series_tags(
-                output_tags["series"], *args, **kwargs
+                output_tags["series"], *args, all=remove_all, **kwargs
             )
         else:
             for series_key, tags in output_tags.items():
