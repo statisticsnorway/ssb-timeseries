@@ -397,7 +397,7 @@ def rm_tag_values(
                         new[attr].remove(rm_value)
 
     if recursive and "series" in new:
-        ts_logger.warning(
+        ts_logger.debug(
             f"rm_tag - from tag:\n\t{existing}, \nrecursively remove value(s): {tags_to_remove}."
         )
         for series_key, tags in new["series"].items():
@@ -519,9 +519,9 @@ def delete_series_tags(
                     tags.pop(*args)
                 if kwargs:
                     for k, v in kwargs.items():
-                        ts_logger.warning(f"meta.delete_series_tags: {k=} {v=}")
+                        ts_logger.debug(f"meta.delete_series_tags: {k=} {v=}")
                         tags = rm_tag_values(tags, {k: v}, recursive=False)
-                        ts_logger.warning(f"meta.delete_series_tags: {tags=}")
+                        ts_logger.debug(f"meta.delete_series_tags: {tags=}")
                 output_tags[series_key] = tags
         return output_tags
 
