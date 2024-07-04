@@ -216,6 +216,15 @@ class Dataset:
         """Get series tags."""
         return self.tags["series"]  # type: ignore
 
+    def default_tags(self) -> meta.DatasetTagDict:
+        """Return default tags for set and series."""
+        return {
+            "name": self.name,
+            "versioning": str(self.data_type.versioning),
+            "temporality": str(self.data_type.temporality),
+            "series": {s: {"dataset": self.name, "name:": s} for s in self.series},
+        }
+
     def tag_dataset(
         self,
         tags: meta.TagDict = None,
@@ -240,83 +249,12 @@ class Dataset:
             return
         elif not tags:
             tags = {}
-
         if kwargs:
             tags.update(**kwargs)
+
         propagate = tags.pop("propagate", True)
         if tags:
-            self.tags = meta.replace_dataset_tags(
-                self.tags, replace={}, new=tags, propagate=propagate
-            )
-
-    def detag_dataset(
-        self,
-        *args: str,
-        **kwargs: Any,
-    ) -> None:
-        """Detag selected attributes of the set.
-
-        Tags to be removed may be provided as list of attribute names or as kwargs with attribute-value pairs.
-        """
-        self.tags = meta.delete_dataset_tags(
-            self.tags,
-            *args,  # [a for a in args if isinstance(a, str)]
-            propagate=True,
-            **kwargs,
-        )
-
-    def default_tags(self) -> meta.DatasetTagDict:
-        """Apply default and existing tags for set and series."""
-        return {
-            "name": self.name,
-            "versioning": str(self.data_type.versioning),
-            "temporality": str(self.data_type.temporality),
-            "series": {s: {"dataset": self.name, "name:": s} for s in self.series},
-        }
-
-    @no_type_check
-    def series_names_to_tags(
-        self,
-        attributes: list[str] | None = None,
-        separator: str = "_",
-        regex: str = "",
-    ) -> None:
-        """Tag all series in the dataset based on a series 'attributes', ie a list of attributes matching positions in the series names when split on 'separator'.
-
-        Alternatively, a regular expression with groups that match the attributes may be provided.
-        Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
-
-        Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
-
-        Examples:
-            **Tag by name_pattern**
-
-            >>> some_data = create_df(["x_a, "y_b", "z_c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
-            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
-            >>> x.series_names_to_tags(atttributes=['XYZ', 'ABC'])
-
-            **Tag by regex**
-
-            >>> some_data = create_df(["x_1,,a, "y...b..", "z..1.1-23..c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
-            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
-            >>> x.series_names_to_tags(atttributes=['XYZ', 'ABC'], regex=r'([a-z])*([a-z])')
-
-            In this case, a separator will not do the trick. Note that the regex have the same number of groups as the attribute list.
-        """
-        for series_key in self.series:
-            self.tags["series"].get(series_key, {}).update(
-                meta.inherit_set_tags(self.tags)
-            )
-
-        if attributes:
-            for series_key in self.tags["series"].keys():
-                if regex:
-                    name_parts = re.search(regex, series_key)
-                else:
-                    name_parts = series_key.split(separator)
-
-                for attribute, value in zip(attributes, name_parts, strict=False):
-                    self.tags["series"][series_key][attribute] = deepcopy(value)
+            self.tags = meta.add_tag_values(self.tags, tags, recursive=propagate)
 
     def tag_series(
         self,
@@ -372,6 +310,22 @@ class Dataset:
         if name_pattern:
             self.series_names_to_tags(attributes=name_pattern, separator=separator)
 
+    def detag_dataset(
+        self,
+        *args: str,
+        **kwargs: Any,
+    ) -> None:
+        """Detag selected attributes of the set.
+
+        Tags to be removed may be provided as list of attribute names or as kwargs with attribute-value pairs.
+        """
+        self.tags = meta.delete_dataset_tags(
+            self.tags,
+            *args,  # [a for a in args if isinstance(a, str)]
+            propagate=True,
+            **kwargs,
+        )
+
     @no_type_check  # "operator"
     def detag_series(
         self,
@@ -383,25 +337,58 @@ class Dataset:
         Tags to be removed may be specified by args or kwargs.
         Attributes listed in `args` will be removed from all series.
 
-        For kwargs, attributes will be removed from the series if the value matches. If the value is a list, the matching value is removed.
+        For kwargs, attributes will be removed from the series if the value matches exactly. If the value is a list, the matching value is removed. If kwargs contain all=True, all attributes except defaults are removed.
         """
-        if args:
-            for series_tags in self.tags["series"].values():
-                # self.tags["series"][series_key].pop(*args)
-                ts_logger.debug(f"pop args: {args}")
-                series_tags.pop(*args)
+        self.tags["series"] = meta.delete_series_tags(
+            self.tags["series"],
+            *args,
+            **kwargs,
+        )
 
-        if kwargs:
-            for attribute, value in kwargs.items():
-                for series_key, series_tags in self.tags["series"].items():
-                    if series_tags.get(attribute) == value:
-                        series_tags.pop(attribute)
-                        ts_logger.debug(f"pop attribute: {attribute}")
-                    elif value in series_tags.get(attribute):
-                        self.tags["series"][series_key][attribute].remove(value)
-                        ts_logger.debug(
-                            f"{series_key}:\n{self.tags['series'][series_key]}\nremove value: {value}"
-                        )
+    @no_type_check
+    def series_names_to_tags(
+        self,
+        attributes: list[str] | None = None,
+        separator: str = "_",
+        regex: str = "",
+    ) -> None:
+        """Tag all series in the dataset based on a series 'attributes', ie a list of attributes matching positions in the series names when split on 'separator'.
+
+        Alternatively, a regular expression with groups that match the attributes may be provided.
+        Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
+
+        Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
+
+        Examples:
+            **Tag by name_pattern**
+
+            >>> some_data = create_df(["x_a, "y_b", "z_c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
+            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
+            >>> x.series_names_to_tags(atttributes=['XYZ', 'ABC'])
+
+            **Tag by regex**
+
+            >>> some_data = create_df(["x_1,,a, "y...b..", "z..1.1-23..c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
+            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
+            >>> x.series_names_to_tags(atttributes=['XYZ', 'ABC'], regex=r'([a-z])*([a-z])')
+
+            In this case, a separator will not do the trick. Note that the regex have the same number of groups as the attribute list.
+        """
+        for series_key in self.series:
+            self.tags["series"].get(series_key, {}).update(
+                meta.inherit_set_tags(self.tags)
+            )
+
+        if attributes:
+            for series_key in self.tags["series"].keys():
+                if regex:
+                    name_parts = re.search(regex, series_key)
+                else:
+                    name_parts = series_key.split(separator)
+
+                for attribute, value in zip(attributes, name_parts, strict=False):
+                    # not necessary? self.tags["series"][series_key][attribute] = deepcopy(value)
+                    self.tags["series"][series_key][attribute] = value
 
     def replace_tags(
         self,
@@ -411,10 +398,14 @@ class Dataset:
 
         The tags to be replaced and their replacements should be specified as tuple(s) of dictionaries for `(old_tags, new_tags)`. Both can contain multiple tags.
          * Each tuple is evaluated independently for each series in the set.
-         * If the old tags dict contains multiple tags, all must match for tags to be replaced.
-         * If the new tags dict contains multiple tags, all are added where there is a match.
+         * If the tag dict to be replaced contains multiple tags, all must match for tags to be replaced.
+         * If the new tag dict contains multiple tags, all are added where there is a match.
         """
-        ...
+        for a in args:
+            old = a[0]
+            new = a[1]
+
+            self.tags = meta.replace_dataset_tags(self.tags, old, new, recursive=True)
 
     @no_type_check
     def filter(
@@ -453,16 +444,6 @@ class Dataset:
             matching_series = df.columns
 
         if tags:
-            # series_tags = self.series_tags
-            # ts_logger.debug(
-            #     f"DATASET.filter()\ntags to find:\n\t{tags}\ntags in series:\n\t{series_tags}"
-            # )
-            # matching_series = [
-            #     name
-            #     for name, s_tags in series_tags.items()
-            #     if all(s_tags[k] in v for k, v in tags.items())
-            #     # if s_tags.items() >= tags.items()
-            # ]
             matching_series = meta.search_by_tags(self.tags["series"], tags)
             ts_logger.debug(f"DATASET.filter(tags) matched series:\n{matching_series} ")
             df = self.data[matching_series].copy(deep=True)
@@ -811,7 +792,7 @@ class Dataset:
             other_as_of = None
 
         elif isinstance(other, np.ndarray):
-            # TODO: this needs more thorugh testing!
+            # TODO: this needs more thorough testing!
             # Compare shape of the ndarray against the numeric_columns of self.data. There are up to 3 accepted cases (depending on the operation):
             #  * matrix;         shape = (data.numeric.rows, data.numeric.columns)
             #  * column vector;  shape = (data.numeric.rows, 1)
