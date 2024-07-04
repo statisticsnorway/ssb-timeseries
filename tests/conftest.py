@@ -90,7 +90,7 @@ def existing_simple_set():
     x = Dataset(
         name="test-existing-simple-dataset",
         data_type=SeriesType.simple(),
-        series_tags=tags,
+        # series_tags=tags,
     )
     tag_values = [value for value in tags.values()]
     x.data = create_df(
@@ -117,7 +117,7 @@ def existing_estimate_set():
         name="test-existing-estimate-dataset",
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
-        series_tags=tags,
+        # series_tags=tags,
     )
     tag_values = [value for value in tags.values()]
     x.data = create_df(

@@ -1,3 +1,4 @@
+from enum import unique
 import logging
 import uuid
 
@@ -5,12 +6,15 @@ import bigtree
 import pytest
 from bigtree import get_tree_diff
 from bigtree import print_tree
+from numpy import unicode_
 
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import Taxonomy
 from ssb_timeseries.meta import filter_tags
 from ssb_timeseries.meta import search_by_tags
+from ssb_timeseries.meta import to_tag_value
+from ssb_timeseries.meta import unique_tag_values
 
 # mypy: disable-error-code="no-untyped-def,attr-defined,func-returns-value,operator"
 
@@ -281,3 +285,35 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
         # --> assert should pass
 
     assert klass157 == file157
+
+
+def test_to_tag_value__for_list_with_multiple_values_returns_list() -> None:
+    assert to_tag_value(["a", "b", "c"]) == ["a", "b", "c"]
+
+
+def test_to_tag_value_for_set_with_multiple_values_returns_list() -> None:
+    assert to_tag_value(set(["a", "b", "c"])) == ["a", "b", "c"]
+
+
+def test_to_tag_value_for_set_with_one_value_returns_string() -> None:
+    assert to_tag_value(set(["abc"])) == "abc"
+
+
+def test_to_tag_value_for_list_with_one_value_returns_string() -> None:
+    assert to_tag_value(["abc"]) == "abc"
+
+
+def test_to_tag_value_for_string_returns_string() -> None:
+    assert to_tag_value("abc") == "abc"
+
+
+def test_unique_list_for_set_returns_list() -> None:
+    assert unique_tag_values(set(["a", "b", "c"])) == ["a", "b", "c"]
+
+
+def test_unique_list_for_list_returns_list() -> None:
+    assert unique_tag_values(["a", "b", "c"]) == ["a", "b", "c"]
+
+
+def test_unique_list_for_list_returns_only_unique_items() -> None:
+    assert unique_tag_values(["a", "b", "b", "c"]) == ["a", "b", "c"]

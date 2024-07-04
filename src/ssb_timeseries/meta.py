@@ -352,13 +352,10 @@ def add_tag_values(
         old_value = old.get(attr)
         if old_value is None:
             new[attr] = new_value
-        elif isinstance(old_value, list):
-            new_value = [new_value] if not isinstance(new_value, list) else new_value
-            new[attr].extend(new_value)
-        elif isinstance(old_value, str):
-            new[attr] = [old_value]
-            new_value = [new_value] if not isinstance(new_value, list) else new_value
-            new[attr].extend(new_value)
+        else:
+            o = unique_tag_values(old_value)
+            n = unique_tag_values(new_value)
+            new[attr] = to_tag_value(set(o).union(set(n)))
 
     if recursive and "series" in new:
         for series_key, tags in new["series"].items():
@@ -390,7 +387,7 @@ def rm_tag_values(
                 match len(val):
                     case 2:
                         new[attr].remove(rm_value)
-                        new[attr] = new[attr][0]
+                        new[attr] = to_tag_value(new[attr])
                     case 1:
                         new.pop(attr)
                     case _:
@@ -524,6 +521,35 @@ def delete_series_tags(
                         ts_logger.debug(f"meta.delete_series_tags: {tags=}")
                 output_tags[series_key] = tags
         return output_tags
+
+
+# helpers:
+def to_tag_value(tag: TagValue | set) -> TagValue:
+    """If input is a list of unique strings."""
+    if isinstance(tag, str):
+        return tag
+
+    if isinstance(tag, set):
+        tag = list(tag)
+    elif isinstance(tag, list):
+        tag = list(set(tag))
+
+    if len(tag) == 1:
+        return str(tag[0])
+    else:
+        return sorted(tag)
+
+
+def unique_tag_values(arg: Any) -> list[str]:
+    """Wraps string input in list, and ensure the list is unique."""
+    if isinstance(arg, str):
+        lst = [arg]
+    elif isinstance(arg, set) or isinstance(arg, list):
+        lst = sorted([str(s) for s in set(arg) if isinstance(s, str)])
+    else:
+        raise ValueError(f"Unsupported type: {type(arg)}")
+
+    return lst
 
 
 # A different approach: duckdb to search within tags .
