@@ -170,6 +170,6 @@ def random_numbers(
     variance: int | float = 10,
 ) -> np.ndarray:
     """Generate sample dataframe of specified dimensions."""
-    generator = np.random.default_rng(now_cet().microsecond)
+    generator = np.random.default_rng()
     random_matrix = generator.standard_normal(size=(rows, cols))
     return midpoint + variance * random_matrix.round(decimals)
