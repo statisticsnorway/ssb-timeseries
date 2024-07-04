@@ -1,3 +1,4 @@
+import base64
 import functools
 import glob
 import json
@@ -7,6 +8,7 @@ from pathlib import Path
 
 import pandas
 import pyarrow
+import pyarrow.parquet as pq
 from dapla import FileClient
 
 from ssb_timeseries.types import F
@@ -151,7 +153,7 @@ def cp(from_path: PathStr, to_path: PathStr) -> None:
     if is_gcs(from_path) | is_gcs(to_path):
         fs = FileClient.get_gcs_file_system()
     if is_local(to_path):
-        os.makedirs(os.path.dirname(to_path), exist_ok=True)
+        mk_parent_dir(to_path)
 
     match (from_type, to_type):
         case ("local", "local"):
@@ -172,7 +174,7 @@ def mv(from_path: PathStr, to_path: PathStr) -> None:
     if is_gcs(from_path) | is_gcs(to_path):
         fs = FileClient.get_gcs_file_system()
     if is_local(to_path):
-        os.makedirs(os.path.dirname(to_path), exist_ok=True)
+        mk_parent_dir(to_path)
 
     match (from_type, to_type):
         case ("local", "local"):
@@ -283,7 +285,7 @@ def pandas_write_parquet(df: pandas.DataFrame, path: PathStr) -> None:
         with fs.open(path, "wb") as file:
             df.to_parquet(file)
     else:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        mk_parent_dir(path)
         df.to_parquet(path)
 
 
@@ -305,7 +307,7 @@ def write_json(path: PathStr, content: str | dict) -> None:
         with fs.open(path, "w") as file:
             json.dump(content, file, indent=4, ensure_ascii=False)
     else:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        mk_parent_dir(path)
         with open(path, "w") as file:
             json.dump(content, file, indent=4, ensure_ascii=False)
 
@@ -327,3 +329,27 @@ def write_json(path: PathStr, content: str | dict) -> None:
 # # using this to read a partitioned dataset
 # import pyarrow.dataset as ds
 # ds.dataset("data/", filesystem=fs)
+
+
+def metadata_from_parquet(filename: PathStr) -> dict:
+    """Read metadata from parquet file."""
+    meta = pq.read_metadata(filename)
+    decoded_schema = base64.b64decode(meta.metadata[b"ARROW:schema"])
+    return pyarrow.ipc.read_schema(pyarrow.BufferReader(decoded_schema))
+
+
+def metadata_to_parquet(metadata: dict, filename: PathStr) -> None:
+    """Write metadata to parquet file."""
+    schema = pyarrow.schema(metadata)
+    table = pyarrow.Table.from_pandas(metadata, schema=schema)
+    pq.write_table(table, filename)
+
+    # contrast code above with json.dumps beforehand:
+    # custom_metadata_json = {"Sample Number": 12, "Date Obtained": "Tuesday"}
+    # custom_metadata_bytes = json.dumps(custom_metadata_json).encode("utf8")
+    # existing_metadata = table.schema.metadata
+    # merged_metadata = {
+    #     **{"Record Metadata": custom_metadata_bytes},
+    #     **existing_metadata,
+    # }
+    # fixed_table = table.replace_schema_metadata(merged_metadata)

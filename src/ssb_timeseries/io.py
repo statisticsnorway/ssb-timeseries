@@ -151,7 +151,8 @@ class FileSystem:
 
         In the inital implementation with data and metadata in separate files it made sense for this to be the same as the data directory. However, Most likely, in a future version we will change this apporach and store metadata as header information in the data file, and the same information in a central meta data directory.
         """
-        return os.path.join(self.type_path, self.set_name)
+        return CONFIG.catalog
+        # replaces: return os.path.join(self.type_path, self.set_name)
 
     @property
     def metadata_fullpath(self) -> str:
@@ -443,6 +444,41 @@ class FileSystem:
 
 def find_datasets(
     pattern: str | PathStr = "",  # as_of: datetime | None = None
+    exclude: str = "metadata",
+) -> list[SearchResult]:
+    """Search for files in under timeseries root."""
+    if pattern:
+        pattern = f"*{pattern}*"
+    else:
+        pattern = "*"
+
+    dirs = fs.find(CONFIG.timeseries_root, pattern, full_path=True)
+    if exclude:
+        ts_logger.warning(f"DATASET.IO.SEARCH: exclude: {exclude}")
+        dirs = [d for d in dirs if exclude not in d]
+    search_results = [
+        d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
+    ]
+    ts_logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
+
+    return [SearchResult(f[2], f[1]) for f in search_results]
+
+
+def list_datasets(
+    # pattern: str | PathStr = "",  # as_of: datetime | None = None
+) -> list[SearchResult]:
+    """List all datasets under timeseries root."""
+    return find_datasets(pattern="")
+
+
+class DatasetIoException(Exception):
+    """Exception for dataset io errors."""
+
+    pass
+
+
+def for_all_datasets_move_metadata_files(
+    pattern: str | PathStr = "",  # as_of: datetime | None = None
 ) -> list[SearchResult]:
     """Search for files in under timeseries root."""
     if pattern:
@@ -457,9 +493,3 @@ def find_datasets(
     ts_logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
 
     return [SearchResult(f[2], f[1]) for f in search_results]
-
-
-class DatasetIoException(Exception):
-    """Exception for dataset io errors."""
-
-    pass
