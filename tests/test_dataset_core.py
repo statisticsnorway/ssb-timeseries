@@ -5,13 +5,11 @@ from datetime import timedelta
 import pytest
 from pytest import LogCaptureFixture
 
-from docs import conf
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import search
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.fs import file_count
-from ssb_timeseries.io import CONFIG
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
@@ -21,7 +19,7 @@ from ssb_timeseries.sample_data import create_df
 # mypy: disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr"
 
 
-#BUCKET = CONFIG.bucket
+# BUCKET = CONFIG.bucket
 
 
 @log_start_stop
@@ -155,8 +153,8 @@ def test_create_dataset_with_correct_data_size() -> None:
 
 @log_start_stop
 def test_datafile_exists_after_create_dataset_and_save(
-    conftest, 
-    bup_and_tdwn, 
+    conftest,
+    bup_and_tdwn,
     caplog,
 ) -> None:
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
@@ -193,7 +191,7 @@ def test_metafile_exists_after_create_dataset_and_save(
         name=set_name,
         data_type=SeriesType.estimate(),
         as_of_tz=now_utc(rounding="Min"),
-        #series_tags=tags,
+        # series_tags=tags,
         dataset_tags={},
     )
 
@@ -279,7 +277,7 @@ def test_read_existing_estimate_metadata(
 
 @log_start_stop
 def test_read_existing_estimate_data(
-    bup_and_tdwn, 
+    bup_and_tdwn,
     existing_estimate_set: Dataset,
     caplog: LogCaptureFixture,
 ) -> None:
@@ -300,7 +298,9 @@ def test_read_existing_estimate_data(
 
 @log_start_stop
 def test_load_existing_set_without_loading_data(
-    bup_and_tdwn,conftest,caplog: LogCaptureFixture,
+    bup_and_tdwn,
+    conftest,
+    caplog: LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
@@ -324,7 +324,8 @@ def test_load_existing_set_without_loading_data(
 
 @log_start_stop
 def test_search_for_dataset_by_exact_name(
-    bup_and_tdwn, conftest,
+    bup_and_tdwn,
+    conftest,
     caplog: LogCaptureFixture,
 ):
     caplog.set_level(logging.DEBUG)
@@ -346,7 +347,9 @@ def test_search_for_dataset_by_exact_name(
 
 @log_start_stop
 def test_search_for_dataset_by_part_of_name_one_match(
-    bup_and_tdwn,conftest,caplog: LogCaptureFixture,
+    bup_and_tdwn,
+    conftest,
+    caplog: LogCaptureFixture,
 ):
     caplog.set_level(logging.DEBUG)
     unique_new = uuid.uuid4().hex
@@ -365,7 +368,8 @@ def test_search_for_dataset_by_part_of_name_one_match(
 
 
 def test_search_for_dataset_by_part_of_name_two_matches(
-    bup_and_tdwn,conftest, 
+    bup_and_tdwn,
+    conftest,
     caplog: LogCaptureFixture,
 ):
     caplog.set_level(logging.DEBUG)
@@ -389,7 +393,8 @@ def test_search_for_dataset_by_part_of_name_two_matches(
 
 @log_start_stop
 def test_search_for_nonexisting_dataset_returns_none(
-    conftest,caplog: LogCaptureFixture,
+    conftest,
+    caplog: LogCaptureFixture,
 ):
     caplog.set_level(logging.DEBUG)
     unique_new = uuid.uuid4().hex
@@ -591,7 +596,8 @@ def test_versioning_as_of_init_without_version_selects_latest(
 
 
 @log_start_stop
-def test_versioning_none_appends_to_existing_file(bup_and_tdwn,
+def test_versioning_none_appends_to_existing_file(
+    bup_and_tdwn,
     caplog: LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)

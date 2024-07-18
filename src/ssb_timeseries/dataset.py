@@ -82,12 +82,15 @@ class Dataset:
                 raise ValueError(
                     f"Dataset {name} did not give a unique match. Specify data_type if you intend to initialise a new set."
                 )
-        identify_latest:bool = (self.data_type.versioning == properties.Versioning.AS_OF 
-                           and not as_of_tz 
-                           and load_data
+        identify_latest: bool = (
+            self.data_type.versioning == properties.Versioning.AS_OF
+            and not as_of_tz
+            and load_data
         )
         if identify_latest:
-            ts_logger.debug(f"Init {self.data_type} '{self.name}' without 'as_of_tz' --> identifying latest.")
+            ts_logger.debug(
+                f"Init {self.data_type} '{self.name}' without 'as_of_tz' --> identifying latest."
+            )
             self.io = io.FileSystem(
                 set_name=self.name, set_type=self.data_type, as_of_utc=None
             )
@@ -240,7 +243,10 @@ class Dataset:
     @property
     def series(self) -> list[str]:
         """Get series names."""
-        if self.__getattribute__("data") is None and self.__getattribute__("tags") is None:
+        if (
+            self.__getattribute__("data") is None
+            and self.__getattribute__("tags") is None
+        ):
             return self.series_tags.keys()
         else:
             return self.numeric_columns()

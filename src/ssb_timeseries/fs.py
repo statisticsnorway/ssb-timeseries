@@ -13,7 +13,6 @@ import pyarrow.dataset
 import pyarrow.filesystem
 import pyarrow.parquet as pq
 from dapla import FileClient
-from pyarrow.interchange import from_dataframe
 
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
@@ -278,7 +277,7 @@ def write_parquet(
     else:
         fs = pyarrow.fs.LocalFileSystem()
         mk_parent_dir(path)
-    
+
     pq.write_table(
         table,
         where=path,

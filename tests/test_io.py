@@ -1,11 +1,9 @@
-import json
 import logging
 from pathlib import Path
 
 import pandas
 import polars
 import pyarrow
-import pytest
 
 from ssb_timeseries import io
 from ssb_timeseries.logging import ts_logger
@@ -45,7 +43,8 @@ def test_io_metadir_path_as_expected(
     expected: str = Path(test_io.root) / "metadata"
     assert str(test_io.metadata_dir) == str(expected)
 
-#@pytest.mark.xfail
+
+# @pytest.mark.xfail
 def test_io_parquet_schema_as_of_at(
     new_dataset_none_at,
     conftest,
@@ -61,14 +60,15 @@ def test_io_parquet_schema_as_of_at(
     schema = test_io.parquet_schema(dataset.tags)
     assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
     for key in dataset.series:
-        tags = json.loads(schema.field(key).metadata[b'json'].decode())
+        # tags = json.loads(schema.field(key).metadata[b'json'].decode())
+        tags = io.tags_from_json(schema.field(key).metadata)
         ts_logger.debug(f"{key=}:\n{tags=}")
         assert tags["name"] == key
         for k, v in tags.items():
             assert dataset.tags["series"][key][k] == v
 
 
-#@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_io_parquet_schema_none_from_to(
     new_dataset_none_from_to,
     conftest,
@@ -84,14 +84,15 @@ def test_io_parquet_schema_none_from_to(
     schema = test_io.parquet_schema(dataset.tags)
     assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
     for key in dataset.series:
-        tags = json.loads(schema.field(key).metadata[b'json'].decode())
+        # tags = json.loads(schema.field(key).metadata[b'json'].decode())
+        tags = io.tags_from_json(schema.field(key).metadata)
         ts_logger.debug(f"{key=}:\n{tags=}")
         assert tags["name"] == key
         for k, v in tags.items():
             assert dataset.tags["series"][key][k] == v
 
 
-#@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_io_parquet_schema_none_at(
     new_dataset_as_of_at,
     conftest,
@@ -107,13 +108,15 @@ def test_io_parquet_schema_none_at(
     schema = test_io.parquet_schema(dataset.tags)
     assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
     for key in dataset.series:
-        tags = json.loads(schema.field(key).metadata[b'json'].decode())
+        # tags = json.loads(schema.field(key).metadata[b'json'].decode())
+        tags = io.tags_from_json(schema.field(key).metadata)
         ts_logger.debug(f"{key=}:\n{tags=}")
         assert tags["name"] == key
         for k, v in tags.items():
             assert dataset.tags["series"][key][k] == v
 
-#@pytest.mark.xfail
+
+# @pytest.mark.xfail
 def test_io_parquet_schema_as_of_from_to(
     new_dataset_as_of_from_to,
     conftest,
@@ -129,7 +132,8 @@ def test_io_parquet_schema_as_of_from_to(
     schema = test_io.parquet_schema(dataset.tags)
     assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
     for key in dataset.series:
-        tags = json.loads(schema.field(key).metadata[b'json'].decode())
+        # tags = json.loads(schema.field(key).metadata[b'json'].decode())
+        tags = io.tags_from_json(schema.field(key).metadata)
         ts_logger.debug(f"{key=}:\n{tags=}")
         assert tags["name"] == key
         for k, v in tags.items():

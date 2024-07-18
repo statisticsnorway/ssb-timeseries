@@ -17,7 +17,7 @@ PRODUCT = "sample-data-product"
 
 
 @log_start_stop
-def test_snapshot_simple_set_has_higher_snapshot_file_count_after(conftest,caplog):
+def test_snapshot_simple_set_has_higher_snapshot_file_count_after(conftest, caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(
@@ -78,7 +78,7 @@ def test_snapshot_simple_set_has_higher_snapshot_file_count_after(conftest,caplo
 
 
 @log_start_stop
-def test_snapshot_estimate_specified_has_higher_file_count_after(conftest,caplog):
+def test_snapshot_estimate_specified_has_higher_file_count_after(conftest, caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(

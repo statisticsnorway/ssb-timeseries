@@ -7,7 +7,6 @@ from pathlib import Path
 
 from typing_extensions import Self
 
-from dapla import FileClient
 from ssb_timeseries import fs
 from ssb_timeseries.types import PathStr
 
@@ -172,8 +171,9 @@ def main(*args: str | PathStr) -> None:
     print(cfg)
     print(os.getenv("TIMESERIES_CONFIG"))
 
-def path_str(*args:str)->str:
-    """Concatenate paths as string: str(Path(...))"""
+
+def path_str(*args: str) -> str:
+    """Concatenate paths as string: str(Path(...))."""
     return str(Path(*args))
 
 

@@ -183,7 +183,7 @@ def test_write_parquet_fails_if_date_columns_does_not_match_schema(
         )
 
 
-#def test_write_parquet_raises_key_error_if_df_contains_column_not_defined_in_schema(
+# def test_write_parquet_raises_key_error_if_df_contains_column_not_defined_in_schema(
 def test_write_parquet_handles_that_df_contains_column_not_defined_in_schema_but_writes_only_the_defined_ones(
     caplog,
     tmp_path,
@@ -215,7 +215,7 @@ def test_write_parquet_handles_that_df_contains_column_not_defined_in_schema_but
     assert fs.exists(temp_file)
     read_back = fs.pandas_read_parquet(path=temp_file)
     assert sorted(read_back.columns) == sorted(schema_without_z.names)
-    #assert sorted(read_back.columns) == sorted(df.columns)
+    # assert sorted(read_back.columns) == sorted(df.columns)
 
 
 def test_write_parquet_handles_that_df_and_schema_columns_are_not_in_same_order(

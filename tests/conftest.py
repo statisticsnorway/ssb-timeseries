@@ -80,12 +80,15 @@ def reset_config_after():
     remembered_config.save(cfg_file)
 
 
-@pytest.fixture(scope="session",)
-def bup_and_tdwn():
-    ...
+@pytest.fixture(
+    scope="session",
+)
+def bup_and_tdwn(): ...
 
 
-@pytest.fixture(scope="session",)
+@pytest.fixture(
+    scope="session",
+)
 def buildup_and_teardown(
     tmp_path_factory,
     caplog,

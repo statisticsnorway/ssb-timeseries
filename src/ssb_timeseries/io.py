@@ -19,7 +19,7 @@ from ssb_timeseries.dates import Interval
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.logging import ts_logger
-from ssb_timeseries.meta import SeriesTagDict, TagDict, TagValue, DatasetTagDict
+from ssb_timeseries.meta import TagDict
 from ssb_timeseries.types import PathStr
 
 """The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
@@ -219,14 +219,14 @@ class FileSystem:
 
             # test logs show test-merge- has many NANs in oldest data
             if schema:
-                ts_logger.debug( f"Pyarrow schema defined: \n{schema=}\n{df=}.")
+                ts_logger.debug(f"Pyarrow schema defined: \n{schema=}\n{df=}.")
                 fs.write_parquet(
                     data=df,
                     path=self.data_fullpath,
                     schema=schema,
-                    #existing_data_behavior="overwrite_or_ignore",
+                    # existing_data_behavior="overwrite_or_ignore",
                 )
-                
+
             else:
                 ts_logger.warning(
                     f"Arrow schema not defined: {self.set_name}.\nFalling back to writing with Pandas."
@@ -577,7 +577,7 @@ def parquet_schema(
     series_meta = dataset_meta.pop("series")
     # dataset_meta = byte_encode_metadata_dict(dataset_meta)
     # series_meta = byte_encode_metadata_dict(series_meta)
-    
+
     if not series_meta:
         return None
 
@@ -589,7 +589,7 @@ def parquet_schema(
         )
         for d in data_type.temporality.date_columns
     ]
-    
+
     num_col_fields = [
         pyarrow.field(
             series_key,
@@ -605,16 +605,34 @@ def parquet_schema(
         date_col_fields + num_col_fields,
         metadata=tags_to_json(dataset_meta),
     )
-    #ts_logger.debug(f"IO.parquet_schema:{schema=}")
+    # ts_logger.debug(f"IO.parquet_schema:{schema=}")
     return schema
 
-def tags_to_json(x:TagDict)-> dict[str, str]:
+
+def tags_to_json(x: TagDict) -> dict[str, str]:
     """Turn tag dict into a dict where keys and values are coercible to bytes.
 
-    See:https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
+    See: https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
+
+    The simple solution is to put it all into a single field: {json: <json-string>}
     """
-    j ={'json': json.dumps(x).encode("utf8")}
+    j = {"json": json.dumps(x).encode("utf8")}
     return j
+
+
+def tags_from_json(
+    dict_with_json_string: dict[str | bytearray, str | bytearray],
+    byte_encoded: bool = True,
+) -> TagDict:
+    """Reverse 'tags_to_json()': return tag dict from dict that has been coerced to bytes.
+
+    Mutliple dict fields into a single field: {json: <json-string>}. May or may not have been byte encoded.
+    """
+    if byte_encoded:
+        return json.loads(dict_with_json_string[b"json"].decode())
+    else:
+        return json.loads(dict_with_json_string["json"])
+
 
 # def pack_list_values(tags: dict[str,Any]) -> dict[str, str]:
 #     def tagvalue_to_string(x: TagValue) -> str:
@@ -627,7 +645,7 @@ def tags_to_json(x:TagDict)-> dict[str, str]:
 #             raise TypeError("Unexpected value type.")
 #             ts_logger.warning(f"Unexpected value{x=}")
 #             return str(x)
-            
+
 #     tag_dict = {k: tagvalue_to_string(v) for k, v in tags.items()}
 #     return tag_dict
 
