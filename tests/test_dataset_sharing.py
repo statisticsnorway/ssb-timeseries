@@ -17,11 +17,11 @@ PRODUCT = "sample-data-product"
 
 
 @log_start_stop
-def test_snapshot_simple_set_has_higher_snapshot_file_count_after(caplog):
+def test_snapshot_simple_set_has_higher_snapshot_file_count_after(conftest,caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(
-        name="test-snapshot-simple",
+        name=conftest.function_name(),
         data_type=SeriesType.simple(),
         load_data=False,
         data=create_df(
@@ -78,11 +78,11 @@ def test_snapshot_simple_set_has_higher_snapshot_file_count_after(caplog):
 
 
 @log_start_stop
-def test_snapshot_estimate_specified_has_higher_file_count_after(caplog):
+def test_snapshot_estimate_specified_has_higher_file_count_after(conftest,caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(
-        name="test-snapshot-estimate",
+        name=conftest.function_name(),
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
         load_data=False,

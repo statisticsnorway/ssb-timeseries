@@ -1,4 +1,3 @@
-from enum import unique
 import logging
 import uuid
 
@@ -6,7 +5,6 @@ import bigtree
 import pytest
 from bigtree import get_tree_diff
 from bigtree import print_tree
-from numpy import unicode_
 
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger

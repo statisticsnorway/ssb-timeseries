@@ -367,7 +367,7 @@ def add_tag_values(
 def rm_tag_values(
     existing: TagDict,
     tags_to_remove: TagDict,
-    recursive: bool = False,
+    recursive: bool | list[str] = False,
 ) -> TagDict:
     """Remove tag value from tag dict.
 
@@ -403,6 +403,23 @@ def rm_tag_values(
     return new
 
 
+def rm_tags(
+    existing: TagDict,
+    *args: str,
+    recursive: bool | list[str] = False,
+) -> TagDict:
+    """Remove attribute from tag dict regardless of value."""
+    new = deepcopy(existing)
+    for attribute in args:
+        new.pop(attribute)
+
+    if recursive and "series" in new:
+        for series_key, tags in new["series"].items():
+            new["series"][series_key] = rm_tags(tags, *args, False)
+
+    return new
+
+
 @no_type_check  # "no any return
 def replace_dataset_tags(
     existing: TagDict,
@@ -412,28 +429,17 @@ def replace_dataset_tags(
 ) -> DatasetTagDict:
     """Alter selected attributes value pairs in a tag dictionary."""
     if old == new:
-        ts_logger.debug(f"replace_tags: old: {old} == new: {new}")
-        out = existing
+        return existing
 
-    elif existing.items() >= old.items():
-        ts_logger.debug(
-            f"replace_tags: {old} found in existing dataset tags,\n-->  update with:\n\t{new}"
-        )
+    if existing.items() < old.items():
+        return existing
 
-        out = rm_tag_values(existing, old, recursive=False)
-        out = add_tag_values(out, new, recursive=False)
+    out = rm_tag_values(existing, old, recursive=False)
+    out = add_tag_values(out, new, recursive=False)
 
-    else:
-        ts_logger.debug(
-            f"replace_tags: tags to be replaced {old} were not found in existing dataset: {existing}"
-        )
-        out = existing
     if recursive and "series" in out:
         for series_key, tags in out["series"].items():
             if tags.items() >= old.items():
-                ts_logger.debug(
-                    f"replace_tags: {old} found in existing series tags,\n-->  update with:\n\t{new}"
-                )
                 tags = rm_tag_values(tags, old, recursive=False)
                 tags = add_tag_values(tags, new, recursive=False)
             out["series"][series_key] = tags
@@ -451,45 +457,21 @@ def delete_dataset_tags(
     propagate = kwargs.pop("propagate", False)
     if remove_all:
         return inherit_set_tags(dictionary)
-    else:
-        out = deepcopy(dictionary)
-        ts_logger.debug(
-            f"meta.edit_dataset_tags_delete: remove {kwargs}\nfrom existing {out}"
+
+    out = deepcopy(dictionary)
+    out = rm_tags(out, *args)
+    for k, v in kwargs.items():
+        out = rm_tag_values(out, {k: v}, recursive=False)
+
+    if propagate:
+        out["series"] = delete_series_tags(
+            out["series"],
+            *args,
+            all=remove_all,
+            **kwargs,
         )
-        if args:
-            out.pop(*args)
-        for k, v in kwargs.items():
 
-            if out[k] == v:
-                out.pop(k)
-            elif v in out[k]:
-                match len(out[k]):
-                    case 1:
-                        ts_logger.debug(
-                            f"pop attribute {k} after removing last value {v}"
-                        )
-                        out.pop(k)
-                    case 2:
-                        out[k].remove(v)
-                        out[k] = out[k][0]
-                        ts_logger.debug(
-                            f"attribute {k}: single value {out[k]} remain after removing {v} --> converted to string."
-                        )
-                    case _:
-                        out[k].remove(v)
-                        ts_logger.debug(
-                            f"attribute {k}: values {out[k]} remain after removing {v}"
-                        )
-
-        if propagate:
-            out["series"] = delete_series_tags(
-                out["series"],
-                *args,
-                all=remove_all,
-                **kwargs,
-            )
-
-        return out
+    return out
 
 
 def delete_series_tags(
@@ -498,28 +480,25 @@ def delete_series_tags(
     **kwargs: TagValue,  # | bool,
 ) -> SeriesTagDict | DatasetTagDict:
     """Remove selected series attributes from series or dataset tag dictionary."""
-    is_dataset = "series" in dictionary
     remove_all: bool = kwargs.pop("all", False)
 
     if remove_all:
         return inherit_set_tags(dictionary)
 
+    output_tags = deepcopy(dictionary)
+    if "series" in dictionary:
+        output_tags["series"] = delete_series_tags(
+            output_tags["series"], *args, all=remove_all, **kwargs
+        )
+        return output_tags
     else:
-        output_tags = deepcopy(dictionary)
-        if is_dataset:
-            output_tags["series"] = delete_series_tags(
-                output_tags["series"], *args, all=remove_all, **kwargs
-            )
-        else:
-            for series_key, tags in output_tags.items():
-                if args:
-                    tags.pop(*args)
-                if kwargs:
-                    for k, v in kwargs.items():
-                        ts_logger.debug(f"meta.delete_series_tags: {k=} {v=}")
-                        tags = rm_tag_values(tags, {k: v}, recursive=False)
-                        ts_logger.debug(f"meta.delete_series_tags: {tags=}")
-                output_tags[series_key] = tags
+        for series_key, series_tags in output_tags.items():
+            if args:
+                series_tags.pop(*args)
+            if kwargs:
+                for k, v in kwargs.items():
+                    series_tags = rm_tag_values(series_tags, {k: v}, recursive=False)
+            output_tags[series_key] = series_tags
         return output_tags
 
 

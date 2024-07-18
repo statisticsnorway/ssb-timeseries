@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.dates import now_cet
 
 # mypy: disable-error-code="arg-type, type-arg, import-untyped, unreachable, attr-defined"
 

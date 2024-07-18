@@ -35,6 +35,43 @@ def conftest() -> Helpers:
 
 
 @pytest.fixture(scope="function", autouse=True)
+def abc_at():
+    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
+    tag_values = [value for value in tags.values()]
+    df = create_df(
+        *tag_values,
+        start_date="2022-01-01",
+        end_date="2022-10-03",
+        freq="MS",
+    )
+    yield df
+
+
+@pytest.fixture(scope="function", autouse=True)
+def abc_from_to():
+    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
+    tag_values = [value for value in tags.values()]
+    df = create_df(
+        *tag_values,
+        start_date="2022-01-01",
+        end_date="2022-10-03",
+        freq="MS",
+    )
+    yield df
+
+
+@pytest.fixture(scope="function", autouse=True)
+def xyz_at():
+    df = create_df(
+        ["x", "y", "z"],
+        start_date="2022-01-01",
+        end_date="2022-10-03",
+        freq="MS",
+    )
+    yield df
+
+
+@pytest.fixture(scope="function", autouse=True)
 def reset_config_after():
     cfg_file = config.CONFIGURATION_FILE
     remembered_config = config.Config(cfg_file)
@@ -43,8 +80,16 @@ def reset_config_after():
     remembered_config.save(cfg_file)
 
 
-@pytest.fixture(scope="session", autouse=False)
-def buildup_and_teardown(tmp_path_factory, caplog):
+@pytest.fixture(scope="session",)
+def bup_and_tdwn():
+    ...
+
+
+@pytest.fixture(scope="session",)
+def buildup_and_teardown(
+    tmp_path_factory,
+    caplog,
+):
     """To make sure that tests do not change the configuration file."""
     caplog.set_level(logging.DEBUG)
     before_tests = config.CONFIG
@@ -78,7 +123,7 @@ def buildup_and_teardown(tmp_path_factory, caplog):
         before_tests.save(before_tests.configuration_file)
     else:
         print(
-            f"Final configurations after tests was identical to orginal:\n{config.CONFIG}\nReverting to original:\n{before_tests}"
+            f"Final configurations after tests are identical to orginal:\n{config.CONFIG}\nReverting to original:\n{before_tests}"
         )
 
 
@@ -87,17 +132,16 @@ def existing_simple_set():
     """Create a simple dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     # buildup: create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
+    tag_values = [value for value in tags.values()]
     x = Dataset(
         name="test-existing-simple-dataset",
         data_type=SeriesType.simple(),
-        # series_tags=tags,
-    )
-    tag_values = [value for value in tags.values()]
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
+        data=create_df(
+            *tag_values,
+            start_date="2022-01-01",
+            end_date="2022-10-03",
+            freq="MS",
+        ),
     )
     x.save()
 
@@ -113,18 +157,17 @@ def existing_estimate_set():
     """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     # buildup: create dataset and save
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
+    tag_values = [value for value in tags.values()]
     x = Dataset(
         name="test-existing-estimate-dataset",
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
-        # series_tags=tags,
-    )
-    tag_values = [value for value in tags.values()]
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2023-01-03",
-        freq="MS",
+        data=create_df(
+            *tag_values,
+            start_date="2022-01-01",
+            end_date="2023-01-03",
+            freq="MS",
+        ),
     )
     x.save()
 

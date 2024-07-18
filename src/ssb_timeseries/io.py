@@ -1,9 +1,16 @@
+import json
 import os
 import re
+from copy import deepcopy
 from datetime import datetime
+from typing import Any
 from typing import NamedTuple
+from typing import TypeAlias
 
 import pandas
+import polars
+import pyarrow
+import pyarrow.compute
 
 from ssb_timeseries import fs
 from ssb_timeseries import properties
@@ -12,6 +19,7 @@ from ssb_timeseries.dates import Interval
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.meta import SeriesTagDict, TagDict, TagValue, DatasetTagDict
 from ssb_timeseries.types import PathStr
 
 """The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
@@ -35,6 +43,9 @@ See `config` module docs for details.
 # import contextlib
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
+# ruff: noqa: D202
+
+Data: TypeAlias = pyarrow.Table | pandas.DataFrame | polars.DataFrame
 
 
 def version_from_file_name(
@@ -92,11 +103,12 @@ class FileSystem:
         self.process_stage = process_stage
         self.sharing = sharing
 
-        if as_of_utc is None:
-            ...
-            # exception if type is AS_OF?
-        else:
-            self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
+        # consider:
+        # if as_of_utc is None:
+        #     ...
+        #     # exception if type is AS_OF?
+        # else:
+        self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
 
     @property
     def root(self) -> str:
@@ -182,7 +194,7 @@ class FileSystem:
             df = pandas.DataFrame()
         return df
 
-    def write_data(self, new: pandas.DataFrame) -> None:
+    def write_data(self, new: pandas.DataFrame, tags: dict | None = None) -> None:
         """Write data to the filesystem. If versioning is AS_OF, write to new file. If versioning is NONE, write to existing file."""
         if self.data_type.versioning == properties.Versioning.AS_OF:
             df = new
@@ -191,22 +203,35 @@ class FileSystem:
             if old.empty:
                 df = new
             else:
-                date_cols = list(
-                    set(new.columns)
-                    & set(old.columns)
-                    & {"valid_at", "valid_from", "valid_to"}
-                )
-                df = pandas.concat(
-                    [old, new],
-                    axis=0,
-                    ignore_index=True,
-                ).drop_duplicates(date_cols, keep="last")
+                df = merge_data(old, new, self.data_type.temporality.date_columns)
 
         ts_logger.info(
             f"DATASET.write.start {self.set_name}: writing data to file\n\t{self.data_fullpath}\nstarted."
         )
         try:
-            fs.pandas_write_parquet(df, self.data_fullpath)
+            if tags:
+                schema = self.parquet_schema(tags)
+                # ts_logger.warning(
+                #     f"{schema.names}\n----\n{schema}\n----\n{tags['series']}"
+                # )
+            # else:
+            #     schema = self.parquet_schema_from_df(df)
+
+            # test logs show test-merge- has many NANs in oldest data
+            if schema:
+                ts_logger.debug( f"Pyarrow schema defined: \n{schema=}\n{df=}.")
+                fs.write_parquet(
+                    data=df,
+                    path=self.data_fullpath,
+                    schema=schema,
+                    #existing_data_behavior="overwrite_or_ignore",
+                )
+                
+            else:
+                ts_logger.warning(
+                    f"Arrow schema not defined: {self.set_name}.\nFalling back to writing with Pandas."
+                )
+                fs.pandas_write_parquet(df, self.data_fullpath)
         except Exception as e:
             ts_logger.exception(
                 f"DATASET.write.error {self.set_name}: writing data to file\n\t{self.data_fullpath}\nreturned exception: {e}."
@@ -238,6 +263,18 @@ class FileSystem:
                 f"DATASET {self.set_name}: Writing metadata to file {self.metadata_fullpath} returned exception {e}."
             )
 
+    def parquet_schema(
+        self,
+        meta: dict[str, Any],
+    ) -> pyarrow.Schema | None:
+        """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
+        return parquet_schema(self.data_type, meta)
+
+    def parquet_schema_from_df(self, df: pandas.DataFrame) -> pyarrow.Schema | None:
+        """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
+        schema = pyarrow.schema(df.columns, metadata=df.dtypes.to_dict())
+        return schema
+
     def datafile_exists(self) -> bool:
         """Check if the data file exists."""
         return fs.exists(self.data_fullpath)
@@ -256,7 +293,7 @@ class FileSystem:
             )
 
         if not data.empty:
-            self.write_data(data)
+            self.write_data(data, tags=meta)
         else:
             ts_logger.warning(
                 f"DATASET {self.set_name}: Data is empty. Nothing to write."
@@ -454,8 +491,10 @@ def find_datasets(
 
     dirs = fs.find(CONFIG.timeseries_root, pattern, full_path=True)
     if exclude:
-        ts_logger.warning(f"DATASET.IO.SEARCH: exclude: {exclude}")
         dirs = [d for d in dirs if exclude not in d]
+        ts_logger.debug(
+            f"DATASET.IO.find_datasets: exclude '{exclude}' eliminated:\n{[d for d in dirs if exclude in d]}"
+        )
     search_results = [
         d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
     ]
@@ -493,3 +532,121 @@ def for_all_datasets_move_metadata_files(
     ts_logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
 
     return [SearchResult(f[2], f[1]) for f in search_results]
+
+
+def merge_data(old: Data, new: Data, date_cols: set[str]) -> Data:
+    """Merge new data into old data."""
+
+    if isinstance(new, pandas.DataFrame) and isinstance(old, pandas.DataFrame):
+        df = pandas.concat(
+            [old, new],
+            axis=0,
+            ignore_index=True,
+        ).drop_duplicates(list(date_cols), keep="last")
+
+    elif isinstance(new, pyarrow.Table) and isinstance(old, pyarrow.Table):
+        # visualise while debugging:
+        # new = new.append_column("vs", pyarrow.array(["new"] * len(new), pyarrow.string()))
+        # old = old.append_column("vs", pyarrow.array(["old"] * len(old), pyarrow.string()))
+        # sort_order = [(d, "ascending") for d in date_cols] + [("vs", "descending")]
+        sort_order = [(d, "ascending") for d in date_cols]
+        arrow_table = pyarrow.concat_tables([old, new]).sort_by(sort_order)
+        polars_df = (
+            polars.from_arrow(arrow_table).unique(date_cols, keep="last")
+            # .sort(date_cols)
+        )
+        df = polars_df.to_arrow().sort_by(sort_order)
+
+    elif isinstance(new, polars.DataFrame) and isinstance(old, polars.DataFrame):
+        df = polars.concat([old, new]).unique(date_cols, keep="last").sort(date_cols)
+
+    return df
+
+
+def parquet_schema(
+    data_type: properties.SeriesType,
+    meta: dict[str, Any],
+) -> pyarrow.Schema | None:
+    """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
+
+    if not meta:
+        return None
+        # better? raise ValueError("Tags must not be empty.")
+
+    dataset_meta = deepcopy(meta)
+    series_meta = dataset_meta.pop("series")
+    # dataset_meta = byte_encode_metadata_dict(dataset_meta)
+    # series_meta = byte_encode_metadata_dict(series_meta)
+    
+    if not series_meta:
+        return None
+
+    date_col_fields = [
+        pyarrow.field(
+            d,
+            "date64",
+            nullable=False,
+        )
+        for d in data_type.temporality.date_columns
+    ]
+    
+    num_col_fields = [
+        pyarrow.field(
+            series_key,
+            "float64",
+            nullable=True,
+            metadata=tags_to_json(series_tags),
+        )
+        for series_key, series_tags in series_meta.items()
+    ]
+    num_col_fields.sort(key=lambda x: x.name)
+
+    schema = pyarrow.schema(
+        date_col_fields + num_col_fields,
+        metadata=tags_to_json(dataset_meta),
+    )
+    #ts_logger.debug(f"IO.parquet_schema:{schema=}")
+    return schema
+
+def tags_to_json(x:TagDict)-> dict[str, str]:
+    """Turn tag dict into a dict where keys and values are coercible to bytes.
+
+    See:https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
+    """
+    j ={'json': json.dumps(x).encode("utf8")}
+    return j
+
+# def pack_list_values(tags: dict[str,Any]) -> dict[str, str]:
+#     def tagvalue_to_string(x: TagValue) -> str:
+#         """Pack list or string as a single string with string items separated by ||."""
+#         if isinstance(x, str):
+#             return x
+#         elif isinstance(x, list):
+#             return '||'.join(x)
+#         else:
+#             raise TypeError("Unexpected value type.")
+#             ts_logger.warning(f"Unexpected value{x=}")
+#             return str(x)
+            
+#     tag_dict = {k: tagvalue_to_string(v) for k, v in tags.items()}
+#     return tag_dict
+
+# def decode_parquet_metadata(byte_dict: dict) -> dict:
+#     """Decode parquet metadata as bytes to string."""
+#     return {k.decode("utf-8"): v.decode("utf-8") for k, v in byte_dict.items()}
+
+
+# def byte_encode_metadata_dict(tags_dict: dict) -> dict:
+#     """Byte encode a metadata dictionary."""
+
+#     byte_dict = {}
+#     for k, v in tags_dict.items():
+#         if isinstance(v, str):
+#             byte_dict[k.encode("utf-8")] = v.encode("utf-8")
+#         elif isinstance(v, list):
+#             vv = bytearray([x.encode("utf-8") for x in v])
+#             byte_dict[k.encode("utf-8")] = vv
+#         elif isinstance(v, dict):
+#             byte_dict[k.encode("utf-8")] = byte_encode_metadata_dict(v)
+#     #    ts_logger.warning(f"{tags_dict=}\n{byte_dict=}")
+#     return byte_dict

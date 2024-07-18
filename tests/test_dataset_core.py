@@ -1,4 +1,3 @@
-# mypy: ignore-errors = True
 import logging
 import uuid
 from datetime import timedelta
@@ -6,6 +5,7 @@ from datetime import timedelta
 import pytest
 from pytest import LogCaptureFixture
 
+from docs import conf
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import search
 from ssb_timeseries.dates import date_utc
@@ -18,15 +18,16 @@ from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.properties import Versioning
 from ssb_timeseries.sample_data import create_df
 
-# magic comment disables mypy checks:
 # mypy: disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr"
 
 
-BUCKET = CONFIG.bucket
+#BUCKET = CONFIG.bucket
 
 
 @log_start_stop
-def test_dataset_instance_created(caplog: LogCaptureFixture) -> None:
+def test_dataset_instance_created(
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
     example = Dataset(name="test-no-dir-created", data_type=SeriesType.simple())
@@ -34,7 +35,9 @@ def test_dataset_instance_created(caplog: LogCaptureFixture) -> None:
 
 
 @pytest.mark.skip(reason="TODO: revisit dataset.__repr__.")
-def test_dataset_instance_created_equals_repr(caplog: LogCaptureFixture) -> None:
+def test_dataset_instance_created_equals_repr(
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -58,7 +61,9 @@ def test_dataset_instance_created_equals_repr(caplog: LogCaptureFixture) -> None
 
 @pytest.mark.skip(reason="TODO: revisit dataset.identical.")
 @log_start_stop
-def test_dataset_instance_identity(caplog: LogCaptureFixture) -> None:
+def test_dataset_instance_identity(
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -97,7 +102,9 @@ def test_dataset_copy_creates_new_instance(caplog) -> None:
     assert copy.data_type == original.data_type
 
 
-def test_dataset_copy_creates_has_near_identical_attributes(caplog) -> None:
+def test_dataset_copy_creates_set_with_new_name_and__otherwise_identical_attributes(
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
     original = Dataset(name="test-copying-original-set", data_type=SeriesType.simple())
@@ -147,23 +154,27 @@ def test_create_dataset_with_correct_data_size() -> None:
 
 
 @log_start_stop
-def test_datafile_exists_after_create_dataset_and_save() -> None:
+def test_datafile_exists_after_create_dataset_and_save(
+    conftest, 
+    bup_and_tdwn, 
+    caplog,
+) -> None:
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    set_name = f"test-{uuid.uuid4().hex}"
+    tag_values = [value for value in tags.values()]
+    set_name = f"{conftest.function_name()}_{uuid.uuid4().hex}"
     x = Dataset(
         name=set_name,
         data_type=SeriesType.simple(),
-        series_tags=tags,
-        dataset_tags={},
+        # series_tags=tags,
+        # dataset_tags={},
+        data=create_df(
+            *tag_values,
+            start_date="2022-01-01",
+            end_date="2022-10-03",
+            freq="MS",
+        ),
     )
 
-    tag_values = [value for value in tags.values()]
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
     x.save()
     check = x.io.datafile_exists()
     assert check
@@ -171,6 +182,7 @@ def test_datafile_exists_after_create_dataset_and_save() -> None:
 
 @log_start_stop
 def test_metafile_exists_after_create_dataset_and_save(
+    bup_and_tdwn,
     caplog: LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
@@ -181,7 +193,7 @@ def test_metafile_exists_after_create_dataset_and_save(
         name=set_name,
         data_type=SeriesType.estimate(),
         as_of_tz=now_utc(rounding="Min"),
-        series_tags=tags,
+        #series_tags=tags,
         dataset_tags={},
     )
 
@@ -230,6 +242,7 @@ def test_read_existing_simple_data(
 
     set_name = existing_simple_set.name
     x = Dataset(name=set_name, data_type=SeriesType.simple())
+    ts_logger.debug(f"DATASET {x.name}: \n{x.data}")
     if x.io.datafile_exists():
         ts_logger.debug(x.io.data_fullpath)
         ts_logger.debug(x.data)
@@ -243,6 +256,7 @@ def test_read_existing_simple_data(
 
 @log_start_stop
 def test_read_existing_estimate_metadata(
+    bup_and_tdwn,
     existing_estimate_set: Dataset,
     caplog: LogCaptureFixture,
 ) -> None:
@@ -256,20 +270,16 @@ def test_read_existing_estimate_metadata(
         as_of_tz=as_of,
     )
 
-    if x.io.metadatafile_exists():
-        ts_logger.debug(x.io.metadata_fullpath)
-        ts_logger.debug(x.tags)
-        assert x.tags["name"] == set_name
-        assert x.tags["versioning"] == str(Versioning.AS_OF)
-    else:
-        ts_logger.warning(
-            f"DATASET {x.name}: Metadata not found at {x.io.metadata_fullpath}. Writing."
-        )
-        raise AssertionError
+    assert x.io.metadatafile_exists()
+    ts_logger.debug(x.io.metadata_fullpath)
+    ts_logger.debug(x.tags)
+    assert x.tags["name"] == set_name
+    assert x.tags["versioning"] == str(Versioning.AS_OF)
 
 
 @log_start_stop
 def test_read_existing_estimate_data(
+    bup_and_tdwn, 
     existing_estimate_set: Dataset,
     caplog: LogCaptureFixture,
 ) -> None:
@@ -283,21 +293,18 @@ def test_read_existing_estimate_data(
         as_of_tz=as_of,
     )
 
-    if x.io.datafile_exists():
-        ts_logger.debug(x)
-        assert x.data.size == 364
-    else:
-        ts_logger.warning(
-            f"DATASET {x.name}: Data not found at {x.io.data_fullpath}. Writing."
-        )
-        raise AssertionError
+    assert x.io.datafile_exists()
+    ts_logger.debug(x)
+    assert x.data.size == 364
 
 
 @log_start_stop
-def test_load_existing_set_without_loading_data(caplog: LogCaptureFixture) -> None:
+def test_load_existing_set_without_loading_data(
+    bup_and_tdwn,conftest,caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
-    set_name = "persisted-example-estimate"
+    set_name = conftest.function_name()
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     x = Dataset(
         name=set_name,
@@ -316,10 +323,13 @@ def test_load_existing_set_without_loading_data(caplog: LogCaptureFixture) -> No
 
 
 @log_start_stop
-def test_search_for_dataset_by_exact_name(caplog: LogCaptureFixture):
+def test_search_for_dataset_by_exact_name(
+    bup_and_tdwn, conftest,
+    caplog: LogCaptureFixture,
+):
     caplog.set_level(logging.DEBUG)
     unique_new = uuid.uuid4().hex
-    set_name = f"test-find-{unique_new}"
+    set_name = f"{conftest.function_name()}_{unique_new}"
     x = Dataset(name=set_name, data_type=SeriesType.simple(), load_data=False)
     tag_values = [["p", "q", "r"]]
     x.data = create_df(
@@ -335,10 +345,12 @@ def test_search_for_dataset_by_exact_name(caplog: LogCaptureFixture):
 
 
 @log_start_stop
-def test_search_for_dataset_by_part_of_name_one_match(caplog: LogCaptureFixture):
+def test_search_for_dataset_by_part_of_name_one_match(
+    bup_and_tdwn,conftest,caplog: LogCaptureFixture,
+):
     caplog.set_level(logging.DEBUG)
     unique_new = uuid.uuid4().hex
-    set_name = f"test-find-{unique_new}"
+    set_name = f"{conftest.function_name()}_{unique_new}"
     x = Dataset(name=set_name, data_type=SeriesType.simple(), load_data=False)
     tag_values = [["p", "q", "r"]]
     x.data = create_df(
@@ -353,12 +365,13 @@ def test_search_for_dataset_by_part_of_name_one_match(caplog: LogCaptureFixture)
 
 
 def test_search_for_dataset_by_part_of_name_two_matches(
+    bup_and_tdwn,conftest, 
     caplog: LogCaptureFixture,
 ):
     caplog.set_level(logging.DEBUG)
     unique_new = str(uuid.uuid4())
-    set_name_1 = f"test-find-{unique_new}-1"
-    set_name_2 = f"test-find-{unique_new}-2"
+    set_name_1 = f"{conftest.function_name()}_{unique_new}-1"
+    set_name_2 = f"{conftest.function_name()}_{unique_new}-2"
     tag_values = [["p", "q", "r"]]
     df = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
@@ -375,10 +388,12 @@ def test_search_for_dataset_by_part_of_name_two_matches(
 
 
 @log_start_stop
-def test_search_for_nonexisting_dataset_returns_none(caplog: LogCaptureFixture):
+def test_search_for_nonexisting_dataset_returns_none(
+    conftest,caplog: LogCaptureFixture,
+):
     caplog.set_level(logging.DEBUG)
     unique_new = uuid.uuid4().hex
-    set_name = f"test-find-nonexisting-{unique_new}"
+    set_name = f"{conftest.function_name()}_{unique_new}"
     x = Dataset(name=set_name, data_type=SeriesType.simple(), load_data=False)
     tag_values = [["p", "q", "r"]]
     x.data = create_df(
@@ -400,8 +415,9 @@ def test_list_versions(caplog: LogCaptureFixture, existing_estimate_set: Dataset
     for d in ["2024-01-01", "2024-02-01", "2024-03-01"]:
         existing_estimate_set.as_of_utc = date_utc(d)
         existing_estimate_set.data = create_df(
-            ["p", "q", "r"], start_date="2023-01-01", end_date=d, freq="MS"
+            existing_estimate_set.series, start_date="2023-01-01", end_date=d, freq="MS"
         )
+        ts_logger.debug(f"Do we have data?\n{existing_estimate_set.data}")
         existing_estimate_set.save()
 
     versions_after_saving = existing_estimate_set.versions()
@@ -434,24 +450,6 @@ def test_dataset_getitem_by_string(
 
     x = existing_simple_set
     y = x["b_q_z1"]
-    assert isinstance(y, Dataset)
-
-    ts_logger.debug(f"y = x['b']\n{y}")
-    ts_logger.debug(f"{__name__}look at y:\n\t{y}")
-    ts_logger.debug(f"{__name__}look at x:\n\t{x.data}")
-    assert id(x) != id(y)
-    assert list(y.data.columns) == ["valid_at", "b_q_z1"]
-
-
-@pytest.mark.skip("Regex has not been implemented for __getitem__.")
-@log_start_stop
-def test_dataset_getitem_by_regex(
-    existing_simple_set: Dataset, caplog: LogCaptureFixture
-):
-    caplog.set_level(logging.DEBUG)
-
-    x = existing_simple_set
-    y = x["^x"]
     assert isinstance(y, Dataset)
 
     ts_logger.debug(f"y = x['b']\n{y}")
@@ -512,7 +510,9 @@ def test_filter_dataset_by_regex_return_dataset(caplog):
 
 
 @log_start_stop
-def test_correct_datetime_columns_valid_at(caplog: LogCaptureFixture) -> None:
+def test_correct_datetime_columns_valid_at(
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -527,7 +527,9 @@ def test_correct_datetime_columns_valid_at(caplog: LogCaptureFixture) -> None:
 
 
 @log_start_stop
-def test_correct_datetime_columns_valid_from_to(caplog: LogCaptureFixture) -> None:
+def test_correct_datetime_columns_valid_from_to(
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -569,16 +571,16 @@ def test_versioning_as_of_init_without_version_selects_latest(
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(existing_estimate_set.name)
-    ts_logger.debug(
+    ts_logger.warning(
         f"Init with only name of existing versioned set: {x.name}\n\t... identified {x.as_of_utc} as latest version."
     )
     assert isinstance(x, Dataset)
     assert x.as_of_utc == existing_estimate_set.versions()[-1]
 
     as_of = [now_utc() - timedelta(hours=n) for n in range(4)]
-    ts_logger.debug(f"As of dates:\n {as_of}")
     for d in as_of:
         x.as_of_utc = date_utc(d)
+        ts_logger.warning(f"As of date:{d=}\nseries: {x.series}")
         x.data = create_df(
             x.series, start_date="2024-01-01", end_date="2024-12-03", freq="MS"
         )
@@ -589,7 +591,9 @@ def test_versioning_as_of_init_without_version_selects_latest(
 
 
 @log_start_stop
-def test_versioning_none_appends_to_existing_file(caplog: LogCaptureFixture) -> None:
+def test_versioning_none_appends_to_existing_file(bup_and_tdwn,
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
 
     a = Dataset(
@@ -620,7 +624,8 @@ def test_versioning_none_appends_to_existing_file(caplog: LogCaptureFixture) -> 
 
 @log_start_stop
 def test_get_dataset_series_and_series_tags(
-    new_dataset_none_at: Dataset, caplog: LogCaptureFixture
+    new_dataset_none_at: Dataset,
+    caplog: LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     x = new_dataset_none_at

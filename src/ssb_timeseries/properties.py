@@ -67,6 +67,11 @@ class Temporality(SuperEnum):
     FROM_TO = 2
     """Duration from-to expressed with 'valid_from' and 'valid_to' dates."""
 
+    @property
+    def date_columns(self) -> set[str]:
+        """Returns the data columns of the temporality."""
+        return {"valid_at"} if self == Temporality.AT else {"valid_from", "valid_to"}
+
 
 class SeriesType:
     """SeriesTypes are defined by combinations of attributes that have technical implications for time series datasets.
@@ -126,6 +131,11 @@ class SeriesType:
     def permutations(cls) -> list[str]:
         """Helper; returns ['<versioning>_<temporality>', ...] ."""
         return ["_".join(c) for c in product(Versioning.keys(), Temporality.keys())]
+
+    @property
+    def date_columns(self) -> set[str]:
+        """Returns the data columns corresponding to the series type temporality."""
+        return self.temporality.date_columns
 
     def __str__(self) -> str:
         """Helper; returns '<versioning>_<temporality>'."""

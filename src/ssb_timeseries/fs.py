@@ -1,15 +1,19 @@
-import base64
 import functools
 import glob
 import json
+import logging
 import os
 import shutil
 from pathlib import Path
 
 import pandas
+import polars
 import pyarrow
+import pyarrow.dataset
+import pyarrow.filesystem
 import pyarrow.parquet as pq
 from dapla import FileClient
+from pyarrow.interchange import from_dataframe
 
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
@@ -246,19 +250,78 @@ def find(
         return [f[-1] for f in found]
 
 
-def read_parquet(path: PathStr) -> None:
+def read_parquet(
+    path: PathStr, returntype: str = "pandas"
+) -> tuple[pyarrow.table, pyarrow.Schema]:
     """TODO: Add faster pyarrrow implementations enforcing type based schemas."""
-    pass
+    table = pq.read_table(path)
+    match returntype:
+        case "pandas":
+            data = table.to_pandas()
+        case "polars":
+            data = table.to_pandas()
+        case _:
+            data = table
+    return (data, table.schema)
 
 
 def write_parquet(
-    data: pyarrow.Table,  # or pd./pl.dataframe
+    data: pyarrow.Table | pandas.DataFrame | polars.DataFrame,
     path: PathStr,
-    tags: dict | None = None,
-    schema: pyarrow.Schema = None,
+    schema: pyarrow.Schema | None = None,
+    **kwargs,
 ) -> None:
     """TODO: Add faster pyarrrow implementations enforcing type based schemas."""
-    pass
+    table = to_arrow(data, schema)
+    if is_gcs(path):
+        fs = FileClient.get_gcs_file_system()
+    else:
+        fs = pyarrow.fs.LocalFileSystem()
+        mk_parent_dir(path)
+    
+    pq.write_table(
+        table,
+        where=path,
+        filesystem=fs,
+        **kwargs,
+    )
+    # pyarrow.dataset.write_dataset(
+    #     data,
+    #     path,
+    #     filesystem=fs,
+    #     format="parquet",
+    #     schema=schema,
+    #     # partitioning=["as_of_utc"],
+    #     # partitioning_flavor="hive",
+    #     **kwargs,
+    # )
+
+
+# def update_parquet_metadata(
+#     path: PathStr,
+#     tags: dict | None = None,
+#     schema: pyarrow.Schema = None,
+# ) -> None:
+#     """TODO: Add faster pyarrrow implementations enforcing type based schemas."""
+#     table = pq.read_table(path)
+#     existing_metadata = table.schema.metadata
+
+#     if schema:
+#         table = table.cast(schema)
+
+#     byte_encoded_tags = json.dumps(tags).encode("utf8")
+#     merged_metadata = {
+#         **existing_metadata,
+#         **{"metadata": byte_encoded_tags},
+#     }
+
+#     # is this covered by cast(schema) and replace_schema_metadata?
+#     # convert_data = table.cast(table.schema)
+#     pq.write_table(
+#         table,
+#         table.replace_schema_metadata(merged_metadata),
+#         path,
+#     )
 
 
 def pandas_read_parquet(
@@ -318,7 +381,7 @@ def write_json(path: PathStr, content: str | dict) -> None:
 # with local.open_output_stream('/tmp/pyarrowtest.dat') as stream:
 #         stream.write(b'data')
 # 4
-# with local.open_input_stream('/tmp/pyarrowtest.dat') as stream:
+# with local.open_input_stream('/tmp/pyarrowtest.dat') as stream:warning
 #         print(stream.readall())
 # b'data'
 
@@ -331,25 +394,37 @@ def write_json(path: PathStr, content: str | dict) -> None:
 # ds.dataset("data/", filesystem=fs)
 
 
-def metadata_from_parquet(filename: PathStr) -> dict:
-    """Read metadata from parquet file."""
-    meta = pq.read_metadata(filename)
-    decoded_schema = base64.b64decode(meta.metadata[b"ARROW:schema"])
-    return pyarrow.ipc.read_schema(pyarrow.BufferReader(decoded_schema))
+# def metadata_from_parquet(filename: PathStr) -> dict:
+#     """Read metadata from parquet file."""
+#     meta = pq.read_metadata(filename)
+#     decoded_schema = base64.b64decode(meta.metadata[b"ARROW:schema"])
+#     return pyarrow.ipc.read_schema(pyarrow.BufferReader(decoded_schema))
 
 
-def metadata_to_parquet(metadata: dict, filename: PathStr) -> None:
-    """Write metadata to parquet file."""
-    schema = pyarrow.schema(metadata)
-    table = pyarrow.Table.from_pandas(metadata, schema=schema)
-    pq.write_table(table, filename)
+# def metadata_to_parquet(metadata: dict, filename: PathStr) -> None:
+#     """Write metadata to parquet file."""
+#     schema = pyarrow.schema(metadata)
+#     table = pyarrow.Table.from_pandas(metadata, schema=schema)
+#     pq.write_table(table, filename)
 
-    # contrast code above with json.dumps beforehand:
-    # custom_metadata_json = {"Sample Number": 12, "Date Obtained": "Tuesday"}
-    # custom_metadata_bytes = json.dumps(custom_metadata_json).encode("utf8")
-    # existing_metadata = table.schema.metadata
-    # merged_metadata = {
-    #     **{"Record Metadata": custom_metadata_bytes},
-    #     **existing_metadata,
-    # }
-    # fixed_table = table.replace_schema_metadata(merged_metadata)
+
+def to_arrow(
+    df: pyarrow.Table | polars.DataFrame | pandas.DataFrame,
+    schema: pyarrow.Schema | None = None,
+) -> pyarrow.Table:
+    """Convert a Pandas or Polars dataframe to Pyarrow table, cast schema if provided."""
+    if isinstance(df, pyarrow.Table):
+        table = df
+    elif isinstance(df, polars.DataFrame):
+        logging.debug(f"Polars Dataframe will be converted to Arrow Table.\n{df}")
+        table = df.to_arrow()
+    elif isinstance(df, pandas.DataFrame):
+        logging.debug(f"Pandas Dataframe will be converted to Arrow Table.\n{df}")
+        table = pyarrow.Table.from_pandas(df, schema=schema)
+    else:
+        raise ValueError
+
+    if schema:
+        return table.select(schema.names).cast(schema)
+    else:
+        return table
