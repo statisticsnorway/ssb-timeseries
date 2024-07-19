@@ -211,10 +211,8 @@ class FileSystem:
         try:
             if tags:
                 schema = self.parquet_schema(tags)
-                # ts_logger.warning(
-                #     f"{schema.names}\n----\n{schema}\n----\n{tags['series']}"
-                # )
-            # else:
+            else:
+                raise ValueError("Tags can not be empty.")
             #     schema = self.parquet_schema_from_df(df)
 
             # test logs show test-merge- has many NANs in oldest data
@@ -545,16 +543,9 @@ def merge_data(old: Data, new: Data, date_cols: set[str]) -> Data:
         ).drop_duplicates(list(date_cols), keep="last")
 
     elif isinstance(new, pyarrow.Table) and isinstance(old, pyarrow.Table):
-        # visualise while debugging:
-        # new = new.append_column("vs", pyarrow.array(["new"] * len(new), pyarrow.string()))
-        # old = old.append_column("vs", pyarrow.array(["old"] * len(old), pyarrow.string()))
-        # sort_order = [(d, "ascending") for d in date_cols] + [("vs", "descending")]
         sort_order = [(d, "ascending") for d in date_cols]
         arrow_table = pyarrow.concat_tables([old, new]).sort_by(sort_order)
-        polars_df = (
-            polars.from_arrow(arrow_table).unique(date_cols, keep="last")
-            # .sort(date_cols)
-        )
+        polars_df = polars.from_arrow(arrow_table).unique(date_cols, keep="last")  # type: ignore [call-arg,misc]
         df = polars_df.to_arrow().sort_by(sort_order)
 
     elif isinstance(new, polars.DataFrame) and isinstance(old, polars.DataFrame):
@@ -570,13 +561,12 @@ def parquet_schema(
     """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
 
     if not meta:
-        return None
-        # better? raise ValueError("Tags must not be empty.")
+        # return None
+        # better?
+        raise ValueError("Tags can not be empty.")
 
     dataset_meta = deepcopy(meta)
     series_meta = dataset_meta.pop("series")
-    # dataset_meta = byte_encode_metadata_dict(dataset_meta)
-    # series_meta = byte_encode_metadata_dict(series_meta)
 
     if not series_meta:
         return None
@@ -605,7 +595,6 @@ def parquet_schema(
         date_col_fields + num_col_fields,
         metadata=tags_to_json(dataset_meta),
     )
-    # ts_logger.debug(f"IO.parquet_schema:{schema=}")
     return schema
 
 
@@ -621,50 +610,14 @@ def tags_to_json(x: TagDict) -> dict[str, str]:
 
 
 def tags_from_json(
-    dict_with_json_string: dict[str | bytearray, str | bytearray],
+    dict_with_json_string: dict,
     byte_encoded: bool = True,
-) -> TagDict:
+) -> dict:
     """Reverse 'tags_to_json()': return tag dict from dict that has been coerced to bytes.
 
     Mutliple dict fields into a single field: {json: <json-string>}. May or may not have been byte encoded.
     """
     if byte_encoded:
-        return json.loads(dict_with_json_string[b"json"].decode())
+        return json.loads(dict_with_json_string[b"json"].decode())  # type: ignore [no-any-return]
     else:
-        return json.loads(dict_with_json_string["json"])
-
-
-# def pack_list_values(tags: dict[str,Any]) -> dict[str, str]:
-#     def tagvalue_to_string(x: TagValue) -> str:
-#         """Pack list or string as a single string with string items separated by ||."""
-#         if isinstance(x, str):
-#             return x
-#         elif isinstance(x, list):
-#             return '||'.join(x)
-#         else:
-#             raise TypeError("Unexpected value type.")
-#             ts_logger.warning(f"Unexpected value{x=}")
-#             return str(x)
-
-#     tag_dict = {k: tagvalue_to_string(v) for k, v in tags.items()}
-#     return tag_dict
-
-# def decode_parquet_metadata(byte_dict: dict) -> dict:
-#     """Decode parquet metadata as bytes to string."""
-#     return {k.decode("utf-8"): v.decode("utf-8") for k, v in byte_dict.items()}
-
-
-# def byte_encode_metadata_dict(tags_dict: dict) -> dict:
-#     """Byte encode a metadata dictionary."""
-
-#     byte_dict = {}
-#     for k, v in tags_dict.items():
-#         if isinstance(v, str):
-#             byte_dict[k.encode("utf-8")] = v.encode("utf-8")
-#         elif isinstance(v, list):
-#             vv = bytearray([x.encode("utf-8") for x in v])
-#             byte_dict[k.encode("utf-8")] = vv
-#         elif isinstance(v, dict):
-#             byte_dict[k.encode("utf-8")] = byte_encode_metadata_dict(v)
-#     #    ts_logger.warning(f"{tags_dict=}\n{byte_dict=}")
-#     return byte_dict
+        return json.loads(dict_with_json_string["json"])  # type: ignore [no-any-return]

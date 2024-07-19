@@ -180,10 +180,7 @@ class Dataset:
 
             # autotag:
             if not self.data.empty:
-                self.series_names_to_tags(
-                    attributes=self.series_tagging.name_pattern,
-                    separator=self.series_tagging.separator,
-                )
+                self.series_names_to_tags()
                 ts_logger.debug(
                     f"DATASET {self.name}: attempt to save empty tags = {self.tags}."
                 )
@@ -247,9 +244,9 @@ class Dataset:
             self.__getattribute__("data") is None
             and self.__getattribute__("tags") is None
         ):
-            return self.series_tags.keys()
+            return sorted(self.series_tags.keys())
         else:
-            return self.numeric_columns()
+            return sorted(self.numeric_columns())
 
     @property
     def series_tags(self) -> meta.SeriesTagDict:
@@ -348,7 +345,7 @@ class Dataset:
             self.tags["series"][ident].update({**inherit_from_set_tags, **tags})
 
         if name_pattern:
-            self.series_names_to_tags(attributes=name_pattern, separator=separator)
+            self.series_names_to_tags()
 
     def detag_dataset(
         self,

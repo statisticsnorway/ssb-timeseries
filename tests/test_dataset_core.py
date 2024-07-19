@@ -16,7 +16,8 @@ from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.properties import Versioning
 from ssb_timeseries.sample_data import create_df
 
-# mypy: disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr"
+# mypy: ignore-errors
+# disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"
 
 
 # BUCKET = CONFIG.bucket
