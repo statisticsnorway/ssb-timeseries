@@ -1,5 +1,4 @@
 import inspect
-import logging
 from pathlib import Path
 
 import pytest
@@ -8,6 +7,7 @@ from ssb_timeseries import config
 from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
+from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -34,67 +34,14 @@ def conftest() -> Helpers:
     return h
 
 
-@pytest.fixture(scope="function", autouse=True)
-def abc_at():
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    tag_values = [value for value in tags.values()]
-    df = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
-    yield df
-
-
-@pytest.fixture(scope="function", autouse=True)
-def abc_from_to():
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    tag_values = [value for value in tags.values()]
-    df = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
-    yield df
-
-
-@pytest.fixture(scope="function", autouse=True)
-def xyz_at():
-    df = create_df(
-        ["x", "y", "z"],
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
-    yield df
-
-
-@pytest.fixture(scope="function", autouse=True)
-def reset_config_after():
-    cfg_file = config.CONFIGURATION_FILE
-    remembered_config = config.Config(cfg_file)
-    config.CONFIG = remembered_config
-    yield config.CONFIG
-    remembered_config.save(cfg_file)
-
-
 @pytest.fixture(
     scope="session",
-)
-def bup_and_tdwn(): ...
-
-
-@pytest.fixture(
-    scope="session",
+    autouse=True,
 )
 def buildup_and_teardown(
     tmp_path_factory,
-    caplog,
 ):
     """To make sure that tests do not change the configuration file."""
-    caplog.set_level(logging.DEBUG)
     before_tests = config.CONFIG
 
     if before_tests.configuration_file:
@@ -102,11 +49,13 @@ def buildup_and_teardown(
             f"Before running tests:\nTIMESERIES_CONFIG: {before_tests.configuration_file}:\n{before_tests.to_json()}"
         )
         cfg_file = Path(before_tests.configuration_file).name
-        config_file_for_testing = tmp_path_factory.mktemp("config") / cfg_file
-        config.CONFIG.configuration_file = config_file_for_testing
-        config.CONFIG.timeseries_root = tmp_path_factory.mktemp("series_data")
-        config.CONFIG.bucket = tmp_path_factory.mktemp("production-bucket")
-        config.CONFIG.save(config_file_for_testing)
+        # config_file_for_testing = str(tmp_path_factory.mktemp("config") / cfg_file)
+        # config.CONFIG.configuration_file = str(config_file_for_testing)
+        config.CONFIG.timeseries_root = str(tmp_path_factory.mktemp("series_data"))
+        config.CONFIG.catalog = str(tmp_path_factory.mktemp("metadata"))
+        config.CONFIG.bucket = str(tmp_path_factory.mktemp("production-bucket"))
+        # config.CONFIG.save(str(config_file_for_testing))
+        config.CONFIG.save(cfg_file)
         Helpers.configuration = config.CONFIG
 
     else:
@@ -116,9 +65,10 @@ def buildup_and_teardown(
 
     print(f"Current configurations:\n{config.CONFIG}")
 
-    # tests run here
+    # run tests
     yield config.CONFIG
 
+    # teardown: reset config
     if config.CONFIG != before_tests:
         print(
             f"Configurations was changed by tests:\n{config.CONFIG}\nReverting to original:\n{before_tests}"
@@ -130,55 +80,198 @@ def buildup_and_teardown(
         )
 
 
-@pytest.fixture(scope="function", autouse=False)
-def existing_simple_set():
-    """Create a simple dataset (and save so that files are existing) before running the test. Delete files afterwards."""
-    # buildup: create dataset and save
+@pytest.fixture(scope="session", autouse=False)
+def tag_values():
+    """Define series names for which to generate test data."""
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
+    yield tag_values
+
+
+@pytest.fixture(scope="session", autouse=False)
+def abc_at(tag_values):
+    df = create_df(
+        *tag_values,
+        start_date="2022-01-01",
+        end_date="2022-12-03",
+        freq="MS",
+        temporality="AT",
+    )
+    yield df
+
+
+@pytest.fixture(scope="session", autouse=False)
+def abc_from_to(tag_values):
+    df = create_df(
+        *tag_values,
+        start_date="2022-01-01",
+        end_date="2022-12-03",
+        freq="MS",
+        temporality="FROM_TO",
+    )
+    yield df
+
+
+@pytest.fixture(scope="function", autouse=False)
+def xyz_at():
+    df = create_df(
+        ["x", "y", "z"],
+        start_date="2022-01-01",
+        end_date="2022-10-03",
+        freq="MS",
+        temporality="AT",
+    )
+    yield df
+
+
+@pytest.fixture(scope="function", autouse=False)
+def xyz_from_to():
+    df = create_df(
+        ["x", "y", "z"],
+        start_date="2022-01-01",
+        end_date="2022-10-03",
+        freq="MS",
+        temporality="FROM_TO",
+    )
+    yield df
+
+
+@pytest.fixture(scope="function", autouse=False)
+def new_dataset_none_at(abc_at):
+    """A fixture to create simple dataset before running the test."""
+    # buildup: create dataset
+    x = Dataset(
+        name="test-new-dataset-none-at",
+        data_type=SeriesType.simple(),
+        series_tags={"D": "d"},
+        data=abc_at,
+        name_pattern=["A", "B", "C"],
+        dataset_tags={"E": "Eee"},
+    )
+
+    # run tests
+    yield x
+    # file was not saved, so no teardown is necessary
+
+
+@pytest.fixture(scope="function", autouse=False)
+def new_dataset_as_of_at(abc_at):
+    """A fixture to create simple dataset before running the test."""
+    # buildup: create dataset
+    x = Dataset(
+        name="test-new-dataset-as-of-at",
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        series_tags={"D": "d"},
+        data=abc_at,
+        name_pattern=["A", "B", "C"],
+        dataset_tags={"E": "Eee"},
+    )
+    # run tests
+    yield x
+    # file was not saved, so no teardown is necessary
+
+
+@pytest.fixture(scope="function", autouse=False)
+def new_dataset_none_from_to(abc_from_to):
+    """A fixture to create simple dataset before running the test."""
+    # buildup: create dataset
+    x = Dataset(
+        name="test-new-dataset-none-from-to",
+        data_type=SeriesType.from_to(),
+        series_tags={"D": "d"},
+        data=abc_from_to,
+        name_pattern=["A", "B", "C"],
+        dataset_tags={"E": "Eee"},
+    )
+    # run tests
+    yield x
+    # file was not saved, so no teardown is necessary
+
+
+@pytest.fixture(scope="function", autouse=False)
+def new_dataset_as_of_from_to(abc_from_to):
+    """A fixture to create simple dataset before running the test."""
+    # buildup: create dataset
+    x = Dataset(
+        name="test-new-as-of-from-to",
+        data_type=SeriesType.as_of_from_to(),
+        as_of_tz=date_utc("2022-01-01"),
+        series_tags={"D": "d"},
+        data=abc_from_to,
+        name_pattern=["A", "B", "C"],
+        dataset_tags={"E": "Eee"},
+    )
+
+    # run tests
+    yield x
+    # file was not saved, so no teardown is necessary
+
+
+@pytest.fixture(scope="function", autouse=False)
+def one_new_set_for_each_data_type(
+    new_dataset_none_at,
+    new_dataset_none_from_to,
+    new_dataset_as_of_at,
+    new_dataset_as_of_from_to,
+):
+    """A fixture returning one example dataset for each data type in a list."""
+    yield [
+        new_dataset_none_at,
+        new_dataset_none_from_to,
+        new_dataset_as_of_at,
+        new_dataset_as_of_from_to,
+    ]
+    # file was not saved, so no teardown is necessary
+
+
+@pytest.fixture(scope="module", autouse=False)
+def existing_simple_set(abc_at):
+    """Create a simple dataset (and save so that files are existing) before running the test. Delete files afterwards."""
+    # buildup: create dataset and save
     x = Dataset(
         name="test-existing-simple-dataset",
         data_type=SeriesType.simple(),
-        data=create_df(
-            *tag_values,
-            start_date="2022-01-01",
-            end_date="2022-10-03",
-            freq="MS",
-        ),
+        data=abc_at,
     )
     x.save()
+    print(f"here we go again {abc_at}")
+    ts_logger.warning(f"here we go again {abc_at}")
 
     # tests run here
     yield x
 
-    # teardown
-    fs.rmtree(x.io.data_dir)
+    # TEARDOWN
+    # Puzzling observation:
+    # Data is written for every invocation in test_dataset_core.py, as expected for function scope.
+    # However, the writes create duplicate data!
+    # This is not reproduced within an explicit test in test_dataset_core.py:
+    # test_same_simple_data_written_multiple_times_does_not_create_duplicates(...)
+    # --> Workarounds:
+    #  change scope of this fixture to module or session
+    # ... or delete data for each invocation:
+    # fs.rmtree(x.io.data_dir)
+    # fs.rm(x.io.metadata_fullpath)
 
 
 @pytest.fixture(scope="function", autouse=False)
-def existing_estimate_set():
+def existing_estimate_set(abc_at):
     """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     # buildup: create dataset and save
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    tag_values = [value for value in tags.values()]
     x = Dataset(
         name="test-existing-estimate-dataset",
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
-        data=create_df(
-            *tag_values,
-            start_date="2022-01-01",
-            end_date="2023-01-03",
-            freq="MS",
-        ),
+        data=abc_at,
     )
     x.save()
 
     # tests run here
     yield x
 
-    # teardown
-    fs.rmtree(x.io.data_dir)
+    # teardown: cleaning up files is handled by session scoped fixture
+    # fs.rmtree(x.io.data_dir)
+    # fs.rm(x.io.metadata_fullpath)
 
 
 @pytest.fixture(scope="function", autouse=False)
@@ -207,127 +300,5 @@ def existing_small_set():
     yield x
 
     # teardown
-    fs.rmtree(x.io.data_dir)
-
-
-@pytest.fixture(scope="function", autouse=False)
-def new_dataset_none_at():
-    """A fixture to create simple dataset before running the test."""
-    # buildup: create dataset and save
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    tag_values = [value for value in tags.values()]
-    x = Dataset(
-        name="test-new-dataset-none-at",
-        data_type=SeriesType.simple(),
-        series_tags={"D": "d"},
-        data=create_df(
-            *tag_values,
-            start_date="2022-01-01",
-            end_date="2022-10-03",
-            freq="MS",
-        ),
-        name_pattern=["A", "B", "C"],
-        dataset_tags={"E": "Eee"},
-    )
-
-    # tests run here
-    yield x
-    # file was not saved, so no teardown is necessary
-
-
-@pytest.fixture(scope="function", autouse=False)
-def new_dataset_as_of_at():
-    """A fixture to create simple dataset before running the test."""
-    # create dataset and save
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    tag_values = [value for value in tags.values()]
-    x = Dataset(
-        name="test-new-dataset-as-of-at",
-        data_type=SeriesType.estimate(),
-        as_of_tz=date_utc("2022-01-01"),
-        series_tags={"D": "d"},
-        data=create_df(
-            *tag_values,
-            start_date="2022-01-01",
-            end_date="2022-10-03",
-            freq="MS",
-        ),
-        name_pattern=["A", "B", "C"],
-        dataset_tags={"E": "Eee"},
-    )
-    # tests run here
-    yield x
-    # file was not saved, so no teardown is necessary
-
-
-@pytest.fixture(scope="function", autouse=False)
-def new_dataset_none_from_to():
-    """A fixture to create simple dataset before running the test."""
-    # create dataset and save
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    tag_values = [value for value in tags.values()]
-    x = Dataset(
-        name="test-new-dataset-none-from-to",
-        data_type=SeriesType.from_to(),
-        series_tags={"D": "d"},
-        data=create_df(
-            *tag_values,
-            start_date="2022-01-01",
-            end_date="2022-10-03",
-            freq="MS",
-            temporality="FROM_TO",
-        ),
-        name_pattern=["A", "B", "C"],
-        dataset_tags={"E": "Eee"},
-    )
-
-    # tests run here
-    yield x
-    # file was not saved, so no teardown is necessary
-
-
-@pytest.fixture(scope="function", autouse=False)
-def new_dataset_as_of_from_to():
-    """A fixture to create simple dataset before running the test."""
-    # create dataset and save
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    tag_values = [value for value in tags.values()]
-    x = Dataset(
-        name="test-new-as-of-from-to",
-        data_type=SeriesType.as_of_from_to(),
-        as_of_tz=date_utc("2022-01-01"),
-        series_tags={"D": "d"},
-        data=create_df(
-            *tag_values,
-            start_date="2022-01-01",
-            end_date="2022-10-03",
-            freq="MS",
-            temporality="FROM_TO",
-        ),
-        name_pattern=["A", "B", "C"],
-        dataset_tags={"E": "Eee"},
-    )
-
-    # tests run here
-    yield x
-    # file was not saved, so no teardown is necessary
-
-
-@pytest.fixture(scope="function", autouse=False)
-def one_new_set_for_each_data_type(
-    new_dataset_none_at,
-    new_dataset_none_from_to,
-    new_dataset_as_of_at,
-    new_dataset_as_of_from_to,
-):
-    """A fixture returning one example dataset for each data type in a list."""
-    # collect test datasets into a list for test cases to loop over
-    x = [
-        new_dataset_none_at,
-        new_dataset_none_from_to,
-        new_dataset_as_of_at,
-        new_dataset_as_of_from_to,
-    ]
-    # tests run here
-    yield x
-    # file was not saved, so no teardown is necessary
+    # fs.rmtree(x.io.data_dir)
+    # fs.rm(x.io.metadata_fullpath)

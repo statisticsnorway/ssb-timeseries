@@ -3,7 +3,8 @@ import logging
 from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.io import CONFIG
+
+# from ssb_timeseries.io import CONFIG
 from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
@@ -12,14 +13,17 @@ from ssb_timeseries.sample_data import create_df
 # mypy: disable-error-code="no-untyped-def,no-untyped-call,arg-type,attr-defined,assignment"
 
 
-BUCKET = CONFIG.bucket
+# BUCKET = CONFIG.bucket
 PRODUCT = "sample-data-product"
 
 
 @log_start_stop
-def test_snapshot_simple_set_has_higher_snapshot_file_count_after(conftest, caplog):
+def test_snapshot_simple_set_has_higher_snapshot_file_count_after(
+    conftest,
+    caplog,
+):
     caplog.set_level(logging.DEBUG)
-
+    bucket = conftest.configuration.bucket
     x = Dataset(
         name=conftest.function_name(),
         data_type=SeriesType.simple(),
@@ -34,7 +38,7 @@ def test_snapshot_simple_set_has_higher_snapshot_file_count_after(conftest, capl
     stage_path = x.io.snapshot_directory(
         product=x.product, process_stage=x.process_stage
     )
-    shared_base_path = x.io.dir(BUCKET, x.product, "shared", "all")
+    shared_base_path = x.io.dir(bucket, x.product, "shared", "all")
     path_123 = shared_base_path
     path_234 = shared_base_path
     x.sharing = [
@@ -80,7 +84,7 @@ def test_snapshot_simple_set_has_higher_snapshot_file_count_after(conftest, capl
 @log_start_stop
 def test_snapshot_estimate_specified_has_higher_file_count_after(conftest, caplog):
     caplog.set_level(logging.DEBUG)
-
+    bucket = conftest.configuration.bucket
     x = Dataset(
         name=conftest.function_name(),
         data_type=SeriesType.estimate(),
@@ -95,7 +99,7 @@ def test_snapshot_estimate_specified_has_higher_file_count_after(conftest, caplo
     stage_path = x.io.snapshot_directory(
         product=x.product, process_stage=x.process_stage
     )
-    shared_base_path = x.io.dir(BUCKET, x.product, "shared")
+    shared_base_path = x.io.dir(bucket, x.product, "shared")
     team_path_123 = x.io.dir(shared_base_path, "s123")
     team_path_234 = x.io.dir(shared_base_path, "s234")
     x.sharing = [
@@ -112,7 +116,7 @@ def test_snapshot_estimate_specified_has_higher_file_count_after(conftest, caplo
     path_123 = x.io.dir(team_path_123, x.name)
     path_234 = x.io.dir(team_path_234, x.name)
     x.save()
-    ts_logger.debug(f"SNAPSHOT conf.bucket {BUCKET}")
+    ts_logger.debug(f"SNAPSHOT conf.bucket {bucket}")
     ts_logger.debug(f"SNAPSHOT to {path_123}")
 
     count_before_snapshot = fs.file_count(stage_path, create=True)

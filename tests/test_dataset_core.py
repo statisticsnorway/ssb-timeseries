@@ -133,45 +133,16 @@ def test_dataset_copy_creates_set_with_new_name_and__otherwise_identical_attribu
 
 
 @log_start_stop
-def test_create_dataset_with_correct_data_size() -> None:
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x", "y", "z"]}
-    x = Dataset(
-        name="test-no-dir-created",
-        data_type=SeriesType.simple(),
-        series_tags=tags,
-        dataset_tags={},
-    )
-
-    tag_values = [value for value in tags.values()]
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
-    assert x.data.size == 280
-
-
-@log_start_stop
 def test_datafile_exists_after_create_dataset_and_save(
     conftest,
-    bup_and_tdwn,
+    xyz_at,
     caplog,
 ) -> None:
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
-    tag_values = [value for value in tags.values()]
     set_name = f"{conftest.function_name()}_{uuid.uuid4().hex}"
     x = Dataset(
         name=set_name,
         data_type=SeriesType.simple(),
-        # series_tags=tags,
-        # dataset_tags={},
-        data=create_df(
-            *tag_values,
-            start_date="2022-01-01",
-            end_date="2022-10-03",
-            freq="MS",
-        ),
+        data=xyz_at,
     )
 
     x.save()
@@ -181,32 +152,53 @@ def test_datafile_exists_after_create_dataset_and_save(
 
 @log_start_stop
 def test_metafile_exists_after_create_dataset_and_save(
-    bup_and_tdwn,
     caplog: LogCaptureFixture,
+    xyz_at,
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
-    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     set_name = f"test-metafile-exists-{uuid.uuid4().hex}"
     x = Dataset(
         name=set_name,
         data_type=SeriesType.estimate(),
         as_of_tz=now_utc(rounding="Min"),
         # series_tags=tags,
-        dataset_tags={},
+        # dataset_tags={},
     )
-
-    tag_values = [value for value in tags.values()]
-    x.data = create_df(
-        *tag_values,
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
-
+    x.data = xyz_at
     x.save()
     ts_logger.debug(x.io.metadata_fullpath)
     assert x.io.metadatafile_exists()
+
+
+@log_start_stop
+def test_same_simple_data_written_multiple_times_does_not_create_duplicates(
+    caplog: LogCaptureFixture,
+    conftest,
+    xyz_at,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    set_name = f"{conftest.function_name()}-{uuid.uuid4().hex}"
+    expected_data_size = xyz_at.shape
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=now_utc(rounding="Min"),
+        data=xyz_at,
+    )
+    x.save()
+    x.save()
+    x.save()
+    x.save()
+    y = Dataset(
+        name=set_name,
+        data_type=SeriesType.estimate(),
+        as_of_tz=now_utc(rounding="Min"),
+    )
+    ts_logger.debug(f"{y.data=}\n==\n{xyz_at=}")
+    ts_logger.debug(f"{y.data['valid_at'].unique()=}")
+    assert y.data.shape == expected_data_size
 
 
 @log_start_stop
@@ -244,8 +236,9 @@ def test_read_existing_simple_data(
     ts_logger.debug(f"DATASET {x.name}: \n{x.data}")
     if x.io.datafile_exists():
         ts_logger.debug(x.io.data_fullpath)
-        ts_logger.debug(x.data)
-        assert x.data.size == 280
+        ts_logger.debug(f"{x.data=}")
+        ts_logger.debug(f"{x.data['valid_at'].unique()=}")
+        assert x.data.size == 336
     else:
         ts_logger.debug(
             f"DATASET {x.name}: Data not found at {x.io.data_fullpath}. Writing."
@@ -255,7 +248,7 @@ def test_read_existing_simple_data(
 
 @log_start_stop
 def test_read_existing_estimate_metadata(
-    bup_and_tdwn,
+    # bup_and_tdwn,
     existing_estimate_set: Dataset,
     caplog: LogCaptureFixture,
 ) -> None:
@@ -278,7 +271,7 @@ def test_read_existing_estimate_metadata(
 
 @log_start_stop
 def test_read_existing_estimate_data(
-    bup_and_tdwn,
+    # bup_and_tdwn,
     existing_estimate_set: Dataset,
     caplog: LogCaptureFixture,
 ) -> None:
@@ -294,12 +287,12 @@ def test_read_existing_estimate_data(
 
     assert x.io.datafile_exists()
     ts_logger.debug(x)
-    assert x.data.size == 364
+    assert x.data.size == 336
 
 
 @log_start_stop
 def test_load_existing_set_without_loading_data(
-    bup_and_tdwn,
+    # bup_and_tdwn,
     conftest,
     caplog: LogCaptureFixture,
 ) -> None:
@@ -325,7 +318,7 @@ def test_load_existing_set_without_loading_data(
 
 @log_start_stop
 def test_search_for_dataset_by_exact_name(
-    bup_and_tdwn,
+    # bup_and_tdwn,
     conftest,
     caplog: LogCaptureFixture,
 ):
@@ -348,7 +341,7 @@ def test_search_for_dataset_by_exact_name(
 
 @log_start_stop
 def test_search_for_dataset_by_part_of_name_one_match(
-    bup_and_tdwn,
+    # bup_and_tdwn,
     conftest,
     caplog: LogCaptureFixture,
 ):
@@ -369,7 +362,7 @@ def test_search_for_dataset_by_part_of_name_one_match(
 
 
 def test_search_for_dataset_by_part_of_name_two_matches(
-    bup_and_tdwn,
+    # bup_and_tdwn,
     conftest,
     caplog: LogCaptureFixture,
 ):
@@ -598,7 +591,7 @@ def test_versioning_as_of_init_without_version_selects_latest(
 
 @log_start_stop
 def test_versioning_none_appends_to_existing_file(
-    bup_and_tdwn,
+    # bup_and_tdwn,
     caplog: LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
