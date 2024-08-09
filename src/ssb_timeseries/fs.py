@@ -223,16 +223,25 @@ def same_path(*args) -> PathStr:
 
 def find(
     search_path: PathStr,
+    equals: str = "",
+    contains: str = "",
     pattern: str = "",
+    search_sub_dirs: bool = True,
     full_path: bool = False,
     replace_root: bool = False,
 ) -> list[str]:
     """Find files and subdirectories with names matching pattern. Should work for both local and GCS filesystems."""
-    if pattern:
+    if contains:
         pattern = f"*{pattern}*"
-    else:
+    elif equals:
+        pattern = equals
+    elif not pattern:
         pattern = "*"
-    search_str = path(search_path, "*", pattern)
+    if search_sub_dirs:
+        search_str = path(search_path, "*", pattern)
+    else:
+        search_str = path(search_path, pattern)
+
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         found = fs.glob(search_str)

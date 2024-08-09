@@ -19,6 +19,7 @@ from ssb_timeseries.dates import Interval
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.meta import DatasetTagDict
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.types import PathStr
 
@@ -501,6 +502,52 @@ def find_datasets(
     return [SearchResult(f[2], f[1]) for f in search_results]
 
 
+def find_metadata_files(
+    repository: list[PathStr] | PathStr | None = None,
+    pattern: str = "",
+    contains: str = "",  # as_of: datetime | None = None
+    equals: str = "",
+) -> list[str]:
+    """Search for metadata json files in the 'catalog' directory.
+
+    Only one of the arguments 'contains' or 'equals' can be provided at the same time. If none is provided, all files are returned.
+    """
+    ts_logger.debug(f"find_metadata_files in repo(s) {repository}.")
+    if contains:
+        pattern = f"*{contains}*"
+    elif equals:
+        pattern = equals
+    elif not pattern:
+        pattern = "*"
+
+    def find_in_repo(repo: str) -> list[str]:
+        return fs.find(
+            search_path=repo,
+            pattern=pattern,
+            full_path=True,
+            search_sub_dirs=False,
+        )
+
+    if not repository:
+        ts_logger.debug(f"find_metadata_files in default repo:\n{repository}.")
+        result = find_in_repo(CONFIG)
+    elif isinstance(repository, str):
+        ts_logger.debug(f"find_metadata_files in repo by str:\n{repository}.")
+        result = find_in_repo(repository)
+    elif isinstance(repository, "Path"):  # type: ignore
+        ts_logger.debug(f"find_metadata_files in repo by Path:\n{repository}.")
+        result = find_in_repo(repository)
+    elif isinstance(repository, list):
+        ts_logger.debug(f"find_metadata_files in multiple repos:\n{repository=}")
+        result = []
+        for r in repository:
+            result.append(find_in_repo(r))
+    else:
+        raise TypeError("Invalid repository type.")
+
+    return result
+
+
 def list_datasets(
     # pattern: str | PathStr = "",  # as_of: datetime | None = None
 ) -> list[SearchResult]:
@@ -621,3 +668,20 @@ def tags_from_json(
         return json.loads(dict_with_json_string[b"json"].decode())  # type: ignore [no-any-return]
     else:
         return json.loads(dict_with_json_string["json"])  # type: ignore [no-any-return]
+
+
+def tags_from_json_file(
+    file_or_files: PathStr | list[PathStr],
+) -> DatasetTagDict | list[DatasetTagDict]:
+    """Read one or more json files."""
+
+    if isinstance(file_or_files, list):
+        result = []
+        for f in file_or_files:
+            j = fs.read_json(f)
+            result.append(json.loads(j))
+        return result
+    else:
+        t = fs.read_json(file_or_files)
+        # t = json.loads(j)
+        return DatasetTagDict(t)

@@ -4,10 +4,8 @@ from pathlib import Path
 import pytest
 
 from ssb_timeseries import config
-from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -235,10 +233,7 @@ def existing_simple_set(abc_at):
         data=abc_at,
     )
     x.save()
-    print(f"here we go again {abc_at}")
-    ts_logger.warning(f"here we go again {abc_at}")
-
-    # tests run here
+    # run tests
     yield x
 
     # TEARDOWN
@@ -302,3 +297,13 @@ def existing_small_set():
     # teardown
     # fs.rmtree(x.io.data_dir)
     # fs.rm(x.io.metadata_fullpath)
+
+
+@pytest.fixture(scope="function", autouse=False)
+def existing_sets(existing_estimate_set, existing_simple_set, existing_small_set):
+    """A fixture returning one existing (previously saved) example dataset for each data type."""
+    yield [
+        existing_estimate_set,
+        existing_simple_set,
+        existing_small_set,
+    ]
