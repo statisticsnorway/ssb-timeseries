@@ -235,7 +235,7 @@ class Repository(_CatalogProtocol):
                         object_type="dataset",
                         object_tags=tags,
                         parent=tags.get("parent", ""),
-                        children=tags.get("series", {}).keys(),
+                        # children=tags.get("series"),
                     )
                 )
             else:
@@ -301,10 +301,34 @@ class Repository(_CatalogProtocol):
         """Return one big aggregated dictionary for the entire repository."""
         result = {self.name: {"directory": self.directory, "datasets": {}}}
         jsonfiles = find_metadata_files(repository=self.directory)
+        ...
+
+    def all(self) -> list[CatalogItem]:
+        """Return all items"""
+        result: list[CatalogItem] = []
+        jsonfiles = find_metadata_files(repository=self.directory)
         for f in jsonfiles:
             tags = tags_from_json_file(f)  # type: ignore
-            ts_logger.debug(f"Found: {tags=}")
-            result["datasets"][tags["name"]] = tags
+            if isinstance(tags, dict):
+                set_name = tags["name"]
+                result.append(
+                    CatalogItem(
+                        repository_name=self.name,
+                        object_name=set_name,  # type: ignore
+                        object_type="dataset",
+                        object_tags=tags,
+                        parent=tags.get("parent", ""),
+                        # children=tags.get("series"),
+                    )
+                )
+            else:
+                raise TypeError(
+                    f"Expected tags to be returned as a single dictionary. Got {type(tags)}."
+                )
+            if not result:
+                ts_logger.debug(f"Could not read: {f=}\n{tags=}")
+        if not result:
+            ts_logger.debug(f"Failed to read: {jsonfiles=}")
         return result
 
     def __repr__(self) -> str:
