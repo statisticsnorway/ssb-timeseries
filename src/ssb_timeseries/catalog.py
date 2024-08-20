@@ -1,4 +1,4 @@
-import importlib.resources as pkg_resources
+import importlib.resources as pkg_resources  # noqa: F401
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -9,13 +9,11 @@ import duckdb
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.io import find_metadata_files
 from ssb_timeseries.io import tags_from_json_file
-from ssb_timeseries.logging import ts_logger  # noqa: F401
-from ssb_timeseries.meta import DatasetTagDict  # noqa: F401
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.meta import TagValue
 from ssb_timeseries.meta import matches_criteria
 
-from . import sql
+# from . import sql
 
 # mypy: disable-error-code="no-untyped-def"
 # ruff: noqa:ANN002 ANN003 D102 D417
@@ -400,8 +398,9 @@ class Repository(_CatalogProtocol):
 
 def read_sql_file(filename: str) -> str:
     """Read SQL statement from a .sql file."""
-    with pkg_resources.open_text(sql, filename) as file:
-        return file.read()
+    raise NotImplementedError("pkg_resources.open_text ")
+    # with pkg_resources.open_text(sql, filename) as file:
+    #     return file.read()
 
 
 def execute_prepared_sql(connection: Any, queryname: str, **kwargs: Any) -> Any:

@@ -22,7 +22,7 @@ from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import PathStr
 
-# mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-untyped-call,operator,valid-type"
+# mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-untyped-call,operator,valid-type,no-any-return"
 
 TagValue: TypeAlias = str | list[str]
 TagDict: TypeAlias = dict[str, TagValue]
@@ -158,7 +158,7 @@ class Taxonomy:
         """Get tree node by name (KLASS code)."""
         return bigtree.find_name(self.structure.root, key)
 
-    def subtree(self, key: str) -> bigtree.node:  # type: ignore
+    def subtree(self, key: str) -> Any:
         """Get subtree of node identified by name (KLASS code)."""
         the_node = bigtree.find_name(self.structure, key)
         return bigtree.get_subtree(the_node)
