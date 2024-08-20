@@ -10,7 +10,6 @@ import pandas
 import polars
 import pyarrow
 import pyarrow.dataset
-import pyarrow.filesystem
 import pyarrow.parquet as pq
 from dapla import FileClient
 
