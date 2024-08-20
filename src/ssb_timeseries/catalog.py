@@ -131,7 +131,14 @@ class _CatalogProtocol(Protocol):
         """
         ...
 
-    def count(self, *, object_type: str = "") -> int:
+    def count(
+        self,
+        *,
+        object_type: str = "",
+        equals: str = "",
+        contains: str = "",
+        tags: TagDict | None = None,
+    ) -> int:
         """Search in all repositories for objects (sets or series) that match the criteria.
 
         Args:
@@ -210,14 +217,24 @@ class Catalog(_CatalogProtocol):
 
         return result
 
-    def count(self, *, object_type: str = "") -> int:
+    def count(
+        self,
+        *,
+        object_type: str = "",
+        equals: str = "",
+        contains: str = "",
+        tags: TagDict | None = None,
+    ) -> int:
         # Inherit detailed docs from porotocol.
         # Return number of datasets (default) or series (not yet implemented), or both (to be default).
         result: int = 0
         for r in self.repository:
             result += r.count(
-                object_type=str(object_type)
-            )  # will count duplicates if same dataset occurs in multiple repositories
+                object_type=str(object_type),
+                equals=equals,
+                contains=contains,
+                tags=tags,
+            )
 
         return result
 

@@ -16,7 +16,10 @@ from ssb_timeseries.meta import unique_tag_values
 # mypy: disable-error-code="no-untyped-def,attr-defined,func-returns-value,operator"
 
 
-def test_search_by_tags(new_dataset_none_at, caplog: pytest.LogCaptureFixture) -> None:
+def test_search_by_tags(
+    new_dataset_none_at,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
     series_tags = new_dataset_none_at.tags["series"]
     ts_logger.debug(f"test filter_by_tags ... series tags: {series_tags}")
@@ -25,7 +28,10 @@ def test_search_by_tags(new_dataset_none_at, caplog: pytest.LogCaptureFixture) -
     assert sorted(out) == sorted(["a_p_z1", "b_p_z1"])
 
 
-def test_filter_tags(new_dataset_none_at, caplog: pytest.LogCaptureFixture) -> None:
+def test_filter_tags(
+    new_dataset_none_at,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
     series_tags = new_dataset_none_at.tags["series"]
     ts_logger.debug(f"test filter_by_tags ... series tags: {series_tags}")
@@ -78,7 +84,9 @@ def test_read_hierarchical_code_set_from_klass_returns_multi_level_tree() -> Non
     assert energy_balance.structure.max_depth == 4
 
 
-def test_taxonomy_subtree(caplog: pytest.LogCaptureFixture) -> None:
+def test_taxonomy_subtree(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
     klass157_subtree = klass157.subtree("1.1")
@@ -156,7 +164,9 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
 
 
 @pytest.mark.xfail(reason="Tree diff error?")
-def test_taxonomy_minus_subtree(caplog: pytest.LogCaptureFixture) -> None:
+def test_taxonomy_minus_subtree(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)
     klass157_subtree = klass157.subtree("1.1")
@@ -170,7 +180,9 @@ def test_taxonomy_minus_subtree(caplog: pytest.LogCaptureFixture) -> None:
     assert isinstance(rest, bigtree.Node)
 
 
-def test_replace_chars_in_flat_codes(caplog: pytest.LogCaptureFixture) -> None:
+def test_replace_chars_in_flat_codes(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """The substitute parameter of Taxonomy init allows making changes to codes when reading a taxonomy list.
 
     While best practice calls for direct match to KLASS, this allows mappings with (minor) deviations.
@@ -212,7 +224,9 @@ def test_replace_chars_in_flat_codes(caplog: pytest.LogCaptureFixture) -> None:
     )
 
 
-def test_replace_chars_in_hierarchical_codes(caplog: pytest.LogCaptureFixture) -> None:
+def test_replace_chars_in_hierarchical_codes(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """The substitute parameter of Taxonomy init allows making changes to codes when reading a taxonomy list.
 
     While best practice calls for direct match to KLASS, this allows mappings with (minor) deviations.
@@ -228,9 +242,9 @@ def test_replace_chars_in_hierarchical_codes(caplog: pytest.LogCaptureFixture) -
     # k157_names = [n.name for n in k157.structure.root["1"].leaves]
     k157_names = [n.name for n in k157["1"].leaves]
     ts_logger.debug(f"klass 157 codes:\n{k157_names}")
-    ts_logger.debug(
-        f"tree ...\n{print_tree(k157.structure['1'], attr_list=['fullname'])}"
-    )
+    # ts_logger.warning(
+    #     f"tree ...\n{print_tree(k157.structure.root['1'], attr_list=['fullname'])}"
+    # )
 
     assert sorted(k157_names) == sorted(
         [
@@ -243,7 +257,8 @@ def test_replace_chars_in_hierarchical_codes(caplog: pytest.LogCaptureFixture) -
 
 
 def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are_identical(
-    caplog: pytest.LogCaptureFixture, tmp_path_factory: pytest.TempPathFactory
+    caplog: pytest.LogCaptureFixture,
+    tmp_path_factory: pytest.TempPathFactory,
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(157)

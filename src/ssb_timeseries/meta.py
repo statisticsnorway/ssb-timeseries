@@ -11,6 +11,7 @@ from typing import no_type_check
 
 import bigtree
 import bigtree.node
+import bigtree.tree
 import pandas as pd
 from bigtree import get_tree_diff
 from bigtree import print_tree
@@ -21,7 +22,7 @@ from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import PathStr
 
-# mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-untyped-call,operator"
+# mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-untyped-call,operator,valid-type"
 
 TagValue: TypeAlias = str | list[str]
 TagDict: TypeAlias = dict[str, TagValue]
@@ -108,7 +109,7 @@ class Taxonomy:
             df_from_file = pd.DataFrame.from_dict(fs.read_json(str(id_or_path)))
             self.entities = df_from_file
 
-        self.structure = bigtree.dataframe_to_tree_by_relation(
+        self.structure: bigtree.tree = bigtree.dataframe_to_tree_by_relation(
             data=self.entities,
             child_col="code",
             parent_col="parentCode",
@@ -148,14 +149,10 @@ class Taxonomy:
         """Return the tree difference between the two taxonomy (tree) structures."""
         ts_logger.debug(f"other: {other}")
         if isinstance(other, bigtree.Node):
-            remove = self.subtree(other.name)
-            self.structure.show()
-            remove.show()
-            return self.structure[other.root.name].__delitem__()
-            return self.structure
-            if remove == other:
-                delete_from_node = bigtree.find_name(self.structure.root, other.name)
-                return self.structure - delete_from_node
+            remove = self.subtree(other.name).asc  # noqa: F841
+            # self.structure.show()
+            # remove.show()
+            raise NotImplementedError("... not yet!")
 
     def __getitem__(self, key: str) -> bigtree.Node:  # type: ignore
         """Get tree node by name (KLASS code)."""
