@@ -100,7 +100,7 @@ class _CatalogProtocol(Protocol):
         *,
         equals: str = "",
         contains: str = "",
-        tags: TagDict | None = None,
+        tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
         """Search in all repositories for datasets that match the criteria.
 
@@ -117,7 +117,7 @@ class _CatalogProtocol(Protocol):
         *,
         equals: str = "",
         contains: str = "",
-        tags: TagDict | None = None,
+        tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
         """Search all datasets in all repositories for series that match the criteria.
 
@@ -135,7 +135,7 @@ class _CatalogProtocol(Protocol):
         object_type: str = "",
         equals: str = "",
         contains: str = "",
-        tags: TagDict | None = None,
+        tags: TagDict | list[TagDict] | None = None,
     ) -> int:
         """Search in all repositories for objects (sets or series) that match the criteria.
 
@@ -155,7 +155,7 @@ class _CatalogProtocol(Protocol):
         series: bool = True,
         equals: str = "",
         contains: str = "",
-        tags: TagDict | None = None,
+        tags: TagDict | list[TagDict] | None = None,
     ):
         """Aggregate all the information into a single dictionary."""
         ...
@@ -221,7 +221,7 @@ class Catalog(_CatalogProtocol):
         object_type: str = "",
         equals: str = "",
         contains: str = "",
-        tags: TagDict | None = None,
+        tags: TagDict | list[TagDict] | None = None,
     ) -> int:
         # Inherit detailed docs from porotocol.
         # Return number of datasets (default) or series (not yet implemented), or both (to be default).
@@ -267,6 +267,9 @@ class Catalog(_CatalogProtocol):
 class Repository(_CatalogProtocol):
     """A physical storage repository for timeseries datasets."""
 
+    name: str = ""
+    directory: str = ""
+
     def __init__(
         self,
         name: str = "",
@@ -292,7 +295,7 @@ class Repository(_CatalogProtocol):
         *,
         equals: str = "",
         contains: str = "",
-        tags: TagDict | None = None,
+        tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
         # inherit docs from protocol class.
         return self.items(
@@ -308,7 +311,7 @@ class Repository(_CatalogProtocol):
         *,
         equals: str = "",
         contains: str = "",
-        tags: TagDict | None = None,
+        tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
         # inherit docs from protocol class. List all series (across all sets).
         return self.items(
@@ -346,7 +349,7 @@ class Repository(_CatalogProtocol):
         series: bool = True,
         equals: str = "",
         contains: str = "",
-        tags: TagDict | None = None,
+        tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
         # """Return all catalog items (sets, series or both) matching the search criteria."""
         result: list[CatalogItem] = []
