@@ -237,6 +237,7 @@ def find(
         pattern = equals
     elif not pattern:
         pattern = "*"
+
     if search_sub_dirs:
         search_str = path(search_path, "*", pattern)
     else:

@@ -231,6 +231,7 @@ def existing_simple_set(abc_at):
         name="test-existing-simple-dataset",
         data_type=SeriesType.simple(),
         data=abc_at,
+        name_pattern=["A", "B", "C"],
     )
     x.save()
     # run tests
@@ -258,6 +259,7 @@ def existing_estimate_set(abc_at):
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
         data=abc_at,
+        name_pattern=["A", "B", "C"],
     )
     x.save()
 
@@ -265,6 +267,29 @@ def existing_estimate_set(abc_at):
     yield x
 
     # teardown: cleaning up files is handled by session scoped fixture
+    # fs.rmtree(x.io.data_dir)
+    # fs.rm(x.io.metadata_fullpath)
+
+
+@pytest.fixture(scope="function", autouse=False)
+def existing_from_to_set(abc_from_to):
+    """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
+    # buildup: create dataset and save
+    x = Dataset(
+        name="test-existing-small-dataset",
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        data=abc_from_to,
+        name_pattern=["A", "B", "C"],
+        series_tags={"D": "d"},
+        dataset_tags={"E": "e", "F": ["f1", "f2"]},
+    )
+    x.save()
+
+    # tests run here
+    yield x
+
+    # teardown
     # fs.rmtree(x.io.data_dir)
     # fs.rm(x.io.metadata_fullpath)
 

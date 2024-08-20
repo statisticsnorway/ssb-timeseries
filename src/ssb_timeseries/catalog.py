@@ -9,23 +9,26 @@ import duckdb
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.io import find_metadata_files
 from ssb_timeseries.io import tags_from_json_file
-from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.logging import ts_logger  # noqa: F401
 from ssb_timeseries.meta import DatasetTagDict  # noqa: F401
-from ssb_timeseries.meta import TagDict  # noqa: F401
+from ssb_timeseries.meta import TagDict
 from ssb_timeseries.meta import TagValue
+from ssb_timeseries.meta import matches_criteria
 
 from . import sql
 
 # mypy: disable-error-code="no-untyped-def"
-# ruff: noqa:ANN002 ANN003 D102
+# ruff: noqa:ANN002 ANN003 D102 D417
 
 
 SEARCH_OPTIONS = """
 Search options:
-    pattern (str): Text pattern for search 'like' in names. Defaults to ''.
-    regex (str): Expression for regex search in names. Defaults to ''.
-    tags (dict): Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
-        | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
+    equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
+    contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
+    tags (dict | list(dict) | None): Filter the sets or series in the result set by a specified tags. Default None retiurns all.
+        Defaults to None. All criteria attributes in a dict must be satisfied (tags are combined by AND).
+        If a list of values is provided for a criteria attribute, the criteria is satisfied if the tag value matches either of them (OR).
+        Alternative sets (dicts) can be provided in a list.
 """
 
 
@@ -73,45 +76,82 @@ class CatalogItem:
         else:
             raise TypeError(f"Can not retrieve object of type '{self.object_type}'.")
 
+    def has_tags(self, tags: Any) -> bool:
+        """Check if the catalog item has all tags provided in criteria."""
+        # meta.search_by_tags(self.tags["series"], tags)
+        if tags is None:
+            return True
+        elif isinstance(tags, dict):
+            check = matches_criteria(self.object_tags, tags)
+            return check
+        elif isinstance(tags, list):
+            checks = []
+            check = True
+            for t in tags:
+                checks.append(matches_criteria(self.object_tags, t))
+            return any(checks)
+        else:
+            raise TypeError(f"Can not check tags of type '{type(tags)}'.")
+
 
 class _CatalogProtocol(Protocol):
     """Defines required methods + docstrings for catalogs and repositories."""
 
-    def datasets(self) -> list[CatalogItem]:
+    def datasets(
+        self,
+        *,
+        equals: str = "",
+        contains: str = "",
+        tags: TagDict | None = None,
+    ) -> list[CatalogItem]:
         """Search in all repositories for datasets that match the criteria.
 
         Args:
-            pattern (str): Text pattern for search 'like' in column names. Defaults to ''.
-            regex (str): Expression for regex search in column names. Defaults to ''.
-            tags (dict): Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
+            equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
+            contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
+            tags (dict): Filter the sets or series in the result set by the specified tags. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
         """
         ...
 
-    def series(self) -> list[CatalogItem]:
+    def series(
+        self,
+        *,
+        equals: str = "",
+        contains: str = "",
+        tags: TagDict | None = None,
+    ) -> list[CatalogItem]:
         """Search all datasets in all repositories for series that match the criteria.
 
         Args:
-            pattern (str): Text pattern for search 'like' in column names. Defaults to ''.
-            regex (str): Expression for regex search in column names. Defaults to ''.
-            tags (dict): Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
+            equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
+            contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
+            tags (dict): Filter the sets or series in the result set by the specified tags. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
         """
         ...
 
-    def count(self, object_type: str = "") -> int:
+    def count(self, *, object_type: str = "") -> int:
         """Search in all repositories for objects (sets or series) that match the criteria.
 
         Args:
             object_type: 'dataset' or 'series'.
-            pattern (str): Text pattern for search 'like' in column names. Defaults to ''.
-            regex (str): Expression for regex search in column names. Defaults to ''.
-            tags (dict): Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
+            equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
+            contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
+            tags (dict): Filter the sets or series in the result set by the specified tags. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
         """
         ...
 
-    def __dict__(self):
+    def items(
+        self,
+        *,
+        datasets: bool = True,
+        series: bool = True,
+        equals: str = "",
+        contains: str = "",
+        tags: TagDict | None = None,
+    ):
         """Aggregate all the information into a single dictionary."""
         ...
 
@@ -126,7 +166,7 @@ class _FileRepositoryProtocol(Protocol):
 class Catalog(_CatalogProtocol):
     """A collection of entities in one or more physical data repositories.
 
-    The catalog searches across all repositories.
+    The catalog will perform searches across all individual repositories.
     """
 
     def __init__(self, config: list[_FileRepositoryProtocol]) -> None:
@@ -144,14 +184,13 @@ class Catalog(_CatalogProtocol):
 
     def datasets(
         self,
-        *args,
         **kwargs,
     ) -> list[CatalogItem]:
         # Inherit detailed docs from porotocol.
         # List all sets matching criteria.
         result: list[CatalogItem] = []
         for r in self.repository:
-            for rr in r.datasets(args, kwargs):
+            for rr in r.datasets(**kwargs):
                 result.append(rr)
             # problem if a dataset occurs in multiple repositories?
 
@@ -159,20 +198,19 @@ class Catalog(_CatalogProtocol):
 
     def series(
         self,
-        *args,
         **kwargs,
     ) -> list[CatalogItem]:
         # Inherit detailed docs from porotocol.
         # List all series (across all sets) matching criteria.
         result: list[CatalogItem] = []
         for r in self.repository:
-            for rr in r.series(args, kwargs):
+            for rr in r.series(**kwargs):
                 result.append(rr)
             # problem if a dataset occurs in multiple repositories?
 
         return result
 
-    def count(self, object_type: str = "") -> int:
+    def count(self, *, object_type: str = "") -> int:
         # Inherit detailed docs from porotocol.
         # Return number of datasets (default) or series (not yet implemented), or both (to be default).
         result: int = 0
@@ -187,10 +225,28 @@ class Catalog(_CatalogProtocol):
         """Return a machine readable string representation that can regenerate the catalog object."""
         return f"Catalog([{','.join([r.__repr__() for r in self.repository])}])"
 
-    def __dict__(self):
+    def items(
+        self,
+        datasets: bool = True,
+        series: bool = True,
+        equals: str = "",
+        contains: str = "",
+        **kwargs,
+    ) -> list[CatalogItem]:
         """Aggregate all the information into a single dictionary."""
-        ...
-        # return {"repository": [r.__dict__() for r in self.repository]}
+        result: list[CatalogItem] = []
+        for r in self.repository:
+            for rr in r.items(
+                datasets=datasets,
+                series=series,
+                equals=equals,
+                contains=contains,
+                **kwargs,
+            ):
+                result.append(rr)
+            # problem if a dataset occurs in multiple repositories?
+
+        return result
 
 
 class Repository(_CatalogProtocol):
@@ -218,117 +274,100 @@ class Repository(_CatalogProtocol):
 
     def datasets(
         self,
-        *args,
-        **kwargs,
+        *,
+        equals: str = "",
+        contains: str = "",
+        tags: TagDict | None = None,
     ) -> list[CatalogItem]:
         # inherit docs from protocol class.
-        result: list[CatalogItem] = []
-        jsonfiles = find_metadata_files(repository=self.directory)
-        for f in jsonfiles:
-            tags = tags_from_json_file(f)  # type: ignore
-            if isinstance(tags, dict):
-                set_name = tags["name"]
-                result.append(
-                    CatalogItem(
-                        repository_name=self.name,
-                        object_name=set_name,  # type: ignore
-                        object_type="dataset",
-                        object_tags=tags,
-                        parent=tags.get("parent", ""),
-                        # children=tags.get("series"),
-                    )
-                )
-            else:
-                raise TypeError(
-                    f"Expected tags to be returned as a single dictionary. Got {type(tags)}."
-                )
-            if not result:
-                ts_logger.debug(f"Could not read: {f=}\n{tags=}")
-        if not result:
-            ts_logger.debug(f"Failed to read: {jsonfiles=}")
-
-        return result
+        return self.items(
+            datasets=True,
+            series=False,
+            equals=equals,
+            contains=contains,
+            tags=tags,
+        )
 
     def series(
         self,
-        *args,
-        **kwargs,
+        *,
+        equals: str = "",
+        contains: str = "",
+        tags: TagDict | None = None,
     ) -> list[CatalogItem]:
         # inherit docs from protocol class. List all series (across all sets).
+        return self.items(
+            datasets=False,
+            series=True,
+            equals=equals,
+            contains=contains,
+            tags=tags,
+        )
+
+    def count(self, *, object_type: str = "", **kwargs) -> int:
+        # inherit docs from protocol class.
+        # Return number of datasets (default) or series (not yet implemented), or both (to be default).
+        match object_type.lower():
+            case "set" | "dataset" | "sets" | "datasets":
+                items = self.datasets(**kwargs)
+            case "series":
+                items = self.series(**kwargs)
+            case "item" | "items" | _:
+                items = self.items(**kwargs)
+        return len(items)
+
+    def files(self, *, contains: str = "", equals: str = "") -> list[str]:
+        """Return all files in the repository."""
+        jsonfiles = find_metadata_files(
+            repository=self.directory,
+            equals=equals,
+            contains=contains,
+        )
+        return jsonfiles
+
+    def items(
+        self,
+        datasets: bool = True,
+        series: bool = True,
+        equals: str = "",
+        contains: str = "",
+        tags: TagDict | None = None,
+    ) -> list[CatalogItem]:
+        # """Return all catalog items (sets, series or both) matching the search criteria."""
         result: list[CatalogItem] = []
-        jsonfiles = find_metadata_files(repository=self.directory)
+        jsonfiles = self.files(equals=equals, contains=contains)
         for f in jsonfiles:
-            tags = tags_from_json_file(f)  # type: ignore
-            if isinstance(tags, dict):
-                set_name = tags["name"]
-                for series_key, series_tags in tags["series"].items():
-                    result.append(
-                        CatalogItem(
+            # for all json files, read the tags / check against criteria in "tags"
+            tags_of_file = tags_from_json_file(f)
+            if isinstance(tags_of_file, dict):
+                set_name = tags_of_file["name"]
+                if datasets:
+                    dataset_item = CatalogItem(
+                        repository_name=self.name,
+                        object_name=set_name,  # type: ignore
+                        object_type="dataset",
+                        object_tags=tags_of_file,
+                        parent=tags_of_file.get("parent", ""),
+                        # children=tags.get("series"),
+                    )
+                    if dataset_item.has_tags(tags):
+                        result.append(dataset_item)
+                if series:
+                    for series_key, series_tags in tags_of_file["series"].items():
+                        series_item = CatalogItem(
                             repository_name=self.name,
                             object_name=series_key,
                             object_type="series",
                             object_tags=series_tags,  # type: ignore
                             parent=set_name,
                         )
-                    )
+                        if series_item.has_tags(tags):
+                            result.append(series_item)
             else:
                 raise TypeError(
-                    f"Expected tags to be returned as a single dictionary. Got {type(tags)}."
+                    f"Expected tags from json file to be returned as a single dictionary. For file {f} we got {type(tags_of_file)}."
                 )
-            if not result:
-                ts_logger.debug(f"Could not read: {f=}\n{tags=}")
-        if not result:
-            ts_logger.debug(f"Failed to read: {jsonfiles=}")
 
-        return result
-
-    def count(self, object_type: str = "", *args, **kwargs) -> int:
-        # inherit docs from protocol class.
-        # Return number of datasets (default) or series (not yet implemented), or both (to be default).
-        sets = self.datasets()
-        series = self.series()
-        match object_type.lower():
-            case "set" | "dataset" | "sets" | "datasets":
-                result = len(sets)
-            case "series":
-                result = len(series)
-            case _:
-                result = len(sets) + len(series)
-                # raise NotImplementedError(f"Count is not supported for {object_type=}.")
-        return result
-
-    def __dict__(self):
-        """Return one big aggregated dictionary for the entire repository."""
-        result = {self.name: {"directory": self.directory, "datasets": {}}}
-        jsonfiles = find_metadata_files(repository=self.directory)
-        ...
-
-    def all(self) -> list[CatalogItem]:
-        """Return all items"""
-        result: list[CatalogItem] = []
-        jsonfiles = find_metadata_files(repository=self.directory)
-        for f in jsonfiles:
-            tags = tags_from_json_file(f)  # type: ignore
-            if isinstance(tags, dict):
-                set_name = tags["name"]
-                result.append(
-                    CatalogItem(
-                        repository_name=self.name,
-                        object_name=set_name,  # type: ignore
-                        object_type="dataset",
-                        object_tags=tags,
-                        parent=tags.get("parent", ""),
-                        # children=tags.get("series"),
-                    )
-                )
-            else:
-                raise TypeError(
-                    f"Expected tags to be returned as a single dictionary. Got {type(tags)}."
-                )
-            if not result:
-                ts_logger.debug(f"Could not read: {f=}\n{tags=}")
-        if not result:
-            ts_logger.debug(f"Failed to read: {jsonfiles=}")
         return result
 
     def __repr__(self) -> str:
@@ -336,7 +375,7 @@ class Repository(_CatalogProtocol):
         return f"Repository(name='{self.name}',directory='{self.directory}')"
 
     def query(self, queryname: str, **kwargs: TagValue) -> Any:
-        """Helper function to make prepared statement queries using .sql files."""
+        """Helper function to make prepared statement queries using duckdb and .sql files."""
         return execute_prepared_sql(
             connection=self.connection, queryname=queryname, **kwargs
         )

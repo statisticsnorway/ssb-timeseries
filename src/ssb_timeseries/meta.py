@@ -10,6 +10,7 @@ from typing import TypeAlias
 from typing import no_type_check
 
 import bigtree
+import bigtree.node
 import pandas as pd
 from bigtree import get_tree_diff
 from bigtree import print_tree
@@ -143,18 +144,24 @@ class Taxonomy:
 
         return trees_equal and entities_equal
 
-    def __minus__(self, other: bigtree.Node | Self) -> bigtree.Node:  # type: ignore
+    def __sub__(self, other: bigtree.Node) -> bigtree.Node:  # type: ignore
         """Return the tree difference between the two taxonomy (tree) structures."""
+        ts_logger.debug(f"other: {other}")
         if isinstance(other, bigtree.Node):
-            return get_tree_diff(self.structure.root, other.root)
-        else:
-            return get_tree_diff(self.structure.root, other.structure.root)
+            remove = self.subtree(other.name)
+            self.structure.show()
+            remove.show()
+            return self.structure[other.root.name].__delitem__()
+            return self.structure
+            if remove == other:
+                delete_from_node = bigtree.find_name(self.structure.root, other.name)
+                return self.structure - delete_from_node
 
     def __getitem__(self, key: str) -> bigtree.Node:  # type: ignore
         """Get tree node by name (KLASS code)."""
         return bigtree.find_name(self.structure.root, key)
 
-    def subtree(self, key: str) -> bigtree.tree:  # type: ignore
+    def subtree(self, key: str) -> bigtree.node:  # type: ignore
         """Get subtree of node identified by name (KLASS code)."""
         the_node = bigtree.find_name(self.structure, key)
         return bigtree.get_subtree(the_node)
