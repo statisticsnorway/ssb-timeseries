@@ -21,6 +21,7 @@ LOGFILE = "timeseries.log"
 DEFAULTS = {
     "configuration_file": os.path.join(HOME, "timeseries_config.json"),
     "timeseries_root": os.path.join(HOME, "series_data"),
+    "catalog": os.path.join(HOME, "series_data", "metadata"),
     "log_file": os.path.join(HOME, "logs", LOGFILE),
     "bucket": HOME,
 }
@@ -33,6 +34,7 @@ class Config:
 
     configuration_file: str = CONFIGURATION_FILE
     timeseries_root: str = DEFAULTS["timeseries_root"]
+    catalog: str = DEFAULTS["catalog"]
     log_file: str = DEFAULTS["log_file"]
     bucket: str = DEFAULTS["bucket"]
 
@@ -60,7 +62,7 @@ class Config:
         Args:
             path (PathStr): Full path of the JSON file to save to. Defaults to the value of the environment variable TIMESERIES_CONFIG.
         """
-        fs.write_json(content=self.to_json(), path=path)
+        fs.write_json(content=self.to_json(), path=str(path))
         if not fs.exists(self.log_file):
             fs.touch(self.log_file)
         if HOME == JOVYAN:
@@ -81,6 +83,7 @@ class Config:
                 configuration_file=str(path),
                 bucket=json_file.get("bucket"),
                 timeseries_root=json_file.get("timeseries_root"),
+                catalog=json_file.get("catalog"),
                 product=json_file.get("product"),
                 log_file=json_file.get("log_file"),
             )
@@ -129,18 +132,21 @@ def main(*args: str | PathStr) -> None:
         case "home":
             identifier_is_named_option = True
             bucket = HOME
-            timeseries_root = fs.path(HOME, "series_data")
+            timeseries_root = path_str(HOME, "series_data")
+            catalog = path_str(HOME, "series_data", "metadata")
             log_file = DEFAULTS["log_file"]
         case "gcs":
             identifier_is_named_option = True
             bucket = GCS
-            timeseries_root = fs.path(GCS, "series_data")
-            log_file = fs.path(HOME, "logs", LOGFILE)
+            timeseries_root = path_str(GCS, "series_data")
+            catalog = path_str(HOME, "series_data", "metadata")
+            log_file = path_str(HOME, "logs", LOGFILE)
         case "jovyan":
             identifier_is_named_option = True
             bucket = JOVYAN
-            timeseries_root = fs.path(JOVYAN, "series_data")
-            log_file = fs.path(JOVYAN, "logs", LOGFILE)
+            timeseries_root = path_str(JOVYAN, "series_data")
+            catalog = path_str(HOME, "series_data", "metadata")
+            log_file = path_str(JOVYAN, "logs", LOGFILE)
         case _:
             identifier_is_named_option = False
             identifier_is_existing_file = fs.exists(config_identifier)
@@ -151,6 +157,7 @@ def main(*args: str | PathStr) -> None:
             configuration_file=CONFIGURATION_FILE,
             bucket=bucket,
             timeseries_root=timeseries_root,
+            catalog=catalog,
             log_file=log_file,
         )
     elif identifier_is_existing_file:
@@ -163,6 +170,11 @@ def main(*args: str | PathStr) -> None:
     cfg.save(CONFIGURATION_FILE)
     print(cfg)
     print(os.getenv("TIMESERIES_CONFIG"))
+
+
+def path_str(*args: str) -> str:
+    """Concatenate paths as string: str(Path(...))."""
+    return str(Path(*args))
 
 
 if __name__ == "__main__":

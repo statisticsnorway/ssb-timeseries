@@ -1,9 +1,8 @@
-# mypy: disable-error-code="assignment,attr-defined,union-attr,dict-item,arg-type,call-overload,no-untyped-call"
-# ruff: noqa: RUF013
 import re
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
+from typing import Protocol
 from typing import no_type_check
 
 import matplotlib.pyplot as plt  # noqa: F401
@@ -20,6 +19,21 @@ from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
 from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
+
+# mypy: disable-error-code="assignment,attr-defined,union-attr,arg-type,call-overload,no-untyped-call,dict-item"
+# ruff: noqa: RUF013
+
+
+class IO(Protocol):
+    """Interface for IO operations."""
+
+    def save(self) -> None:
+        """Save the dataset."""
+        ...
+
+    def snapshot(self) -> None:
+        """Save a snapshot of the dataset."""
+        ...
 
 
 class Dataset:
@@ -68,25 +82,33 @@ class Dataset:
                 raise ValueError(
                     f"Dataset {name} did not give a unique match. Specify data_type if you intend to initialise a new set."
                 )
-
-        if self.data_type.versioning == properties.Versioning.AS_OF and not as_of_tz:
-            # return latest if no as_of_tz is provided
+        identify_latest: bool = (
+            self.data_type.versioning == properties.Versioning.AS_OF
+            and not as_of_tz
+            and load_data
+        )
+        if identify_latest:
+            ts_logger.debug(
+                f"Init {self.data_type} '{self.name}' without 'as_of_tz' --> identifying latest."
+            )
             self.io = io.FileSystem(
                 set_name=self.name, set_type=self.data_type, as_of_utc=None
             )
             lookup_as_of = self.versions()[-1]
             if isinstance(lookup_as_of, datetime):
                 as_of_tz = lookup_as_of
-        self.as_of_utc = date_utc(as_of_tz)
+            self.as_of_utc = date_utc(as_of_tz)
+        else:
+            self.as_of_utc = date_utc(as_of_tz)
 
-        self.io = io.FileSystem(
+        self.io: IO = io.FileSystem(  # type: ignore[no-redef]
             set_name=self.name,
             set_type=self.data_type,
             as_of_utc=self.as_of_utc,
         )
 
         # If data is provided by kwarg, use it.
-        # Otherwise, load it unless told not to.
+        # Otherwise, load it ... unless explicitly told not to.
         kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
         if not kwarg_data.empty:
             self.data = kwarg_data
@@ -99,15 +121,20 @@ class Dataset:
         self.tags.update(self.io.read_metadata())
         self.tag_dataset(tags=kwargs.get("dataset_tags", {}))
 
-        # autotag:
-        if not self.data.empty:
-            self.tag_series(tags=kwargs.get("series_tags", {}))
-            self.series_names_to_tags(
-                attributes=kwargs.get("name_pattern", ""),
-                separator=kwargs.get("separator", "_"),
-            )
+        # all of the following should be turned into tags - or find another way into the parquet files?
 
-        # would it be a good idea to turn these into tags?
+        # autotag:
+        self.auto_tag_config = {
+            "name_pattern": kwargs.get("name_pattern", ""),
+            "separator": kwargs.get("separator", "_"),
+            "regex": kwargs.get("regex", ""),
+            "apply_to_all": kwargs.get("series_tags", {}),
+        }
+        if not self.data.empty:
+            self.tag_series(tags=self.auto_tag_config["apply_to_all"])
+            self.series_names_to_tags()
+
+        # "owner" / sharing / access
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
         self.sharing: dict[str, str] = kwargs.get("sharing", {})
@@ -148,9 +175,16 @@ class Dataset:
         self.io = io.FileSystem(self.name, self.data_type, self.as_of_utc)
         # ts_logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")
         if not self.tags:
-            ts_logger.debug(
-                f"DATASET {self.name}: attempt to save empty tags = {self.tags}."
-            )
+            self.tags = self.default_tags()
+            self.tags.update(self.io.read_metadata())
+
+            # autotag:
+            if not self.data.empty:
+                self.series_names_to_tags()
+                ts_logger.debug(
+                    f"DATASET {self.name}: attempt to save empty tags = {self.tags}."
+                )
+
         self.io.save(meta=self.tags, data=self.data)
 
     def snapshot(self, as_of_tz: datetime = None) -> None:
@@ -206,10 +240,13 @@ class Dataset:
     @property
     def series(self) -> list[str]:
         """Get series names."""
-        if self.__getattribute__("data") is None:
-            return []
+        if (
+            self.__getattribute__("data") is None
+            and self.__getattribute__("tags") is None
+        ):
+            return sorted(self.series_tags.keys())
         else:
-            return self.numeric_columns()
+            return sorted(self.numeric_columns())
 
     @property
     def series_tags(self) -> meta.SeriesTagDict:
@@ -308,7 +345,7 @@ class Dataset:
             self.tags["series"][ident].update({**inherit_from_set_tags, **tags})
 
         if name_pattern:
-            self.series_names_to_tags(attributes=name_pattern, separator=separator)
+            self.series_names_to_tags()
 
     def detag_dataset(
         self,
@@ -348,9 +385,9 @@ class Dataset:
     @no_type_check
     def series_names_to_tags(
         self,
-        attributes: list[str] | None = None,
-        separator: str = "_",
-        regex: str = "",
+        # attributes: list[str] | None = None,
+        # separator: str = "",
+        # regex: str = "",
     ) -> None:
         """Tag all series in the dataset based on a series 'attributes', ie a list of attributes matching positions in the series names when split on 'separator'.
 
@@ -374,11 +411,30 @@ class Dataset:
 
             In this case, a separator will not do the trick. Note that the regex have the same number of groups as the attribute list.
         """
-        for series_key in self.series:
-            self.tags["series"].get(series_key, {}).update(
-                meta.inherit_set_tags(self.tags)
-            )
+        # if attributes is None:
+        #     attributes = []
 
+        # if attributes:
+        #     self.auto_tag_config["name_pattern"] = attributes
+        # else:
+        #    attributes = self.auto_tag_config["name_pattern"]
+        apply_all = self.auto_tag_config.get("apply_to_all", {})
+        inherited = meta.inherit_set_tags(self.tags)
+        # self.tag_series({**inherited, **apply_all})
+
+        # if separator:
+        #     self.auto_tag_config["separator"] = separator
+        # else:
+        #    separator = self.auto_tag_config["separator"]
+
+        for series_key in self.series:
+            self.tags["series"].get(series_key, {}).update(inherited)
+            if apply_all:
+                self.tags["series"].get(series_key, {}).update(apply_all)
+
+        attributes = self.auto_tag_config["name_pattern"]
+        separator = self.auto_tag_config["separator"]
+        regex = self.auto_tag_config["regex"]
         if attributes:
             for series_key in self.tags["series"].keys():
                 if regex:
@@ -1033,6 +1089,25 @@ def search(
     pattern: str = "*", as_of_tz: datetime = None
 ) -> list[io.SearchResult] | Dataset | list[None]:
     """Search for datasets by name matching pattern."""
+    found = io.find_datasets(pattern=pattern)
+    ts_logger.debug(f"DATASET.search returned:\n{found} ")
+
+    if len(found) == 1:
+        return Dataset(
+            name=found[0].name,
+            data_type=properties.seriestype_from_str(found[0].type_directory),
+            as_of_tz=as_of_tz,
+        )
+    else:
+        return found
+
+
+def catalog_search(
+    pattern: meta.TagDict,
+    as_of_tz: datetime = None,
+    object_type: str | list[str] = "dataset",
+) -> list[io.SearchResult] | Dataset | list[None]:
+    """Search across datasets by tags pattern."""
     found = io.find_datasets(pattern=pattern)
     ts_logger.debug(f"DATASET.search returned:\n{found} ")
 

@@ -1,6 +1,8 @@
 import logging
 import uuid
 
+import pytest
+
 from ssb_timeseries import config
 from ssb_timeseries import fs
 from ssb_timeseries.logging import ts_logger
@@ -12,8 +14,16 @@ CONFIGURATION_FILE = config.CONFIGURATION_FILE
 DEFAULT_TS_ROOT = config.DEFAULTS["timeseries_root"]
 
 
-def test_env_var_specifying_config_file_path(reset_config_after) -> None:
+@pytest.fixture(scope="function", autouse=True)
+def reset_config_after():
+    cfg_file = config.CONFIGURATION_FILE
+    remembered_config = config.Config(cfg_file)
+    config.CONFIG = remembered_config
+    yield config.CONFIG
+    remembered_config.save(cfg_file)
 
+
+def test_env_var_specifying_config_file_path(reset_config_after) -> None:
     # neither approach works during tests?
     # env_attempt_1 = os.getenv("TIMESERIES_CONFIG", "")
     # if env_attempt_1:
@@ -58,7 +68,6 @@ def test_init_config_timeseries_in_shared_bucket_logs_in_jovyan_home(caplog) -> 
 
 
 def test_config_defaults(reset_config_after) -> None:
-
     default_config_file = config.DEFAULTS["configuration_file"]
     # all of these should result in the same information, but in different objects
     cfg_0 = config.Config()
@@ -75,7 +84,6 @@ def test_config_defaults(reset_config_after) -> None:
 
 
 def test_config_change(reset_config_after) -> None:
-
     old = config.CONFIG
     if old.timeseries_root == config.JOVYAN:
         old.timeseries_root = config.GCS
@@ -89,7 +97,6 @@ def test_config_change(reset_config_after) -> None:
 
 
 def test_read_config_from_file() -> None:
-
     if fs.exists(CONFIGURATION_FILE):
         ts_logger.debug(
             f"Environment variable TIMESERIES_CONFIG was found: {CONFIGURATION_FILE}"

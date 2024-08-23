@@ -1,5 +1,6 @@
 import logging
 
+from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.sample_data import create_df
 
 # mypy: ignore-errors
@@ -59,6 +60,46 @@ def test_create_df() -> None:
     )
     assert df.size == 35
     # TO DO: update assert to check range of data
+
+
+def test_create_dataset_with_correct_data_size() -> None:
+    tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x", "y", "z"]}
+    tag_values = [value for value in tags.values()]
+    x = create_df(
+        *tag_values,
+        start_date="2022-01-01",
+        end_date="2022-10-03",
+        freq="MS",
+    )
+    assert x.size == 280
+
+
+def test_create_df_twice_returns_different_data(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    x = create_df(
+        ["a", "b"],
+        "Q",
+        ["x", "y", "z"],
+        start_date="2022-01-01",
+        end_date="2022-01-05",
+        freq="D",
+        separator="___",
+        midpoint=50,
+        variance=5,
+    )
+    y = create_df(
+        ["a", "b"],
+        "Q",
+        ["x", "y", "z"],
+        start_date="2022-01-01",
+        end_date="2022-01-05",
+        freq="D",
+        separator="___",
+        midpoint=50,
+        variance=5,
+    )
+    ts_logger.debug(f"{x=}, \n{y=}")
+    assert any(x != y)
 
 
 # test parameters

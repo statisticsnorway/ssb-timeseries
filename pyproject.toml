@@ -25,6 +25,7 @@ python-dateutil = ">=2.9.0.post0"
 numpy = ">=1.26.4"
 matplotlib = "^3.8.4"
 duckdb = "^1.0.0"
+polars = "^1.5.0"
 
 [tool.poetry.group.dev.dependencies]
 pygments = ">=2.10.0"

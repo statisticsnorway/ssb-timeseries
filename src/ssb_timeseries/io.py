@@ -1,9 +1,16 @@
+import json
 import os
 import re
+from copy import deepcopy
 from datetime import datetime
+from typing import Any
 from typing import NamedTuple
+from typing import TypeAlias
 
 import pandas
+import polars
+import pyarrow
+import pyarrow.compute
 
 from ssb_timeseries import fs
 from ssb_timeseries import properties
@@ -12,6 +19,8 @@ from ssb_timeseries.dates import Interval
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.logging import ts_logger
+from ssb_timeseries.meta import DatasetTagDict
+from ssb_timeseries.meta import TagDict
 from ssb_timeseries.types import PathStr
 
 """The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
@@ -35,6 +44,9 @@ See `config` module docs for details.
 # import contextlib
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
+# ruff: noqa: D202
+
+Data: TypeAlias = pyarrow.Table | pandas.DataFrame | polars.DataFrame
 
 
 def version_from_file_name(
@@ -92,11 +104,12 @@ class FileSystem:
         self.process_stage = process_stage
         self.sharing = sharing
 
-        if as_of_utc is None:
-            ...
-            # exception if type is AS_OF?
-        else:
-            self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
+        # consider:
+        # if as_of_utc is None:
+        #     ...
+        #     # exception if type is AS_OF?
+        # else:
+        self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
 
     @property
     def root(self) -> str:
@@ -151,7 +164,8 @@ class FileSystem:
 
         In the inital implementation with data and metadata in separate files it made sense for this to be the same as the data directory. However, Most likely, in a future version we will change this apporach and store metadata as header information in the data file, and the same information in a central meta data directory.
         """
-        return os.path.join(self.type_path, self.set_name)
+        return CONFIG.catalog
+        # replaces: return os.path.join(self.type_path, self.set_name)
 
     @property
     def metadata_fullpath(self) -> str:
@@ -181,7 +195,7 @@ class FileSystem:
             df = pandas.DataFrame()
         return df
 
-    def write_data(self, new: pandas.DataFrame) -> None:
+    def write_data(self, new: pandas.DataFrame, tags: dict | None = None) -> None:
         """Write data to the filesystem. If versioning is AS_OF, write to new file. If versioning is NONE, write to existing file."""
         if self.data_type.versioning == properties.Versioning.AS_OF:
             df = new
@@ -190,22 +204,33 @@ class FileSystem:
             if old.empty:
                 df = new
             else:
-                date_cols = list(
-                    set(new.columns)
-                    & set(old.columns)
-                    & {"valid_at", "valid_from", "valid_to"}
-                )
-                df = pandas.concat(
-                    [old, new],
-                    axis=0,
-                    ignore_index=True,
-                ).drop_duplicates(date_cols, keep="last")
+                df = merge_data(old, new, self.data_type.temporality.date_columns)
 
         ts_logger.info(
             f"DATASET.write.start {self.set_name}: writing data to file\n\t{self.data_fullpath}\nstarted."
         )
         try:
-            fs.pandas_write_parquet(df, self.data_fullpath)
+            if tags:
+                schema = self.parquet_schema(tags)
+            else:
+                raise ValueError("Tags can not be empty.")
+            #     schema = self.parquet_schema_from_df(df)
+
+            # test logs show test-merge- has many NANs in oldest data
+            if schema:
+                ts_logger.debug(f"Pyarrow schema defined: \n{schema=}\n{df=}.")
+                fs.write_parquet(
+                    data=df,
+                    path=self.data_fullpath,
+                    schema=schema,
+                    # existing_data_behavior="overwrite_or_ignore",
+                )
+
+            else:
+                ts_logger.warning(
+                    f"Arrow schema not defined: {self.set_name}.\nFalling back to writing with Pandas."
+                )
+                fs.pandas_write_parquet(df, self.data_fullpath)
         except Exception as e:
             ts_logger.exception(
                 f"DATASET.write.error {self.set_name}: writing data to file\n\t{self.data_fullpath}\nreturned exception: {e}."
@@ -237,6 +262,18 @@ class FileSystem:
                 f"DATASET {self.set_name}: Writing metadata to file {self.metadata_fullpath} returned exception {e}."
             )
 
+    def parquet_schema(
+        self,
+        meta: dict[str, Any],
+    ) -> pyarrow.Schema | None:
+        """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
+        return parquet_schema(self.data_type, meta)
+
+    def parquet_schema_from_df(self, df: pandas.DataFrame) -> pyarrow.Schema | None:
+        """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
+        schema = pyarrow.schema(df.columns, metadata=df.dtypes.to_dict())
+        return schema
+
     def datafile_exists(self) -> bool:
         """Check if the data file exists."""
         return fs.exists(self.data_fullpath)
@@ -255,7 +292,7 @@ class FileSystem:
             )
 
         if not data.empty:
-            self.write_data(data)
+            self.write_data(data, tags=meta)
         else:
             ts_logger.warning(
                 f"DATASET {self.set_name}: Data is empty. Nothing to write."
@@ -443,6 +480,89 @@ class FileSystem:
 
 def find_datasets(
     pattern: str | PathStr = "",  # as_of: datetime | None = None
+    exclude: str = "metadata",
+) -> list[SearchResult]:
+    """Search for files in under timeseries root."""
+    if pattern:
+        pattern = f"*{pattern}*"
+    else:
+        pattern = "*"
+
+    dirs = fs.find(CONFIG.timeseries_root, pattern, full_path=True)
+    if exclude:
+        dirs = [d for d in dirs if exclude not in d]
+        ts_logger.debug(
+            f"DATASET.IO.find_datasets: exclude '{exclude}' eliminated:\n{[d for d in dirs if exclude in d]}"
+        )
+    search_results = [
+        d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
+    ]
+    ts_logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
+
+    return [SearchResult(f[2], f[1]) for f in search_results]
+
+
+def find_metadata_files(
+    repository: list[PathStr] | PathStr | None = None,
+    pattern: str = "",
+    contains: str = "",  # as_of: datetime | None = None
+    equals: str = "",
+) -> list[str]:
+    """Search for metadata json files in the 'catalog' directory.
+
+    Only one of the arguments 'contains' or 'equals' can be provided at the same time. If none is provided, all files are returned.
+    """
+    ts_logger.debug(f"find_metadata_files in repo(s) {repository}.")
+    if contains:
+        pattern = f"*{contains}*"
+    elif equals:
+        pattern = equals
+    elif not pattern:
+        pattern = "*"
+
+    def find_in_repo(repo: str) -> list[str]:
+        return fs.find(
+            search_path=repo,
+            pattern=pattern,
+            full_path=True,
+            search_sub_dirs=False,
+        )
+
+    if not repository:
+        ts_logger.debug(f"find_metadata_files in default repo:\n{repository}.")
+        result = find_in_repo(CONFIG)
+    elif isinstance(repository, str):
+        ts_logger.debug(f"find_metadata_files in repo by str:\n{repository}.")
+        result = find_in_repo(repository)
+    elif isinstance(repository, "Path"):  # type: ignore
+        ts_logger.debug(f"find_metadata_files in repo by Path:\n{repository}.")
+        result = find_in_repo(repository)
+    elif isinstance(repository, list):
+        ts_logger.debug(f"find_metadata_files in multiple repos:\n{repository=}")
+        result = []
+        for r in repository:
+            result.append(find_in_repo(r))
+    else:
+        raise TypeError("Invalid repository type.")
+
+    return result
+
+
+def list_datasets(
+    # pattern: str | PathStr = "",  # as_of: datetime | None = None
+) -> list[SearchResult]:
+    """List all datasets under timeseries root."""
+    return find_datasets(pattern="")
+
+
+class DatasetIoException(Exception):
+    """Exception for dataset io errors."""
+
+    pass
+
+
+def for_all_datasets_move_metadata_files(
+    pattern: str | PathStr = "",  # as_of: datetime | None = None
 ) -> list[SearchResult]:
     """Search for files in under timeseries root."""
     if pattern:
@@ -459,7 +579,109 @@ def find_datasets(
     return [SearchResult(f[2], f[1]) for f in search_results]
 
 
-class DatasetIoException(Exception):
-    """Exception for dataset io errors."""
+def merge_data(old: Data, new: Data, date_cols: set[str]) -> Data:
+    """Merge new data into old data."""
 
-    pass
+    if isinstance(new, pandas.DataFrame) and isinstance(old, pandas.DataFrame):
+        df = pandas.concat(
+            [old, new],
+            axis=0,
+            ignore_index=True,
+        ).drop_duplicates(list(date_cols), keep="last")
+
+    elif isinstance(new, pyarrow.Table) and isinstance(old, pyarrow.Table):
+        sort_order = [(d, "ascending") for d in date_cols]
+        arrow_table = pyarrow.concat_tables([old, new]).sort_by(sort_order)
+        polars_df = polars.from_arrow(arrow_table).unique(date_cols, keep="last")  # type: ignore [call-arg,misc]
+        df = polars_df.to_arrow().sort_by(sort_order)
+
+    elif isinstance(new, polars.DataFrame) and isinstance(old, polars.DataFrame):
+        df = polars.concat([old, new]).unique(date_cols, keep="last").sort(date_cols)
+
+    return df
+
+
+def parquet_schema(
+    data_type: properties.SeriesType,
+    meta: dict[str, Any],
+) -> pyarrow.Schema | None:
+    """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
+
+    if not meta:
+        # return None
+        # better?
+        raise ValueError("Tags can not be empty.")
+
+    dataset_meta = deepcopy(meta)
+    series_meta = dataset_meta.pop("series")
+
+    if not series_meta:
+        return None
+
+    date_col_fields = [
+        pyarrow.field(
+            d,
+            "date64",
+            nullable=False,
+        )
+        for d in data_type.temporality.date_columns
+    ]
+
+    num_col_fields = [
+        pyarrow.field(
+            series_key,
+            "float64",
+            nullable=True,
+            metadata=tags_to_json(series_tags),
+        )
+        for series_key, series_tags in series_meta.items()
+    ]
+    num_col_fields.sort(key=lambda x: x.name)
+
+    schema = pyarrow.schema(
+        date_col_fields + num_col_fields,
+        metadata=tags_to_json(dataset_meta),
+    )
+    return schema
+
+
+def tags_to_json(x: TagDict) -> dict[str, str]:
+    """Turn tag dict into a dict where keys and values are coercible to bytes.
+
+    See: https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
+
+    The simple solution is to put it all into a single field: {json: <json-string>}
+    """
+    j = {"json": json.dumps(x).encode("utf8")}
+    return j
+
+
+def tags_from_json(
+    dict_with_json_string: dict,
+    byte_encoded: bool = True,
+) -> dict:
+    """Reverse 'tags_to_json()': return tag dict from dict that has been coerced to bytes.
+
+    Mutliple dict fields into a single field: {json: <json-string>}. May or may not have been byte encoded.
+    """
+    if byte_encoded:
+        return json.loads(dict_with_json_string[b"json"].decode())  # type: ignore [no-any-return]
+    else:
+        return json.loads(dict_with_json_string["json"])  # type: ignore [no-any-return]
+
+
+def tags_from_json_file(
+    file_or_files: PathStr | list[PathStr],
+) -> DatasetTagDict | list[DatasetTagDict]:
+    """Read one or more json files."""
+
+    if isinstance(file_or_files, list):
+        result = []
+        for f in file_or_files:
+            j = fs.read_json(f)
+            result.append(json.loads(j))
+        return result
+    else:
+        t = fs.read_json(file_or_files)
+        # t = json.loads(j)
+        return DatasetTagDict(t)
