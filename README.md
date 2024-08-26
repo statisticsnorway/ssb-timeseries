@@ -72,8 +72,8 @@ The dataset is a wrapper around an Arrow table (held in the .data attribute; acc
 
 - *Metadata calculations* uses the descriptions of the individual series for calculations ranging from simple things like unit conversions to using relations between entities in tag values to group series for aggregation.
 
- 
-The `io module` connects the dataset to helper class(es) that takes care of reading and writing data. This structure abstracts away the IO mechanics, so that the user do not need to know about implementation details, but only the _information model meaning_ of the choices made. Also, although the current implementation uses pyarrow and parquet data structures under the hood, by replacing the io-module, a database could be used instead. 
+
+The `io module` connects the dataset to helper class(es) that takes care of reading and writing data. This structure abstracts away the IO mechanics, so that the user do not need to know about implementation details, but only the _information model meaning_ of the choices made. Also, although the current implementation uses pyarrow and parquet data structures under the hood, by replacing the io-module, a database could be used instead.
 
 
 - Read and write for both versioned and unversioned data types.
