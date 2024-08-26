@@ -37,7 +37,7 @@ The data itself has a wide variety, but time resolution and publishing frequenci
 
 This libarary came out of a PoC to demonstrate how key functionality could be provided in alignment with architecture decisions and process model requirements.
 
-- At the core is storage with performant read and write, search and filtering
+- At the core is storage with performant read and write, search and filtering of the time series data
 - Good descriptive metadata is key to findability
 - A wide selection of math and statistics libraries is key for calculations and models
 - Visualisation tools play a role both in ad hoc and routine inspection and quality control
@@ -61,25 +61,31 @@ It is constructed to be an abstraction between the storage and automation layers
 With that disclaimer, feel free to explore and experiment, and do not be shy about asking questions or giving feedback.
 
 
-## Functionality overview
+## Functionality and structure overview
 
-The core of the library is the Dataset class. This is essentially a wrapper around a DataFrame (for now Pandas, later probably Polars) in the .data attribute.
+The core of the library is the `Dataset` class. Datasets consist of one or more series, but they should not be used for arbitrary groupings: Workflow integrations call for a stricter definition, where primary datasets consist of series of the same type originating from the same process. It is not a strict requirement that all series in a set are written at the same time, but it tends to simplify workflows a lot if they are.
 
-The .data attribute should comply to conventions implied by the underlying _information model_. These will start out as pure conventions and subject to evalutation. At a later stage they are likely to be enforced by Parquet schemas. Failing to obey them will cause some methods to fail.
+The dataset is a wrapper around an Arrow table (held in the .data attribute; accessible as a Dataframe). By requiring the .data attribute to comply with an underlying _information model_ it provides consistent storage, with descriptive metadata, search. Format restrictions enables calculation features:
+- Since each series is represented as a column vector in a dataset matrix, *linear algebra* is readily available. Datasets can be added, subtracted, multiplied and divided with each other and dataframes, matrices, vectors (untested) and scalars according to normal rules.
+- *Time algebra* features allow up- and downsamliong that make use of the date columns. Basic time aggregation:
+`Dataset.groupby(<frequency>, 'sum'|'mean'|'auto')`
 
-The Dataset.io attribute connects the dataset to a helper class that takes care of reading and writing data. This structure abstracts away the IO mechanics, so that the user do not need to know about the "physical" details, only the _information model meaning_ of the choices made.
+- *Metadata calculations* uses the descriptions of the individual series for calculations ranging from simple things like unit conversions to using relations between entities in tag values to group series for aggregation.
+
+ 
+The `io module` connects the dataset to helper class(es) that takes care of reading and writing data. This structure abstracts away the IO mechanics, so that the user do not need to know about implementation details, but only the _information model meaning_ of the choices made. Also, although the current implementation uses pyarrow and parquet data structures under the hood, by replacing the io-module, a database could be used instead. 
+
 
 - Read and write for both versioned and unversioned data types.
-- Search for sets by name, regex and (planned for later) metadata.
+- Search for sets by name, regex and metadata.
 - Basic filtering of sets (selecting series within a selected set).
-- Basic linear algebra: Datasets can be added, subtracted, multiplied and divided with each other and dataframes, matrices, vectors (untested) and scalars according to normal rules.
 - Basic plotting: Dataset.plot() as shorthand for Dataset.data.plot(<and sensible defaults>).
-- Basic time aggregation:
-  `Dataset.groupby(<frequency>, 'sum'|'mean'|'auto')`
 
 ## The information model
 
-### TLDR
+Data type implies mandatory date columns shared by all series in the dataset. Series are represented as columns. These start out as pure conventions and subject to evalutation. At a later stage they are likely to be enforced by Parquet schemas. Failing to obey them will cause some methods to fail.
+
+Both the datasets and the series in the set can be *tagged*ie associated with any number of key-value pairs. While the related features can benefit greatly from using controlled vocabularies or structured taxonomies, and some integrations with Statistics Norway meta data are built in, this is not a strict requirement.
 
 - **Types** are defined by
 - **Versioning** defines how updated versions of the truth are represented: NONE overwrites a single version, NAMED or AS_OF maintaines new "logical" versions identified by name or date.
@@ -93,7 +99,6 @@ The Dataset.io attribute connects the dataset to a helper class that takes care 
 - `<Series.name>` (.data column name) must be unique within the set.
 - Series names _should_ be related to (preferrably constructed from) codes or meta data in such a way that they can be mapped to "tags" via a format mask (and if needed a translation table).
 
-Yes, that _was_ the short version. The long version is still pending production.
 
 
 ### Internal documentation:
