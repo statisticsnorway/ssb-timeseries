@@ -84,7 +84,7 @@ class Config:
                 bucket=json_file.get("bucket"),
                 timeseries_root=json_file.get("timeseries_root"),
                 catalog=json_file.get("catalog"),
-                product=json_file.get("product"),
+                # product=json_file.get("product"),
                 log_file=json_file.get("log_file"),
             )
         else:
