@@ -16,6 +16,14 @@ ssb\_timeseries package
 =============================================================================
 
 
+ssb\_timeseries.catalog module
+------------------------------
+
+.. automodule:: ssb_timeseries.catalog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ssb\_timeseries.config module
 -----------------------------
 
@@ -92,14 +100,6 @@ ssb\_timeseries.sample\_metadata module
 ---------------------------------------
 
 .. automodule:: ssb_timeseries.sample_metadata
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ssb\_timeseries.setup module
-----------------------------
-
-.. automodule:: ssb_timeseries.setup
    :members:
    :undoc-members:
    :show-inheritance:
