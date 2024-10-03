@@ -67,3 +67,7 @@ autodoc_typehints = "description"
 
 # Do not prepend module names to object names
 add_module_names = False
+
+# Specific to SSB Timeseries -----------------------------------------------
+# Include special methods like __init__ and __call__ in the documentation
+napoleon_include_special_with_doc = True

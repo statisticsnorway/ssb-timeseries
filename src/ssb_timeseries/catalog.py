@@ -1,19 +1,32 @@
+"""A data catalog consists of the metadata for all the datasets and series (catalog items) of one or more configured timeseries repositories.
+
+The catalog module allows searching for datasets and series in the entire catalog or individual repositories by names, parts of names or tags.
+
+For the returned catalog items, names and descriptive metadate, plus the repository, object type and relationships to parent and child objects are provided. Information about lineage and data quality may be added later.
+
+Classes:
+    Catalog
+    CatalogItem
+    Repository
+    _CatalogProtocol
+    _FileRepositoryProtocol
+
+"""
+
 import importlib.resources as pkg_resources  # noqa: F401
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 from typing import Protocol
 
+# from . import sql
 import duckdb
 
-from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.io import find_metadata_files
 from ssb_timeseries.io import tags_from_json_file
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.meta import TagValue
 from ssb_timeseries.meta import matches_criteria
-
-# from . import sql
 
 # mypy: disable-error-code="no-untyped-def"
 # ruff: noqa:ANN002 ANN003 D102 D417
@@ -30,8 +43,16 @@ Search options:
 """
 
 
+class _DatasetProtocol(Protocol):
+    """Specifies the required methods of Datasets."""
+
+    def __init__(self, *args, **kwargs) -> None: ...
+
+    def filter(self, *args, **kwargs) -> Any: ...
+
+
 class ObjectType(Enum):
-    """ObjectType for data catalog items."""
+    """Supported object types for data catalog items."""
 
     DATASET = "dataset"
     SERIES = "series"
@@ -39,7 +60,16 @@ class ObjectType(Enum):
 
 @dataclass
 class CatalogItem:
-    """One item (set or series) in the data catalog."""
+    """One item (set or series) in the data catalog.
+
+    Attributes:
+        repository_name (str): Name of the repository that contains the object.
+        object_name (str): Name of the object.
+        object_type (str): Type of the object (dataset or series).
+        object_tags (dict[str, Any]): Tags of the object.
+        parent (Any): Parent of the object. Defaults to None.
+        children (set[Any] | list[Any] | None): List of children of the object. Defaults to None.
+    """
 
     repository_name: str
     object_name: str
@@ -65,12 +95,16 @@ class CatalogItem:
             other.object_name,
         )
 
-    def get(self) -> Dataset:
+    def get(self) -> Any:
         """Return the dataset."""
+        from ssb_timeseries.dataset import Dataset
+
         if self.object_type == "dataset":
             return Dataset(self.object_name)
         elif self.object_type == "series":
-            return Dataset(self.parent.object_name).filter(pattern=self.object_name)  # type: ignore[no-any-return]
+            return Dataset(self.parent.object_name).filter(
+                pattern=self.object_name
+            )  # ---type: ignore[no-any-return]
         else:
             raise TypeError(f"Can not retrieve object of type '{self.object_type}'.")
 
@@ -93,7 +127,23 @@ class CatalogItem:
 
 
 class _CatalogProtocol(Protocol):
-    """Defines required methods + docstrings for catalogs and repositories."""
+    """Defines the required methods for catalogs and repositories.
+
+    Catalogs consist of one or more repositories, hence performs the searches across all repositories and accumulates the results.
+
+    Methods:
+        series(
+            equals:str, contains:str, tags:TagDict | list[TagDict]
+        ) --> list[CatalogItem]
+
+        datasets(
+            equals:str, contains:str, tags:TagDict | list[TagDict]
+        ) --> list[CatalogItem]
+
+        count(
+            object_type:str, equals:str, contains:str, tags:TagDict | list[TagDict]
+        ) -> int
+    """
 
     def datasets(
         self,
@@ -175,7 +225,19 @@ class Catalog(_CatalogProtocol):
     """
 
     def __init__(self, config: list[_FileRepositoryProtocol]) -> None:
-        """Add all registers in config to catatalog object."""
+        """Add all registers in config to catatalog object.
+
+        Example:
+            >>> from ssb_timeseries.config import CONFIG
+            >>> some_directory = CONFIG.catalog
+
+            >>> repo1 = Repository(name="test_1", directory=some_directory)
+            >>> repo2 = Repository(name="test_2", directory=some_directory)
+            >>> catalog = Catalog([repo1, repo2])
+
+            >>> catalog_items = catalog.datasets('my_dataset')
+
+        """
         self.repository: list[Repository] = []
         for filerepo in config:
             # add register info: name, type, owner?
@@ -392,11 +454,17 @@ class Repository(_CatalogProtocol):
         """Return a machine readable string representation that can regenerate the repository object."""
         return f"Repository(name='{self.name}',directory='{self.directory}')"
 
-    def query(self, queryname: str, **kwargs: TagValue) -> Any:
+    def _query(self, queryname: str, **kwargs: TagValue) -> Any:
         """Helper function to make prepared statement queries using duckdb and .sql files."""
         return execute_prepared_sql(
             connection=self.connection, queryname=queryname, **kwargs
         )
+
+
+# A duckdb approach may be simpler and more efficient than reading all the json files and then filtering
+# In that case, it is probably a good idea to use helpers to:
+#      * put queries in .sql files so they can be edited with proper syntax highlighting, linting etc:
+#      * use prepared statements and pass parameters to the queries to get (depending on target) enhanced performance and security
 
 
 def read_sql_file(filename: str) -> str:
@@ -418,3 +486,19 @@ def execute_prepared_sql(connection: Any, queryname: str, **kwargs: Any) -> Any:
         return connection.execute(sql_query, kwargs).fetchall()
     else:
         return connection.execute(sql_query).fetchall()
+
+
+if __name__ == "__main__":
+    """Execute when called directly, ie not via import statements."""
+    # import xdoctest
+
+    from ssb_timeseries.config import Config
+    from ssb_timeseries.fs import exists
+
+    cfg = Config().configuration_file
+    if exists(cfg):
+        print(f"Configuration file found: {cfg}. What to do with it?")
+        # xdoctest.doctest_module(__file__)
+    else:
+        print("Configuration file not found. Skipping xdoctests.")
+        # ... name of script = sys.argv[0]; do something with arguments of the script: sys.argv[1:]?

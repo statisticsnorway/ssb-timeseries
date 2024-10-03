@@ -1,3 +1,5 @@
+"""The dataset module is the core of the ssb_timeseries package. It defines the Dataset class and helper functions."""
+
 import re
 from copy import deepcopy
 from datetime import datetime
@@ -39,7 +41,7 @@ class IO(Protocol):
 class Dataset:
     """Datasets are the core unit of analysis for workflow and data storage.
 
-    A dataset is a logical collection of data and metadata stemming from the same process origin. Series in a dataset must be
+    A dataset is a logical collection of data and metadata stemming from the same process origin. Series in a dataset must be of the same type.
     """
 
     def __init__(
@@ -277,6 +279,27 @@ class Dataset:
         Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
+
+        Examples:
+            **Dependencies**
+
+            >>> from ssb_timeseries.dataset import Dataset
+            >>> from ssb_timeseries.properties import SeriesType
+            >>> from ssb_timeseries.sample_data import create_df
+            >>>
+            >>> x = Dataset(name='sample_dataset',
+            >>>         data_type=SeriesType.simple(),
+            >>>         data=create_df(['x','y','z'],
+            >>>             start_date='2024-01-01',
+            >>>             end_date='2024-12-31',
+            >>>             freq='MS',)
+            >>> )
+            >>>
+            >>> x.tag_dataset(tags={'country': 'Norway', 'about': 'something_important'})
+            >>> x.tag_dataset(another_attribute='another_value')
+
+            Note that while no such restrictions are enforced, it is strongly recommended that both attribute names (``keys``) and ``values`` are standardised.
+            The best way to ensure that is to use taxonomies (for SSB: KLASS code lists). However, custom controlled vocabularies can also be maintained in files.
         """
         if not self.__getattribute__("tags"):
             # should not be possible, hence
@@ -301,7 +324,7 @@ class Dataset:
         tags: meta.TagDict = None,
         **kwargs: str | list[str],
     ) -> None:
-        """Tag the series.
+        """Tag the series identified by ``identifiers`` with provided tags.
 
         Tags may be provided as dictionary of tags, or as kwargs.
 
@@ -312,22 +335,24 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
 
+        If series names follow the same pattern of attribute values in the same order separated by the same character sequence, tags can be propagated accordingly by specifying ``name_pattern`` and ``separator`` parameters. The separator will default to underscore if not provided. Note that propagation by pattern will affect *all* series in the set, not only the ones identified by ``identifiers``.
+
         Examples:
             **Dependencies**
 
             >>> from ssb_timeseries.dataset import Dataset
             >>> from ssb_timeseries.properties import SeriesType
             >>> from ssb_timeseries.sample_data import create_df
+            >>>
+            >>> some_data = create_df(['x', 'y', 'z'], start_date='2024-01-01', end_date='2024-12-31', freq='MS')
 
             **Tag by kwargs**
 
-            >>> some_data = create_df(['x', 'y', 'z'], start_date='2024-01-01', end_date='2024-12-31', freq='MS')
             >>> x = Dataset(name='sample_set',data_type=SeriesType.simple(),data=some_data)
             >>> x.tag_series(example_1='string_1', example_2=['a', 'b', 'c'])
 
             **Tag by dict**
 
-            >>> some_data = create_df(['x', 'y', 'z'], start_date='2024-01-01', end_date='2024-12-31', freq='MS')
             >>> x = Dataset(name='sample_set',data_type=SeriesType.simple(),data=some_data)
             >>> x.tag_series(tags={'example_1': 'string_1', 'example_2': ['a', 'b', 'c']})
         """
@@ -346,8 +371,8 @@ class Dataset:
             }
             self.tags["series"][ident].update({**inherit_from_set_tags, **tags})
 
-        if name_pattern:
-            self.series_names_to_tags()
+        # if name_pattern:
+        #    self.series_names_to_tags(attributes=name_pattern, separator=separator)
 
     def detag_dataset(
         self,
