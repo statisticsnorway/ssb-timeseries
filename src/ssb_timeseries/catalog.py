@@ -1,16 +1,20 @@
-"""A data catalog consists of the metadata for all the datasets and series (catalog items) of one or more configured timeseries repositories.
+"""The catalog module provides a search in one or more time series repositories for entire datasets and individual series.
 
-The catalog module allows searching for datasets and series in the entire catalog or individual repositories by names, parts of names or tags.
+>>> from ssb_timeseries.catalog import CONFIG
 
-For the returned catalog items, names and descriptive metadate, plus the repository, object type and relationships to parent and child objects are provided. Information about lineage and data quality may be added later.
+For each `repository`, the metadata for all catalog items (datasets and series) is registered (ie: a copy is stored in a catalog directory).
+The `catalog` provides a single search interface by fanning out searches to all the repositories.
+
+Both the catalog and individual repostories can be searched by names, parts of names or tags. In either case, the returned catalog items, names and descriptive metadate, plus the repository, object type and relationships to parent and child objects are provided. Other information, like lineage and data quality metrics may be added later.
+
+------
 
 Classes:
-    Catalog
-    CatalogItem
-    Repository
-    _CatalogProtocol
-    _FileRepositoryProtocol
+ *   :py:class:`CatalogItem`
+ *   :py:class:`Catalog`
+ *   :py:class:`Repository`
 
+------
 """
 
 import importlib.resources as pkg_resources  # noqa: F401
@@ -60,30 +64,32 @@ class ObjectType(Enum):
 
 @dataclass
 class CatalogItem:
-    """One item (set or series) in the data catalog.
-
-    Attributes:
-        repository_name (str): Name of the repository that contains the object.
-        object_name (str): Name of the object.
-        object_type (str): Type of the object (dataset or series).
-        object_tags (dict[str, Any]): Tags of the object.
-        parent (Any): Parent of the object. Defaults to None.
-        children (set[Any] | list[Any] | None): List of children of the object. Defaults to None.
-    """
+    """A single item (set or series) in the data catalog."""
 
     repository_name: str
+    """The repository name that contains the object."""
+
     object_name: str
+    """The name of the object."""
+
     object_type: str
+    """The type of the object."""
+
     object_tags: dict[str, Any]
+    """The tags of the object."""
+
     parent: Any = None
+    """The parent of the object."""
+
     children: set[Any] | list[Any] | None = None
+    """The children of the object."""
 
     def __hash__(self) -> int:
         """Hash function must be provided to be able to make sets of catalog items.
 
-        This implementation requires that for each object_type there is only one item with any given object name.
+        This implementation requires that for each object_type there is only one item with any given object name in each repository.
         """
-        return hash(f"{self.repository_name}:{self.object_name}")
+        return hash(f"{self.repository_name}:{self.object_type}:{self.object_name}")
 
     def __eq__(self, other) -> bool:  # noqa: ANN001
         """Catalog items are considered equal if object type and object name are equal."""
@@ -140,9 +146,15 @@ class _CatalogProtocol(Protocol):
             equals:str, contains:str, tags:TagDict | list[TagDict]
         ) --> list[CatalogItem]
 
+        items(
+            equals:str, contains:str, tags:TagDict | list[TagDict]
+        ) --> list[CatalogItem]
+
         count(
             object_type:str, equals:str, contains:str, tags:TagDict | list[TagDict]
         ) -> int
+
+    :meta public:
     """
 
     def datasets(
@@ -169,7 +181,7 @@ class _CatalogProtocol(Protocol):
         contains: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
-        """Search all datasets in all repositories for series that match the criteria.
+        """Search in all datasets in all repositories for series that match the criteria.
 
         Args:
             equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
@@ -187,7 +199,7 @@ class _CatalogProtocol(Protocol):
         contains: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ) -> int:
-        """Search in all repositories for objects (sets or series) that match the criteria.
+        """Count items of specified object type that match the criteria.
 
         Args:
             object_type: 'dataset' or 'series'.
@@ -207,7 +219,15 @@ class _CatalogProtocol(Protocol):
         contains: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ):
-        """Aggregate all the information into a single dictionary."""
+        """Search in all repositories for items (either sets or series) that match the criteria.
+
+        Args:
+            object_type: 'dataset' or 'series'.
+            equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
+            contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
+            tags (dict): Filter the sets or series in the result set by the specified tags. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
+                | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
+        """
         ...
 
 
@@ -219,13 +239,12 @@ class _FileRepositoryProtocol(Protocol):
 
 
 class Catalog(_CatalogProtocol):
-    """A collection of entities in one or more physical data repositories.
-
-    The catalog will perform searches across all individual repositories.
-    """
+    """A data catalog collects metadata from one or more physical data repositories and performs searches across them."""
 
     def __init__(self, config: list[_FileRepositoryProtocol]) -> None:
-        """Add all registers in config to catatalog object.
+        """Add all repositories in the configuration to catalog object.
+
+        Repositories are essentially just named locations.
 
         Example:
             >>> from ssb_timeseries.config import CONFIG
@@ -233,10 +252,10 @@ class Catalog(_CatalogProtocol):
 
             >>> repo1 = Repository(name="test_1", directory=some_directory)
             >>> repo2 = Repository(name="test_2", directory=some_directory)
-            >>> catalog = Catalog([repo1, repo2])
+            >>> catalog = Catalog(config=[repo1, repo2])
 
-            >>> catalog_items = catalog.datasets('my_dataset')
-
+            >>> series_in_repo1 = repo1.series(contains='KOSTRA')
+            >>> sets_in_catalog = catalog.datasets()
         """
         self.repository: list[Repository] = []
         for filerepo in config:
@@ -253,7 +272,7 @@ class Catalog(_CatalogProtocol):
         self,
         **kwargs,
     ) -> list[CatalogItem]:
-        # Inherit detailed docs from porotocol.
+        # Inherit docs from protocol.
         # List all sets matching criteria.
         result: list[CatalogItem] = []
         for r in self.repository:
@@ -285,7 +304,7 @@ class Catalog(_CatalogProtocol):
         contains: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ) -> int:
-        # Inherit detailed docs from porotocol.
+        # Inherit docs from protocol.
         # Return number of datasets (default) or series (not yet implemented), or both (to be default).
         result: int = 0
         for r in self.repository:
@@ -456,7 +475,7 @@ class Repository(_CatalogProtocol):
 
     def _query(self, queryname: str, **kwargs: TagValue) -> Any:
         """Helper function to make prepared statement queries using duckdb and .sql files."""
-        return execute_prepared_sql(
+        return _execute_prepared_sql(
             connection=self.connection, queryname=queryname, **kwargs
         )
 
@@ -467,20 +486,20 @@ class Repository(_CatalogProtocol):
 #      * use prepared statements and pass parameters to the queries to get (depending on target) enhanced performance and security
 
 
-def read_sql_file(filename: str) -> str:
+def _read_sql_file(filename: str) -> str:
     """Read SQL statement from a .sql file."""
     raise NotImplementedError("pkg_resources.open_text ")
     # with pkg_resources.open_text(sql, filename) as file:
     #     return file.read()
 
 
-def execute_prepared_sql(connection: Any, queryname: str, **kwargs: Any) -> Any:
-    """Pass params to a named prepared statement."""
+def _execute_prepared_sql(connection: Any, queryname: str, **kwargs: Any) -> Any:
+    """Pass parameters to a named prepared statement."""
     if queryname.endswith(".sql"):
         filename = queryname
     else:
         filename = f"{queryname}.sql"
-    sql_query = read_sql_file(filename)
+    sql_query = _read_sql_file(filename)
 
     if kwargs:
         return connection.execute(sql_query, kwargs).fetchall()
@@ -488,8 +507,15 @@ def execute_prepared_sql(connection: Any, queryname: str, **kwargs: Any) -> Any:
         return connection.execute(sql_query).fetchall()
 
 
-if __name__ == "__main__":
-    """Execute when called directly, ie not via import statements."""
+def _xdoctest() -> None:
+    """Tests the code provided in doctstrings.
+
+    Provided as an experiment with simple self contained tests for the library that can be run after an import.
+
+    DISABLED.
+    """
+    # from nox import session
+    # or simply:
     # import xdoctest
 
     from ssb_timeseries.config import Config
@@ -502,3 +528,9 @@ if __name__ == "__main__":
     else:
         print("Configuration file not found. Skipping xdoctests.")
         # ... name of script = sys.argv[0]; do something with arguments of the script: sys.argv[1:]?
+
+
+if __name__ == "__main__":
+    """Execute when called directly, ie not via import statements."""
+    # run xdoctest
+    # _xdoctest()

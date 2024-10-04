@@ -11,9 +11,10 @@ end-before: <!-- github-only -->
 ```{toctree}
 ---
 hidden:
-maxdepth: 1
+maxdepth: 2
 ---
 
+Information Model <model>
 reference
 contributing
 Code of Conduct <codeofconduct>

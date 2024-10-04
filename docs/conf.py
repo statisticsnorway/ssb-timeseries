@@ -45,7 +45,7 @@ templates_path = []
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "monokai"
+pygments_style = "zenburn"
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -71,3 +71,5 @@ add_module_names = False
 # Specific to SSB Timeseries -----------------------------------------------
 # Include special methods like __init__ and __call__ in the documentation
 napoleon_include_special_with_doc = True
+# combine class and __init__ docstrings
+autoclass_content = "both"

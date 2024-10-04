@@ -1,4 +1,30 @@
-"""The dataset module is the core of the ssb_timeseries package. It defines the Dataset class and helper functions."""
+"""The dataset module is the core of the ssb_timeseries package.
+
+It is centered around the `Dataset` class that connects the actual timeseries data with the metadata for both the set and the series of the set, and core functionality:
+
+ * Read and write data and metadata
+ * Search and filtering
+ * Time algebra: downsampling and upsampling to other time resolutions
+ * Linear algebra operations with sets (matrices) and series (vectors)
+ * Metadata aware calculations, like unit conversions and aggregation over taxonomy hierarchies
+ * Metadata maintainance: tagging, detagging, retagging
+ * Basic plotting
+
+A set consist of any number of series of the same type. Series types are defined by versioning and temporality, see `properties.SeriesType`.
+
+::py:class:`properties.SeriesType`
+
+Although in day to day language, any organised
+not a strict requirement, it is also a good idea to make sure that the resolution of the series in the set match.
+
+.. seealso::
+    :py:meth:`ssb_timeseries.catalog.Catalog.datasets`
+
+.. note::
+    Note that the dataset ...
+
+.. toctree::
+"""
 
 import re
 from copy import deepcopy
@@ -422,15 +448,18 @@ class Dataset:
         Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
+        Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
 
-        Examples:
+        Example:
             **Dependencies**
 
             >>> from ssb_timeseries.dataset import Dataset
             >>> from ssb_timeseries.properties import SeriesType
             >>> from ssb_timeseries.sample_data import create_df
 
-            **Tag by name_pattern**
+            **Tag using name_pattern**
+
+            If all series names follow a uniform pattern where attribute values are separated by the same character sequence:
 
             >>> some_data = create_df(["x_a", "y_b", "z_c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS",)
             >>> x = Dataset(name="sample_set",
@@ -438,20 +467,28 @@ class Dataset:
             >>>     data=some_data)
             >>> x.series_names_to_tags(attributes=['XYZ', 'ABC'])
 
-            The intended use is to tag an already existing dataset. At creation time, it is more efficient to use the `name_pattern` attribute, like so:
-
-            >>> z = Dataset(name="sample_set",
-            >>>     data_type=SeriesType.simple(),
-            >>>     data=some_data,
-            >>>     name_pattern=['XYZ', 'ABC']) # xdoctest: +SKIP
-
             **Tag by regex**
+
+            If series names are less well formed, a regular expression with groups matching the attribute list can be provided instead of the separator parameter.
 
             >>> more_data = create_df(["x_1,,a", "y...b..", "z..1.1-23..c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
             >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=more_data,)
             >>> x.series_names_to_tags(attributes=['XYZ', 'ABC'], regex=r'([a-z])*([a-z])')
 
-            In this case, providing a separator does not make sense. The number of regex groups and attribute list elements must match.
+
+            The above approach may be used to add tags for an existing dataset, but the same arguments can also be provided when initialising the set:
+
+            >> # xdoctest: +SKIP
+            >>> this line is not valid python code
+            >>> z = Dataset(name="sample_set",
+            >>>     data_type=SeriesType.simple(),
+            >>>     data=some_data,
+            >>>     name_pattern=['XYZ', 'ABC'])
+            >>> # xdoctest: -SKIP
+
+            Best practice is to do this only in the process that writes data to the set. For a finite number of series, it does not need to be repeated.
+
+            If, on the other hand, the number of series can change over time, doing so at the time of writing ensures all series are tagged.
         """
         # if attributes is None:
         #     attributes = []
@@ -1026,7 +1063,7 @@ class Dataset:
         taxonomy: meta.Taxonomy | int | PathStr,
         functions: set[str | F] | list[str | F],
     ) -> Self:
-        """Aggregate dataset by taxonomy.
+        """Aggregate dataset by taxonomy hierarchy.
 
         Args:
             attribute: The attribute to aggregate by. TODO: support multiple attributes.
@@ -1036,10 +1073,11 @@ class Dataset:
         Returns:
             Self: A dataset object with the aggregated data.
             If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
-            If the taxonomy is a flat list, only a single 'total' aggregate series is calculated.
+            If the taxonomy is a flat list, only a single `total` aggregate series is calculated.
 
         Examples:
-            To calculate 10 and 90 percentiles and median for the dataset 'x' where codes from KLASS 157 ('energy_balance') distinguishes between series in the set.
+            To calculate 10 and 90 percentiles and median for the dataset `x` where codes from KLASS 157 (energy_balance) distinguishes between series in the set.
+
             >>> from ssb_timeseries.dataset import Dataset
             >>> from ssb_timeseries.properties import SeriesType
             >>> from ssb_timeseries.sample_data import create_df

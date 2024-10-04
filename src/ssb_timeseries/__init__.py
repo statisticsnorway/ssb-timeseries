@@ -3,6 +3,8 @@
 It provides storage and search functionality with meta data integrations.
 
 The approach is a dataset centric: the DATASET is the basis for storage and workflow integration, and basic linear algebra operations can be performed on datasets.
+
+.. toctree::
 """
 
 __all__ = [

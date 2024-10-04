@@ -1,3 +1,31 @@
+"""Configurations for the SSB timeseries library.
+
+An environment variable TIMESERIES_CONFIG is expected to point to a JSON file with configurations.
+If these exist, they will be loaded and put into a Config object CONFIG when the configuration module is loaded.
+
+In most cases, this will happen behind the scene when the core libraries are loaded.
+
+Using the configuration module should only be necessary in order to manipulate configurations from Python code.
+
+Example:
+    >>> # xdoctest. +SKIP
+    >>> from ssb_timeseries.config import CONFIG
+    >>> CONFIG.catalog('gs://some_bucket/timeseries_config.json')
+    >>> CONFIG.save()
+    >>> # xdoctest. -SKIP
+
+For switching between preset configurations, use the `timeseries-config` command::
+
+    poetry run timeseries-config <option>
+
+which is equivalent to::
+
+    python ./config.py <option>
+
+See :py:func:`ssb_timeseries.config.main` for details on the named options.
+
+"""
+
 import json
 import os
 import sys
