@@ -12,11 +12,7 @@ delete the .rst file afterwards.
 -->
 
 ```{eval-rst}
-ssb\_timeseries package
-=======================
 
-Submodules
-----------
 
 ssb\_timeseries.catalog module
 ------------------------------
@@ -114,11 +110,4 @@ ssb\_timeseries.types module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: ssb_timeseries
-   :members:
-   :undoc-members:
-   :show-inheritance:
 ```

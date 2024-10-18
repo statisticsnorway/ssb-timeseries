@@ -1,29 +1,24 @@
 """The dataset module is the core of the ssb_timeseries package.
 
-It is centered around the `Dataset` class that connects the actual timeseries data with the metadata for both the set and the series of the set, and core functionality:
+It is centered around the :py:class:`Dataset` class that connects the actual timeseries data with the metadata for both the set and the series of the set, and core functionality:
 
  * Read and write data and metadata
  * Search and filtering
  * Time algebra: downsampling and upsampling to other time resolutions
  * Linear algebra operations with sets (matrices) and series (vectors)
  * Metadata aware calculations, like unit conversions and aggregation over taxonomy hierarchies
- * Metadata maintainance: tagging, detagging, retagging
+ * Metadata maintenance: tagging, detagging, retagging
  * Basic plotting
 
-A set consist of any number of series of the same type. Series types are defined by versioning and temporality, see `properties.SeriesType`.
-
-::py:class:`properties.SeriesType`
+As described in the :doc:`info-model` time series datasets may consist of any number of series of the same ::py:class:`type <properties.SeriesType>`.
+Series types are defined by ::py:class:`properties.Versioning` and ::py:class:`properties.Temporality`, see `properties.SeriesType`.
 
 Although in day to day language, any organised
 not a strict requirement, it is also a good idea to make sure that the resolution of the series in the set match.
 
 .. seealso::
-    :py:meth:`ssb_timeseries.catalog.Catalog.datasets`
+    :py:meth:`ssb_timeseries.catalog` for *listing* or **searching** for datasets or series by names or metadata.
 
-.. note::
-    Note that the dataset ...
-
-.. toctree::
 """
 
 import re

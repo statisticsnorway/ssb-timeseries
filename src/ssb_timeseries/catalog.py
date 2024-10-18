@@ -1,6 +1,6 @@
 """The catalog module provides a search in one or more time series repositories for entire datasets and individual series.
 
->>> from ssb_timeseries.catalog import CONFIG
+>>> from ssb_timeseries.catalog import CONFIG # xdoctest: +SKIP
 
 For each `repository`, the metadata for all catalog items (datasets and series) is registered (ie: a copy is stored in a catalog directory).
 The `catalog` provides a single search interface by fanning out searches to all the repositories.

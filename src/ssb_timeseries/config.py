@@ -8,11 +8,11 @@ In most cases, this will happen behind the scene when the core libraries are loa
 Using the configuration module should only be necessary in order to manipulate configurations from Python code.
 
 Example:
-    >>> # xdoctest. +SKIP
+    >>> # xdoctest: +SKIP
     >>> from ssb_timeseries.config import CONFIG
     >>> CONFIG.catalog('gs://some_bucket/timeseries_config.json')
     >>> CONFIG.save()
-    >>> # xdoctest. -SKIP
+    >>> # xdoctest: -SKIP
 
 For switching between preset configurations, use the `timeseries-config` command::
 
@@ -126,6 +126,8 @@ class Config:
 
 
 CONFIG = Config(configuration_file=CONFIGURATION_FILE)
+"""A Config object."""
+
 CONFIG.save()
 
 

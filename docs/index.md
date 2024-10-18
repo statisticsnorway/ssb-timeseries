@@ -14,8 +14,10 @@ hidden:
 maxdepth: 2
 ---
 
-Information Model <model>
+structure
+Information Model <info-model.md>
 reference
+workflow
 contributing
 Code of Conduct <codeofconduct>
 License <license>
