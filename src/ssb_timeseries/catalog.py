@@ -222,8 +222,9 @@ class _CatalogProtocol(Protocol):
         """Search in all repositories for items (either sets or series) that match the criteria.
 
         Args:
-            object_type: 'dataset' or 'series'.
-            equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
+            datasets (bool): Search for 'datasets'.
+            series (bool):  Search for 'series'.
+            equals (str):   Search within datasets where names are equal to the argument. The default '' searches within all sets.
             contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
             tags (dict): Filter the sets or series in the result set by the specified tags. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
