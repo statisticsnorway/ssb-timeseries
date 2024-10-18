@@ -27,7 +27,7 @@
 
 ## Background
 
-Statistics Norway is the national statistics agency in Norway. We are building a new procuction system in the cloud and moving towards a modern architecture based on open source technologies.
+Statistics Norway is the national statistics agency in Norway. We are building a new production system in the cloud and moving towards a modern architecture based on open source technologies.
 
 **Time series** play a key role in the statistics production process.
 

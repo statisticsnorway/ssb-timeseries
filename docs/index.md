@@ -11,10 +11,13 @@ end-before: <!-- github-only -->
 ```{toctree}
 ---
 hidden:
-maxdepth: 1
+maxdepth: 2
 ---
 
+structure
+Information Model <info-model.md>
 reference
+workflow
 contributing
 Code of Conduct <codeofconduct>
 License <license>
