@@ -474,7 +474,7 @@ class Dataset:
             The above approach may be used to add tags for an existing dataset, but the same arguments can also be provided when initialising the set:
 
             >>> # xdoctest: +SKIP
-            >>> this line is not valid python code
+            >>> # this line is not valid python code
             >>> z = Dataset(name="sample_set",
             >>>     data_type=SeriesType.simple(),
             >>>     data=some_data,

@@ -78,4 +78,3 @@ autoclass_content = "both"
 
 # To fix "WARNING: local id not found in doc" "[myst.xref_missing]"
 myst_heading_anchors = 3
-
