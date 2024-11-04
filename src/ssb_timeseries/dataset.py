@@ -485,21 +485,21 @@ class Dataset:
 
             If, on the other hand, the number of series can change over time, doing so at the time of writing ensures all series are tagged.
         """
-        # if attributes is None:
-        #     attributes = []
+        if attributes is None:
+            attributes = []
 
-        # if attributes:
-        #     self.auto_tag_config["name_pattern"] = attributes
-        # else:
-        #    attributes = self.auto_tag_config["name_pattern"]
+        if attributes:
+            self.auto_tag_config["name_pattern"] = attributes
+        else:
+            attributes = self.auto_tag_config["name_pattern"]
         apply_all = self.auto_tag_config.get("apply_to_all", {})
         inherited = meta.inherit_set_tags(self.tags)
         # self.tag_series({**inherited, **apply_all})
 
-        # if separator:
-        #     self.auto_tag_config["separator"] = separator
-        # else:
-        #    separator = self.auto_tag_config["separator"]
+        if separator:
+            self.auto_tag_config["separator"] = separator
+        else:
+            separator = self.auto_tag_config["separator"]
 
         for series_key in self.series:
             self.tags["series"].get(series_key, {}).update(inherited)
