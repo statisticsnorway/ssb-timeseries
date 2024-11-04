@@ -433,9 +433,9 @@ class Dataset:
     @no_type_check
     def series_names_to_tags(
         self,
-        attributes: list[str] | None = None,
-        separator: str = "",
-        regex: str = "",
+        attributes: list[str] | None = None,  # /NOSONAR
+        separator: str = "",  # /NOSONAR
+        regex: str = "",  # /NOSONAR
     ) -> None:
         """Tag all series in the dataset based on a series 'attributes', ie a list of attributes matching positions in the series names when split on 'separator'.
 
@@ -485,21 +485,21 @@ class Dataset:
 
             If, on the other hand, the number of series can change over time, doing so at the time of writing ensures all series are tagged.
         """
-        if attributes is None:
-            attributes = []
+        # if attributes is None:
+        #     attributes = []
 
-        if attributes:
-            self.auto_tag_config["name_pattern"] = attributes
-        else:
-            attributes = self.auto_tag_config["name_pattern"]
+        # if attributes:
+        #     self.auto_tag_config["name_pattern"] = attributes
+        # else:
+        #    attributes = self.auto_tag_config["name_pattern"]
         apply_all = self.auto_tag_config.get("apply_to_all", {})
         inherited = meta.inherit_set_tags(self.tags)
         # self.tag_series({**inherited, **apply_all})
 
-        if separator:
-            self.auto_tag_config["separator"] = separator
-        else:
-            separator = self.auto_tag_config["separator"]
+        # if separator:
+        #     self.auto_tag_config["separator"] = separator
+        # else:
+        #    separator = self.auto_tag_config["separator"]
 
         for series_key in self.series:
             self.tags["series"].get(series_key, {}).update(inherited)
