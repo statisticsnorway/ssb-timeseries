@@ -1,3 +1,26 @@
+"""The dataset module is the core of the ssb_timeseries package.
+
+It is centered around the :py:class:`Dataset` class that connects the actual timeseries data with the metadata for both the set and the series of the set, and core functionality:
+
+ * Read and write data and metadata
+ * Search and filtering
+ * Time algebra: downsampling and upsampling to other time resolutions
+ * Linear algebra operations with sets (matrices) and series (vectors)
+ * Metadata aware calculations, like unit conversions and aggregation over taxonomy hierarchies
+ * Metadata maintenance: tagging, detagging, retagging
+ * Basic plotting
+
+As described in the :doc:`info-model` time series datasets may consist of any number of series of the same ::py:class:`type <properties.SeriesType>`.
+Series types are defined by ::py:class:`properties.Versioning` and ::py:class:`properties.Temporality`, see `properties.SeriesType`.
+
+Although in day to day language, any organised
+not a strict requirement, it is also a good idea to make sure that the resolution of the series in the set match.
+
+.. seealso::
+    :py:meth:`ssb_timeseries.catalog` for *listing* or **searching** for datasets or series by names or metadata.
+
+"""
+
 import re
 from copy import deepcopy
 from datetime import datetime
@@ -39,7 +62,7 @@ class IO(Protocol):
 class Dataset:
     """Datasets are the core unit of analysis for workflow and data storage.
 
-    A dataset is a logical collection of data and metadata stemming from the same process origin. Series in a dataset must be
+    A dataset is a logical collection of data and metadata stemming from the same process origin. Series in a dataset must be of the same type.
     """
 
     def __init__(
@@ -277,6 +300,27 @@ class Dataset:
         Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
+
+        Examples:
+            **Dependencies**
+
+            >>> from ssb_timeseries.dataset import Dataset
+            >>> from ssb_timeseries.properties import SeriesType
+            >>> from ssb_timeseries.sample_data import create_df
+            >>>
+            >>> x = Dataset(name='sample_dataset',
+            >>>         data_type=SeriesType.simple(),
+            >>>         data=create_df(['x','y','z'],
+            >>>             start_date='2024-01-01',
+            >>>             end_date='2024-12-31',
+            >>>             freq='MS',)
+            >>> )
+            >>>
+            >>> x.tag_dataset(tags={'country': 'Norway', 'about': 'something_important'})
+            >>> x.tag_dataset(another_attribute='another_value')
+
+            Note that while no such restrictions are enforced, it is strongly recommended that both attribute names (``keys``) and ``values`` are standardised.
+            The best way to ensure that is to use taxonomies (for SSB: KLASS code lists). However, custom controlled vocabularies can also be maintained in files.
         """
         if not self.__getattribute__("tags"):
             # should not be possible, hence
@@ -301,7 +345,7 @@ class Dataset:
         tags: meta.TagDict = None,
         **kwargs: str | list[str],
     ) -> None:
-        """Tag the series.
+        """Tag the series identified by ``identifiers`` with provided tags.
 
         Tags may be provided as dictionary of tags, or as kwargs.
 
@@ -312,22 +356,26 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
 
+        If series names follow the same pattern of attribute values in the same order separated by the same character sequence, tags can be propagated accordingly by specifying ``name_pattern`` and ``separator`` parameters. The separator will default to underscore if not provided. Note that propagation by pattern will affect *all* series in the set, not only the ones identified by ``identifiers``.
+
         Examples:
             **Dependencies**
+
             >>> from ssb_timeseries.dataset import Dataset
             >>> from ssb_timeseries.properties import SeriesType
+            >>> from ssb_timeseries.sample_data import create_df
+            >>>
+            >>> some_data = create_df(['x', 'y', 'z'], start_date='2024-01-01', end_date='2024-12-31', freq='MS')
 
             **Tag by kwargs**
 
-            >>> some_data = create_df(["x, "y", "z"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
-            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
-            >>> x.tag_series(example_1="string_1", example_2=["a", "b", "c"])
+            >>> x = Dataset(name='sample_set',data_type=SeriesType.simple(),data=some_data)
+            >>> x.tag_series(example_1='string_1', example_2=['a', 'b', 'c'])
 
             **Tag by dict**
 
-            >>> some_data = create_df(["x, "y", "z"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
-            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
-            >>> x.tag_series({'example_1': 'string_1', 'example_2': ['a', 'b', 'c'])
+            >>> x = Dataset(name='sample_set',data_type=SeriesType.simple(),data=some_data)
+            >>> x.tag_series(tags={'example_1': 'string_1', 'example_2': ['a', 'b', 'c']})
         """
         if not tags:
             tags = {}
@@ -344,8 +392,8 @@ class Dataset:
             }
             self.tags["series"][ident].update({**inherit_from_set_tags, **tags})
 
-        if name_pattern:
-            self.series_names_to_tags()
+        # if name_pattern:
+        #    self.series_names_to_tags(attributes=name_pattern, separator=separator)
 
     def detag_dataset(
         self,
@@ -385,9 +433,9 @@ class Dataset:
     @no_type_check
     def series_names_to_tags(
         self,
-        # attributes: list[str] | None = None,
-        # separator: str = "",
-        # regex: str = "",
+        attributes: list[str] | None = None,  # /NOSONAR
+        separator: str = "",  # /NOSONAR
+        regex: str = "",  # /NOSONAR
     ) -> None:
         """Tag all series in the dataset based on a series 'attributes', ie a list of attributes matching positions in the series names when split on 'separator'.
 
@@ -395,21 +443,47 @@ class Dataset:
         Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
+        Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
 
-        Examples:
-            **Tag by name_pattern**
+        Example:
+            **Dependencies**
 
-            >>> some_data = create_df(["x_a, "y_b", "z_c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
-            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
-            >>> x.series_names_to_tags(atttributes=['XYZ', 'ABC'])
+            >>> from ssb_timeseries.dataset import Dataset
+            >>> from ssb_timeseries.properties import SeriesType
+            >>> from ssb_timeseries.sample_data import create_df
+
+            **Tag using name_pattern**
+
+            If all series names follow a uniform pattern where attribute values are separated by the same character sequence:
+
+            >>> some_data = create_df(["x_a", "y_b", "z_c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS",)
+            >>> x = Dataset(name="sample_set",
+            >>>     data_type=SeriesType.simple(),
+            >>>     data=some_data)
+            >>> x.series_names_to_tags(attributes=['XYZ', 'ABC'])
 
             **Tag by regex**
 
-            >>> some_data = create_df(["x_1,,a, "y...b..", "z..1.1-23..c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
-            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=some_data),
-            >>> x.series_names_to_tags(atttributes=['XYZ', 'ABC'], regex=r'([a-z])*([a-z])')
+            If series names are less well formed, a regular expression with groups matching the attribute list can be provided instead of the separator parameter.
 
-            In this case, a separator will not do the trick. Note that the regex have the same number of groups as the attribute list.
+            >>> more_data = create_df(["x_1,,a", "y...b..", "z..1.1-23..c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
+            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=more_data,)
+            >>> x.series_names_to_tags(attributes=['XYZ', 'ABC'], regex=r'([a-z])*([a-z])')
+
+
+            The above approach may be used to add tags for an existing dataset, but the same arguments can also be provided when initialising the set:
+
+            >>> # xdoctest: +SKIP
+            >>> # this line is not valid python code
+            >>> z = Dataset(name="sample_set",
+            >>>     data_type=SeriesType.simple(),
+            >>>     data=some_data,
+            >>>     name_pattern=['XYZ', 'ABC'])
+            >>> # xdoctest: -SKIP
+
+            Best practice is to do this only in the process that writes data to the set. For a finite number of series, it does not need to be repeated.
+
+            If, on the other hand, the number of series can change over time, doing so at the time of writing ensures all series are tagged.
         """
         # if attributes is None:
         #     attributes = []
@@ -984,7 +1058,7 @@ class Dataset:
         taxonomy: meta.Taxonomy | int | PathStr,
         functions: set[str | F] | list[str | F],
     ) -> Self:
-        """Aggregate dataset by taxonomy.
+        """Aggregate dataset by taxonomy hierarchy.
 
         Args:
             attribute: The attribute to aggregate by. TODO: support multiple attributes.
@@ -994,15 +1068,34 @@ class Dataset:
         Returns:
             Self: A dataset object with the aggregated data.
             If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
-            If the taxonomy is a flat list, only a single 'total' aggregate series is calculated.
+            If the taxonomy is a flat list, only a single `total` aggregate series is calculated.
 
         Examples:
-            To calculate 10 and 90 percentiles and median for the dataset 'x' where codes from KLASS 157 ('energy_balance') distinguishes between series in the set.
-            >>>    def perc10(x):
-            >>>        return x.quantile(.1, axis=1, numeric_only=True, interpolation="linear")
-            >>>    def perc90(x):
-            >>>        return x.quantile(.9, axis=1, numeric_only=True, interpolation="linear")
-            >>>    y = x.aggregate("energy_balance", 157, [perc10, 'median', perc90])
+            To calculate 10 and 90 percentiles and median for the dataset `x` where codes from KLASS 157 (energy_balance) distinguishes between series in the set.
+
+            >>> from ssb_timeseries.dataset import Dataset
+            >>> from ssb_timeseries.properties import SeriesType
+            >>> from ssb_timeseries.sample_data import create_df
+            >>> from ssb_timeseries.meta import Taxonomy
+            >>>
+            >>> klass157 = Taxonomy(157)
+            >>> klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+            >>> tag_permutation_space = {"A": klass157_leaves, "B": ["q"], "C": ["z"]}
+            >>> series_names: list[list[str]] = [value for value in tag_permutation_space.values()]
+            >>> sample_df = create_df(*series_names, start_date="2024-01-01", end_date="2024-12-31", freq="MS",)
+            >>> sample_set = Dataset(name="sample_set",
+            >>>     data_type=SeriesType.simple(),
+            >>>     data=sample_df,
+            >>>     name_pattern=["A", "B", "C"],
+            >>> )
+            >>>
+            >>> def perc10(x):
+            >>>     return x.quantile(.1, axis=1, numeric_only=True, interpolation="linear")
+            >>>
+            >>> def perc90(x):
+            >>>     return x.quantile(.9, axis=1, numeric_only=True, interpolation="linear")
+            >>>
+            >>> percentiles = sample_set.aggregate("energy_balance", 157, [perc10, 'median', perc90])
         """
         if not isinstance(taxonomy, meta.Taxonomy):
             taxonomy = meta.Taxonomy(taxonomy)

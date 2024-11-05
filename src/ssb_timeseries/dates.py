@@ -1,6 +1,10 @@
-# type: ignore #NOSONAR
 # ruff: noqa
-"""Date and time utilities."""
+# type: ignore #NOSONAR
+"""
+Helper module for date and time utility functions.
+
+Notable examples include converting between UTC and local time, standardised string formats for file names, and (planned for future use) intervals.
+"""
 
 from datetime import datetime as dt, tzinfo
 from typing import Any
@@ -9,6 +13,7 @@ from zoneinfo import ZoneInfo
 from dateutil import parser
 
 from ssb_timeseries.logging import ts_logger
+
 
 MAX_TIME_PRECISION = "second"
 DEFAULT_TIMESPEC = "seconds"

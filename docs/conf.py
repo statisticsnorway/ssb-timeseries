@@ -37,7 +37,7 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = []
+templates_path: list[str] = []
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -45,7 +45,7 @@ templates_path = []
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "monokai"
+pygments_style = "zenburn"
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -67,3 +67,14 @@ autodoc_typehints = "description"
 
 # Do not prepend module names to object names
 add_module_names = False
+
+# Specific to SSB Timeseries -----------------------------------------------
+
+# Include special methods like __init__ and __call__ in the documentation
+napoleon_include_special_with_doc = True
+
+# combine class and __init__ docstrings
+autoclass_content = "both"
+
+# To fix "WARNING: local id not found in doc" "[myst.xref_missing]"
+myst_heading_anchors = 3
