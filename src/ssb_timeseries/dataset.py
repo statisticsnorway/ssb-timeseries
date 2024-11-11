@@ -1,13 +1,13 @@
-"""The dataset module is the core of the ssb_timeseries package.
+"""The dataset module and its py:class:`Dataset` class is the very core of the package.
 
-It is centered around the :py:class:`Dataset` class that connects the actual timeseries data with the metadata for both the set and the series of the set, and core functionality:
+It connects the timeseries data with metadata for both the dataset and the individual series. Most of the core functionality works at the set level.
 
  * Read and write data and metadata
+ * Metadata maintenance: tagging, detagging, retagging
  * Search and filtering
  * Time algebra: downsampling and upsampling to other time resolutions
- * Linear algebra operations with sets (matrices) and series (vectors)
+ * Linear algebra operations with sets (matrices) and series (column vectors)
  * Metadata aware calculations, like unit conversions and aggregation over taxonomy hierarchies
- * Metadata maintenance: tagging, detagging, retagging
  * Basic plotting
 
 As described in the :doc:`info-model` time series datasets may consist of any number of series of the same ::py:class:`type <properties.SeriesType>`.
@@ -63,6 +63,15 @@ class Dataset:
     """Datasets are the core unit of analysis for workflow and data storage.
 
     A dataset is a logical collection of data and metadata stemming from the same process origin. Series in a dataset must be of the same type.
+
+    The type defines
+         * versioning (NONE, AS_OF, NAMED)
+         * temporality (Valid AT point in time, or FROM and TO for duration)
+         * value (for now only scalars)
+
+    .. seealso:
+        :doc:`info-model`
+
     """
 
     def __init__(
@@ -73,15 +82,10 @@ class Dataset:
         load_data: bool = True,
         **kwargs: Any,
     ) -> None:
-        """Load existing dataset or create a new one of specified type.
+        """**Initialising** a dataset object can either retrieve data and metadata for an existing set or prepare a new one.
 
-        The type defines
-         * versioning (NONE, AS_OF, NAMED)
-         * temporality (Valid AT point in time, or FROM and TO for duration)
-         * value (for now only scalars)
-
-        If data_type versioning is specified as AS_OF, a datetime *with timezone* should be provided.
-        If it is not, but data is passed, AS_OF defaults to current time. Providing an AS_OF date has no effect if versioning is NONE.
+        If data_type versioning is specified as AS_OF, a datetime with timezone should be provided.
+        If not, but data is passed, ::py:meth:`as_of_tz` defaults to current time. Providing an AS_OF date has no effect if versioning is NONE.
 
         When loading existing sets, load_data = false can be set in order to suppress reading large amounts of data.
         For data_types with AS_OF versioning, not providing the AS_OF date will have the same effect.
@@ -321,6 +325,7 @@ class Dataset:
 
             Note that while no such restrictions are enforced, it is strongly recommended that both attribute names (``keys``) and ``values`` are standardised.
             The best way to ensure that is to use taxonomies (for SSB: KLASS code lists). However, custom controlled vocabularies can also be maintained in files.
+            .. seealso:: :doc:`info-model` :py:class:`Dataset.tag_series`
         """
         if not self.__getattribute__("tags"):
             # should not be possible, hence
@@ -690,8 +695,9 @@ class Dataset:
         Args:
             pattern (str): Optional pattern for simple filtering of column names containing pattern. Defaults to "".
 
-        Be warned: This is a hack. It (re)assigns variables in the scope of the calling function by way of stack inspection.
-        This runs the risk of reassigning objects, functions, or variables.
+        .. warning:: Caution!
+            This (re)assigns variables in the scope of the calling function by way of stack inspection and hence risks of reassigning objects, functions, or variables if they happen to have the same name.
+
         """
         import inspect
 

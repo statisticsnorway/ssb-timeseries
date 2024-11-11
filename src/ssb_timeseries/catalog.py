@@ -1,18 +1,16 @@
-"""The catalog module provides a search in one or more time series repositories for entire datasets and individual series.
+"""The :py:class:`Catalog` is a listing of all :py:class:`CatalogItem` objects (datasets or series) in one or more:py:class:`Repository` loctions.
 
->>> from ssb_timeseries.catalog import CONFIG # xdoctest: +SKIP
+Each repository keeps track of the metadata for all its catalog items.
+The catalog provides a single search interface by fanning out searches to all the repositories.
 
-For each `repository`, the metadata for all catalog items (datasets and series) is registered (ie: a copy is stored in a catalog directory).
-The `catalog` provides a single search interface by fanning out searches to all the repositories.
+Searches can be performed to list or count sets, series or items (both sets or series), that match criteria such as names, parts of names, or metadata tags.
 
-Both the catalog and individual repostories can be searched by names, parts of names or tags. In either case, the returned catalog items, names and descriptive metadate, plus the repository, object type and relationships to parent and child objects are provided. Other information, like lineage and data quality metrics may be added later.
+In either case, the returned catalog items, names and descriptive metadate, plus the repository, object type and relationships to parent and child objects are provided. Other information, like lineage and data quality metrics may be added later.
 
-------
-
-Classes:
- *   :py:class:`CatalogItem`
- *   :py:class:`Catalog`
- *   :py:class:`Repository`
+>>> # doctest: +SKIP
+>>> from ssb_timeseries.catalog import Catalog
+>>> everything = Catalog().items()
+>>> # doctest: -SKIP
 
 ------
 """
@@ -524,7 +522,7 @@ def _xdoctest() -> None:
 
     cfg = Config().configuration_file
     if exists(cfg):
-        print(f"Configuration file found: {cfg}. What to do with it?")
+        print(f"Configuration file found: {cfg}")
         # xdoctest.doctest_module(__file__)
     else:
         print("Configuration file not found. Skipping xdoctests.")
@@ -535,3 +533,7 @@ if __name__ == "__main__":
     """Execute when called directly, ie not via import statements."""
     # run xdoctest
     # _xdoctest()
+
+    import doctest
+
+    doctest.testmod()

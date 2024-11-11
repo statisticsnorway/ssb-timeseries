@@ -5,19 +5,16 @@ end-before: <!-- github-only -->
 ```
 
 [license]: license
-[contributor guide]: contributing
-[command-line reference]: reference
 
 ```{toctree}
 ---
-hidden:
+include_hidden: True
 maxdepth: 2
 ---
-
 structure
 Information Model <info-model.md>
-reference
 workflow
+reference
 contributing
 Code of Conduct <codeofconduct>
 License <license>

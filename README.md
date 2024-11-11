@@ -83,32 +83,17 @@ The `io module` connects the dataset to helper class(es) that takes care of read
 
 ## The information model
 
-Data type implies mandatory date columns shared by all series in the dataset. Series are represented as columns. These start out as pure conventions and subject to evalutation. At a later stage they are likely to be enforced by Parquet schemas. Failing to obey them will cause some methods to fail.
+```{include} docs/info-model.md
+```
 
-Both the datasets and the series in the set can be *tagged*ie associated with any number of key-value pairs. While the related features can benefit greatly from using controlled vocabularies or structured taxonomies, and some integrations with Statistics Norway meta data are built in, this is not a strict requirement.
+## API-documentation
 
-- **Types** are defined by
-- **Versioning** defines how updated versions of the truth are represented: NONE overwrites a single version, NAMED or AS_OF maintaines new "logical" versions identified by name or date.
-- **Temporality** describes the "real world" valid_at or valid_from - valid_to datetime of the data. It will translate into columns, datetime or period indexes of Dataset.data.
-- Value type (only scalars for now) of Dataset.data "cells".
-- **Datasets** can consists of multiple series. (Later: possible extension with sets of sets.)
-- All series in a set must be of the same type.
-- **Series** are value columns in Datasets.data, rows identified by date(s) or index corresponding temporality.
-- The combination `<Dataset.name>.<Series.name>` will serve as a globally unique series identifier.
-- `<Dataset.name>` identifies a "directory", hence must be unique. (Caveat: Directories per type creates room for error.)
-- `<Series.name>` (.data column name) must be unique within the set.
-- Series names _should_ be related to (preferrably constructed from) codes or meta data in such a way that they can be mapped to "tags" via a format mask (and if needed a translation table).
-
-
+The [documentation] is published on GitHub Pages. It covers the [API reference] and elaborates on information model and workflow.
 
 ### Internal documentation:
 
 - https://statistics-norway.atlassian.net/wiki/spaces/Arkitektur/pages/3581313026/Statistikkproduksjon
 - https://statistics-norway.atlassian.net/wiki/spaces/Arkitektur/pages/3595665419/Lagring+av+tidsserier
-
-## API-documentation
-
-The [documentation] is published on GitHub Pages. See the [API reference]  for API-documentation.
 
 ## Contributing
 

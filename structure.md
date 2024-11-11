@@ -2,6 +2,7 @@
 
 ```{contents} Table of Contents
 :depth: 2
+:class: this-will-duplicate-information-and-it-is-still-useful-here
 ```
 
 ## Modules
