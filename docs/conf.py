@@ -14,7 +14,8 @@
 #
 import os
 import sys
-from tkinter import W
+
+# from tkinter import W
 
 
 sys.path.insert(0, os.path.abspath("../src"))
