@@ -1,4 +1,4 @@
-:py:mod:`ssb_timeserieas.catalog`
+:py:mod:`ssb_timeseries.catalog`
 =================================
 
 .. automodule:: ssb_timeseries.catalog
