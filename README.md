@@ -48,7 +48,7 @@ It is constructed to be an abstraction between the storage and automation layers
 
 ## Feature summary
 
-The core of the library is the `Dataset` class. Datasets consist of one or more series. Series in a set should be of the same type and should come from the same process.  
+The core of the library is the `Dataset` class. Datasets consist of one or more series. Series in a set should be of the same type and should come from the same process.
 
 All series in a set being of the same type and otherwise complying with the underlying [information model](docs/info-model.md) simplifies the implementation of storage, descriptive metadata and search and enables key calculation features:
 
@@ -64,17 +64,17 @@ The `io module` connects the dataset to helper class(es) that takes care of read
 
 ## Documentation
 
-[API documentation](https://statisticsnorway.github.io/ssb-timeseries) is published on GitHub Pages. 
+[API documentation](https://statisticsnorway.github.io/ssb-timeseries) is published on GitHub Pages.
 
-There you can read about 
+There you can read about
 
- * A [quickstart guide](docs/quickstart.md) 
- * A detailed [API reference] 
+ * A [quickstart guide](docs/quickstart.md)
+ * A detailed [API reference]
 
 You will also find background information covering
- 
- * [the overall design](docs/structure.md), 
- * [the information model](docs/info-model.md), and 
+
+ * [the overall design](docs/structure.md),
+ * [the information model](docs/info-model.md), and
  * [workflow perspectives](docs/workflow.md).
 
 ## Contributing

@@ -1,4 +1,4 @@
-:py:mod:`ssb_timeseries.dataset` 
+:py:mod:`ssb_timeseries.dataset`
 ================================
 
 .. automodule:: ssb_timeseries.dataset

@@ -64,7 +64,7 @@ html_theme_options = {
 
 # Bernhard: trying to increase sidebar nav depth (for reference page)
 # html_theme = "s
-# phinx_material" # fixes error with in page TOC, but looses the sidebar 
+# phinx_material" # fixes error with in page TOC, but looses the sidebar
 # html_theme_options = {
 #   "globaltoc_depth": 2,
 #   "globaltoc_collapse": False,
@@ -93,15 +93,15 @@ autoclass_content = "both"
 napoleon_include_special_with_doc = True
 napoleon_include_init_with_doc = True
 
-# put examples inside a box 
+# put examples inside a box
 napoleon_use_admonition_for_examples = False
 
 # To fix "WARNING: local id not found in doc" "[myst.xref_missing]"
 myst_heading_anchors = 3
 
 autodoc_default_options = {
-    'member-order': 'alphabetical',
-    'special-members': '__init__',
-    'undoc-members': True,
-    'exclude-members': '__weakref__' # not sure about this one?
+    "member-order": "alphabetical",
+    "special-members": "__init__",
+    "undoc-members": True,
+    "exclude-members": "__weakref__",  # not sure about this one?
 }

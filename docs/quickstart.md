@@ -1,6 +1,6 @@
 # How to get started?
 
-## Install 
+## Install
 
 Install from PyPi with pip, poetry or your favourite dependency management tool:
 
@@ -10,7 +10,7 @@ poetry add ssb_timeseries
 
 Or clone from https://github.com/statisticsnorway/ssb-timeseries/.
 
-The library should work out of the box with default settings. 
+The library should work out of the box with default settings.
 
 Note that the defaults are for local testing, ie not be suitable for the production setting.
 
