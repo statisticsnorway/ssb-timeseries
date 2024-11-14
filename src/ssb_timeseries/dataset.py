@@ -1,23 +1,13 @@
-"""The dataset module and its py:class:`Dataset` class is the very core of the package.
+"""The :py:mod:`ssb_timeseries.dataset` module and its :py:class:`Dataset` class is the very core of the :py:mod:`ssb_timeseries` package, defining most of the key functionality.
 
-It connects the timeseries data with metadata for both the dataset and the individual series. Most of the core functionality works at the set level.
+While it is possible to deal with a single time series at a time, the dataset is the unit of analysis for the :doc:`information model <../info-model>` and :doc:`workflow integration <../workflow>`. It is strongly advised to write code that to the extent possible make use of linear algebra with sets as matrices consisting of series column vectors.
 
- * Read and write data and metadata
- * Metadata maintenance: tagging, detagging, retagging
- * Search and filtering
- * Time algebra: downsampling and upsampling to other time resolutions
- * Linear algebra operations with sets (matrices) and series (column vectors)
- * Metadata aware calculations, like unit conversions and aggregation over taxonomy hierarchies
- * Basic plotting
+As described in the :doc:`../info-model` time series datasets may consist of any number of series of the same :py:class:`type <ssb_timeseries.properties.SeriesType>`. Series types are defined by :py:class:`properties.Versioning` and :py:class:`properties.Temporality`, see :py:class:`properties.SeriesType`.
 
-As described in the :doc:`info-model` time series datasets may consist of any number of series of the same ::py:class:`type <properties.SeriesType>`.
-Series types are defined by ::py:class:`properties.Versioning` and ::py:class:`properties.Temporality`, see `properties.SeriesType`.
-
-Although in day to day language, any organised
-not a strict requirement, it is also a good idea to make sure that the resolution of the series in the set match.
+While not a technical requirement, it is also strongly encouraged to make sure that the resolution of the series in the set match, and to structure the data to minimize gaps. Sparse data is a strong indication that a dataset is not well defined: many null (aka NAN or "not a number") values may indicate that series in the set have different origins.
 
 .. seealso::
-    :py:meth:`ssb_timeseries.catalog` for *listing* or **searching** for datasets or series by names or metadata.
+    See documentation for the :py:mod:`ssb_timeseries.catalog` module for tools for searching for datasets or series by names or metadata.
 
 """
 
@@ -62,7 +52,7 @@ class IO(Protocol):
 class Dataset:
     """Datasets are the core unit of analysis for workflow and data storage.
 
-    A dataset is a logical collection of data and metadata stemming from the same process origin. Series in a dataset must be of the same type.
+    A dataset is a logical collection of data and metadata stemming from the same process origin. All the series in a dataset must be of the same type.
 
     The type defines
          * versioning (NONE, AS_OF, NAMED)
@@ -70,7 +60,7 @@ class Dataset:
          * value (for now only scalars)
 
     .. seealso:
-        :doc:`info-model`
+        :doc:`../info-model`
 
     """
 
@@ -324,8 +314,11 @@ class Dataset:
             >>> x.tag_dataset(another_attribute='another_value')
 
             Note that while no such restrictions are enforced, it is strongly recommended that both attribute names (``keys``) and ``values`` are standardised.
-            The best way to ensure that is to use taxonomies (for SSB: KLASS code lists). However, custom controlled vocabularies can also be maintained in files.
-            .. seealso:: :doc:`info-model` :py:class:`Dataset.tag_series`
+            The best way to ensure that is to use taxonomies (for SSB: KLASS code lists). However, custom controlled vocabularies can also be maintained in files.i
+
+            .. seealso::
+                :doc:`../info-model`
+                :py:class:`Dataset.tag_series`
         """
         if not self.__getattribute__("tags"):
             # should not be possible, hence

@@ -1,3 +1,5 @@
+"""The :py:mod:`ssb_timeseries.sample_data` module provides tools for creating sample timeseries data. These are convenience functions for tests and demos."""
+
 import itertools
 from datetime import datetime
 

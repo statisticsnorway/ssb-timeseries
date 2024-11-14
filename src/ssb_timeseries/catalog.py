@@ -1,18 +1,17 @@
-"""The :py:class:`Catalog` is a listing of all :py:class:`CatalogItem` objects (datasets or series) in one or more:py:class:`Repository` loctions.
+"""The :py:mod:`ssb_timeseries.catalog` module provides several tools for searching for datasets or series in every  :py:class:`Repository` of a :py:class:`Catalog`.
 
-Each repository keeps track of the metadata for all its catalog items.
-The catalog provides a single search interface by fanning out searches to all the repositories.
+The catalog is essentially just a logical collection of repositories, providing a search interface across all of them.
 
-Searches can be performed to list or count sets, series or items (both sets or series), that match criteria such as names, parts of names, or metadata tags.
+Searches can list or count sets, series or items (both). The search criteria can be complete names (`equals`), parts of names (`contains`), or metadata attributes (`tags`).
 
-In either case, the returned catalog items, names and descriptive metadate, plus the repository, object type and relationships to parent and child objects are provided. Other information, like lineage and data quality metrics may be added later.
+A returned py:class:`CatalogItem` instance is identified by name and descriptive metadate, plus the repository, object type and relationships to parent and child objects are provided. Other information, like lineage and data quality metrics may be added later.
 
 >>> # doctest: +SKIP
 >>> from ssb_timeseries.catalog import Catalog
 >>> everything = Catalog().items()
 >>> # doctest: -SKIP
 
-------
+-----
 """
 
 import importlib.resources as pkg_resources  # noqa: F401

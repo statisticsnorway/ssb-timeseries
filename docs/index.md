@@ -1,22 +1,23 @@
-```{include} ../README.md
----
-end-before: <!-- github-only -->
----
-```
-
-[license]: license
-
 ```{toctree}
 ---
-include_hidden: True
-maxdepth: 2
+includehidden: True
+hidden: True
+maxdepth: 3
 ---
+Quickstart guide <quickstart>
+API reference <reference/index>
 structure
-Information Model <info-model.md>
+Information model <info-model.md>
 workflow
-reference
-contributing
-Code of Conduct <codeofconduct>
+Contributor guide <contributing>
+Code of conduct <codeofconduct>
 License <license>
 Changelog <https://github.com/statisticsnorway/ssb-timeseries/releases>
+```
+
+```{include} ../README.md
+---
+relative-docs: docs/
+end-before: <!-- github-only -->
+---
 ```

@@ -32,6 +32,7 @@ author = "Bernhard Ryeng"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
@@ -57,10 +58,13 @@ pygments_dark_style = "zenburn"
 # a list of builtin themes.
 #
 html_theme = "furo"
-# html_theme_options = {}
+html_theme_options = {
+    "navigation_with_keys": True,
+}
 
 # Bernhard: trying to increase sidebar nav depth (for reference page)
-# html_theme = "sphinx_material" # fixes error with in page TOC, but looses the sidebar 
+# html_theme = "s
+# phinx_material" # fixes error with in page TOC, but looses the sidebar 
 # html_theme_options = {
 #   "globaltoc_depth": 2,
 #   "globaltoc_collapse": False,

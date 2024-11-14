@@ -1,3 +1,17 @@
+"""The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
+
+TO DO: turn Dataset.io into a Protocol class?
+
+Essential configs:
+    TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
+    CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
+
+Default configs may be created by running
+    `poetry run timeseries-config {home | jovyan | gcs}`
+
+See `config` module docs for details.
+"""
+
 import json
 import os
 import re
@@ -22,20 +36,6 @@ from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import DatasetTagDict
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.types import PathStr
-
-"""The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
-
-TO DO: turn Dataset.io into a Protocol class?
-
-Essential configs:
-    TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
-    CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
-
-Default configs may be created by running
-    `poetry run timeseries-config {home | jovyan | gcs}`
-
-See `config` module docs for details.
-"""
 
 # consider:
 # from ssb_timeseries.types import F
