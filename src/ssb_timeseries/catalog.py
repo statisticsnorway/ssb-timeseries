@@ -1,20 +1,17 @@
-"""The catalog module provides a search in one or more time series repositories for entire datasets and individual series.
+"""The :py:mod:`ssb_timeseries.catalog` module provides several tools for searching for datasets or series in every  :py:class:`Repository` of a :py:class:`Catalog`.
 
->>> from ssb_timeseries.catalog import CONFIG # xdoctest: +SKIP
+The catalog is essentially just a logical collection of repositories, providing a search interface across all of them.
 
-For each `repository`, the metadata for all catalog items (datasets and series) is registered (ie: a copy is stored in a catalog directory).
-The `catalog` provides a single search interface by fanning out searches to all the repositories.
+Searches can list or count sets, series or items (both). The search criteria can be complete names (`equals`), parts of names (`contains`), or metadata attributes (`tags`).
 
-Both the catalog and individual repostories can be searched by names, parts of names or tags. In either case, the returned catalog items, names and descriptive metadate, plus the repository, object type and relationships to parent and child objects are provided. Other information, like lineage and data quality metrics may be added later.
+A returned py:class:`CatalogItem` instance is identified by name and descriptive metadate, plus the repository, object type and relationships to parent and child objects are provided. Other information, like lineage and data quality metrics may be added later.
 
-------
+>>> # doctest: +SKIP
+>>> from ssb_timeseries.catalog import Catalog
+>>> everything = Catalog().items()
+>>> # doctest: -SKIP
 
-Classes:
- *   :py:class:`CatalogItem`
- *   :py:class:`Catalog`
- *   :py:class:`Repository`
-
-------
+-----
 """
 
 import importlib.resources as pkg_resources  # noqa: F401
@@ -101,7 +98,7 @@ class CatalogItem:
             other.object_name,
         )
 
-    def get(self) -> Any:
+    def get(self) -> Any:  # NOSONAR
         """Return the dataset."""
         from ssb_timeseries.dataset import Dataset
 
@@ -481,6 +478,7 @@ class Repository(_CatalogProtocol):
         )
 
 
+# NOSONAR
 # A duckdb approach may be simpler and more efficient than reading all the json files and then filtering
 # In that case, it is probably a good idea to use helpers to:
 #      * put queries in .sql files so they can be edited with proper syntax highlighting, linting etc:
@@ -508,30 +506,35 @@ def _execute_prepared_sql(connection: Any, queryname: str, **kwargs: Any) -> Any
         return connection.execute(sql_query).fetchall()
 
 
-def _xdoctest() -> None:
-    """Tests the code provided in doctstrings.
-
-    Provided as an experiment with simple self contained tests for the library that can be run after an import.
-
-    DISABLED.
-    """
-    # from nox import session
-    # or simply:
-    # import xdoctest
-
-    from ssb_timeseries.config import Config
-    from ssb_timeseries.fs import exists
-
-    cfg = Config().configuration_file
-    if exists(cfg):
-        print(f"Configuration file found: {cfg}. What to do with it?")
-        # xdoctest.doctest_module(__file__)
-    else:
-        print("Configuration file not found. Skipping xdoctests.")
-        # ... name of script = sys.argv[0]; do something with arguments of the script: sys.argv[1:]?
-
-
-if __name__ == "__main__":
-    """Execute when called directly, ie not via import statements."""
-    # run xdoctest
-    # _xdoctest()
+# experimental ---
+# def _xdoctest() -> None:
+#     """Tests the code provided in doctstrings.
+#
+#     Provided as an experiment with simple self contained tests for the library that can be run after an import.
+#
+#     DISABLED.
+#     """
+#     # from nox import session
+#     # or simply:
+#     # import xdoctest
+#
+#     from ssb_timeseries.config import Config
+#     from ssb_timeseries.fs import exists
+#
+#     cfg = Config().configuration_file
+#     if exists(cfg):
+#         print(f"Configuration file found: {cfg}")
+#         # xdoctest.doctest_module(__file__)
+#     else:
+#         print("Configuration file not found. Skipping xdoctests.")
+#         # ... name of script = sys.argv[0]; do something with arguments of the script: sys.argv[1:]?
+#
+#
+# if __name__ == "__main__":
+#     """Execute when called directly, ie not via import statements."""
+#     # run xdoctest
+#     # _xdoctest()
+#
+#     import doctest
+#
+#     doctest.testmod()

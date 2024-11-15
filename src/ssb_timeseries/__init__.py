@@ -1,29 +1,34 @@
-"""SSB timeseries is a helper library for statistics production and analytics.
+"""The :py:mod:`ssb_timeseries` package is a helper library for production and analysis of statistical data in the form of *time series*.
 
-It provides storage and search functionality with meta data and workflow integrations.
+It is designed to make it as easy as possible to store data and metadata for datasets and series in ways that are consistent with the :doc:`information model <../info_model>`, and to facilitate integration with automated workflows.
 
-The very core of the library is the :py:class:`ssb_timeseries.dataset.Dataset`. It is designed for storage and workflow integration, and basic linear algebra operations can be performed on datasets.
+Functionality includes:
 
-Catalog
-----------
+* Read and write data and metadata
+* Metadata maintenance: tagging, detagging, retagging
+* Search and filtering
+* Time algebra: downsampling and upsampling to other time resolutions
+* Linear algebra operations with sets (matrices) and series (column vectors)
+* Metadata aware calculations, like unit conversions and aggregation over taxonomy hierarchies
+* Basic plotting
 
-.. automodule:: ssb_timeseries.catalog
-    :show-inheritance:
-    :noindex:
-
-Config
-------
-
-.. automodule:: ssb_timeseries.config
-    :show-inheritance:
-    :noindex:
-
-Dataset
--------
+The most practical entry points are the :py:mod:`ssb_timeseries.dataset` and :py:mod:`ssb_timeseries.catalog` modules.
 
 .. automodule:: ssb_timeseries.dataset
-    :show-inheritance:
     :noindex:
+    :synopsis:
+    :exclude-members: __init__
+
+.. automodule:: ssb_timeseries.catalog
+    :noindex:
+    :synopsis:
+    :exclude-members: __init__
+
+The other modules of the package are helpers used by these core modules, and not intended for direct use.
+
+Some notable exceptions are taxonomy and hierarchy features of :py:mod:`ssb_timeseries.meta` and type definitions in :py:mod:`ssb_timeseries.properties`.
+:py:mod:`ssb_timeseries.config` may be used for initial set up and later switching between repositories, if needed.
+The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether data and metada are stored in files or databases and :py:mod:`ssb_timeseries.fs` is an abstraction for local vs GCS file systems.
 """
 
 __all__ = [

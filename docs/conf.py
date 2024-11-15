@@ -15,6 +15,8 @@
 import os
 import sys
 
+# from tkinter import W
+
 
 sys.path.insert(0, os.path.abspath("../src"))
 
@@ -31,8 +33,11 @@ author = "Bernhard Ryeng"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
+    "sphinx_copybutton",
+    "sphinx_togglebutton",
     "myst_parser",
 ]
 
@@ -46,6 +51,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "zenburn"
+pygments_dark_style = "zenburn"
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -53,6 +59,17 @@ pygments_style = "zenburn"
 # a list of builtin themes.
 #
 html_theme = "furo"
+html_theme_options = {
+    "navigation_with_keys": True,
+}
+
+# Bernhard: trying to increase sidebar nav depth (for reference page)
+# html_theme = "s
+# phinx_material" # fixes error with in page TOC, but looses the sidebar
+# html_theme_options = {
+#   "globaltoc_depth": 2,
+#   "globaltoc_collapse": False,
+# }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -63,18 +80,29 @@ html_theme = "furo"
 # -- Other configuration ---------------------------------------------------
 
 # Show typehints as content of the function or method
-autodoc_typehints = "description"
+autodoc_typehints = "both"
 
 # Do not prepend module names to object names
 add_module_names = False
 
 # Specific to SSB Timeseries -----------------------------------------------
 
-# Include special methods like __init__ and __call__ in the documentation
-napoleon_include_special_with_doc = True
-
 # combine class and __init__ docstrings
 autoclass_content = "both"
 
+# Include special methods like __init__ and __call__ in the documentation
+napoleon_include_special_with_doc = True
+napoleon_include_init_with_doc = True
+
+# put examples inside a box
+napoleon_use_admonition_for_examples = False
+
 # To fix "WARNING: local id not found in doc" "[myst.xref_missing]"
 myst_heading_anchors = 3
+
+autodoc_default_options = {
+    "member-order": "alphabetical",
+    "special-members": "__init__",
+    "undoc-members": True,
+    "exclude-members": "__weakref__",  # not sure about this one?
+}

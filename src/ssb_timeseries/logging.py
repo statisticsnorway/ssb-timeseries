@@ -1,6 +1,8 @@
 """Time series should make use of standardised messaging and logging.
 
-These are features that may warrant their own shared Dapla libraries. This module separates out code that could go into such a library.
+A key principle is that every dataset read or write operation should be logged with log level INFO. The plan is to take this one step further and add stack inspection to enrich the log messages with process identifiers. In that way, logs would provide lineage at the dataset level. Also, adding a log sink to put the (dataset write) messages on a message queue would allow event based workflow definitions.
+
+These are features that may warrant their own shared Dapla libraries. This module serves as a specification of required features byd separates out code that could go into such a library.
 """
 
 import functools

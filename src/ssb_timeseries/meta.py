@@ -1,6 +1,8 @@
-"""Placeholder utility covering meta data functionality used by timeseries.
+"""The :py:mod:`ssb_timeseries.meta` module is responsible for metadata maintenance.
 
-Ideally, this functionality should live elsewhere, in ssb-python-klass and other meta data libraries. Likely subject to refactoring later.
+Dataset and series tags are handled by Python dictionaries and stored in JSON files and Parquet headers. The is a :py:mod:`meta` module takes care of the mechanics of manipulating the dictionaries.
+
+It also consumes taxonomies. That is functionality that should live in the ssb-python-klass or other meta data libraries. Likely subject to refactoring later.
 """
 
 import io

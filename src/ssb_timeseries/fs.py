@@ -1,3 +1,5 @@
+"""The main purpose of the :py:mod:`ssb_timeseries.fs` module is to allow file based IO that works on both a local file system and Google Cloud Storage."""
+
 import functools
 import glob
 import json
@@ -15,10 +17,6 @@ from dapla import FileClient
 
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
-
-"""
-This module allows file based io regardless of whether involved file systems are local or GCS.
-"""
 
 # ruff: noqa: ANN002, ANN003
 # mypy: disable-error-code="arg-type, type-arg, no-any-return, no-untyped-def, import-untyped, attr-defined, type-var, index, return-value"
