@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import shutil
+from _collections_abc import Callable
 from pathlib import Path
 
 import pandas
@@ -13,6 +14,8 @@ import polars
 import pyarrow
 import pyarrow.dataset
 import pyarrow.parquet as pq
+import tomli
+import tomli_w
 from dapla import FileClient
 
 from ssb_timeseries.types import F
@@ -343,7 +346,6 @@ def pandas_read_parquet(
             df = pandas.read_parquet(path)
         else:
             df = pandas.DataFrame()
-
     return df
 
 
@@ -356,6 +358,75 @@ def pandas_write_parquet(df: pandas.DataFrame, path: PathStr) -> None:
     else:
         mk_parent_dir(path)
         df.to_parquet(path)
+
+
+def read_text(path: PathStr, file_format: str = "") -> dict:
+    """Read a text file from specified path on either local fs or GCS."""
+    if not file_format:
+        file_format = Path(path).suffix
+    read_func = _text_reader(file_format)
+    if is_gcs(path):
+        fs = FileClient.get_gcs_file_system()
+        with fs.open(path, "r") as file:
+            return read_func(file)
+    else:
+        with open(path) as file:
+            return read_func(file)
+
+
+def write_text(path: PathStr, content: str | dict, file_format: str) -> None:
+    """Write json file to path on either local fs or GCS."""
+    if not file_format:
+        file_format = Path(path).suffix
+    write = _text_writer(file_format)
+
+    if is_gcs(path):
+        fs = FileClient.get_gcs_file_system()
+        with fs.open(path, "w") as file:
+            write(file, content)
+    else:
+        mk_parent_dir(path)
+        with open(path, "w") as file:
+            write(file, content)
+
+
+def _text_reader(file_format: str) -> Callable:
+    """Helper function for selecting a function for reading files in the specified format."""
+    match file_format.lower():
+        case "json":
+
+            def reader(file: PathStr) -> dict:
+                return json.load(file)
+
+        case "toml":
+
+            def reader(file: PathStr) -> dict:
+                return tomli.load(file)
+
+    return reader
+
+
+def _text_writer(file_format: str) -> Callable[[PathStr, dict], None]:
+    """Return a function for writing a dict to text file in specified format.
+
+    Args:
+        file_format (str): Format of the text file, either "json" or "toml".
+    """
+    match file_format.lower():
+        case "json":
+
+            def writer(file: PathStr, content: dict | str) -> None:
+                if isinstance(content, str):
+                    content = json.loads(content)
+                return json.dump(content, file, indent=4, ensure_ascii=False)
+        case "toml":
+
+            def writer(file: PathStr, content: dict) -> None:
+                return tomli_w.dump(file, content)
+        case _:
+            raise ValueError(f"Format {file_format} is not supported.")
+
+    return writer
 
 
 def read_json(path: PathStr) -> dict:
@@ -374,6 +445,8 @@ def write_json(path: PathStr, content: str | dict) -> None:
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         with fs.open(path, "w") as file:
+            if isinstance(content, str):
+                content = json.loads(content)
             json.dump(content, file, indent=4, ensure_ascii=False)
     else:
         mk_parent_dir(path)

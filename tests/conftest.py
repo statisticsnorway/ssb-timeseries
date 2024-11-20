@@ -1,4 +1,5 @@
 import inspect
+import os
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,7 @@ from ssb_timeseries.sample_data import create_df
 # mypy: ignore-errors
 
 TEST_DIR = ""
+ENV_VAR_NAME = "TIMESERIES_CONFIG"
 
 
 class Helpers:
@@ -41,19 +43,21 @@ def buildup_and_teardown(
 ):
     """To make sure that tests do not change the configuration file."""
     before_tests = config.CONFIG
+    env_var_value = os.environ.pop(ENV_VAR_NAME, None)
 
     if before_tests.configuration_file:
         print(
             f"Before running tests:\nTIMESERIES_CONFIG: {before_tests.configuration_file}:\n{before_tests.to_json()}"
         )
         cfg_file = Path(before_tests.configuration_file).name
-        # config_file_for_testing = str(tmp_path_factory.mktemp("config") / cfg_file)
-        # config.CONFIG.configuration_file = str(config_file_for_testing)
+        config_file_for_testing = str(tmp_path_factory.mktemp("config") / cfg_file)
+        config.CONFIG.configuration_file = config_file_for_testing
         config.CONFIG.timeseries_root = str(tmp_path_factory.mktemp("series_data"))
         config.CONFIG.catalog = str(tmp_path_factory.mktemp("metadata"))
         config.CONFIG.bucket = str(tmp_path_factory.mktemp("production-bucket"))
-        # config.CONFIG.save(str(config_file_for_testing))
-        config.CONFIG.save(cfg_file)
+        config.CONFIG.save(config_file_for_testing)
+        # config.CONFIG.save(cfg_file)
+        TEST_DIR = config_file_for_testing
         Helpers.configuration = config.CONFIG
 
     else:
@@ -76,6 +80,7 @@ def buildup_and_teardown(
         print(
             f"Final configurations after tests are identical to orginal:\n{config.CONFIG}\nReverting to original:\n{before_tests}"
         )
+    os.environ[ENV_VAR_NAME] = env_var_value
 
 
 @pytest.fixture(scope="session", autouse=False)
