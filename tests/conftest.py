@@ -57,6 +57,7 @@ def buildup_and_teardown(
         config.CONFIG.bucket = str(tmp_path_factory.mktemp("production-bucket"))
         config.CONFIG.save(config_file_for_testing)
         # config.CONFIG.save(cfg_file)
+        global TEST_DIR
         TEST_DIR = config_file_for_testing
         Helpers.configuration = config.CONFIG
 

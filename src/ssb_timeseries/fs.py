@@ -419,10 +419,14 @@ def _text_writer(file_format: str) -> Callable[[PathStr, dict], None]:
                 if isinstance(content, str):
                     content = json.loads(content)
                 return json.dump(content, file, indent=4, ensure_ascii=False)
+
         case "toml":
 
-            def writer(file: PathStr, content: dict) -> None:
+            def writer(file: PathStr, content: dict | str) -> None:
+                if isinstance(content, str):
+                    content = tomli.loads(content)
                 return tomli_w.dump(file, content)
+
         case _:
             raise ValueError(f"Format {file_format} is not supported.")
 
