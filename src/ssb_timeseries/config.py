@@ -31,7 +31,6 @@ import os
 import sys
 from pathlib import Path
 
-from typing_extensions import Any
 from typing_extensions import Self
 
 from ssb_timeseries import fs
@@ -101,12 +100,10 @@ class Config:
     log_file: PathStr
     bucket: PathStr
 
-    def __init__(
-        self, **kwargs: Any
-    ) -> None:  # noqa: D417, ANN003, DAR101, DAR402, RUF100
+    def __init__(self, **kwargs) -> None:  # noqa: D417, ANN003, DAR101, DAR402, RUF100
         """Initialize Config object from keyword arguments.
 
-        Possible Keyword Arguments:
+        Optional keyword arguments:
             preset (str): Optional. Name of a preset configuration. If provided, the preset configuration is loaded, and no other parameters are considered.
             configuration_file (str): Path to the configuration file. If the parameter is not provided, the environment variable :py:const:`ENV_VAR_NAME` is used. If the environment variable is not set, the default configuration file location is used.
             timeseries_root (str): Path to the root directory for time series data. If one of these identifies a vaild json file, the configuration is loaded from that file and no other parameters are required. If provided, they will override values from the configuration file.
