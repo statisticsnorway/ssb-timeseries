@@ -43,7 +43,7 @@ ENV_VAR_FILE: str = os.getenv(ENV_VAR_NAME, "")
 
 HOME = str(Path.home())
 GCS_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
-GCS_TEST = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
+GCS_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
 GCS = GCS_PROD
 DAPLA_ENV = os.getenv("DAPLA_ENVIRONMENT", "")  # PROD, TEST, DEV
 DAPLA_TEAM = os.getenv("DAPLA_TEAM", "")
