@@ -112,8 +112,8 @@ class Config:
             bucket (str): Name of the GCS bucket.
 
         Raises:
-            FileNotFoundError: If the configuration file as implied by provided or not provided parameters does not exist.
-            ValidationError: If the resulting configuration is not valid.
+            FileNotFoundError: If the configuration file as implied by provided or not provided parameters does not exist.   # noqa: DAR402
+            ValidationError: If the resulting configuration is not valid.   # noqa: DAR402
 
         Examples:
             Load an existing config from TIMESERIES_CONFIG or default location:
@@ -292,7 +292,7 @@ def is_valid_config(config: dict) -> bool:
     return sorted(dict(config).keys()) == sorted(dict(DEFAULTS).keys())
 
 
-def presets(named_config: str) -> dict:
+def presets(named_config: str) -> dict:  # noqa: RUF100, DAR201
     """Set configurations to predefined defaults.
 
     Raises:
@@ -370,7 +370,7 @@ def main(*args: str | PathStr) -> None:
         *args (str): 'home' | 'gcs' | 'jovyan'.
 
     Raises:
-        ValueError: If args is not 'home' | 'gcs' | 'jovyan'.
+        ValueError: If args is not 'home' | 'gcs' | 'jovyan'. # noqa: DAR402
 
     """
     if args:

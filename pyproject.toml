@@ -117,6 +117,7 @@ ignore = [
     "D100",   # Supress undocumented-public-module. Only doc of public api required.
     "E402",   # Supress module-import-not-at-top-of-file, needed in jupyter notebooks.
     "E501",   # Supress line-too-long warnings: trust black's judgement on this one.
+    # "RUF100", # RYE: Don't get in the way of noqa: DAR...
 ]
 
 [tool.ruff.lint.isort]

@@ -411,6 +411,9 @@ def _text_writer(file_format: str) -> Callable[[PathStr, dict], None]:
 
     Args:
         file_format (str): Format of the text file, either "json" or "toml".
+
+    Raises:
+        ValueError: If the file format is not supported.
     """
     match file_format.lower():
         case "json":
