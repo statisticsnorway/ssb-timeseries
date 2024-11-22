@@ -32,11 +32,11 @@ The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether da
 """
 
 __all__ = [
+    "config",
     "dataset",
     "dates",
-    "io",
     "fs",
-    "config",
+    "io",
     "logging",
     "properties",
     "sample_data",
