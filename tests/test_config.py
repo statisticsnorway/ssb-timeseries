@@ -86,16 +86,21 @@ def test_config_defaults(reset_config_after: config.Config) -> None:
 
 
 def test_config_change(reset_config_after: config.Config) -> None:
-    old = config.CONFIG
-    if old.timeseries_root == config.JOVYAN:
-        old.timeseries_root = config.GCS
+    cfg = config.CONFIG
+    old_value = cfg.timeseries_root
+    config_file = cfg.configuration_file
+    if old_value == config.JOVYAN:
+        new_value = config.GCS
     else:
-        old.timeseries_root = config.JOVYAN
-    old.save()
-    new = config.Config(configuration_file=old.configuration_file)
+        new_value = config.JOVYAN
+    cfg.timeseries_root = new_value
+    cfg.save()
+
+    new = config.Config(configuration_file=config_file)
     # we should have both a new object (a new id) and a new path for timeseries_root
-    assert id(new) != id(old)
-    assert new.timeseries_root != old.timeseries_root
+    assert id(new) != id(cfg)
+    assert new.timeseries_root == new_value
+    assert new.timeseries_root != old_value
 
 
 def test_read_config_from_file() -> None:

@@ -179,12 +179,15 @@ class Config:
         else:
             raise ValidationError(f"Invalid configuration {configs}.")
 
-    def save(self, path: PathStr = CONFIGURATION_FILE) -> None:
-        """Saves configurations to JSON file and set environment variable TIMESERIES_CONFIG to the location of the file.
+    def save(self, path: PathStr = "") -> None:
+        """Saves configurations to the JSON file defined by `configuration_file`.
 
         Args:
-            path (PathStr): Full path of the JSON file to save to. If not speicified, it will attempt to use the environment variable TIMESERIES_CONFIG before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
+            path (PathStr): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable TIMESERIES_CONFIG before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
         """
+        if not path:
+            path = self.configuration_file
+
         fs.write_json(content=self.__dict__, path=str(path))
         if not fs.exists(self.log_file):
             fs.touch(self.log_file)
