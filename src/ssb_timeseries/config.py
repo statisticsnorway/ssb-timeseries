@@ -87,39 +87,48 @@ class Config:
 
     If instantiated with no parameters, an existing configuration file is exepected to exist: either in a location specified by the environment variable TIMESERIES_CONFIG or in the default location in the user's home directory. If not, an error is returned.
 
-    If the py:param:`configuration_file` parameter is specified, configurations will be loaded from that file. No other parameters are required. A FileDoesNotExist error will be returned if the file is not found. In this case, no attempt is made to load configurations from locations specified by environment variable or defaults.
-    If additional parameters are provided, they will override values from the configuration file. If the result is not a valid configuration, a ValidationError is raised.
+    If the :py:attr:`configuration_file` attribute is specified, configurations will be loaded from that file. No other parameters are required. A :py:exc:`FileNotFoundError` or :py:exc:`FileDoesNotExist` error will be returned if the file is not found. In this case, no attempt is made to load configurations from locations specified by environment variable or defaults.
+
+    If any additional parameters are provided, they will override values from the configuration file. If the result is not a valid configuration, a ValidationError is raised.
 
     If one or more parameters are provided, but the `configuration_file` parameter is not among them, configurations are identified by the environment variable TIMESERIES_CONFIG or the default configuration file location (in that order of priority). Provided parameters override values from the configuration file. If the result is not a valid configuration, an error is raised.
+
+    The returned configuration will not be saved, but held in memory only till the :py:meth:`save` method is called. Then the configuration will be savedto a file and the environment variable TIMESERIES_CONFIG set to reflect the location of the file.
 
     """
 
     configuration_file: PathStr
+    """The path to the configuRation file."""
     timeseries_root: PathStr
+    """The root directory for data storage of a repository."""
     catalog: PathStr
+    """The path to the metadata directory of a repository ."""
     log_file: PathStr
+    """The path to the log file."""
     bucket: PathStr
+    """The topmost level of the GCS bucket for the team."""
 
     def __init__(self, **kwargs) -> None:  # noqa: D417, ANN003, DAR101, DAR402, RUF100
         """Initialize Config object from keyword arguments.
 
-        Optional keyword arguments:
+        Keyword Arguments:
             preset (str): Optional. Name of a preset configuration. If provided, the preset configuration is loaded, and no other parameters are considered.
-            configuration_file (str): Path to the configuration file. If the parameter is not provided, the environment variable :py:const:`ENV_VAR_NAME` is used. If the environment variable is not set, the default configuration file location is used.
+            configuration_file (str): Path to the configuration file. If the parameter is not provided, the environment variable TIMESERIES_CONFIG is used. If the environment variable is not set, the default configuration file location is used.
             timeseries_root (str): Path to the root directory for time series data. If one of these identifies a vaild json file, the configuration is loaded from that file and no other parameters are required. If provided, they will override values from the configuration file.
             catalog (str): Path to the catalog file.
             log_file (str): Path to the log file.
             bucket (str): Name of the GCS bucket.
 
         Raises:
-            FileNotFoundError: If the configuration file as implied by provided or not provided parameters does not exist.   # noqa: DAR402
-            ValidationError: If the resulting configuration is not valid.   # noqa: DAR402
+            :py:exc:`FileNotFoundError`: If the configuration file as implied by provided or not provided parameters does not exist.   # noqa: DAR402
+            :py:exc:`ValidationError`: If the resulting configuration is not valid.   # noqa: DAR402
 
         Examples:
             Load an existing config from TIMESERIES_CONFIG or default location:
 
                 >>> from ssb_timeseries.config import Config
                 >>> config = Config()
+
             Load config, change parameter and save:
 
                 >>> config.save()
