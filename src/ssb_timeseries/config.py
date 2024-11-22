@@ -49,7 +49,7 @@ DAPLA_ENV = os.getenv("DAPLA_ENVIRONMENT", "")  # PROD, TEST, DEV
 DAPLA_TEAM = os.getenv("DAPLA_TEAM", "")
 DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-{DAPLA_ENV}"
 JOVYAN = "/home/jovyan"
-DAPLALAB_HOME = "/home/joyan/work"
+DAPLALAB_HOME = "/home/jovyan/work"
 PACKAGE_NAME = "ssb_timeseries"
 ROOT_DIR_NAME = "tidsserier"
 META_DIR_NAME = "metadata"
@@ -273,6 +273,7 @@ def migrate_to_new_config_location(
 
         for c in copy_these:
             if fs.exists(c["source"]):
+                # copy all to .config, but let filename signal where it was copied from
                 target = DEFAULTS["configuration_file"].replace(
                     ".json", f"{c['replace']}.json"
                 )
@@ -286,10 +287,15 @@ def migrate_to_new_config_location(
             )
 
         if copied:
+            # copy the first file = make it the active one
             fs.cp(copied[0], DEFAULTS["configuration_file"])
             ts_config_logger.info(
                 f"Configuration files were copied: {copied}.\nCopied {copied[0]} to detectable file {DEFAULTS['configuration_file']}."
             )
+        else:
+            # no files were found --> create one from defaults
+            new = Config(preset="default")
+            new.save()
 
 
 def is_valid_config(config: dict) -> bool:
