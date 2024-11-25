@@ -23,19 +23,19 @@ repos:
         entry: end-of-file-fixer
         language: system
         types: [text]
-        stages: [commit, push, manual]
+        stages: [pre-commit, pre-push, manual]
       - id: trailing-whitespace
         name: Trim Trailing Whitespace
         entry: trailing-whitespace-fixer
         language: system
         types: [text]
-        stages: [commit, push, manual]
+        stages: [pre-commit, pre-push, manual]
       - id: mixed-line-ending
         name: Mixed Line Ending
         entry: mixed-line-ending
         language: system
         types: [text]
-        stages: [commit, push, manual]
+        stages: [pre-commit, pre-push, manual]
 
       # Serialization format checkers
       - id: check-yaml
@@ -78,3 +78,9 @@ repos:
         language: system
         types_or: [python, jupyter]
         require_serial: true
+      - id: isort
+        name: isort
+        require_serial: true
+        types: [cython, pyi, python]
+        entry: isort --treat-comment-as-code, "# %%"
+        language: system

@@ -1,6 +1,6 @@
 """The :py:mod:`ssb_timeseries` package is a helper library for production and analysis of statistical data in the form of *time series*.
 
-It is designed to make it as easy as possible to store data and metadata for datasets and series in ways that are consistent with the :doc:`information model <../info_model>`, and to facilitate integration with automated workflows.
+It is designed to make it as easy as possible to store data and metadata for datasets and series in ways that are consistent with the :doc:`information model <../info-model>`, and to facilitate integration with automated workflows.
 
 Functionality includes:
 
@@ -32,11 +32,11 @@ The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether da
 """
 
 __all__ = [
+    "config",
     "dataset",
     "dates",
-    "io",
     "fs",
-    "config",
+    "io",
     "logging",
     "properties",
     "sample_data",
