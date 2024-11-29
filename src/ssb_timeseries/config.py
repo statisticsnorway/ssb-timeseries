@@ -46,14 +46,14 @@ HOME = str(Path.home())
 SHARED_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
 SHARED_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
 GCS = SHARED_PROD
-DAPLA_ENV = os.getenv("DAPLA_ENVIRONMENT", "")  # PROD, TEST, DEV
-DAPLA_TEAM = os.getenv("DAPLA_TEAM", "")
-DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-{DAPLA_ENV}"
+
 JOVYAN = "/home/jovyan"
 DAPLALAB_HOME = "/home/jovyan/work"
 ROOT_DIR_NAME = "tidsserier"
 META_DIR_NAME = "metadata"
+SSB_CONF_DIR = "konfigurasjon"
 LINUX_CONF_DIR = ".config"
+SSB_LOGDIR = "logger"
 LOGDIR = "logs"
 LOGFILE = "timeseries.log"
 CONFIGFILE = "timeseries_config.json"
@@ -70,6 +70,10 @@ DEFAULTS = {
     "log_file": os.path.join(HOME, LOGDIR, LOGFILE),
     "bucket": HOME,
 }
+DAPLA_TEAM_CONTEXT = os.getenv("DAPLA_TEAM_CONTEXT", "")
+DAPLA_ENV = os.getenv("DAPLA_ENVIRONMENT", "")  # PROD, TEST, DEV
+DAPLA_TEAM = os.getenv("DAPLA_TEAM", "")
+DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-{DAPLA_ENV}"
 
 if ENV_VAR_FILE:
     CONFIGURATION_FILE = ENV_VAR_FILE
@@ -339,6 +343,22 @@ def presets(named_config: str) -> dict:  # noqa: RUF100, DAR201
                 "catalog": path_str(HOME, ROOT_DIR_NAME, META_DIR_NAME),
                 "log_file": path_str(HOME, ROOT_DIR_NAME, LOGFILE),
             }
+        case "shared-test":
+            cfg = {
+                "configuration_file": CONFIGURATION_FILE,
+                "bucket": SHARED_TEST,
+                "timeseries_root": path_str(SHARED_TEST, ROOT_DIR_NAME),
+                "catalog": path_str(SHARED_TEST, ROOT_DIR_NAME, META_DIR_NAME),
+                "log_file": path_str(SHARED_TEST, LOGDIR, LOGFILE),
+            }
+        case "shared-prod":
+            cfg = {
+                "configuration_file": CONFIGURATION_FILE,
+                "bucket": SHARED_PROD,
+                "timeseries_root": path_str(SHARED_PROD, ROOT_DIR_NAME),
+                "catalog": path_str(SHARED_PROD, ROOT_DIR_NAME, META_DIR_NAME),
+                "log_file": path_str(SHARED_PROD, LOGDIR, LOGFILE),
+            }
         case "jovyan":
             cfg = {
                 "configuration_file": CONFIGURATION_FILE,
@@ -351,14 +371,14 @@ def presets(named_config: str) -> dict:  # noqa: RUF100, DAR201
             cfg = {
                 "configuration_file": path_str(
                     DAPLA_BUCKET,
-                    ROOT_DIR_NAME,
-                    "konfigurasjon",
+                    SSB_CONF_DIR,
+                    PACKAGE_NAME,
                     CONFIGFILE,
                 ),
                 "bucket": JOVYAN,
                 "timeseries_root": path_str(JOVYAN, ROOT_DIR_NAME),
                 "catalog": path_str(HOME, ROOT_DIR_NAME, META_DIR_NAME),
-                "log_file": path_str(JOVYAN, LOGDIR, LOGFILE),
+                "log_file": path_str(JOVYAN, SSB_LOGDIR, LOGFILE),
             }
         case _:
             if fs.exists(named_config):
