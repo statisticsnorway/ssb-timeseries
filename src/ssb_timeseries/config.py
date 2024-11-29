@@ -10,7 +10,7 @@ Using the configuration module should only be necessary in order to manipulate c
 Example:
     >>> # doctest: +SKIP
     >>> from ssb_timeseries.config import CONFIG
-    >>> CONFIG.catalog('gs://some_bucket/timeseries_config.json')
+    >>> CONFIG.catalog = 'gs://{bucket}/timeseries/metadata/'
     >>> CONFIG.save()
     >>> # doctest: -SKIP
 
@@ -38,19 +38,19 @@ from ssb_timeseries.types import PathStr
 
 # mypy: disable-error-code="assignment, arg-type, override,call-arg,has-type,no-untyped-def,attr-defined"
 
+PACKAGE_NAME = "ssb_timeseries"
 ENV_VAR_NAME: str = "TIMESERIES_CONFIG"
 ENV_VAR_FILE: str = os.getenv(ENV_VAR_NAME, "")
 
 HOME = str(Path.home())
-GCS_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
-GCS_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
-GCS = GCS_PROD
+SHARED_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
+SHARED_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
+GCS = SHARED_PROD
 DAPLA_ENV = os.getenv("DAPLA_ENVIRONMENT", "")  # PROD, TEST, DEV
 DAPLA_TEAM = os.getenv("DAPLA_TEAM", "")
 DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-{DAPLA_ENV}"
 JOVYAN = "/home/jovyan"
 DAPLALAB_HOME = "/home/jovyan/work"
-PACKAGE_NAME = "ssb_timeseries"
 ROOT_DIR_NAME = "tidsserier"
 META_DIR_NAME = "metadata"
 LINUX_CONF_DIR = ".config"
