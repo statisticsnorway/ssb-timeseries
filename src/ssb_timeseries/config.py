@@ -145,7 +145,6 @@ class Config:
                 path=param_specified_config_file,
                 error_on_missing=True,
             )
-            print(config_values)
             self.apply(config_values)
             return
         elif param_specified_config_file and kwargs:
@@ -306,7 +305,6 @@ def is_valid_config(config: dict) -> bool:
 
     A valid configuration has the same keys as DEFAULTS.
     """
-    print(f"Configs: {config}\nDefaults: {DEFAULTS}")
     return sorted(dict(config).keys()) == sorted(dict(DEFAULTS).keys())
 
 
@@ -396,11 +394,12 @@ def main(*args: str | PathStr) -> None:
     else:
         config_identifier = sys.argv[1]
 
-    print(f"Update configuration with named presets: '{config_identifier}'.")
-    preset_config = presets(config_identifier)
-    preset_config.save(CONFIGURATION_FILE)
+    print(f"Update configuration with named preset: '{config_identifier}'.")
+    cfg = Config(presets=config_identifier)
+    cfg.save(path=cfg.configuration_file)
+
     print(
-        f"Configuration\n\t{preset_config}\nsaved to file: {CONFIGURATION_FILE}.\nEnvironment variable set: {os.getenv('TIMESERIES_CONFIG')=}"
+        f"Preset configuration '{config_identifier}' was applied:\n\t{cfg.__dict__}\nSaved to file: {cfg.configuration_file}.\nEnvironment variable set: {os.getenv('TIMESERIES_CONFIG')=}"
     )
 
 
@@ -419,7 +418,7 @@ if __name__ == "__main__":
 else:
     if not fs.exists(CONFIGURATION_FILE):
         print(
-            f"Configuration file {CONFIGURATION_FILE} does not exist. Attempts to migrate to new location."
+            f"No configuration file was foumd at {CONFIGURATION_FILE}. Other locations will be tried. Files found will be copied to the default location  and the first candidate will be set to active, ie copied onsce more to {DEFAULTS['configuration_file']}"
         )
         migrate_to_new_config_location()
 

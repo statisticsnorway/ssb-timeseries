@@ -26,9 +26,6 @@ numpy = ">=1.26.4"
 matplotlib = "^3.8.4"
 duckdb = "^1.0.0"
 polars = "^1.5.0"
-sphinx-copybutton = "^0.5.2"
-sphinx-material = "^0.0.36"
-sphinx-togglebutton = "^0.3.2"
 tomli = "^2.1.0"
 tomli-w = "^1.1.0"
 
@@ -47,6 +44,8 @@ sphinx = ">=6.2.1"
 sphinx-autobuild = ">=2021.3.14"
 sphinx-autodoc-typehints = ">=1.24.0"
 sphinx-click = ">=3.0.2"
+sphinx-copybutton = "^0.5.2"
+sphinx-togglebutton = "^0.3.2"
 typeguard = ">=2.13.3"
 xdoctest = { extras = ["colors"], version = ">=0.15.10" }
 myst-parser = { version = ">=0.16.1" }
