@@ -182,6 +182,11 @@ class Config:
         else:
             raise ValidationError(f"Invalid configuration {configs}.")
 
+    @property
+    def is_valid(self) -> bool:
+        """Check if the configuration has all required fields."""
+        return is_valid_config(self.__dict__)
+
     def save(self, path: PathStr = "") -> None:
         """Saves configurations to the JSON file defined by `configuration_file`.
 

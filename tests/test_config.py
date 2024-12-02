@@ -85,6 +85,34 @@ def test_config_defaults(reset_config_after: config.Config) -> None:
     assert cfg_0.timeseries_root == cfg_1.timeseries_root == cfg_2.timeseries_root
 
 
+@pytest.mark.parametrize(
+    "preset_name,attr,value",
+    [
+        ("defaults", "", ""),
+        ("home", "", ""),
+        ("gcs", "", ""),
+        ("shared-test", "", ""),
+        ("shared-prod", "", ""),
+        ("jovyan", "", ""),
+        ("dapla", "", ""),
+    ],
+)
+def test_config_presets(
+    reset_config_after: config.Config,
+    preset_name,
+    attr,
+    value,
+) -> None:
+    # all of these should result in the same information, but in different objects
+
+    cfg = config.Config(preset=preset_name)
+
+    assert isinstance(cfg, config.Config)
+    assert cfg.is_valid
+    if attr:
+        assert cfg.__getattribute__(attr) == value
+
+
 def test_config_change(reset_config_after: config.Config) -> None:
     cfg = config.CONFIG
     old_value = cfg.timeseries_root
