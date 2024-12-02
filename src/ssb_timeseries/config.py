@@ -199,13 +199,13 @@ class Config:
         fs.write_json(content=self.__dict__, path=str(path))
         if not fs.exists(self.log_file):
             fs.touch(self.log_file)
-        if HOME == JOVYAN:
-            # For some reason `os.environ[ENV_VAR_NAME] = path` does not work:
-            cmd = f"export TIMESERIES_CONFIG={CONFIGURATION_FILE}"
-            os.system(cmd)
-            # os.system(f"echo '{cmd}' >> ~/.bashrc")
-        else:
-            os.environ[ENV_VAR_NAME] = path
+        # if HOME == JOVYAN:
+        #     # For some reason `os.environ[ENV_VAR_NAME] = path` does not work:
+        #     cmd = f"export TIMESERIES_CONFIG={CONFIGURATION_FILE}"
+        #     os.system(cmd)
+        #     # os.system(f"echo '{cmd}' >> ~/.bashrc")
+        # else:
+        #     os.environ[ENV_VAR_NAME] = path
         os.environ[ENV_VAR_NAME] = path
 
     def __getitem__(self, item: str) -> str:
