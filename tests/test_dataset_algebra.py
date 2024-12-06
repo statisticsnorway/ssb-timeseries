@@ -5,7 +5,6 @@ import pytest
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.logging import log_start_stop
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -67,10 +66,10 @@ def test_dataset_math(caplog) -> None:
     scalar = 1000
 
     # TO DO: improve coverage by adding asserts for scalar cases
-    ts_logger.debug(f"matrix:\n{a + scalar}")
-    ts_logger.debug(f"matrix:\n{a - scalar}")
-    ts_logger.debug(f"matrix:\n{a * scalar}")
-    ts_logger.debug(f"matrix:\n{a / scalar}")
+    logging.debug(f"matrix:\n{a + scalar}")
+    logging.debug(f"matrix:\n{a - scalar}")
+    logging.debug(f"matrix:\n{a * scalar}")
+    logging.debug(f"matrix:\n{a / scalar}")
 
     # TO DO: add test cases for numpy arrays
     # col_vector = np.ones((1, 3)) * scalar
@@ -79,15 +78,15 @@ def test_dataset_math(caplog) -> None:
 
     # peek into the asserts below:
 
-    # ts_logger.debug(f"matrix:\n{a + a_data}")
-    # ts_logger.debug(f"matrix:\n{a - a_data}")
-    # ts_logger.debug(f"matrix:\n{a * a_data}")
-    # ts_logger.debug(f"matrix:\n{a / a_data}")
+    # logging.debug(f"matrix:\n{a + a_data}")
+    # logging.debug(f"matrix:\n{a - a_data}")
+    # logging.debug(f"matrix:\n{a * a_data}")
+    # logging.debug(f"matrix:\n{a / a_data}")
 
-    # ts_logger.debug(f"matrix:\n{a + a}")
-    # ts_logger.debug(f"matrix:\n{a - a}")
-    # ts_logger.debug(f"matrix:\n{a * a}")
-    # ts_logger.debug(f"matrix:\n{a / a}")
+    # logging.debug(f"matrix:\n{a + a}")
+    # logging.debug(f"matrix:\n{a - a}")
+    # logging.debug(f"matrix:\n{a * a}")
+    # logging.debug(f"matrix:\n{a / a}")
 
     assert all((a + a).data == (a + a_data).data)
     assert all((a - a).data == (a - a_data).data)
@@ -129,8 +128,8 @@ def test_dataset_add_dataset(caplog) -> None:
     c = a + b
     d = a * 2
 
-    ts_logger.debug(d)
-    ts_logger.debug(all(d == c))
+    logging.debug(d)
+    logging.debug(all(d == c))
 
     assert all(c.data == d.data)
     # TO DO: redefine equals for datasets? add __iter__
@@ -174,15 +173,15 @@ def test_algebra_expression_with_multiple_dataset(
     d = a * a * a + b * b + b * b - c - c - c
     e = a**3 + 2 * b**2 - 3 * c
 
-    # ts_logger.warning(f"d: {d.name}\n{d.data}")
-    # ts_logger.warning(f"e: {e.name}\n{e.data}")
-    ts_logger.warning(
+    # logging.warning(f"d: {d.name}\n{d.data}")
+    # logging.warning(f"e: {e.name}\n{e.data}")
+    logging.warning(
         f"d.data[numeric] == e.data[numeric]: \n{d.data[d.numeric_columns()] == e.data[e.numeric_columns()]} --> all = {all(d.data[d.numeric_columns()] == e.data[e.numeric_columns()])}"
     )
     assert all(d.data[d.numeric_columns()] == e.data[e.numeric_columns()])
 
     # must redefine equals for datasets
-    # ts_logger.warning(f"e == d\n{(e == d).data}\n\t--> {all(e == d)}")
+    # logging.warning(f"e == d\n{(e == d).data}\n\t--> {all(e == d)}")
     # assert all(e == d)
 
 
@@ -282,7 +281,7 @@ def test_dataset_vectors(caplog):
         *tag_values, start_date="2022-01-01", end_date="2022-10-03", freq="MS"
     )
     x.vectors()
-    ts_logger.debug(f"matrix:\n{eval('p') == x.data['p']}")
+    logging.debug(f"matrix:\n{eval('p') == x.data['p']}")
 
     # variables should be defined for all columns
     assert "valid_at" in locals()

@@ -1,10 +1,12 @@
 import inspect
+import logging
 import os
-from pathlib import Path
 
+# from pathlib import Path
 import pytest
 
 from ssb_timeseries import config
+from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.properties import SeriesType
@@ -12,17 +14,17 @@ from ssb_timeseries.sample_data import create_df
 
 # mypy: ignore-errors
 
-TEST_DIR = ""
+TEST_CONFIG = ""
 ENV_VAR_NAME = "TIMESERIES_CONFIG"
-ENV_VAR_VALUE = os.environ.get(ENV_VAR_NAME, "")
+ENV_VAR_VALUE = config.CONFIGURATION_FILE
 
 
 class Helpers:
-    configuration: config.Config = config.CONFIG
+    configuration: config.Config
 
-    @staticmethod
-    def test_dir() -> str:
-        return TEST_DIR
+    # @staticmethod
+    # def test_dir() -> str:
+    #    return TEST_DIR
 
     @staticmethod
     def function_name() -> str:
@@ -45,44 +47,56 @@ def buildup_and_teardown(
     """To make sure that tests do not change the configuration file."""
     before_tests = config.CONFIG
 
-    if before_tests.configuration_file:
-        print(
-            f"Before running tests:\nTIMESERIES_CONFIG: {before_tests.configuration_file}:\n{before_tests.to_json()}"
-        )
-        cfg_file = Path(before_tests.configuration_file).name
-        config_file_for_testing = str(tmp_path_factory.mktemp("config") / cfg_file)
-        config.CONFIG.configuration_file = config_file_for_testing
-        config.CONFIG.timeseries_root = str(tmp_path_factory.mktemp("series_data"))
-        config.CONFIG.catalog = str(tmp_path_factory.mktemp("metadata"))
-        config.CONFIG.bucket = str(tmp_path_factory.mktemp("production-bucket"))
-        config.CONFIG.save(config_file_for_testing)
-        # config.CONFIG.save(cfg_file)
-        global TEST_DIR
-        TEST_DIR = config_file_for_testing
-        Helpers.configuration = config.CONFIG
-
+    if before_tests.configuration_file and isinstance(before_tests, config.Config):
+        logging.debug(f"Configuration before running tests:\n{before_tests}")
     else:
-        print(
-            f"No configuration file found before tests:\nTIMESERIES_CONFIG: {before_tests.configuration_file}\n... raise error? Or continue?"
+        logging.debug(
+            f"No configuration file found before tests:\n{before_tests.configuration_file}"
         )
+
+    config_file_for_testing = str(
+        fs.touch(tmp_path_factory.mktemp("config") / "config_for_tests.json")
+    )
+    log_file_for_testing = fs.touch(
+        tmp_path_factory.mktemp("logs") / "log_for_tests.log"
+    )
+
+    os.environ[ENV_VAR_NAME] = config_file_for_testing
+    temp_configuration = config.Config(
+        configuration_file=str(config_file_for_testing),
+        log_file=str(log_file_for_testing),
+        timeseries_root=str(tmp_path_factory.mktemp("series")),
+        catalog=str(tmp_path_factory.mktemp("metadata")),
+        bucket=str(tmp_path_factory.mktemp("bucket")),
+        ignore_file=True,
+    )
+    # fs.write_json(config_file_for_testing, temp_configuration.__dict__())
+    temp_configuration.save(config_file_for_testing)
+
+    global TEST_CONFIG
+    TEST_CONFIG = config_file_for_testing
 
     print(f"Current configurations:\n{config.CONFIG}")
 
     # run tests
-    yield config.CONFIG
+    yield temp_configuration
 
     # teardown: reset config
-    if config.CONFIG != before_tests:
-        print(
-            f"Configurations was changed by tests:\n{config.CONFIG}\nReverting to original:\n{before_tests}"
-        )
-        before_tests.save(before_tests.configuration_file)
+    if before_tests.configuration_file and isinstance(before_tests, config.Config):
+        before_tests.save()
     else:
-        print(
-            f"Final configurations after tests are identical to orginal:\n{config.CONFIG}\nReverting to original:\n{before_tests}"
-        )
-    print(f"Configuration after tests:\n{os.environ[ENV_VAR_NAME]=}:\n{config.CONFIG}")
-    os.environ[ENV_VAR_NAME] = ENV_VAR_VALUE
+        os.environ[ENV_VAR_NAME] = ENV_VAR_VALUE
+    # if config.CONFIG != before_tests:
+    #     print(
+    #         f"Configurations was changed by tests:\n{config.CONFIG}\nReverting to original:\n{before_tests}"
+    #     )
+    #     before_tests.save(before_tests.configuration_file)
+    # else:
+    #     print(
+    #         f"Final configurations after tests are identical to orginal:\n{config.CONFIG}\nReverting to original:\n{before_tests}"
+    #     )
+    # print(f"Configuration after tests:\n{os.environ[ENV_VAR_NAME]=}:\n{config.CONFIG}")
+    assert os.environ[ENV_VAR_NAME] == config.CONFIG.configuration_file
 
 
 @pytest.fixture(scope="session", autouse=False)
