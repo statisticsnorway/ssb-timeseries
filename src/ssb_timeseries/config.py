@@ -196,11 +196,7 @@ class Config:
             Load an existing config from TIMESERIES_CONFIG or default location:
 
                 >>> from ssb_timeseries.config import Config
-                >>> config = Config()
-
-            Load config, change parameter and save:
-
-                >>> config.save()
+                >>> config = Config.active()
         """
         preset_name = kwargs.pop("preset", "")
         ignore_file = kwargs.pop("ignore_file", False)
