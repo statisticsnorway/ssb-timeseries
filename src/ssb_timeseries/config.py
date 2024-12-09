@@ -274,10 +274,13 @@ class Config:
         If :py:param:`path` is set, it will take presence and `configuration_file` will be set.
 
         Args:
-            path (Path | str): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable TIMESERIES_CONFIG before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
+            path (PathStr): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable TIMESERIES_CONFIG before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
+
+        Raises:
+            ValueError: If :py:param:`path` is not provided and `configuration_file`is not set.
         """
         if path:
-            self.configuration_file = path
+            self.configuration_file = str(path)
         elif not self.configuration_file:
             raise ValueError(
                 "Configuration file must have a value or path must be specified."
@@ -285,8 +288,6 @@ class Config:
         else:
             path = self.configuration_file
 
-        # fs.write_json(content=self.__dict__, path=str(path))
-        # fs.write_json(content=self, path=str(path))
         fs.write_text(content=str(self), path=str(path), file_format="json")
         if not fs.exists(self.log_file):
             fs.touch(self.log_file)
