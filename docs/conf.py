@@ -106,3 +106,4 @@ autodoc_default_options = {
     "undoc-members": True,
     "exclude-members": "__weakref__",  # not sure about this one?
 }
+copybutton_exclude = ".linenos, .gp"

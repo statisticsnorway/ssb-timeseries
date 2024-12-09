@@ -90,14 +90,15 @@ def existing_subpath(path: PathStr) -> PathStr:
         return p
 
 
-def touch(path: PathStr) -> None:
-    """Touch file regardless of wether the filesystem is local or GCS."""
+def touch(path: PathStr) -> PathStr:
+    """Touch file regardless of wether the filesystem is local or GCS; return path."""
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         fs.touch(path)
     else:
         mk_parent_dir(path)
         Path(path).touch()
+    return path
 
 
 @wrap_return_as_str
@@ -114,7 +115,6 @@ def mkdir(path: PathStr) -> None:
     """Make directory regardless of filesystem is local or GCS."""
     # not good enough .. it is hard to distinguish between dirs and files that do not exist yet
     if is_local(path):
-        # os.makedirs(path, exist_ok=True)
         Path(path).mkdir(parents=True, exist_ok=True)
     else:
         ...
@@ -126,7 +126,6 @@ def mk_parent_dir(path: PathStr) -> None:
     # but it is hard to distinguish between dirs and files that do not exist yet
     # --> use this to create parent directory for files, mkdir() when the last part of path is a directory
     if is_local(path):
-        # os.makedirs(os.path.dirname(path), exist_ok=True)
         Path(path).parent.mkdir(parents=True, exist_ok=True)
     else:
         ...

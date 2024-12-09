@@ -1117,25 +1117,6 @@ class Dataset:
 
         return self.copy(f"{self.name}.{functions}", data=df)
 
-    # # reindexing is a remainder of abandoned approach to avoid calculating on datatime columns?
-    # # --> can be deleted if not used / or nice to have?
-    # @no_type_check
-    # def reindex(
-    #     self,
-    #     index_type: str = "dt",
-    #     freq: str = "",
-    #     *args,
-    # ) -> None:
-    #     """Reindex dataset by datetime or period."""
-    #     match index_type:
-    #         case "dt" | "datetime":
-    #             self.data = self.data.set_index(self.datetime_columns(), *args)
-    #         case "p" | "period":
-    #             p = pd.PeriodIndex(self.data[self.datetime_columns], freq=freq)
-    #             self.data.reindex(p)
-    #         case _:
-    #             self.data = self.data.set_index(self.datetime_columns(), *args)
-
 
 def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
     """Helper function to calculate aggregate over dataframe columns."""

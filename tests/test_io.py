@@ -6,7 +6,6 @@ import polars
 import pyarrow
 
 from ssb_timeseries import io
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -32,7 +31,7 @@ def test_io_datadir_path_as_expected(
     assert str(test_io.data_dir) == str(expected)
 
 
-def test_io_metadir_path_is_equalt_to_configured_metadata_catalog(
+def test_io_metadir_path_is_equal_to_configured_metadata_catalog(
     conftest,
     caplog,
 ) -> None:
@@ -64,7 +63,7 @@ def test_io_parquet_schema_as_of_at(
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
         tags = io.tags_from_json(schema.field(key).metadata)
-        ts_logger.debug(f"{key=}:\n{tags=}")
+        logging.debug(f"{key=}:\n{tags=}")
         assert tags["name"] == key
         for k, v in tags.items():
             assert dataset.tags["series"][key][k] == v
@@ -88,7 +87,7 @@ def test_io_parquet_schema_none_from_to(
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
         tags = io.tags_from_json(schema.field(key).metadata)
-        ts_logger.debug(f"{key=}:\n{tags=}")
+        logging.debug(f"{key=}:\n{tags=}")
         assert tags["name"] == key
         for k, v in tags.items():
             assert dataset.tags["series"][key][k] == v
@@ -112,7 +111,7 @@ def test_io_parquet_schema_none_at(
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
         tags = io.tags_from_json(schema.field(key).metadata)
-        ts_logger.debug(f"{key=}:\n{tags=}")
+        logging.debug(f"{key=}:\n{tags=}")
         assert tags["name"] == key
         for k, v in tags.items():
             assert dataset.tags["series"][key][k] == v
@@ -136,7 +135,7 @@ def test_io_parquet_schema_as_of_from_to(
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
         tags = io.tags_from_json(schema.field(key).metadata)
-        ts_logger.debug(f"{key=}:\n{tags=}")
+        logging.debug(f"{key=}:\n{tags=}")
         assert tags["name"] == key
         for k, v in tags.items():
             assert dataset.tags["series"][key][k] == v
@@ -164,7 +163,7 @@ def test_io_merge_data_with_arrow_tables(
     )
     assert isinstance(x1, pyarrow.Table) and isinstance(x2, pyarrow.Table)
     df = io.merge_data(x1, x2, {"valid_at"})
-    ts_logger.debug(
+    logging.debug(
         f"merge arrow tables:\nOLD\n{x1.to_pandas()}\n\nNEW\n{x2.to_pandas()}\n\nRESULT\n{df.to_pandas()}"
     )
     assert isinstance(df, pyarrow.Table)
@@ -189,7 +188,7 @@ def test_io_merge_data_with_pandas_dataframes(
     )
     assert isinstance(x1, pandas.DataFrame) and isinstance(x2, pandas.DataFrame)
     df = io.merge_data(x1, x2, {"valid_at"})
-    ts_logger.debug(f"merge pandas dataframes:\nOLD\n{x1}\n\nNEW\n{x2}\n\nRESULT\n{df}")
+    logging.debug(f"merge pandas dataframes:\nOLD\n{x1}\n\nNEW\n{x2}\n\nRESULT\n{df}")
     assert isinstance(df, pandas.DataFrame)
     assert df.shape == (12, 4)
 
@@ -216,7 +215,7 @@ def test_io_merge_data_with_polars_dataframes(
     ).sort("valid_at")
     assert isinstance(x1, polars.DataFrame) and isinstance(x2, polars.DataFrame)
     df = io.merge_data(x1, x2, {"valid_at"})
-    ts_logger.debug(
+    logging.debug(
         f"merge polars dataframes:\nOLD\n{x1.to_pandas()}\n\nNEW:\n{x2.to_pandas()}\n\nRESULT:\n{df.to_pandas()}"
     )
     assert isinstance(df, polars.DataFrame)

@@ -11,8 +11,7 @@ from datetime import datetime
 
 from typing_extensions import Self
 
-from ssb_timeseries.config import CONFIG
-from ssb_timeseries.config import CONFIGURATION_FILE
+from ssb_timeseries.config import Config
 from ssb_timeseries.types import F
 
 # nosonar: disable comment
@@ -36,11 +35,8 @@ log_json = logging.Formatter(
 # nosonar: disable comment
 # CONFIGURATION_FILE = str(os.environ.get("TIMESERIES_CONFIG"))
 # CONFIG = Config(configuration_file=CONFIGURATION_FILE)
-LOG_FILE = str(CONFIG.log_file)
+LOG_FILE = str(Config.active().log_file)
 
-# investigating conftest import error
-print(f"Configuration: {CONFIGURATION_FILE}. Log file: {LOG_FILE}")
-assert LOG_FILE != ""
 
 file_handler = logging.FileHandler(LOG_FILE)
 file_handler.setFormatter(log_json)
