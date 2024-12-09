@@ -62,8 +62,6 @@ def active_file(path: PathStr = "") -> str:
     return os.environ.get(ENV_VAR_NAME, "")
 
 
-# active_file() = active_file()
-
 HOME = str(Path.home())
 SHARED_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
 SHARED_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
@@ -261,7 +259,7 @@ class Config:
     @property
     def is_valid(self) -> bool:
         """Check if the configuration has all required fields."""
-        result: bool = is_valid_config(self.__dict__())
+        result: bool = is_valid_config(self.__dict__())[0]
         return result
 
     def save(self, path: PathStr = "") -> None:
@@ -459,13 +457,10 @@ def is_valid_config(configuration: dict) -> tuple[bool, object]:
 
     A valid configuration has the same keys as DEFAULTS.
     """
-    # json_cfg = json.dumps(configuration)
-    json_cfg = configuration
-    # json_cfg = DictObject(configuration)
     try:
         out = (True, None)
         validate(
-            instance=json_cfg,
+            instance=configuration,
             schema=configuration_schema(),
         )
     except JsonValidationError as err:

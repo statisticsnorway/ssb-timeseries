@@ -28,8 +28,6 @@ import pyarrow.compute
 
 from ssb_timeseries import fs
 from ssb_timeseries import properties
-
-# from ssb_timeseries.config import CONFIG
 from ssb_timeseries.config import Config
 from ssb_timeseries.dates import Interval
 from ssb_timeseries.dates import date_utc
