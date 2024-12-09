@@ -1,6 +1,5 @@
 import inspect
 import logging
-import os
 
 # from pathlib import Path
 import pytest
@@ -16,7 +15,7 @@ from ssb_timeseries.sample_data import create_df
 
 TEST_CONFIG = ""
 ENV_VAR_NAME = "TIMESERIES_CONFIG"
-ENV_VAR_VALUE = config.CONFIGURATION_FILE
+_ENV_VAR_VALUE_BEFORE_TESTS = config.active_file()
 
 
 class Helpers:
@@ -25,6 +24,10 @@ class Helpers:
     # @staticmethod
     # def test_dir() -> str:
     #    return TEST_DIR
+    def __init__(self, configuration: config.Config | None = None) -> None:
+        """Helpers for tests."""
+        if configuration:
+            self.configuration = configuration
 
     @staticmethod
     def function_name() -> str:
@@ -32,13 +35,13 @@ class Helpers:
 
 
 @pytest.fixture(scope="function", autouse=False)
-def conftest() -> Helpers:
-    h = Helpers()
+def conftest(buildup_and_teardown) -> Helpers:
+    h = Helpers(configuration=buildup_and_teardown)
     return h
 
 
 @pytest.fixture(
-    scope="session",
+    scope="module",
     autouse=True,
 )
 def buildup_and_teardown(
@@ -60,8 +63,9 @@ def buildup_and_teardown(
     log_file_for_testing = fs.touch(
         tmp_path_factory.mktemp("logs") / "log_for_tests.log"
     )
+    assert config_file_for_testing != ""
 
-    os.environ[ENV_VAR_NAME] = config_file_for_testing
+    config.active_file(config_file_for_testing)
     temp_configuration = config.Config(
         configuration_file=str(config_file_for_testing),
         log_file=str(log_file_for_testing),
@@ -70,33 +74,23 @@ def buildup_and_teardown(
         bucket=str(tmp_path_factory.mktemp("bucket")),
         ignore_file=True,
     )
-    # fs.write_json(config_file_for_testing, temp_configuration.__dict__())
-    temp_configuration.save(config_file_for_testing)
+    temp_configuration.save()
+    assert fs.exists(temp_configuration.configuration_file)
 
     global TEST_CONFIG
     TEST_CONFIG = config_file_for_testing
-
-    print(f"Current configurations:\n{config.CONFIG}")
 
     # run tests
     yield temp_configuration
 
     # teardown: reset config
-    if before_tests.configuration_file and isinstance(before_tests, config.Config):
+    if before_tests.configuration_file:  # and isinstance(before_tests, config.Config):
         before_tests.save()
     else:
-        os.environ[ENV_VAR_NAME] = ENV_VAR_VALUE
-    # if config.CONFIG != before_tests:
-    #     print(
-    #         f"Configurations was changed by tests:\n{config.CONFIG}\nReverting to original:\n{before_tests}"
-    #     )
-    #     before_tests.save(before_tests.configuration_file)
-    # else:
-    #     print(
-    #         f"Final configurations after tests are identical to orginal:\n{config.CONFIG}\nReverting to original:\n{before_tests}"
-    #     )
-    # print(f"Configuration after tests:\n{os.environ[ENV_VAR_NAME]=}:\n{config.CONFIG}")
-    assert os.environ[ENV_VAR_NAME] == config.CONFIG.configuration_file
+        config.unset_env_var()
+
+    active_config_after = config.active_file()
+    assert active_config_after == _ENV_VAR_VALUE_BEFORE_TESTS
 
 
 @pytest.fixture(scope="session", autouse=False)

@@ -45,10 +45,15 @@ PACKAGE_NAME = "ssb_timeseries"
 ENV_VAR_NAME = "TIMESERIES_CONFIG"
 
 
+def unset_env_var() -> str:
+    """Unsets the environment variable :py:const:`ENV_VAR_NAME` and returns the value that was unset."""
+    return os.environ.pop(ENV_VAR_NAME, "")
+
+
 def active_file(path: PathStr = "") -> str:
     """If a path is provided, sets environment variable :py:const:`ENV_VAR_NAME` to specify the location of the configuration file.
 
-    Provides cerification by returning the value of the environment variable by way of :py:func:`get_active_file`.
+    Returns the value of the environment variable by way of :py:func:`get_active_file`.
     """
     if path:
         os.environ[ENV_VAR_NAME] = str(path)
@@ -264,12 +269,20 @@ class Config:
         return result
 
     def save(self, path: PathStr = "") -> None:
-        """Saves configurations to the JSON file defined by `configuration_file`.
+        """Saves configurations to the JSON file defined by :py:param:`path` or :py:class:`Config.configuration_file`.
+
+        If :py:param:`path` is set, it will take presence and `configuration_file` will be set.
 
         Args:
-            path (PathStr): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable TIMESERIES_CONFIG before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
+            path (Path | str): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable TIMESERIES_CONFIG before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
         """
-        if not path:
+        if path:
+            self.configuration_file = path
+        elif not self.configuration_file:
+            raise ValueError(
+                "Configuration file must have a value or path must be specified."
+            )
+        else:
             path = self.configuration_file
 
         # fs.write_json(content=self.__dict__, path=str(path))
@@ -308,6 +321,11 @@ class Config:
     def __str__(self) -> str:
         """Return timeseries configurations as JSON string."""
         return json.dumps(self.__dict__(), sort_keys=True, indent=2)
+
+    @classmethod
+    def active(cls) -> Self:
+        """Force reload and return the configuration identified by :py:const:`ENV_VAR_NAME`."""
+        return cls(configuration_file=active_file())
 
 
 class MissingEnvironmentVariableError(Exception):
@@ -528,7 +546,7 @@ else:
             )
         else:
             print(
-                f"No configuration file was foumd at {active_file()}.\nOther locatsions will be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied onsce more to {DEFAULTS['configuration_file']}"
+                f"No configuration file was foumd at {active_file()}.\nOther locatsions will be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied once more to {DEFAULTS['configuration_file']}"
             )
             CONFIGURATION_FILE = migrate_to_new_config_location()
             if not fs.exists(CONFIGURATION_FILE):
@@ -536,9 +554,10 @@ else:
                     f"No configuration file was found at {active_file()}."
                 )
     else:
-        CONFIGURATION_FILE = PRESETS["defaults"]["configuration_file"]
+        CONFIGURATION_FILE = ""  # PRESETS["defaults"]["configuration_file"]
         # str(DEFAULTS["configuration_file"])
 
+    active_file(CONFIGURATION_FILE)
     CONFIG = Config(configuration_file=CONFIGURATION_FILE)
     """A Config object."""
 

@@ -44,13 +44,14 @@ from tests.conftest import Helpers
 
 @pytest.fixture(scope="function", autouse=True)
 def reset_config_after(buildup_and_teardown: config.Config):
-    cfg_file = buildup_and_teardown.configuration_file
-    # TODO: make sure this also removes config if none existed before?
     config_before_test = buildup_and_teardown
+    cfg_file = config_before_test.configuration_file
+    logging.warning(f"Before tests: {cfg_file}; exists: {fs.exists(cfg_file)}")
+    # TODO: make sure this also removes config if none existed before?
     yield buildup_and_teardown
     config_before_test.save()
     assert fs.exists(cfg_file)
-    assert config.active_file(cfg_file) == cfg_file
+    assert config.active_file() == cfg_file
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -213,7 +214,7 @@ def test_config_defaults(
 
 
 def test_config_change(reset_config_after: config.Config) -> None:
-    cfg = config.CONFIG
+    cfg = reset_config_after
     old_value = cfg.timeseries_root
     config_file = cfg.configuration_file
     if old_value == config.JOVYAN:
