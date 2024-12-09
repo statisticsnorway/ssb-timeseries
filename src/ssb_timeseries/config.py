@@ -561,6 +561,6 @@ else:
     active_file(CONFIGURATION_FILE)
     CONFIG = Config(configuration_file=CONFIGURATION_FILE)
     """A Config object."""
-
+    fs.touch(CONFIG.log_file)
     # do not save
     # CONFIG.save()
