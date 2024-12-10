@@ -28,7 +28,7 @@ import pyarrow.compute
 
 from ssb_timeseries import fs
 from ssb_timeseries import properties
-from ssb_timeseries.config import CONFIG
+from ssb_timeseries.config import Config
 from ssb_timeseries.dates import Interval
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso_no_colon
@@ -114,7 +114,7 @@ class FileSystem:
     @property
     def root(self) -> str:
         """The root path is the basis for all other paths."""
-        ts_root = CONFIG.timeseries_root
+        ts_root = Config.active().timeseries_root
         return ts_root
 
     @property
@@ -164,7 +164,7 @@ class FileSystem:
 
         In the inital implementation with data and metadata in separate files it made sense for this to be the same as the data directory. However, Most likely, in a future version we will change this apporach and store metadata as header information in the data file, and the same information in a central meta data directory.
         """
-        return CONFIG.catalog
+        return Config.active().catalog
         # replaces: return os.path.join(self.type_path, self.set_name)
 
     @property
@@ -351,7 +351,7 @@ class FileSystem:
         Uses dataset parameters, configuration, product and process stage.
         """
         return os.path.join(
-            CONFIG.bucket,
+            Config.active().bucket,
             product,
             process_stage,
             "series",  # to distinguish from other data types
@@ -466,12 +466,13 @@ class FileSystem:
         """Check that target directory is under BUCKET. If so, create it if it does not exist."""
         ts_logger.debug(f"{args}:")
         path = os.path.join(*args)
-        ts_root = str(CONFIG.bucket)
+        ts_root = str(Config.active().bucket)
 
         # hidden feature: also for kwarg 'force' == True
         if ts_root in path or kwargs.get("force", False):
             fs.mkdir(path)
         else:
+            # this should be relaxed when support for multiple shared buckets is added
             raise DatasetIoException(
                 f"Directory {path} must be below {ts_root} in file tree."
             )
@@ -487,15 +488,16 @@ def find_datasets(
         pattern = f"*{pattern}*"
     else:
         pattern = "*"
-
-    dirs = fs.find(CONFIG.timeseries_root, pattern, full_path=True)
+    configuration = Config.active()
+    dirs = fs.find(configuration.timeseries_root, pattern, full_path=True)
     if exclude:
         dirs = [d for d in dirs if exclude not in d]
         ts_logger.debug(
             f"DATASET.IO.find_datasets: exclude '{exclude}' eliminated:\n{[d for d in dirs if exclude in d]}"
         )
     search_results = [
-        d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
+        d.replace(configuration.timeseries_root, "root").split(os.path.sep)
+        for d in dirs
     ]
     ts_logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
 
@@ -530,7 +532,7 @@ def find_metadata_files(
 
     if not repository:
         ts_logger.debug(f"find_metadata_files in default repo:\n{repository}.")
-        result = find_in_repo(CONFIG)
+        result = find_in_repo(Config.active())
     elif isinstance(repository, str):
         ts_logger.debug(f"find_metadata_files in repo by str:\n{repository}.")
         result = find_in_repo(repository)
@@ -570,9 +572,10 @@ def for_all_datasets_move_metadata_files(
     else:
         pattern = "*"
 
-    dirs = fs.find(CONFIG.timeseries_root, pattern, full_path=True)
+    dirs = fs.find(Config.active().timeseries_root, pattern, full_path=True)
     search_results = [
-        d.replace(CONFIG.timeseries_root, "root").split(os.path.sep) for d in dirs
+        d.replace(Config.active().timeseries_root, "root").split(os.path.sep)
+        for d in dirs
     ]
     ts_logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
 

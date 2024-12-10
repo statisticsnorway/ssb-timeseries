@@ -3,14 +3,14 @@
 An environment variable TIMESERIES_CONFIG is expected to point to a JSON file with configurations.
 If these exist, they will be loaded and put into a Config object CONFIG when the configuration module is loaded.
 
-In most cases, this will happen behind the scene when the core libraries are loaded.
+In most cases, this would happen behind the scene when :py:mod:`ssb_timeseries.dataset` or :py:mod:`ssb_timeseries.catalog` are imported.
 
-Using the configuration module should only be necessary in order to manipulate configurations from Python code.
+Directly accessing the configuration module should only be required when manipulating configurations from Python code.
 
 Example:
     >>> # doctest: +SKIP
     >>> from ssb_timeseries.config import CONFIG
-    >>> CONFIG.catalog('gs://some_bucket/timeseries_config.json')
+    >>> CONFIG.catalog = 'gs://{bucket}/timeseries/metadata/'
     >>> CONFIG.save()
     >>> # doctest: -SKIP
 
@@ -27,59 +27,125 @@ See :py:func:`ssb_timeseries.config.main` for details on the named options.
 """
 
 import json
+import logging
 import os
 import sys
 from pathlib import Path
 
+from jsonschema import validate
+from jsonschema.exceptions import ValidationError as JsonValidationError
 from typing_extensions import Self
 
 from ssb_timeseries import fs
 from ssb_timeseries.types import PathStr
 
-# mypy: disable-error-code="assignment, arg-type, override,call-arg,has-type,no-untyped-def,attr-defined"
+# mypy: disable-error-code="assignment, arg-type, override,call-arg,has-type,no-untyped-def,attr-defined,import-untyped,"
 
-ENV_VAR_NAME: str = "TIMESERIES_CONFIG"
-ENV_VAR_FILE: str = os.getenv(ENV_VAR_NAME, "")
+PACKAGE_NAME = "ssb_timeseries"
+ENV_VAR_NAME = "TIMESERIES_CONFIG"
+
+
+def unset_env_var() -> str:
+    """Unsets the environment variable :py:const:`ENV_VAR_NAME` and returns the value that was unset."""
+    return os.environ.pop(ENV_VAR_NAME, "")
+
+
+def active_file(path: PathStr = "") -> str:
+    """If a path is provided, sets environment variable :py:const:`ENV_VAR_NAME` to specify the location of the configuration file.
+
+    Returns the value of the environment variable by way of :py:func:`get_active_file`.
+    """
+    if path:
+        os.environ[ENV_VAR_NAME] = str(path)
+        logging.debug(f"Set environment variable {ENV_VAR_NAME} to {path}")
+
+    return os.environ.get(ENV_VAR_NAME, "")
+
 
 HOME = str(Path.home())
-GCS_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
-GCS_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
-GCS = GCS_PROD
-DAPLA_ENV = os.getenv("DAPLA_ENVIRONMENT", "")  # PROD, TEST, DEV
-DAPLA_TEAM = os.getenv("DAPLA_TEAM", "")
-DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-{DAPLA_ENV}"
+SHARED_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
+SHARED_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
+GCS = SHARED_PROD
+
 JOVYAN = "/home/jovyan"
 DAPLALAB_HOME = "/home/jovyan/work"
-PACKAGE_NAME = "ssb_timeseries"
+SSB_DIR_NAME = "tidsserier"
 ROOT_DIR_NAME = "tidsserier"
 META_DIR_NAME = "metadata"
+SSB_CONF_DIR = "konfigurasjon"
 LINUX_CONF_DIR = ".config"
+SSB_LOGDIR = "logger"
 LOGDIR = "logs"
 LOGFILE = "timeseries.log"
 CONFIGFILE = "timeseries_config.json"
 
-DEFAULTS = {
-    "configuration_file": os.path.join(
-        HOME,
-        LINUX_CONF_DIR,
-        PACKAGE_NAME,
-        CONFIGFILE,
-    ),
-    "timeseries_root": os.path.join(HOME, ROOT_DIR_NAME),
-    "catalog": os.path.join(HOME, ROOT_DIR_NAME, META_DIR_NAME),
-    "log_file": os.path.join(HOME, LOGDIR, LOGFILE),
-    "bucket": HOME,
+DAPLA_TEAM_CONTEXT = os.getenv("DAPLA_TEAM_CONTEXT", "")
+DAPLA_ENV = os.getenv("DAPLA_ENVIRONMENT", "")
+"""Returns the Dapla environment: 'prod' | test | dev"""
+DAPLA_TEAM = os.getenv("DAPLA_TEAM", "")
+"""Returns the Dapla team/project name.'"""
+DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-{DAPLA_ENV}"
+"""Returns the Dapla product bucket name for the current environment: gs://{DAPLA_TEAM}-{DAPLA_ENV}."""
+PRESETS: dict[str, dict] = {
+    "default": {
+        "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
+        "bucket": str(Path(HOME)),
+        "timeseries_root": str(Path(HOME, ROOT_DIR_NAME)),
+        "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
+        "log_file": str(Path(HOME, LOGDIR, LOGFILE)),
+    },
+    "home": {
+        "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
+        "bucket": str(Path(HOME)),
+        "timeseries_root": str(Path(HOME, ROOT_DIR_NAME)),
+        "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
+        "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
+    },
+    "gcs": {
+        "configuration_file": str(Path(GCS, ROOT_DIR_NAME, CONFIGFILE)),
+        "bucket": str(Path(GCS)),
+        "timeseries_root": str(Path(GCS, ROOT_DIR_NAME)),
+        "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
+        "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGFILE)),
+    },
+    "shared-test": {
+        "configuration_file": str(Path(HOME, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
+        "bucket": str(Path(SHARED_TEST)),
+        "timeseries_root": str(Path(SHARED_TEST, ROOT_DIR_NAME)),
+        "catalog": str(Path(SHARED_TEST, ROOT_DIR_NAME, META_DIR_NAME)),
+        "log_file": str(Path(SHARED_TEST, LOGDIR, LOGFILE)),
+    },
+    "shared-prod": {
+        "configuration_file": str(
+            Path(SHARED_PROD, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
+        ),
+        "bucket": str(Path(SHARED_PROD)),
+        "timeseries_root": str(Path(SHARED_PROD, ROOT_DIR_NAME)),
+        "catalog": str(Path(SHARED_PROD, ROOT_DIR_NAME, META_DIR_NAME)),
+        "log_file": str(Path(SHARED_PROD, LOGDIR, LOGFILE)),
+    },
+    "jovyan": {
+        "configuration_file": str(
+            Path(JOVYAN, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
+        ),
+        "bucket": str(Path(JOVYAN)),
+        "timeseries_root": str(Path(JOVYAN, ROOT_DIR_NAME)),
+        "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
+        "log_file": str(Path(JOVYAN, LOGDIR, LOGFILE)),
+    },
+    "dapla": {
+        "configuration_file": str(
+            Path(DAPLA_BUCKET, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
+        ),
+        "bucket": str(Path(JOVYAN)),
+        "timeseries_root": str(Path(DAPLA_BUCKET, ROOT_DIR_NAME)),
+        "catalog": str(Path(DAPLA_BUCKET, ROOT_DIR_NAME, META_DIR_NAME)),
+        "log_file": str(Path(DAPLA_BUCKET, SSB_LOGDIR, LOGFILE)),
+    },
 }
 
-if ENV_VAR_FILE:
-    CONFIGURATION_FILE = ENV_VAR_FILE
-else:
-    CONFIGURATION_FILE = DEFAULTS["configuration_file"]
-
-
-def set_env(path: str = CONFIGURATION_FILE) -> None:
-    """Set environment variable :py:const:`ENV_VAR_NAME` to the location of the configuration file."""
-    os.environ[ENV_VAR_NAME] = path
+PRESETS["defaults"] = PRESETS["default"]
+DEFAULTS = PRESETS["default"]
 
 
 class Config:
@@ -122,98 +188,148 @@ class Config:
         Raises:
             :py:exc:`FileNotFoundError`: If the configuration file as implied by provided or not provided parameters does not exist.   # noqa: DAR402
             :py:exc:`ValidationError`: If the resulting configuration is not valid.   # noqa: DAR402
+            :py:exc:`EnvVarNotDefinedeError`: If the environment variable TIMESERIES_CONFIG is not defined.
 
         Examples:
             Load an existing config from TIMESERIES_CONFIG or default location:
 
                 >>> from ssb_timeseries.config import Config
-                >>> config = Config()
-
-            Load config, change parameter and save:
-
-                >>> config.save()
+                >>> config = Config.active()
         """
         preset_name = kwargs.pop("preset", "")
-        if preset_name:
-            named_config = presets(preset_name)
-            self.apply(named_config)
-            return
+        ignore_file = kwargs.pop("ignore_file", False)
+        param_specified_config_file = kwargs.get("configuration_file", "")
+        kwargs_are_complete_config = is_valid_config(kwargs)[0]
 
-        param_specified_config_file = kwargs.pop("configuration_file", "")
-        if param_specified_config_file and not kwargs:
-            config_values = load_json_file(
-                path=param_specified_config_file,
-                error_on_missing=True,
-            )
-            print(config_values)
-            self.apply(config_values)
+        if preset_name:
+            logging.debug(f"Loading preset configuration {preset_name}.")
+            self.apply(PRESETS[preset_name])
             return
-        elif param_specified_config_file and kwargs:
-            config_values = DEFAULTS
-            config_from_file = load_json_file(
-                path=param_specified_config_file,
-                error_on_missing=False,
-            )
+        elif kwargs_are_complete_config:
+            logging.debug("Complete configuration in parameters.")
+            self.apply(kwargs)
+            return
+        elif param_specified_config_file:
+            logging.warning(f"Loading configuration from {param_specified_config_file}")
+            if set(kwargs.keys()) == set(["configuration_file"]):
+                no_file_is_an_error = True
+            else:
+                no_file_is_an_error = not is_valid_config(kwargs)[0]
+
+            if not ignore_file:
+                config_from_file = load_json_file(
+                    path=param_specified_config_file,
+                    error_on_missing=no_file_is_an_error,
+                )
+            else:
+                config_from_file = {}
+
+            config_values = PRESETS["default"]
             config_values.update(config_from_file)
-        elif ENV_VAR_FILE:
+            logging.debug(f"{config_values=}")
+        elif active_file():
             # if the path is specified by the environment variable, not finding it is an error
+            logging.warning(f"Loading configuration from {active_file()}")
             config_values = load_json_file(
-                path=ENV_VAR_FILE,
+                path=active_file(),
                 error_on_missing=True,
             )
+        # elif not active_file():
+        #    raise MissingEnvironmentVariableError
         else:
-            config_values = load_json_file(
-                path=DEFAULTS["configuration_file"],
-                error_on_missing=True,
+            logging.warning(
+                f"The environment variable {ENV_VAR_NAME} did not exist and no configuration file parameter was provided. Loading default configuration."
             )
+            config_values = PRESETS["defaults"]
 
         config_values.update(kwargs)
 
         self.apply(config_values)
 
-    def apply(self, configs: dict) -> None:
+    def apply(self, configuration: dict) -> None:
         """Set configuration values from a dictionary."""
-        if is_valid_config(configs):
-            for key, value in configs.items():
+        is_valid, reason = is_valid_config(configuration=configuration)
+        if is_valid:
+            for key, value in configuration.items():
                 setattr(self, key, value)
         else:
-            raise ValidationError(f"Invalid configuration {configs}.")
+            logging.error(f"Invalid configuration {configuration}\n{reason}.")
+            raise ValidationError(f"Invalid configuration {configuration}.")
+
+    @property
+    def is_valid(self) -> bool:
+        """Check if the configuration has all required fields."""
+        result: bool = is_valid_config(self.__dict__())[0]
+        return result
 
     def save(self, path: PathStr = "") -> None:
-        """Saves configurations to the JSON file defined by `configuration_file`.
+        """Saves configurations to the JSON file defined by :py:param:`path` or :py:class:`Config.configuration_file`.
+
+        If :py:param:`path` is set, it will take presence and `configuration_file` will be set.
 
         Args:
             path (PathStr): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable TIMESERIES_CONFIG before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
+
+        Raises:
+            ValueError: If :py:param:`path` is not provided and `configuration_file`is not set.
         """
-        if not path:
+        if path:
+            self.configuration_file = str(path)
+        elif not self.configuration_file:
+            raise ValueError(
+                "Configuration file must have a value or path must be specified."
+            )
+        else:
             path = self.configuration_file
 
-        fs.write_json(content=self.__dict__, path=str(path))
+        fs.write_text(content=str(self), path=str(path), file_format="json")
         if not fs.exists(self.log_file):
             fs.touch(self.log_file)
-        if HOME == JOVYAN:
-            # For some reason `os.environ[ENV_VAR_NAME] = path` does not work:
-            cmd = f"export TIMESERIES_CONFIG={CONFIGURATION_FILE}"
-            os.system(cmd)
-            # os.system(f"echo '{cmd}' >> ~/.bashrc")
-        else:
-            os.environ[ENV_VAR_NAME] = path
-        os.environ[ENV_VAR_NAME] = path
+
+        active_file(str(path))
 
     def __getitem__(self, item: str) -> str:
         """Get the value of a configuration."""
         return str(getattr(self, item))
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: Self | dict) -> bool:
         """Equality test."""
-        return self.__dict__ == other.__dict__
+        if isinstance(other, dict):
+            return self.__dict__() == other
+        else:
+            return self.__dict__() == other.__dict__()
 
-    def to_json(self, original_implementation: bool = False) -> str:
+    def __dict__(self) -> dict:
         """Return timeseries configurations as JSON string."""
-        return json.dumps(str(self), sort_keys=True, indent=4)
+        fields = [
+            "configuration_file",
+            "timeseries_root",
+            "catalog",
+            "log_file",
+            "bucket",
+        ]
+        out = {}
+        for field in fields:
+            out[field] = self[field]
+        return out
+
+    def __str__(self) -> str:
+        """Return timeseries configurations as JSON string."""
+        return json.dumps(self.__dict__(), sort_keys=True, indent=2)
+
+    @classmethod
+    def active(cls) -> Self:
+        """Force reload and return the configuration identified by :py:const:`ENV_VAR_NAME`."""
+        return cls(configuration_file=active_file())
 
 
-class ValidationError(ValueError):
+class MissingEnvironmentVariableError(Exception):
+    """The environment variable TIMESEREIS_CONFIG must be defined."""
+
+    ...
+
+
+class ValidationError(Exception):
     """Configuration validation error."""
 
     ...
@@ -230,37 +346,34 @@ def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
 
     elif error_on_missing:
         raise FileNotFoundError(
-            f"A configuration {path} file was specified, but does not exist."
+            f"A configuration file at {path} file was specified, but does not exist."
         )
     else:
         return {}
 
 
-def migrate_to_new_config_location(
-    file_to_copy: PathStr = "",
-) -> None:
-    """Copy an existing configuration files to the new default location $HOME/.config/ssb_timeseries/timeseries_config.json.
+def migrate_to_new_config_location(file_to_copy: PathStr = "") -> str:
+    """Copy existing configuration files to the new default location $HOME/.config/ssb_timeseries/.
+
+    The first file copied will be set to active.
 
     Args:
         file_to_copy (PathStr): Optional. Path to a existing configuration file. If not provided, the function will look in the most common location for SSBs old JupyterLab and DaplaLab.
     """
-    import logging as ts_config_logger
+    DEFAULTS["configuration_file"]
 
     if file_to_copy:
         fs.cp(file_to_copy, DEFAULTS["configuration_file"])
+        return str(file_to_copy)
     else:
         copy_these = [
             {
                 "replace": "_active",
-                "source": CONFIGURATION_FILE,
+                "source": active_file(),
             },
             {
                 "replace": "_home",
                 "source": path_str(HOME, "timeseries_config.json"),
-            },
-            {
-                "replace": "_env",
-                "source": ENV_VAR_FILE,
             },
             {
                 "replace": "_jovyan",
@@ -285,29 +398,75 @@ def migrate_to_new_config_location(
             else:
                 not_found.append(c["source"])
         else:
-            ts_config_logger.warning(
-                f"Configuration files were not found: {not_found}."
-            )
+            logging.warning(f"Configuration files were not found: {not_found}.")
 
-        if copied:
-            # copy the first file = make it the active one
-            fs.cp(copied[0], DEFAULTS["configuration_file"])
-            ts_config_logger.info(
-                f"Configuration files were copied: {copied}.\nCopied {copied[0]} to detectable file {DEFAULTS['configuration_file']}."
-            )
-        else:
-            # no files were found --> create one from defaults
-            new = Config(preset="default")
-            new.save()
+    if copied:
+        # copy the first file = make it the active one
+        fs.cp(copied[0], DEFAULTS["configuration_file"])
+        active_file(copied[0])
+        logging.info(
+            f"Configuration files were copied: {copied}.\nActive: {copied[0]}."
+        )
+        return str(copied[0])
+    else:
+        # no files were found --> create one from defaults?
+        # new = Config(preset="default")
+        # ew.save()
+        return ""
 
 
-def is_valid_config(config: dict) -> bool:
+def configuration_schema(version: str = "0.3.1") -> dict:
+    """Return the JSON schema for the configuration file."""
+    match version:
+        case "0.3.1" | "0.3.2" | _:
+            cfg_schema = {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "bucket": {"type": "string"},
+                    "configuration_file": {"type": "string"},
+                    "log_file": {"type": "string"},
+                    "catalog": {"type": "string"},
+                    "timeseries_root": {"type": "string"},
+                },
+                "required": [
+                    "bucket",
+                    "configuration_file",
+                    "log_file",
+                    "catalog",
+                    "timeseries_root",
+                ],
+            }
+    logging.debug(f"Schema {version}:{cfg_schema}")
+    return cfg_schema
+
+
+class DictObject(object):  # noqa
+    """Helper class to convert dict to object."""
+
+    def __init__(self, dict_: dict) -> None:  # noqa: D107
+        self.__dict__.update(dict_)
+
+    @classmethod
+    def from_dict(cls, d: dict):  # noqa: ANN206, D102
+        return json.loads(json.dumps(d), object_hook=DictObject)
+
+
+def is_valid_config(configuration: dict) -> tuple[bool, object]:
     """Check if a dictionary is a valid configuration.
 
     A valid configuration has the same keys as DEFAULTS.
     """
-    print(f"Configs: {config}\nDefaults: {DEFAULTS}")
-    return sorted(dict(config).keys()) == sorted(dict(DEFAULTS).keys())
+    try:
+        out = (True, None)
+        validate(
+            instance=configuration,
+            schema=configuration_schema(),
+        )
+    except JsonValidationError as err:
+        logging.debug(f"Invalid configuration {configuration}\nValidation error. {err}")
+        out = (False, err)
+    return out
 
 
 def presets(named_config: str) -> dict:  # noqa: RUF100, DAR201
@@ -316,60 +475,12 @@ def presets(named_config: str) -> dict:  # noqa: RUF100, DAR201
     Raises:
         ValueError: If args is not 'home' | 'gcs' | 'jovyan'.
     """
-    match named_config:
-        case "default" | "defaults":
-            cfg = {
-                "configuration_file": DEFAULTS["configuration_file"],
-                "bucket": DEFAULTS["bucket"],
-                "timeseries_root": DEFAULTS["timeseries_root"],
-                "catalog": DEFAULTS["catalog"],
-                "log_file": DEFAULTS["log_file"],
-            }
-        case "home":
-            cfg = {
-                "configuration_file": CONFIGURATION_FILE,
-                "bucket": HOME,
-                "timeseries_root": path_str(HOME, ROOT_DIR_NAME),
-                "catalog": path_str(HOME, ROOT_DIR_NAME, META_DIR_NAME),
-                "log_file": path_str(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE),
-            }
-        case "gcs":
-            cfg = {
-                "configuration_file": path_str(GCS, ROOT_DIR_NAME, CONFIGFILE),
-                "bucket": GCS,
-                "timeseries_root": path_str(GCS, ROOT_DIR_NAME),
-                "catalog": path_str(HOME, ROOT_DIR_NAME, META_DIR_NAME),
-                "log_file": path_str(HOME, ROOT_DIR_NAME, LOGFILE),
-            }
-        case "jovyan":
-            cfg = {
-                "configuration_file": CONFIGURATION_FILE,
-                "bucket": JOVYAN,
-                "timeseries_root": path_str(JOVYAN, ROOT_DIR_NAME),
-                "catalog": path_str(HOME, ROOT_DIR_NAME, META_DIR_NAME),
-                "log_file": path_str(JOVYAN, LOGDIR, LOGFILE),
-            }
-        case "dapla":
-            cfg = {
-                "configuration_file": path_str(
-                    DAPLA_BUCKET,
-                    ROOT_DIR_NAME,
-                    "konfigurasjon",
-                    CONFIGFILE,
-                ),
-                "bucket": JOVYAN,
-                "timeseries_root": path_str(JOVYAN, ROOT_DIR_NAME),
-                "catalog": path_str(HOME, ROOT_DIR_NAME, META_DIR_NAME),
-                "log_file": path_str(JOVYAN, LOGDIR, LOGFILE),
-            }
-        case _:
-            if fs.exists(named_config):
-                cfg = Config(configuration_file=named_config).__dict__
-            else:
-                raise ValueError(
-                    f"Named configuration preset '{named_config}' was not recognized."
-                )
-    return cfg
+    if named_config in PRESETS:
+        return PRESETS[named_config]
+    else:
+        raise ValueError(
+            f"Named configuration preset '{named_config}' was not recognized."
+        )
 
 
 def main(*args: str | PathStr) -> None:
@@ -396,15 +507,16 @@ def main(*args: str | PathStr) -> None:
     else:
         config_identifier = sys.argv[1]
 
-    print(f"Update configuration with named presets: '{config_identifier}'.")
-    preset_config = presets(config_identifier)
-    preset_config.save(CONFIGURATION_FILE)
+    print(f"Update configuration with named preset: '{config_identifier}'.")
+    cfg = Config(preset=config_identifier)
+    cfg.save(path=cfg.configuration_file)
+
     print(
-        f"Configuration\n\t{preset_config}\nsaved to file: {CONFIGURATION_FILE}.\nEnvironment variable set: {os.getenv('TIMESERIES_CONFIG')=}"
+        f"Preset configuration '{config_identifier}' was applied:\n\t{cfg.__dict__}\nSaved to file: {cfg.configuration_file}.\nEnvironment variable set: {os.getenv('TIMESERIES_CONFIG')=}"
     )
 
 
-def path_str(*args: str) -> str:
+def path_str(*args) -> str:  # noqa: ANN002
     """Concatenate paths as string: str(Path(...))."""
     return str(Path(*args))
 
@@ -417,14 +529,29 @@ if __name__ == "__main__":
     print(f"Arguments of the script : {sys.argv[1:]=}")
     main(sys.argv[1])
 else:
-    if not fs.exists(CONFIGURATION_FILE):
-        print(
-            f"Configuration file {CONFIGURATION_FILE} does not exist. Attempts to migrate to new location."
-        )
-        migrate_to_new_config_location()
+    if active_file():
+        if fs.exists(active_file()):
+            CONFIGURATION_FILE = active_file()
+        elif DAPLA_TEAM_CONTEXT:
+            raise MissingEnvironmentVariableError(
+                f"Environment variable {ENV_VAR_NAME} must be defined and point to a configuration file."
+            )
+        else:
+            print(
+                f"No configuration file was foumd at {active_file()}.\nOther locatsions will be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied once more to {DEFAULTS['configuration_file']}"
+            )
+            CONFIGURATION_FILE = migrate_to_new_config_location()
+            if not fs.exists(CONFIGURATION_FILE):
+                raise FileNotFoundError(
+                    f"No configuration file was found at {active_file()}."
+                )
+    else:
+        CONFIGURATION_FILE = ""  # PRESETS["defaults"]["configuration_file"]
+        # str(DEFAULTS["configuration_file"])
 
+    active_file(CONFIGURATION_FILE)
     CONFIG = Config(configuration_file=CONFIGURATION_FILE)
     """A Config object."""
-
+    fs.touch(CONFIG.log_file)
     # do not save
     # CONFIG.save()
