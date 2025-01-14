@@ -65,7 +65,7 @@ def test_filter_tags(
 
 
 def test_read_flat_code_list_from_klass_returns_two_level_tree() -> None:
-    activity = Taxonomy(697)
+    activity = Taxonomy(klass_id=697)
     ts_logger.debug(f"captured ...\n{activity.entities}")
 
     assert activity.entities.shape == (16, 9)
@@ -75,7 +75,7 @@ def test_read_flat_code_list_from_klass_returns_two_level_tree() -> None:
 
 
 def test_read_hierarchical_code_set_from_klass_returns_multi_level_tree() -> None:
-    energy_balance = Taxonomy(157)
+    energy_balance = Taxonomy(klass_id=157)
     ts_logger.debug(f"captured ...\n{energy_balance.print_tree()}")
 
     assert energy_balance.structure.root.name == "0"
@@ -88,7 +88,7 @@ def test_taxonomy_subtree(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
-    klass157 = Taxonomy(157)
+    klass157 = Taxonomy(klass_id=157)
     klass157_subtree = klass157.subtree("1.1")
     ts_logger.debug(f"tree ...\n{klass157_subtree}")
     assert isinstance(klass157_subtree, bigtree.Node)
@@ -103,7 +103,7 @@ def test_get_leaf_nodes_from_hierarchical_klass_taxonomy(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
-    tree = Taxonomy(157).structure
+    tree = Taxonomy(klass_id=157).structure
     leaves = [n.name for n in tree.root["1"].leaves]
     # ts_logger.debug(f"{print_tree(tree)} ...\n{leaves}")
     ts_logger.debug(f"{tree} ...\n{leaves}")
@@ -120,7 +120,7 @@ def test_get_leaf_nodes_from_middle_of_hierarchical_klass_taxonomy(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
-    klass157 = Taxonomy(157)
+    klass157 = Taxonomy(klass_id=157)
     subtree = klass157.subtree("1.1")
     leaves = [n.name for n in subtree.root.leaves]
     # ts_logger.debug(f"{print_tree(subtree)} ...\n{leaves}")
@@ -136,7 +136,7 @@ def test_get_item_from_hierarchical_klass_taxonomy(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
-    klass157 = Taxonomy(157)
+    klass157 = Taxonomy(klass_id=157)
     tree = klass157.structure
     node_1_1 = bigtree.find_name(tree.root, "1.1")
 
@@ -149,7 +149,7 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
-    klass157 = Taxonomy(157)
+    klass157 = Taxonomy(klass_id=157)
     tree = klass157.structure
 
     leaf_nodes = [n.name for n in tree.root.leaves]
@@ -168,7 +168,7 @@ def test_taxonomy_minus_subtree(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
-    klass157 = Taxonomy(157)
+    klass157 = Taxonomy(klass_id=157)
     klass157_subtree = klass157.subtree("1.1")
     ts_logger.warning(f"tree ...\n{klass157_subtree}")
     # rest = bigtree.get_tree_diff(klass157.structure.root, klass157_subtree)
@@ -189,8 +189,8 @@ def test_replace_chars_in_flat_codes(
     """
     caplog.set_level(logging.DEBUG)
     k697 = Taxonomy(
-        id_or_path=697,
-        substitute={
+        klass_id=697,
+        substitutions={
             "_": ".",
             "aa": "å",
             "lagerf": "lagerføring",
@@ -233,8 +233,8 @@ def test_replace_chars_in_hierarchical_codes(
     """
     caplog.set_level(logging.DEBUG)
     k157 = Taxonomy(
-        id_or_path=157,
-        substitute={
+        klass_id=157,
+        substitutions={
             ".": "/",
         },
     )
@@ -261,12 +261,12 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
     tmp_path_factory: pytest.TempPathFactory,
 ) -> None:
     caplog.set_level(logging.DEBUG)
-    klass157 = Taxonomy(157)
+    klass157 = Taxonomy(klass_id=157)
 
     temp_file = tmp_path_factory.mktemp("temp") / f"temp-{uuid.uuid4()}.json"
 
     klass157.save(temp_file)
-    file157 = Taxonomy(temp_file)
+    file157 = Taxonomy(path=temp_file)
     # finally:
     #    fs.rm(temp_file)
 
