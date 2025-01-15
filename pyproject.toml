@@ -111,7 +111,8 @@ select = [
 ignore = [
     # "ANN101", # Rule have been removed and ignoring them has no effect
     # "ANN102", # Rule have been removed and ignoring them has no effect
-    "ANN202", # Don't requiere return type annotation for private functions.
+    "A005",   # Don't mind shadowing builtin modules (applies to: io, logging, type).
+    "ANN202", # Don't require return type annotation for private functions.
     "ANN401", # Allow type annotation with type Any.
     "D100",   # Supress undocumented-public-module. Only doc of public api required.
     "E402",   # Supress module-import-not-at-top-of-file, needed in jupyter notebooks.
