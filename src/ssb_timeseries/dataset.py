@@ -138,7 +138,7 @@ class Dataset:
         self.tags.update(self.io.read_metadata())
         self.tag_dataset(tags=kwargs.get("dataset_tags", {}))
 
-        # all of the following should be turned into tags - or find another way into the parquet files?
+        # all of the following should be turned into set level tags - or find another way into the parquet files?
 
         # autotag:
         self.auto_tag_config = {
@@ -164,7 +164,6 @@ class Dataset:
         out = deepcopy(self)
         for k, v in kwargs.items():
             setattr(out, k, v)
-            # ts_logger.debug(f"DATASET.copy() attribute: {k}:\n {v}.")
 
         out.rename(new_name)
         return out
@@ -686,7 +685,7 @@ class Dataset:
         """Get vectors with names equal to column names from Dataset.data.
 
         Args:
-            pattern (str): Optional pattern for simple filtering of column names containing pattern. Defaults to "".
+            pattern (str): Optional pattern for simple filtering of column names containing pattern. Defaults to ''.
 
         .. warning:: Caution!
             This (re)assigns variables in the scope of the calling function by way of stack inspection and hence risks of reassigning objects, functions, or variables if they happen to have the same name.
@@ -933,8 +932,6 @@ class Dataset:
             ):
                 out_data = self.data.copy()
 
-                # for col in self._numeric_columns():
-                #    out_data[col] = func(out_data[col], other:Self)
                 out_data[self.numeric_columns()] = func(
                     out_data[self.numeric_columns()], other
                 )
@@ -1103,44 +1100,6 @@ class Dataset:
             >>>
             >>> percentiles = sample_set.aggregate(["energy_balance"], [157], [perc10, 'median', perc90])
         """
-        # resolve taxonomy identifiers --> list of taxonomy objects
-        # taxonomy_list = []
-        # for identifier in taxonomies:
-        #     if isinstance(identifier, meta.Taxonomy):
-        #         obj = identifier
-        #     elif isinstance(identifier, int):
-        #         obj = Taxonomy(klass_id=identifier)
-        #     elif isinstance(t, dict):
-        #         obj = Taxonomy(data=identifier)
-        #     elif isinstance(t, PathStr):
-        #         obj = Taxonomy(path=identifier)
-        #     else:
-        #         raise TypeError(
-        #             f"Taxonomy object or valid identifier expected, got {type(identifier)}"
-        #         )
-        #     taxonomy_list.append(obj)
-
-        # df = self.data.copy().drop(columns=self.numeric_columns())
-        # for n, taxonomy in enumerate(taxonomy_list):
-        #     for node in taxonomy.parent_nodes():
-        #         leaves = taxonomy.leaf_nodes(node.name)
-        #         # ts_logger.debug(
-        #         #     f"DATASET.aggregate(): node '{node.name}' leaves {leaves}."
-        #         # )
-        #         leaf_node_subset = self.filter(
-        #             tags={attributes[n]: leaves}, output="df"
-        #         )
-
-        #         for func in functions:
-        #             if isinstance(func, str):
-        #                 new_col_name = f"{func}({node.name})"
-        #             elif isinstance(func, list):
-        #                 new_col_name = f"{func[0]}{func[1]}({node.name})"  # type: ignore[unreachable]
-        #             else:
-        #                 new_col_name = f"{func.__name__}({node.name})"
-        #             df[new_col_name] = column_aggregate(leaf_node_subset, func)
-        #             # ts_logger.debug(f"DATASET.aggregate(): node '{node}', column {m} input:\n{leaf_node_subset.columns}\nreturned:\n{df[new_col_name]}")
-
         taxonomy_dict = {}
         for name, t in zip(attributes, taxonomies, strict=False):
             if isinstance(t, meta.Taxonomy):
@@ -1174,7 +1133,6 @@ class Dataset:
                 else:
                     new_col_name = f"{func.__name__}({output_series_name})"
                 df[new_col_name] = column_aggregate(leaf_node_subset, func)
-                # ts_logger.debug(f"DATASET.aggregate(): output_series_'{node}', column {m} input:\n{leaf_node_subset.columns}\nreturned:\n{df[new_col_name]}")
 
         return self.copy(f"{self.name}.{functions}", data=df)
 
