@@ -43,16 +43,19 @@ repos:
         entry: check-yaml
         language: system
         types: [yaml]
+        stages: [pre-commit, pre-push, manual]
       - id: check-json
         name: Check JSON
         entry: check-json
         language: system
         types: [json]
+        stages: [pre-commit, pre-push, manual]
       - id: check-toml
         name: Check Toml
         entry: check-toml
         language: system
         types: [toml]
+        stages: [pre-commit, pre-push, manual]
 
       # Python tools
       - id: check-ast
@@ -65,7 +68,6 @@ repos:
         entry: darglint
         language: system
         types: [python]
-        stages: [manual]
       - id: ruff
         name: ruff
         entry: ruff check --fix --exit-non-zero-on-fix

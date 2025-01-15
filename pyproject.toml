@@ -109,15 +109,13 @@ select = [
     "RUF",  # the ruff developer's own rules
 ]
 ignore = [
-    # "ANN101", # Rule have been removed and ignoring them has no effect
-    # "ANN102", # Rule have been removed and ignoring them has no effect
-    "A005",   # Don't mind shadowing builtin modules (applies to: io, logging, type).
-    "ANN202", # Don't require return type annotation for private functions.
+    "ANN202", # Don't requiere return type annotation for private functions.
     "ANN401", # Allow type annotation with type Any.
     "D100",   # Supress undocumented-public-module. Only doc of public api required.
     "E402",   # Supress module-import-not-at-top-of-file, needed in jupyter notebooks.
     "E501",   # Supress line-too-long warnings: trust black's judgement on this one.
     # "RUF100", # RYE: Don't get in the way of noqa: DAR...
+    "A005",   # RYE: Don't mind shadowing builtin modules (applies to: io, logging, type).
 ]
 
 [tool.ruff.lint.isort]
