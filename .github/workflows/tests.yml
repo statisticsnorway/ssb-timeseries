@@ -59,6 +59,7 @@ jobs:
       - name: Install Poetry
         run: |
           pipx install --pip-args "-c ${{ github.workspace }}/.github/workflows/constraints.txt" poetry
+          pipx inject poetry poetry-plugin-export
           poetry --version
 
       - name: Install Nox
@@ -133,6 +134,7 @@ jobs:
       - name: Install Poetry
         run: |
           pipx install --pip-args "-c ${{ github.workspace }}/.github/workflows/constraints.txt" poetry
+          pipx inject poetry poetry-plugin-export
           poetry --version
 
       - name: Install Nox
@@ -168,4 +170,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         # No need to run SonarCloud analysis if dependabot update or token not defined
         if: env.SONAR_TOKEN != '' && (github.actor != 'dependabot[bot]')
-        uses: SonarSource/sonarcloud-github-action@v4.0.0
+        uses: SonarSource/sonarcloud-github-action@v3.1.0
