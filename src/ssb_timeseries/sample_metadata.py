@@ -90,7 +90,7 @@ _nordic: list[dict[str, Any]] = [
 # SE-T	Örebro län	Örebro	[SE-18]
 # SE-E	Östergötlands län	Östergötland	[SE-05]
 
-_econ: list[str] = [
+_econ: list[dict[str, str | None]] = [
     {"code": "B", "name": "Balance", "parent": None},
     {"code": "D", "name": "Demand", "parent": "B"},
     {"code": "C", "name": "Consumption", "parent": "D"},
@@ -103,7 +103,7 @@ _econ: list[str] = [
 ]
 """Sample economic variables."""
 
-_commodity: list[dict[str, Any]] = [
+_commodity: list[dict[str, str | None]] = [
     {"code": "petro", "name": "petroleum products", "parent": None},
     {"code": "oil", "name": "oil", "parent": "petro"},
     {"code": "gas", "name": "natural gas", "parent": "petro"},
@@ -111,7 +111,7 @@ _commodity: list[dict[str, Any]] = [
 ]
 """A list of petroleum products."""
 
-_bio: list[dict[str, Any]] = [
+_bio: list[dict[str, str | None]] = [
     {"code": "animals", "name": "animals", "parent": None},
     {"code": "plants", "name": "plants", "parent": None},
     {"code": "fungi", "name": "fungi", "parent": None},
@@ -120,7 +120,7 @@ _bio: list[dict[str, Any]] = [
 """A list of biological categories."""
 
 
-def random_words(some_list: list[str] | None = None, n: int = 1) -> str:
+def random_words(some_list: list[str] | None = None, n: int = 1) -> list[str]:
     """Return a random word from 'some_list'."""
     if not some_list:
         some_list = _words
@@ -144,7 +144,7 @@ def camel_case_keys(dictionary: dict) -> dict:
     for k, v in dictionary:
         pascal_k = "".join(word.title() for word in k.split("_"))
         camel_k = lower_first_char(pascal_k)
-        if isinstance(v, "dict"):
+        if isinstance(v, dict):
             out[camel_k] = camel_case_keys(v)
         else:
             out[camel_k] = v
@@ -156,14 +156,14 @@ def snake_case_keys(dictionary: dict) -> dict:
     out = {}
     for k, v in dictionary:
         snake_k = re.sub(r"(?<!^)(?=[A-Z])", "_", k).lower()
-        if isinstance(v, "dict"):
+        if isinstance(v, dict):
             out[snake_k] = snake_case_keys(v)
         else:
             out[snake_k] = v
     return out
 
 
-def list_to_tax(list_of_dicts: list[dict[str, Any]]) -> dict:
+def list_to_tax(list_of_dicts: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Use code as key, convert list of dicts to dict."""
     ...
     blanks = ["shortName", "presentationName", "validFrom", "validTo", "notes"]
