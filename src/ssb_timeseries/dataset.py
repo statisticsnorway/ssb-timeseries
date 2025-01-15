@@ -1101,7 +1101,7 @@ class Dataset:
             >>> def perc90(x):
             >>>     return x.quantile(.9, axis=1, numeric_only=True, interpolation="linear")
             >>>
-            >>> percentiles = sample_set.aggregate("energy_balance", 157, [perc10, 'median', perc90])
+            >>> percentiles = sample_set.aggregate(["energy_balance"], [157], [perc10, 'median', perc90])
         """
         # resolve taxonomy identifiers --> list of taxonomy objects
         # taxonomy_list = []

@@ -263,15 +263,15 @@ class Config:
         return result
 
     def save(self, path: PathStr = "") -> None:
-        """Saves configurations to the JSON file defined by :py:param:`path` or :py:class:`Config.configuration_file`.
+        """Saves configurations to the JSON file defined by `path` or :py:attr:`configuration_file`.
 
-        If :py:param:`path` is set, it will take presence and `configuration_file` will be set.
+        If `path` is set, it will take presence and :attr:`.configuration_file` will be set accordingly.
 
         Args:
             path (PathStr): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable TIMESERIES_CONFIG before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
 
         Raises:
-            ValueError: If :py:param:`path` is not provided and `configuration_file`is not set.
+            ValueError: If `path` is not provided and :attr:`configuration_file` is not set.
         """
         if path:
             self.configuration_file = str(path)

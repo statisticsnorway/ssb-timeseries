@@ -8,8 +8,10 @@ It also consumes taxonomies. That is functionality that should live in the ssb-p
 import io
 import itertools
 from copy import deepcopy
+from datetime import datetime
 from typing import Any
 from typing import TypeAlias
+from typing import TypedDict
 from typing import no_type_check
 
 import bigtree
@@ -46,36 +48,42 @@ class MissingAttributeError(Exception):
     ...
 
 
+class KlassItem(TypedDict):
+    """The structure of taxonomy items as returned by the API (JSON) and :py:mod:`klass` (Pandas DataFrame)."""
+
+    # Included for docstring use only (but could be useful for working around the Pandas DataFrame representation?).
+    code: str
+    """A unique entity identifier within the taxonomy.
+    It may very well consist of numeric values, but will be represented as a string.
+    """
+    parentCode: str
+    """The code for the parent entity."""
+
+    name: str
+    """A unique human readable name. Not nullable."""
+
+    shortName: str
+    """A short version / mnemonic for name, if applicable."""
+
+    presentationName: str
+    """A "self explanatory" unique name, if applicable."""
+
+    validFrom: datetime | str
+    """Date or ISO string representing the start of the entity lifespan."""
+
+    validTo: datetime | str
+    """Date or ISO string representing the end of the entity lifespan."""
+
+
 class Taxonomy:
     """Wraps taxonomies defined in KLASS or json files in a object structure.
 
     Attributes:
         definition (str): Descriptions of the taxonomy.
-            name:
-            structure_type:     enum:   list | tree | graph
-            levels: number of levels not counting the root node
-        entities (pd.Dataframe): Entity definitions, represented as a dataframe with columns:
-            code: str
-            A unique entity identifier within the taxonomy.
-            It may very well consist of numeric values, but will be represented as a string.
-
-            parent:  str
-            "parentCode"
-            The code for the parent entity.
-
-            name: str
-            A unique human readable name. Not nullable.
-
-            short:
-            "shortName"
-            A short version / mnemonic for name, if applicable.
-
-            presentationName
-            A "self explanatory" unique name, if applicable.
-
-            validFrom
-
-            validTo
+        name:
+        structure_type:     enum:   list | tree | graph
+        levels: number of levels not counting the root node
+        entities (pd.Dataframe): Entity definitions, represented as a dataframe with columns as defined by ::py:class:`KlassItem`.
 
     Notes:
         structure:
@@ -98,11 +106,10 @@ class Taxonomy:
         sep: str = ".",
         **kwargs: Any,
     ) -> None:
-        """Create Taxonomy object from KLASS id, dictionary or file name.
+        """Create a Taxonomy object from either a `klass_id`, a `data` dictionary or a `path` to a JSON file.
 
-        Key attributes: .entities holds the list of values and .structure puts the entitiees in a tree.
-        Optional keyword arguments:
-            substitutions: (dict) Code values to be replaced: `{'substitute_this': 'with_this', 'and_this': 'as well'}`
+        Taxonomy items are listed in .entities and hierarchical relationships mapped in .structure.
+        Optional keyword arguments: substitutions (dict): Code values to be replaced: `{'substitute_this': 'with_this', 'and_this': 'as well'}`
         """
         self.definition = {"name": root_name}
         root_node = {"code": "0", "parentCode": None, "name": root_name}
@@ -128,7 +135,7 @@ class Taxonomy:
             self.entities = pd.DataFrame(dict_from_file)
         else:
             raise MissingAttributeError(
-                "Either klass_id, a data dict, or a path to a taxonomy file must be provided."
+                "Either klass_id (int), data (dict), or path (str) must be provided to identify or construct a taxonomy."
             )
 
         self.substitute(kwargs.get("substitutions"))
