@@ -1,5 +1,6 @@
 import random
 import re
+from typing import Any
 
 from ssb_timeseries.meta import Taxonomy
 
@@ -27,7 +28,7 @@ _words: list[str] = [
 ]
 
 
-_aggregates: list[str] = [
+_aggregates: list[dict[str, Any]] = [
     {"code": "count", "name": "count", "parent": None},
     {"code": "sum", "name": "sum", "parent": None},
     {"code": "avg", "name": "avg", "parent": None},
@@ -56,7 +57,7 @@ _aggregates: list[str] = [
     {"code": "perc99", "name": "perc99", "parent": None},
 ]
 
-_nordic = [
+_nordic: list[dict[str, Any]] = [
     {"code": "nord", "name": "Nordic countries", "parent": None},
     {"code": "scan", "name": "Nordic countries", "parent": "nord"},
     {"code": "DK", "name": "Denmark", "parent": "scan"},
@@ -65,6 +66,8 @@ _nordic = [
     {"code": "FI", "name": "Injections", "parent": "nord"},
     {"code": "IS", "name": "Supply", "parent": "nord"},
 ]
+# Indclude province level?
+# Sweden:
 # SE-K	Blekinge län	Blekinge	[SE-10]
 # SE-W	Dalarnas län	Dalarna	[SE-20]
 # SE-I	Gotlands län	Gotland	[SE-09]
@@ -87,7 +90,7 @@ _nordic = [
 # SE-T	Örebro län	Örebro	[SE-18]
 # SE-E	Östergötlands län	Östergötland	[SE-05]
 
-_econ = [
+_econ: list[str] = [
     {"code": "B", "name": "Balance", "parent": None},
     {"code": "D", "name": "Demand", "parent": "B"},
     {"code": "C", "name": "Consumption", "parent": "D"},
@@ -98,19 +101,23 @@ _econ = [
     {"code": "Imp", "name": "Imports", "parent": "S"},
     {"code": "Wdr", "name": "Withdrawals", "parent": "S"},
 ]
-_commodity = [
+"""Sample economic variables."""
+
+_commodity: list[dict[str, Any]] = [
     {"code": "petro", "name": "petroleum products", "parent": None},
     {"code": "oil", "name": "oil", "parent": "petro"},
     {"code": "gas", "name": "natural gas", "parent": "petro"},
     {"code": "lpg", "name": "liquefied petroleum gas", "parent": "petro"},
 ]
+"""A list of petroleum products."""
 
-_bio = [
+_bio: list[dict[str, Any]] = [
     {"code": "animals", "name": "animals", "parent": None},
     {"code": "plants", "name": "plants", "parent": None},
     {"code": "fungi", "name": "fungi", "parent": None},
     {"code": "microbes", "name": "microbes", "parent": None},
 ]
+"""A list of biological categories."""
 
 
 def random_words(some_list: list[str] | None = None, n: int = 1) -> str:
@@ -156,7 +163,7 @@ def snake_case_keys(dictionary: dict) -> dict:
     return out
 
 
-def list_to_tax(list_of_dicts: list[dict]) -> dict:
+def list_to_tax(list_of_dicts: list[dict[str, Any]]) -> dict:
     """Use code as key, convert list of dicts to dict."""
     ...
     blanks = ["shortName", "presentationName", "validFrom", "validTo", "notes"]

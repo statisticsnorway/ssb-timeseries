@@ -1054,24 +1054,27 @@ class Dataset:
     def aggregate(
         self,
         attributes: list[str],
-        taxonomies: list[
-            int | meta.Taxonomy | dict[str, str] | PathStr
-        ],  # | meta.Taxonomy | int | PathStr]
-        functions: set[str | F] | list[str | F],
+        taxonomies: list[int | meta.Taxonomy | dict[str, str] | PathStr],
+        functions: list[str | F] | set[str | F],
         sep: str = "_",
     ) -> Self:
         """Aggregate dataset by taxonomy hierarchies.
 
         Args:
-            attributes: The attributes to aggregate by.
-            taxonomies: The value domains for `attributes`; a list of ::py:class:meta.Taxonomy objects, or the klass_ids, data or paths to get them.
-            functions (list[str | Callable] | set[str | Callable]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
+            attributes (list[str]): The attributes to aggregate by.
+            taxonomies (list[int | meta.Taxonomy | dict[str, str] | PathStr]):
+                Value definitions for `attributes` can be either ::py:class:`meta.Taxonomy` objects,
+                or klass_ids, data dictionaries or paths that can be used to retrieve or construct them.
+            functions (list[str|F] | set[str|F]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
             sep (str): Optional separator used when joining multiple attributes into names of aggregated series. Defaults to '_'.
 
         Returns:
             Self: A dataset object with the aggregated data.
             If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
             If the taxonomy is a flat list, only a single `total` aggregate series is calculated.
+
+        Raises:
+            TypeError: If any of the taxonomy identifiere are of unexpected types.
 
         Examples:
             To calculate 10 and 90 percentiles and median for the dataset `x` where codes from KLASS 157 (energy_balance) distinguishes between series in the set.
