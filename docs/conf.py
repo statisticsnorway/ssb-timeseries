@@ -102,7 +102,7 @@ myst_heading_anchors = 3
 
 autodoc_default_options = {
     "member-order": "alphabetical",
-    "special-members": "__init__",
+    # "special-members": "__init__",
     "undoc-members": True,
     "exclude-members": "__weakref__",  # not sure about this one?
 }

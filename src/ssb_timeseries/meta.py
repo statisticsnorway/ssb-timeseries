@@ -6,9 +6,12 @@ It also consumes taxonomies. That is functionality that should live in the ssb-p
 """
 
 import io
+import itertools
 from copy import deepcopy
+from datetime import datetime
 from typing import Any
 from typing import TypeAlias
+from typing import TypedDict
 from typing import no_type_check
 
 import bigtree
@@ -39,36 +42,48 @@ def _df_info_as_string(df: pd.DataFrame) -> str:
         return buffer.getvalue()
 
 
+class MissingAttributeError(Exception):
+    """At least one required attribute was not provided."""
+
+    ...
+
+
+class KlassItem(TypedDict):
+    """The structure of taxonomy items as returned by the API (JSON) and :py:mod:`klass` (Pandas DataFrame)."""
+
+    # Included for docstring use only (but could be useful for working around the Pandas DataFrame representation?).
+    code: str
+    """A unique entity identifier within the taxonomy.
+    It may very well consist of numeric values, but will be represented as a string.
+    """
+    parentCode: str
+    """The code for the parent entity."""
+
+    name: str
+    """A unique human readable name. Not nullable."""
+
+    shortName: str
+    """A short version / mnemonic for name, if applicable."""
+
+    presentationName: str
+    """A "self explanatory" unique name, if applicable."""
+
+    validFrom: datetime | str
+    """Date or ISO string representing the start of the entity lifespan."""
+
+    validTo: datetime | str
+    """Date or ISO string representing the end of the entity lifespan."""
+
+
 class Taxonomy:
     """Wraps taxonomies defined in KLASS or json files in a object structure.
 
     Attributes:
         definition (str): Descriptions of the taxonomy.
-            name:
-            structure_type:     enum:   list | tree | graph
-            levels: number of levels not counting the root node
-        entities (pd.Dataframe): Entity definitions, represented as a dataframe with columns:
-            code: str
-            A unique entity identifier within the taxonomy.
-            It may very well consist of numeric values, but will be represented as a string.
-
-            parent:  str
-            "parentCode"
-            The code for the parent entity.
-
-            name: str
-            A unique human readable name. Not nullable.
-
-            short:
-            "shortName"
-            A short version / mnemonic for name, if applicable.
-
-            presentationName
-            A "self explanatory" unique name, if applicable.
-
-            validFrom
-
-            validTo
+        name:
+        structure_type:     enum:   list | tree | graph
+        levels: number of levels not counting the root node
+        entities (pd.Dataframe): Entity definitions, represented as a dataframe with columns as defined by ::py:class:`KlassItem`.
 
     Notes:
         structure:
@@ -83,33 +98,47 @@ class Taxonomy:
 
     def __init__(
         self,
-        id_or_path: int | PathStr | str,
+        *,
+        klass_id: int = 0,
+        data: list[dict[str, str]] | None = None,
+        path: PathStr = "",
         root_name: str = "Taxonomy",
         sep: str = ".",
-        substitute: dict | None = None,
+        **kwargs: Any,
     ) -> None:
-        """Create Taxonomy object from KLASS id or file name.
+        """Create a Taxonomy object from either a `klass_id`, a `data` dictionary or a `path` to a JSON file.
 
-        Key attributs: .entities holds the list of values and .structure puts the entitiees in a tree.
+        Taxonomy items are listed in .entities and hierarchical relationships mapped in .structure.
+        Optional keyword arguments: substitutions (dict): Code values to be replaced: `{'substitute_this': 'with_this', 'and_this': 'as well'}`
         """
         self.definition = {"name": root_name}
-        if isinstance(id_or_path, int):
+        root_node = {"code": "0", "parentCode": None, "name": root_name}
+        if klass_id:
             # TO DO: handle versions of KLASS
-            klass = get_classification(str(id_or_path)).get_codes().data
-            self.entities = add_root_node(
-                klass, {"code": "0", "parentCode": None, "name": root_name}
-            )
-            if substitute:
-                for key, value in substitute.items():
-                    self.entities["code"] = self.entities["code"].str.replace(
-                        key, value
-                    )
-                    self.entities["parentCode"] = self.entities[
-                        "parentCode"
-                    ].str.replace(key, value)
+            klass_data_df = get_classification(str(klass_id)).get_codes().data
+            self.entities = add_root_node(klass_data_df, root_node)
+            # TO DO: change to dict implementation:
+            # list_of_items = klass_data_df.to_dict('records')
+            # ... also, while at it: parentCode --> parent, validFrom --> valid_from, etc
+            # ... then:
+            # klass_data_dict = {item['code']: item for item in list_of_items}
+            # klass_data_dict["0"] = {"code": "0", "parentCode": None, "name": root_name}
+            # self.entities = klass_data_dict.values()
+            # (then, if insisting on pandas) df = pandas.DataFrame(self.entities)
+        elif data:
+            # data.append(root_node)
+            df = pd.DataFrame(data)
+            ts_logger.debug(f"df:\n{df=}")
+            self.entities = add_root_node(df, root_node)
+        elif path:
+            dict_from_file = fs.read_json(str(path))
+            self.entities = pd.DataFrame(dict_from_file)
         else:
-            df_from_file = pd.DataFrame.from_dict(fs.read_json(str(id_or_path)))
-            self.entities = df_from_file
+            raise MissingAttributeError(
+                "Either klass_id (int), data (dict), or path (str) must be provided to identify or construct a taxonomy."
+            )
+
+        self.substitute(kwargs.get("substitutions"))
 
         self.structure: bigtree.tree = bigtree.dataframe_to_tree_by_relation(
             data=self.entities,
@@ -215,7 +244,18 @@ class Taxonomy:
 
         The file can be read using Taxonomy(<path to file>).
         """
-        fs.write_json(path, self.entities.to_dict())
+        # fs.write_json(path, self.entities.to_dict())
+        fs.write_json(path, self.entities.to_dict("records"))
+
+    def substitute(self, substitutions: dict) -> None:
+        """Substitute 'code' and 'parent' values with items in subsitution dictionary."""
+        if substitutions:
+            # accept an empty dict, so that __init__ can pass kwargs.get(...,{})
+            for key, value in substitutions.items():
+                self.entities["code"] = self.entities["code"].str.replace(key, value)
+                self.entities["parentCode"] = self.entities["parentCode"].str.replace(
+                    key, value
+                )
 
 
 def add_root_node(df: pd.DataFrame, root_node: dict[str, str | None]) -> pd.DataFrame:
@@ -535,6 +575,53 @@ def unique_tag_values(arg: Any) -> list[str]:
         raise ValueError(f"Unsupported type: {type(arg)}")
 
     return lst
+
+
+def permutations(
+    taxonomies: dict[str, Taxonomy],
+    filters: list[str] | str = "",
+) -> list[dict]:
+    """For a dict on the form {'a': Taxonomy(A), 'b': Taxonomy(B)}, returns permutations of items in A and B, subject to filters.
+
+    Filters are experimental and quite likely to change type / implementation.
+    Notably, support for custom functions and include/exclude lists may be considered.
+    For now: str | list[str] with length matching the taxonomies identifies Taxonomy tree functions as follows:
+
+        'all' | 'all_nodes' --> .all_nodes()
+        'parents' | 'parent_nodes' -- .parent_nodes()
+        'leaves' | 'leaf_nodes' | 'children' | 'child_nodes' --> .leaf_nodes()
+
+    If no filters are provided, the default is 'all'.
+
+    Examples:
+        TODO: add some. See code for dataset.aggregate() for a notable use case.
+    """
+    out = []
+    if not filters:
+        filters = ["all"] * len(taxonomies)
+    elif isinstance(filters, str):
+        filters = [filters] * len(taxonomies)
+
+    node_lists = []
+    for (_attr, taxonomy), func in zip(taxonomies.items(), filters, strict=False):
+        match func.lower():
+            case "all" | "all_nodes":
+                nodes = taxonomy.all_nodes()
+            case "parents" | "parent_nodes":
+                nodes = taxonomy.parent_nodes()
+            case "leaves" | "leaf_nodes" | "children" | "child_nodes":
+                nodes = taxonomy.leaf_nodes()
+
+        node_lists.append([node.name for node in nodes])
+
+    combinations = [combination for combination in itertools.product(*node_lists)]
+    for c in combinations:
+        d = {}
+        for k, v in zip(taxonomies.keys(), c, strict=False):
+            d[k] = v
+        out.append(d)
+    ts_logger.debug(out)
+    return out
 
 
 # A different approach: duckdb to search within tags .

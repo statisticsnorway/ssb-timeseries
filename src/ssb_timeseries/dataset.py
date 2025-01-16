@@ -1,10 +1,10 @@
 """The :py:mod:`ssb_timeseries.dataset` module and its :py:class:`Dataset` class is the very core of the :py:mod:`ssb_timeseries` package, defining most of the key functionality.
 
-While it is possible to deal with a single time series at a time, the dataset is the unit of analysis for the :doc:`information model <../info-model>` and :doc:`workflow integration <../workflow>`. It is strongly advised to write code that to the extent possible make use of linear algebra with sets as matrices consisting of series column vectors.
+The dataset is the unit of analysis for both :doc:`information model <../info-model>` and :doc:`workflow integration <../workflow>`,and performance will benefit from linear algebra with sets as matrices consisting of series column vectors.
 
 As described in the :doc:`../info-model` time series datasets may consist of any number of series of the same :py:class:`type <ssb_timeseries.properties.SeriesType>`. Series types are defined by :py:class:`properties.Versioning` and :py:class:`properties.Temporality`, see :py:class:`properties.SeriesType`.
 
-While not a technical requirement, it is also strongly encouraged to make sure that the resolution of the series in the set match, and to structure the data to minimize gaps. Sparse data is a strong indication that a dataset is not well defined: many null (aka NAN or "not a number") values may indicate that series in the set have different origins.
+It is also strongly encouraged to make sure that the resolutions of the series in datasets are the same, and to minimize the number of gaps in the series. Very sparse data is a strong indication that a dataset is not well defined: may indicate that series in the set have different origins. What counts as 'gaps' in this context is any representation of undefined values: None, null, NAN or "not a number" values, as opposed to the number zero. The number zero is a gray area - it can be perfectly valid, but can also be an indication that not all the series should be part of the same set.
 
 .. seealso::
     See documentation for the :py:mod:`ssb_timeseries.catalog` module for tools for searching for datasets or series by names or metadata.
@@ -84,7 +84,7 @@ class Dataset:
         Data is represented as Pandas dataframes; but Polars lazyframes or Pyarrow tables is likely to be better.
         Initial implementation assumes stores data in parquet files, but feather files and various database options are considered for later.
 
-        Support for addittional "type" features/flags behaviours like sparse data may be added later (if needed).
+        Support for additional "type" features/flags behaviours like sparse data may be added later (if needed).
 
         Data is kept in memory and not stored before explicit call to .save.
         """
@@ -138,7 +138,7 @@ class Dataset:
         self.tags.update(self.io.read_metadata())
         self.tag_dataset(tags=kwargs.get("dataset_tags", {}))
 
-        # all of the following should be turned into tags - or find another way into the parquet files?
+        # all of the following should be turned into set level tags - or find another way into the parquet files?
 
         # autotag:
         self.auto_tag_config = {
@@ -164,7 +164,6 @@ class Dataset:
         out = deepcopy(self)
         for k, v in kwargs.items():
             setattr(out, k, v)
-            ts_logger.debug(f"DATASET.copy() attribute: {k}:\n {v}.")
 
         out.rename(new_name)
         return out
@@ -686,7 +685,7 @@ class Dataset:
         """Get vectors with names equal to column names from Dataset.data.
 
         Args:
-            pattern (str): Optional pattern for simple filtering of column names containing pattern. Defaults to "".
+            pattern (str): Optional pattern for simple filtering of column names containing pattern. Defaults to ''.
 
         .. warning:: Caution!
             This (re)assigns variables in the scope of the calling function by way of stack inspection and hence risks of reassigning objects, functions, or variables if they happen to have the same name.
@@ -933,8 +932,6 @@ class Dataset:
             ):
                 out_data = self.data.copy()
 
-                # for col in self._numeric_columns():
-                #    out_data[col] = func(out_data[col], other:Self)
                 out_data[self.numeric_columns()] = func(
                     out_data[self.numeric_columns()], other
                 )
@@ -1053,21 +1050,28 @@ class Dataset:
 
     def aggregate(
         self,
-        attribute: str,
-        taxonomy: meta.Taxonomy | int | PathStr,
-        functions: set[str | F] | list[str | F],
+        attributes: list[str],
+        taxonomies: list[int | meta.Taxonomy | dict[str, str] | PathStr],
+        functions: list[str | F] | set[str | F],
+        sep: str = "_",
     ) -> Self:
-        """Aggregate dataset by taxonomy hierarchy.
+        """Aggregate dataset by taxonomy hierarchies.
 
         Args:
-            attribute: The attribute to aggregate by. TODO: support multiple attributes.
-            taxonomy (Taxonomy | int | PathStr): The values for `attribute`. A taxonomy object as returned by Taxonomy(klass_id_or_path), or the id or path to retrieve one.
-            functions (list[str | Callable] | set[str | Callable]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
+            attributes (list[str]): The attributes to aggregate by.
+            taxonomies (list[int | meta.Taxonomy | dict[str, str] | PathStr]):
+                Value definitions for `attributes` can be either ::py:class:`meta.Taxonomy` objects,
+                or klass_ids, data dictionaries or paths that can be used to retrieve or construct them.
+            functions (list[str|F] | set[str|F]): Optional function name (or list) of the function names to apply (mean | count | sum | ...). Defaults to `sum`.
+            sep (str): Optional separator used when joining multiple attributes into names of aggregated series. Defaults to '_'.
 
         Returns:
             Self: A dataset object with the aggregated data.
             If the taxonomy object has hierarchical structure, aggregate series are calculated for parent nodes at all levels.
             If the taxonomy is a flat list, only a single `total` aggregate series is calculated.
+
+        Raises:
+            TypeError: If any of the taxonomy identifiere are of unexpected types.
 
         Examples:
             To calculate 10 and 90 percentiles and median for the dataset `x` where codes from KLASS 157 (energy_balance) distinguishes between series in the set.
@@ -1077,7 +1081,7 @@ class Dataset:
             >>> from ssb_timeseries.sample_data import create_df
             >>> from ssb_timeseries.meta import Taxonomy
             >>>
-            >>> klass157 = Taxonomy(157)
+            >>> klass157 = Taxonomy(klass_id=157)
             >>> klass157_leaves = [n.name for n in klass157.structure.root.leaves]
             >>> tag_permutation_space = {"A": klass157_leaves, "B": ["q"], "C": ["z"]}
             >>> series_names: list[list[str]] = [value for value in tag_permutation_space.values()]
@@ -1094,33 +1098,48 @@ class Dataset:
             >>> def perc90(x):
             >>>     return x.quantile(.9, axis=1, numeric_only=True, interpolation="linear")
             >>>
-            >>> percentiles = sample_set.aggregate("energy_balance", 157, [perc10, 'median', perc90])
+            >>> percentiles = sample_set.aggregate(["energy_balance"], [157], [perc10, 'median', perc90])
         """
-        if not isinstance(taxonomy, meta.Taxonomy):
-            taxonomy = meta.Taxonomy(taxonomy)
+        taxonomy_dict = {}
+        for name, t in zip(attributes, taxonomies, strict=False):
+            if isinstance(t, meta.Taxonomy):
+                obj = t
+            elif isinstance(t, int):
+                obj = meta.Taxonomy(klass_id=t)
+            elif isinstance(t, dict):
+                obj = meta.Taxonomy(data=t)
+            elif isinstance(t, PathStr):
+                obj = meta.Taxonomy(path=t)
+            else:
+                raise TypeError(
+                    f"Taxonomy object or valid identifier expected, got {type(t)}"
+                )
+            taxonomy_dict[name] = obj
 
         df = self.data.copy().drop(columns=self.numeric_columns())
-        for node in taxonomy.parent_nodes():
-            leaves = taxonomy.leaf_nodes(node.name)
-            ts_logger.debug(f"DATASET.aggregate(): node '{node.name}' leaves {leaves}.")
-            leaf_node_subset = self.filter(tags={attribute: leaves}, output="df")
-
+        for p in meta.permutations(taxonomy_dict, "parents"):
+            criteria = {}
+            for attr, value in p.items():
+                criteria[attr] = taxonomy_dict[attr].leaf_nodes(value)
+            # criteria = {{attr, taxonomy_dict[attr].leaf_nodes(value)} for attr, value in p.items()}
+            ts_logger.debug(f"{criteria=}")
+            output_series_name = sep.join(p.values())
+            leaf_node_subset = self.filter(tags=criteria, output="df")
             for func in functions:
                 if isinstance(func, str):
-                    new_col_name = f"{func}({node.name})"
+                    new_col_name = f"{func}({output_series_name})"
                 elif isinstance(func, list):
-                    new_col_name = f"{func[0]}{func[1]}({node.name})"  # type: ignore[unreachable]
+                    new_col_name = f"{func[0]}{func[1]}({output_series_name})"  # type: ignore[unreachable]
                 else:
-                    new_col_name = f"{func.__name__}({node.name})"
+                    new_col_name = f"{func.__name__}({output_series_name})"
                 df[new_col_name] = column_aggregate(leaf_node_subset, func)
-                # ts_logger.debug(f"DATASET.aggregate(): node '{node}', column {m} input:\n{leaf_node_subset.columns}\nreturned:\n{df[new_col_name]}")
 
         return self.copy(f"{self.name}.{functions}", data=df)
 
 
 def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
     """Helper function to calculate aggregate over dataframe columns."""
-    ts_logger.debug(f"DATASET.column_aggregate '{method}' over columns:\n{df.columns}")
+    # ts_logger.debug(f"DATASET.column_aggregate '{method}' over columns:\n{df.columns}")
     if isinstance(method, F):  # type: ignore
         out = method(df)  # type: ignore[operator]
     else:
