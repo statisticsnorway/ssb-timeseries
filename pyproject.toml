@@ -54,6 +54,7 @@ click = ">=8.1.7"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+filterwarnings = [ "error" ]
 
 [tool.poetry.scripts]
 ssb-timeseries = "ssb_timeseries.__main__:main"

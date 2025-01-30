@@ -62,13 +62,17 @@ def active_file(path: PathStr = "") -> str:
     return os.environ.get(ENV_VAR_NAME, "")
 
 
+# failed to make tests fail on warning???
+# logging.warning("want this to make tests fail - but they do not")
+# warnings.warn('this does!')
+
 HOME = str(Path.home())
 SHARED_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
 SHARED_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
 GCS = SHARED_PROD
 
 JOVYAN = "/home/jovyan"
-DAPLALAB_HOME = "/home/jovyan/work"
+DAPLALAB_HOME = "/home/onyxia/work"
 SSB_DIR_NAME = "tidsserier"
 ROOT_DIR_NAME = "tidsserier"
 META_DIR_NAME = "metadata"
@@ -210,7 +214,7 @@ class Config:
             self.apply(kwargs)
             return
         elif param_specified_config_file:
-            logging.warning(f"Loading configuration from {param_specified_config_file}")
+            logging.debug(f"Loading configuration from {param_specified_config_file}")
             if set(kwargs.keys()) == set(["configuration_file"]):
                 no_file_is_an_error = True
             else:
@@ -229,7 +233,7 @@ class Config:
             logging.debug(f"{config_values=}")
         elif active_file():
             # if the path is specified by the environment variable, not finding it is an error
-            logging.warning(f"Loading configuration from {active_file()}")
+            logging.debug(f"Loading configuration from {active_file()}")
             config_values = load_json_file(
                 path=active_file(),
                 error_on_missing=True,
