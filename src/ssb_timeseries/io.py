@@ -58,7 +58,7 @@ def version_from_file_name(
 
     match pattern.lower():
         case "persisted":
-            regex = "(_v)(\d+)(.parquet)"
+            regex = r"(_v)(\d+)(.parquet)"
         case "as_of":
             regex = "(as_of_)(.*)(-data.parquet)"
         case "names":

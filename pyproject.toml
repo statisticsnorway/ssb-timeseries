@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ssb-timeseries"
-version = "0.4.0"
+version = "0.4.1"
 description = "SSB Timeseries"
 authors = ["Bernhard Ryeng <bernhard.ryeng@ssb.no>"]
 license = "MIT"
@@ -54,6 +54,7 @@ click = ">=8.1.7"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+filterwarnings = [ "error" ]
 
 [tool.poetry.scripts]
 ssb-timeseries = "ssb_timeseries.__main__:main"
