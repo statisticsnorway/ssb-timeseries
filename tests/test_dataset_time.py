@@ -3,10 +3,10 @@ import uuid
 
 import pytest
 
+import ssb_timeseries as ts
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.logging import log_start_stop
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -24,7 +24,7 @@ def test_correct_datetime_columns_valid_at(caplog) -> None:
             ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
     )
-    ts_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
+    ts.logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
     assert a.datetime_columns() == ["valid_at"]
 
 
@@ -44,7 +44,7 @@ def test_correct_datetime_columns_valid_from_to(caplog) -> None:
             temporality="FROM_TO",
         ),
     )
-    ts_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
+    ts.logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
     assert a.datetime_columns().sort() == ["valid_from", "valid_to"].sort()
 
 
@@ -60,7 +60,7 @@ def test_dataset_groupby_sum(caplog):
     )
     assert x.data.shape == (424, 4)
     y = x.groupby("M", "sum")
-    ts_logger.warning(f"groupby:\n{y.data}")
+    ts.logger.warning(f"groupby:\n{y.data}")
     assert y.data.shape == (14, 3)
 
 
@@ -78,7 +78,7 @@ def test_dataset_groupby_mean(caplog):
     )
     assert x.data.shape == (424, 4)
     y = x.groupby("M", "mean")
-    ts_logger.warning(f"groupby:\n{y.data}")
+    ts.logger.warning(f"groupby:\n{y.data}")
     assert y.data.shape == (14, 3)
 
 
@@ -99,7 +99,7 @@ def test_dataset_groupby_auto(caplog):
     df = x.groupby("M", "auto")
     df_mean = x.groupby("M", "mean")
     df_sum = x.groupby("M", "sum")
-    ts_logger.warning(f"groupby:\n{df}")
+    ts.logger.warning(f"groupby:\n{df}")
     # use of period index means 'valid_at' is not counted in columns
     assert df.shape == (14, 6)
     assert ~all(df == df_mean)
@@ -122,7 +122,7 @@ def test_dataset_resample_upsampling_ffil(caplog):
     assert x.data.shape == (12, 4)
 
     y = x.resample("D", "ffill", closed="s")
-    ts_logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
+    ts.logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
     # beware of index column!
     # double check behaviour for lat period
     # verify / create test cases per Temporality
@@ -145,5 +145,5 @@ def test_dataset_resample_downsampling_w_mean(caplog):
     )
     assert x.data.shape == (12, 4)
     y = x.resample("QE", "mean")
-    ts_logger.warning(f"resample:\n{x.data}\n{y.name}\n{y.data}")
+    ts.logger.warning(f"resample:\n{x.data}\n{y.name}\n{y.data}")
     assert y.data.shape == (4, 3)

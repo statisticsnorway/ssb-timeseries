@@ -12,7 +12,8 @@ from zoneinfo import ZoneInfo
 
 from dateutil import parser
 
-from ssb_timeseries.logging import ts_logger
+# from ssb_timeseries.logging import ts_logger
+import ssb_timeseries as ts
 
 
 MAX_TIME_PRECISION = "second"
@@ -99,7 +100,7 @@ def ensure_tz_aware(some_date: dt) -> dt:
     """
     # if some_date.tzinfo is None or some_date.tzinfo.utcoffset(some_date) is None:
     if is_tz_naive(some_date):
-        ts_logger.debug(
+        ts.logger.debug(
             "DATE_UTC catched a date without timezone info. This will become an error later. Assuming CET."
         )
         try:
@@ -167,7 +168,7 @@ class Interval:
 
         precision: str = kwargs.get("precision", MAX_TIME_PRECISION)
 
-        ts_logger.debug(f"Interval.__init__ with kwargs:\n{kwargs}")
+        ts.logger.debug(f"Interval.__init__ with kwargs:\n{kwargs}")
 
         self.start = (
             f
@@ -198,16 +199,16 @@ class Interval:
             # "round" to MAX_TIME_precision if provided
             ...
 
-        ts_logger.debug(f"Interval.__init__ returns self:\n{self}")
+        ts.logger.debug(f"Interval.__init__ returns self:\n{self}")
 
     def includes(self, *args: dt | list[dt]):
-        ts_logger.debug(f"Interval.include args: {args}")
+        ts.logger.debug(f"Interval.include args: {args}")
         if len(args) == 1:
-            ts_logger.debug("Interval.include - single input")
+            ts.logger.debug("Interval.include - single input")
             out: bool = args[0] >= self.start and args[0] <= self.stop
         else:
             out = [x >= self.start and x <= self.stop for x in args]
-        ts_logger.debug(f"Interval.include returns:\n{out}")
+        ts.logger.debug(f"Interval.include returns:\n{out}")
         return out
 
     def all(self):
@@ -218,23 +219,23 @@ class Interval:
         return (self.start, self.stop) == (other.start, other.stop)
 
     def __lt__(self, other) -> str:
-        ts_logger.debug(
+        ts.logger.debug(
             f"Interval.lt: \n\t{self.stop} < ({other.start} < {other.stop})"
         )
         return self.stop < other.start
 
     def __gt__(self, other) -> str:
-        ts_logger.debug(f"Interval.gt: \n\t{self.start} > {other.stop}")
+        ts.logger.debug(f"Interval.gt: \n\t{self.start} > {other.stop}")
         return self.start > other.stop
 
     def __le__(self, other) -> str:
-        ts_logger.debug(
+        ts.logger.debug(
             f"Interval.le: \n\t{self.start} - {self.stop}\n\t{other.start} - {other.stop}"
         )
         return (self.start, self.stop) <= (other.start, other.stop)
 
     def __ge__(self, other) -> str:
-        ts_logger.debug(
+        ts.logger.debug(
             f"Interval.ge: \n\t{self.start} - {self.stop}\n\t{other.start} - {other.stop}"
         )
         return (self.start, self.stop) >= (other.start, other.stop)

@@ -5,13 +5,13 @@ from datetime import timedelta
 import pytest
 from pytest import LogCaptureFixture
 
+import ssb_timeseries as ts
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import search
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.fs import file_count
 from ssb_timeseries.logging import log_start_stop
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.properties import Versioning
 from ssb_timeseries.sample_data import create_df
@@ -50,9 +50,9 @@ def test_dataset_instance_created_equals_repr(
             freq="MS",
         ),
     )
-    ts_logger.warning(f"Dataset a: {a!r}")
+    ts.logger.warning(f"Dataset a: {a!r}")
     b = eval(repr(a))
-    ts_logger.warning(f"Dataset b: {b!r}")
+    ts.logger.warning(f"Dataset b: {b!r}")
 
     # TODO: fix __repr__ OR identical so that this works
     assert a.identical(b)
@@ -167,7 +167,7 @@ def test_metafile_exists_after_create_dataset_and_save(
     )
     x.data = xyz_at
     x.save()
-    ts_logger.debug(x.io.metadata_fullpath)
+    ts.logger.debug(x.io.metadata_fullpath)
     assert x.io.metadatafile_exists()
 
 
@@ -196,8 +196,8 @@ def test_same_simple_data_written_multiple_times_does_not_create_duplicates(
         data_type=SeriesType.estimate(),
         as_of_tz=now_utc(rounding="Min"),
     )
-    ts_logger.debug(f"{y.data=}\n==\n{xyz_at=}")
-    ts_logger.debug(f"{y.data['valid_at'].unique()=}")
+    ts.logger.debug(f"{y.data=}\n==\n{xyz_at=}")
+    ts.logger.debug(f"{y.data['valid_at'].unique()=}")
     assert y.data.shape == expected_data_size
 
 
@@ -211,14 +211,14 @@ def test_read_existing_simple_metadata(
     set_name = existing_simple_set.name
     x = Dataset(name=set_name, data_type=SeriesType.simple())
     if x.io.metadatafile_exists():
-        ts_logger.debug(x.io.metadata_fullpath)
-        ts_logger.debug(x.tags)
-        ts_logger.debug(x.tags["name"])
+        ts.logger.debug(x.io.metadata_fullpath)
+        ts.logger.debug(x.tags)
+        ts.logger.debug(x.tags["name"])
         assert x.tags["name"] == set_name and x.tags["versioning"] == str(
             Versioning.NONE
         )
     else:
-        ts_logger.debug(
+        ts.logger.debug(
             f"DATASET {x.name}: Metadata not found at {x.io.metadata_fullpath}. Writing."
         )
         raise AssertionError
@@ -233,14 +233,14 @@ def test_read_existing_simple_data(
 
     set_name = existing_simple_set.name
     x = Dataset(name=set_name, data_type=SeriesType.simple())
-    ts_logger.debug(f"DATASET {x.name}: \n{x.data}")
+    ts.logger.debug(f"DATASET {x.name}: \n{x.data}")
     if x.io.datafile_exists():
-        ts_logger.debug(x.io.data_fullpath)
-        ts_logger.debug(f"{x.data=}")
-        ts_logger.debug(f"{x.data['valid_at'].unique()=}")
+        ts.logger.debug(x.io.data_fullpath)
+        ts.logger.debug(f"{x.data=}")
+        ts.logger.debug(f"{x.data['valid_at'].unique()=}")
         assert x.data.size == 336
     else:
-        ts_logger.debug(
+        ts.logger.debug(
             f"DATASET {x.name}: Data not found at {x.io.data_fullpath}. Writing."
         )
         raise AssertionError
@@ -263,8 +263,8 @@ def test_read_existing_estimate_metadata(
     )
 
     assert x.io.metadatafile_exists()
-    ts_logger.debug(x.io.metadata_fullpath)
-    ts_logger.debug(x.tags)
+    ts.logger.debug(x.io.metadata_fullpath)
+    ts.logger.debug(x.tags)
     assert x.tags["name"] == set_name
     assert x.tags["versioning"] == str(Versioning.AS_OF)
 
@@ -286,7 +286,7 @@ def test_read_existing_estimate_data(
     )
 
     assert x.io.datafile_exists()
-    ts_logger.debug(x)
+    ts.logger.debug(x)
     assert x.data.size == 336
 
 
@@ -332,7 +332,7 @@ def test_search_for_dataset_by_exact_name(
     )
     x.save()
     datasets_found = search(pattern=set_name)
-    ts_logger.debug(f"datasets: {datasets_found!s}")
+    ts.logger.debug(f"datasets: {datasets_found!s}")
 
     assert isinstance(datasets_found, Dataset)
     assert datasets_found.name == set_name
@@ -355,7 +355,7 @@ def test_search_for_dataset_by_part_of_name_one_match(
     )
     x.save()
     datasets_found = search(pattern=unique_new)
-    ts_logger.debug(f"datasets: {datasets_found!s}")
+    ts.logger.debug(f"datasets: {datasets_found!s}")
     assert isinstance(datasets_found, Dataset)
     assert datasets_found.name == set_name
     assert datasets_found.data_type == SeriesType.simple()
@@ -379,7 +379,7 @@ def test_search_for_dataset_by_part_of_name_two_matches(
     y = Dataset(name=set_name_2, data_type=SeriesType.simple(), data=df)
     y.save()
     datasets_found = search(pattern=unique_new)
-    ts_logger.debug(f"datasets: {datasets_found!s}")
+    ts.logger.debug(f"datasets: {datasets_found!s}")
     assert datasets_found
     assert isinstance(datasets_found, list)
     assert len(datasets_found) == 2
@@ -400,7 +400,7 @@ def test_search_for_nonexisting_dataset_returns_none(
     )
     datasets_found = search(pattern=unique_new)
 
-    ts_logger.debug(f"datasets: {datasets_found!s}")
+    ts.logger.debug(f"datasets: {datasets_found!s}")
     assert not datasets_found
 
 
@@ -416,7 +416,7 @@ def test_list_versions(caplog: LogCaptureFixture, existing_estimate_set: Dataset
         existing_estimate_set.data = create_df(
             existing_estimate_set.series, start_date="2023-01-01", end_date=d, freq="MS"
         )
-        ts_logger.debug(f"Do we have data?\n{existing_estimate_set.data}")
+        ts.logger.debug(f"Do we have data?\n{existing_estimate_set.data}")
         existing_estimate_set.save()
 
     versions_after_saving = existing_estimate_set.versions()
@@ -451,9 +451,9 @@ def test_dataset_getitem_by_string(
     y = x["b_q_z1"]
     assert isinstance(y, Dataset)
 
-    ts_logger.debug(f"y = x['b']\n{y}")
-    ts_logger.debug(f"{__name__}look at y:\n\t{y}")
-    ts_logger.debug(f"{__name__}look at x:\n\t{x.data}")
+    ts.logger.debug(f"y = x['b']\n{y}")
+    ts.logger.debug(f"{__name__}look at y:\n\t{y}")
+    ts.logger.debug(f"{__name__}look at x:\n\t{x.data}")
     assert id(x) != id(y)
     assert list(y.data.columns) == ["valid_at", "b_q_z1"]
 
@@ -468,9 +468,9 @@ def test_dataset_getitem_by_tags(
     y = x[{"A": "a", "B": "q", "C": "z1"}]
     assert isinstance(y, Dataset)
 
-    ts_logger.debug(f"y = x['b']\n{y}")
-    ts_logger.debug(f"{__name__}look at y:\n\t{y}")
-    ts_logger.debug(f"{__name__}look at x:\n\t{x.data}")
+    ts.logger.debug(f"y = x['b']\n{y}")
+    ts.logger.debug(f"{__name__}look at y:\n\t{y}")
+    ts.logger.debug(f"{__name__}look at x:\n\t{x.data}")
     assert id(x) != id(y)
     assert list(y.data.columns) == ["valid_at", "a_q_z1"]
 
@@ -485,7 +485,7 @@ def test_filter_dataset_by_regex_return_dataframe(caplog):
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
     y = x.filter(regex="^x", output="dataframe")
-    ts_logger.debug(f"y = x.filter(regex='^x')\n{y}")
+    ts.logger.debug(f"y = x.filter(regex='^x')\n{y}")
 
     assert list(y.columns) == ["valid_at", "xd", "xe"]
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
@@ -501,7 +501,7 @@ def test_filter_dataset_by_regex_return_dataset(caplog):
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
     y = x.filter(regex="^x")
-    ts_logger.debug(f"y = x.filter(regex='^x')\n{y}")
+    ts.logger.debug(f"y = x.filter(regex='^x')\n{y}")
 
     assert isinstance(y, Dataset)
     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
@@ -521,7 +521,7 @@ def test_correct_datetime_columns_valid_at(
             ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
     )
-    ts_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
+    ts.logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
     assert a.datetime_columns() == ["valid_at"]
 
 
@@ -543,7 +543,7 @@ def test_correct_datetime_columns_valid_from_to(
             temporality="FROM_TO",
         ),
     )
-    ts_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
+    ts.logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
     assert a.datetime_columns().sort() == ["valid_from", "valid_to"].sort()
 
 
@@ -570,7 +570,7 @@ def test_versioning_as_of_init_without_version_selects_latest(
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(existing_estimate_set.name)
-    ts_logger.warning(
+    ts.logger.warning(
         f"Init with only name of existing versioned set: {x.name}\n\t... identified {x.as_of_utc} as latest version."
     )
     assert isinstance(x, Dataset)
@@ -579,7 +579,7 @@ def test_versioning_as_of_init_without_version_selects_latest(
     as_of = [now_utc() - timedelta(hours=n) for n in range(4)]
     for d in as_of:
         x.as_of_utc = date_utc(d)
-        ts_logger.warning(f"As of date:{d=}\nseries: {x.series}")
+        ts.logger.warning(f"As of date:{d=}\nseries: {x.series}")
         x.data = create_df(
             x.series, start_date="2024-01-01", end_date="2024-12-03", freq="MS"
         )
@@ -614,7 +614,7 @@ def test_versioning_none_appends_to_existing_file(
     b.save()
 
     c = Dataset(name=a.name, data_type=a.data_type, load_data=True)
-    ts_logger.debug(
+    ts.logger.debug(
         f"DATASET: {a.name}: First write {a.data.size} values, writing {b.data.size} values (50% new) --> combined {c.data.size} values."
     )
 

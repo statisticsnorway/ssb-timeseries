@@ -7,8 +7,8 @@ import polars
 import pyarrow
 import pytest
 
+import ssb_timeseries as ts
 from ssb_timeseries import fs
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.sample_data import create_df
 
 # mypy: ignore-errors
@@ -32,7 +32,7 @@ def df():
 
 @pytest.mark.skip("Fix this later")
 def test_bucket_exists_if_running_on_dapla() -> None:
-    ts_logger.warning(f"Home directory is {HOME}")
+    ts.logger.warning(f"Home directory is {HOME}")
     assert fs.exists(BUCKET)
 
 

@@ -7,7 +7,7 @@ import pytest
 # from ssb_timeseries.catalog import CatalogItem
 from ssb_timeseries.catalog import Catalog
 from ssb_timeseries.catalog import Repository
-from ssb_timeseries.logging import ts_logger
+import ssb_timeseries as ts
 
 # from ssb_timeseries.meta import Taxonomy
 
@@ -76,7 +76,7 @@ def test_repository_datasets_called_with_no_params_lists_all_datasets_in_a_singl
     expected = {ds.name for ds in existing_sets}
 
     all_sets_in_test_repo_1 = {ds.object_name for ds in repo_1.datasets()}
-    ts_logger.debug(f"{all_sets_in_test_repo_1=}")
+    ts.logger.debug(f"{all_sets_in_test_repo_1=}")
     assert repo_1.count(object_type="dataset") >= 3
     assert all_sets_in_test_repo_1 >= expected
 
@@ -268,7 +268,7 @@ def test_catalog_search_by_tag_dict(
 
     def log_items(cc):
         for c in catalog.items(tags=cc):
-            ts_logger.debug(
+            ts.logger.debug(
                 f"\t{c.repository_name} {c.object_type} {c.parent}.{c.object_name} {c.has_tags(criteria)}"
             )
 
@@ -302,7 +302,7 @@ def test_catalog_search_by_tag_dict_multiple_criteria(
     # The tag: D=d gives a match only in dataset 'test-exising-small-dataset'
     criteria = {"B": "b", "D": "d"}
     for result in catalog.items(tags=criteria):
-        ts_logger.debug(
+        ts.logger.debug(
             f"\t{result.repository_name}\t{result.object_type}\t{result.parent}.{result.object_name}\t{result.has_tags(criteria)}"
         )
     assert len(catalog.datasets(tags=criteria)) == 0 * num_repos
@@ -321,7 +321,7 @@ def test_catalog_search_by_list_of_tag_dicts(
     criteria_2 = {"dataset": "test-existing-small-dataset", "A": "a2"}
 
     for result in catalog.items(tags=[criteria_1, criteria_2]):
-        ts_logger.debug(
+        ts.logger.debug(
             f"\t{result.repository_name}\t{result.object_type}\t{result.parent}.{result.object_name}"
         )
 

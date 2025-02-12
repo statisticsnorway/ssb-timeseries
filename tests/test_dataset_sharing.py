@@ -1,12 +1,12 @@
 import logging
 
+import ssb_timeseries as ts
 from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 
 # from ssb_timeseries.io import CONFIG
 from ssb_timeseries.logging import log_start_stop
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -68,7 +68,7 @@ def test_snapshot_simple_set_has_higher_snapshot_file_count_after(
     count_after_234 = fs.file_count(path_234)
 
     def log(path, before, after):
-        ts_logger.debug(
+        ts.logger.debug(
             f"SNAPSHOT to {path}\n\tfile count before:{before}, after: {after}"
         )
 
@@ -116,8 +116,8 @@ def test_snapshot_estimate_specified_has_higher_file_count_after(conftest, caplo
     path_123 = x.io.dir(team_path_123, x.name)
     path_234 = x.io.dir(team_path_234, x.name)
     x.save()
-    ts_logger.debug(f"SNAPSHOT conf.bucket {bucket}")
-    ts_logger.debug(f"SNAPSHOT to {path_123}")
+    ts.logger.debug(f"SNAPSHOT conf.bucket {bucket}")
+    ts.logger.debug(f"SNAPSHOT to {path_123}")
 
     count_before_snapshot = fs.file_count(stage_path, create=True)
     count_before_123 = fs.file_count(path_123, create=True)
@@ -130,7 +130,7 @@ def test_snapshot_estimate_specified_has_higher_file_count_after(conftest, caplo
     count_after_234 = fs.file_count(path_234)
 
     def log(path, before, after):
-        ts_logger.debug(
+        ts.logger.debug(
             f"SNAPSHOT to {path}\n\tfile count before:{before}, after: {after}"
         )
 

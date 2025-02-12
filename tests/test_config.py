@@ -148,8 +148,7 @@ def test_config_validation(
         ("gcs", "", ""),
         ("shared-test", "", ""),
         ("shared-prod", "", ""),
-        ("jovyan", "", ""),
-        ("dapla", "", ""),
+        ("daplalab", "", ""),
     ],
 )
 def test_config_presets(
@@ -217,10 +216,10 @@ def test_config_change(reset_config_after: config.Config) -> None:
     cfg = reset_config_after
     old_value = cfg.timeseries_root
     config_file = cfg.configuration_file
-    if old_value == config.JOVYAN:
+    if old_value == config.DAPLALAB_FUSE:
         new_value = config.GCS
     else:
-        new_value = config.JOVYAN
+        new_value = config.DAPLALAB_FUSE
     cfg.timeseries_root = new_value
     cfg.save()
 

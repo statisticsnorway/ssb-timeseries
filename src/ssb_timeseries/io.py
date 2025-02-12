@@ -26,13 +26,13 @@ import polars
 import pyarrow
 import pyarrow.compute
 
+import ssb_timeseries as ts
 from ssb_timeseries import fs
 from ssb_timeseries import properties
 from ssb_timeseries.config import Config
 from ssb_timeseries.dates import Interval
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso_no_colon
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import DatasetTagDict
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.types import PathStr
@@ -70,7 +70,7 @@ def version_from_file_name(
             regex = pattern
 
     vs = re.search(regex, file_name).group(group)
-    ts_logger.debug(
+    ts.logger.debug(
         f"file: {file_name} pattern:{pattern}, regex{regex} \n--> version: {vs} "
     )
     return vs
@@ -145,7 +145,7 @@ class FileSystem:
             case _:
                 raise ValueError("Unhandled versioning.")
 
-        ts_logger.debug(file_name)
+        ts.logger.debug(file_name)
         return file_name
 
     @property
@@ -177,16 +177,16 @@ class FileSystem:
         interval: Interval = Interval.all,
     ) -> pandas.DataFrame:
         """Read data from the filesystem. Return empty dataframe if not found."""
-        ts_logger.debug(interval)
+        ts.logger.debug(interval)
         if fs.exists(self.data_fullpath):
-            ts_logger.debug(
+            ts.logger.debug(
                 f"DATASET.read.start {self.set_name}: Reading data from file {self.data_fullpath}"
             )
             try:
                 df = fs.pandas_read_parquet(self.data_fullpath)
-                ts_logger.info(f"DATASET.read.success {self.set_name}: Read data.")
+                ts.logger.info(f"DATASET.read.success {self.set_name}: Read data.")
             except FileNotFoundError:
-                ts_logger.exception(
+                ts.logger.exception(
                     f"DATASET.read.error {self.set_name}: Read data failed. File not found: {self.data_fullpath}"
                 )
                 df = pandas.DataFrame()
@@ -206,7 +206,7 @@ class FileSystem:
             else:
                 df = merge_data(old, new, self.data_type.temporality.date_columns)
 
-        ts_logger.info(
+        ts.logger.info(
             f"DATASET.write.start {self.set_name}: writing data to file\n\t{self.data_fullpath}\nstarted."
         )
         try:
@@ -218,7 +218,7 @@ class FileSystem:
 
             # test logs show test-merge- has many NANs in oldest data
             if schema:
-                ts_logger.debug(f"Pyarrow schema defined: \n{schema=}\n{df=}.")
+                ts.logger.debug(f"Pyarrow schema defined: \n{schema=}\n{df=}.")
                 fs.write_parquet(
                     data=df,
                     path=self.data_fullpath,
@@ -227,15 +227,15 @@ class FileSystem:
                 )
 
             else:
-                ts_logger.warning(
+                ts.logger.warning(
                     f"Arrow schema not defined: {self.set_name}.\nFalling back to writing with Pandas."
                 )
                 fs.pandas_write_parquet(df, self.data_fullpath)
         except Exception as e:
-            ts_logger.exception(
+            ts.logger.exception(
                 f"DATASET.write.error {self.set_name}: writing data to file\n\t{self.data_fullpath}\nreturned exception: {e}."
             )
-        ts_logger.info(
+        ts.logger.info(
             f"DATASET.write.success {self.set_name}: writing data to file\n\t{self.data_fullpath}\nended."
         )
 
@@ -243,7 +243,7 @@ class FileSystem:
         """Read tags from the metadata file."""
         meta: dict = {"name": self.set_name}
         if fs.exists(self.metadata_fullpath):
-            ts_logger.info(
+            ts.logger.info(
                 f"DATASET.read.success {self.set_name}: reading metadata from file {self.metadata_fullpath}\nended."
             )
             meta = fs.read_json(self.metadata_fullpath)
@@ -254,11 +254,11 @@ class FileSystem:
         # no longer necessary: os.makedirs(self.metadata_dir, exist_ok=True)
         try:
             fs.write_json(self.metadata_fullpath, meta)
-            ts_logger.info(
+            ts.logger.info(
                 f"DATASET {self.set_name}: Writing metadata to file {self.metadata_fullpath}."
             )
         except Exception as e:
-            ts_logger.exception(
+            ts.logger.exception(
                 f"DATASET {self.set_name}: Writing metadata to file {self.metadata_fullpath} returned exception {e}."
             )
 
@@ -287,14 +287,14 @@ class FileSystem:
         if meta:
             self.write_metadata(meta)
         else:
-            ts_logger.warning(
+            ts.logger.warning(
                 f"DATASET {self.set_name}: Metadata is empty. Nothing to write."
             )
 
         if not data.empty:
             self.write_data(data, tags=meta)
         else:
-            ts_logger.warning(
+            ts.logger.warning(
                 f"DATASET {self.set_name}: Data is empty. Nothing to write."
             )
 
@@ -306,7 +306,7 @@ class FileSystem:
         vs = sorted(
             [int(version_from_file_name(fname, "persisted")) for fname in files]
         )
-        ts_logger.debug(
+        ts.logger.debug(
             f"DATASET {self.set_name}: io.last_version regex identified versions {vs} in {directory}."
         )
         if vs:
@@ -316,7 +316,7 @@ class FileSystem:
             read_from_filenames = 0
             out = number_of_files
 
-        ts_logger.debug(
+        ts.logger.debug(
             f"DATASET {self.set_name}: io.last_version searched directory: \n\t{directory}\n\tfor '{pattern}' found {number_of_files!s} files, regex identified version {read_from_filenames!s} --> vs {out!s}."
         )
         return out
@@ -389,7 +389,7 @@ class FileSystem:
             out = f"{self.set_name}_p{iso_no_colon(period_from)}_p{iso_no_colon(period_to)}_v{next_vs}"
 
             #  to comply with the naming standard we need to know some things about the data
-            ts_logger.debug(
+            ts.logger.debug(
                 f"DATASET last version {next_vs} from {period_from} to {period_to}.')"
             )
         return out
@@ -401,7 +401,7 @@ class FileSystem:
         """
         directory = os.path.join(bucket, self.set_name)
 
-        ts_logger.debug(f"DATASET.IO.SHARING_DIRECTORY: {directory}")
+        ts.logger.debug(f"DATASET.IO.SHARING_DIRECTORY: {directory}")
         fs.mkdir(directory)
         return directory
 
@@ -444,9 +444,9 @@ class FileSystem:
         fs.cp(self.metadata_fullpath, meta_publish_path)
 
         if sharing:
-            ts_logger.debug(f"Sharing configs: {sharing}")
+            ts.logger.debug(f"Sharing configs: {sharing}")
             for s in sharing:
-                ts_logger.debug(f"Sharing: {s}")
+                ts.logger.debug(f"Sharing: {s}")
                 if "team" not in s.keys():
                     s["team"] = "no team specified"
                 fs.cp(
@@ -457,14 +457,14 @@ class FileSystem:
                     meta_publish_path,
                     self.sharing_directory(bucket=s["path"]),
                 )
-                ts_logger.debug(
+                ts.logger.debug(
                     f"DATASET {self.set_name}: sharing with {s['team']}, snapshot copied to {s['path']}."
                 )
 
     @classmethod
     def dir(cls, *args: str, **kwargs: bool) -> str:
         """Check that target directory is under BUCKET. If so, create it if it does not exist."""
-        ts_logger.debug(f"{args}:")
+        ts.logger.debug(f"{args}:")
         path = os.path.join(*args)
         ts_root = str(Config.active().bucket)
 
@@ -492,14 +492,14 @@ def find_datasets(
     dirs = fs.find(configuration.timeseries_root, pattern, full_path=True)
     if exclude:
         dirs = [d for d in dirs if exclude not in d]
-        ts_logger.debug(
+        ts.logger.debug(
             f"DATASET.IO.find_datasets: exclude '{exclude}' eliminated:\n{[d for d in dirs if exclude in d]}"
         )
     search_results = [
         d.replace(configuration.timeseries_root, "root").split(os.path.sep)
         for d in dirs
     ]
-    ts_logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
+    ts.logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
 
     return [SearchResult(f[2], f[1]) for f in search_results]
 
@@ -514,7 +514,7 @@ def find_metadata_files(
 
     Only one of the arguments 'contains' or 'equals' can be provided at the same time. If none is provided, all files are returned.
     """
-    ts_logger.debug(f"find_metadata_files in repo(s) {repository}.")
+    ts.logger.debug(f"find_metadata_files in repo(s) {repository}.")
     if contains:
         pattern = f"*{contains}*"
     elif equals:
@@ -531,16 +531,16 @@ def find_metadata_files(
         )
 
     if not repository:
-        ts_logger.debug(f"find_metadata_files in default repo:\n{repository}.")
+        ts.logger.debug(f"find_metadata_files in default repo:\n{repository}.")
         result = find_in_repo(Config.active())
     elif isinstance(repository, str):
-        ts_logger.debug(f"find_metadata_files in repo by str:\n{repository}.")
+        ts.logger.debug(f"find_metadata_files in repo by str:\n{repository}.")
         result = find_in_repo(repository)
     elif isinstance(repository, "Path"):  # type: ignore
-        ts_logger.debug(f"find_metadata_files in repo by Path:\n{repository}.")
+        ts.logger.debug(f"find_metadata_files in repo by Path:\n{repository}.")
         result = find_in_repo(repository)
     elif isinstance(repository, list):
-        ts_logger.debug(f"find_metadata_files in multiple repos:\n{repository=}")
+        ts.logger.debug(f"find_metadata_files in multiple repos:\n{repository=}")
         result = []
         for r in repository:
             result.append(find_in_repo(r))
@@ -577,7 +577,7 @@ def for_all_datasets_move_metadata_files(
         d.replace(Config.active().timeseries_root, "root").split(os.path.sep)
         for d in dirs
     ]
-    ts_logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
+    ts.logger.debug(f"DATASET.IO.SEARCH: results: {search_results}")
 
     return [SearchResult(f[2], f[1]) for f in search_results]
 

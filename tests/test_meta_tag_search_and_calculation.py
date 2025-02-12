@@ -6,11 +6,11 @@ import uuid
 
 import pytest
 
+import ssb_timeseries as ts
 from ssb_timeseries import sample_metadata
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.logging import log_start_stop
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.meta import Taxonomy
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
@@ -47,7 +47,7 @@ def test_find_data_using_single_metadata_attribute(
     x_filtered_on_attribute_a = x.filter(tags={"A": "a"})
     expected_matches = ["a_p_z", "a_q_z", "a_r_z"]
 
-    ts_logger.debug(
+    ts.logger.debug(
         f"x_filtered_on_attribute_a: \n\t{x_filtered_on_attribute_a.series}\n vs expected:\n\t{expected_matches}"
     )
     assert isinstance(x_filtered_on_attribute_a, Dataset)
@@ -94,7 +94,7 @@ def test_find_data_using_multiple_metadata_attributes(
     x_filtered_on_attribute_a_and_b = x.filter(tags={"A": "a", "B": "q"})
     expected_matches = ["a_q_z"]
 
-    ts_logger.debug(
+    ts.logger.debug(
         f"x_filtered_on_attribute_a: \n\t{x_filtered_on_attribute_a_and_b.series}\n vs expected:\n\t{expected_matches}"
     )
     assert isinstance(x_filtered_on_attribute_a_and_b, Dataset)
@@ -142,7 +142,7 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
     x_filtered_on_attribute_a = x.filter(tags={"A": ["a", "b"]})
     expected_matches = ["a_p_z", "a_q_z", "a_r_z", "b_p_z", "b_q_z", "b_r_z"]
 
-    ts_logger.debug(
+    ts.logger.debug(
         f"x_filtered_on_attribute_a: \n\t{x_filtered_on_attribute_a.series}\n vs expected:\n\t{expected_matches}"
     )
     assert isinstance(x_filtered_on_attribute_a, Dataset)
@@ -188,7 +188,7 @@ def test_aggregate_sum_for_flat_list_taxonomy(
     )
 
     assert len(x.numeric_columns()) == len(klass48_leaves)
-    ts_logger.warning(f"{set_name}:\n{x.data}")
+    ts.logger.warning(f"{set_name}:\n{x.data}")
 
     y = x.aggregate(attributes=["A"], taxonomies=[klass48], functions=["sum"])
     assert isinstance(y, Dataset)
@@ -197,7 +197,7 @@ def test_aggregate_sum_for_flat_list_taxonomy(
         [f"sum({n.name})" for n in klass48.parent_nodes()]
     )
     y_data = y.data[y.numeric_columns()]
-    ts_logger.warning(f"{set_name}: \n{y_data}")
+    ts.logger.warning(f"{set_name}: \n{y_data}")
     assert all(y_data.notna())
     assert all(y_data.notnull())
 
@@ -234,7 +234,7 @@ def test_aggregate_multiple_functions_for_flat_list_taxonomy(
         return x.quantile(0.1, axis=1, numeric_only=True)
 
     aggregate_functions = [custom_func_perc10, "median", ["quantile", 0.9, "nearest"]]
-    ts_logger.debug(f"{set_name}:\n{x.data}")
+    ts.logger.debug(f"{set_name}:\n{x.data}")
     y = x.aggregate(
         attributes=["A"], taxonomies=[klass48], functions=aggregate_functions
     )
@@ -246,7 +246,7 @@ def test_aggregate_multiple_functions_for_flat_list_taxonomy(
         ["custom_func_perc10(0)", "median(0)", "quantile0.9(0)"]
     )
     y_data = y.data[y.numeric_columns()]
-    ts_logger.debug(f"{y.name}: \n{y_data}")
+    ts.logger.debug(f"{y.name}: \n{y_data}")
     assert all(y_data.notna())
     assert all(y_data.notnull())
 
@@ -287,7 +287,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
         [f"sum({n.name})" for n in klass157.parent_nodes()]
     )
     y_data = y.data[y.numeric_columns()]
-    ts_logger.debug(f"{set_name} --> \n{y_data}")
+    ts.logger.debug(f"{set_name} --> \n{y_data}")
     assert all(y_data.notna())
     assert all(y_data.notnull())
 
@@ -328,7 +328,7 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
         [f"mean({n.name})" for n in klass157.parent_nodes()]
     )
     y_data = y.data[y.numeric_columns()]
-    ts_logger.debug(f"{set_name} --> \n{y_data}")
+    ts.logger.debug(f"{set_name} --> \n{y_data}")
     assert all(y_data.notna())
     assert all(y_data.notnull())
 
@@ -376,7 +376,7 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
             [f"{func}({n.name})" for n in klass157.parent_nodes()]
         )
     y_data = y.data[y.numeric_columns()]
-    ts_logger.debug(f"{set_name} --> \n{y_data}")
+    ts.logger.debug(f"{set_name} --> \n{y_data}")
     assert all(y_data.notna())
     assert all(y_data.notnull())
     assert all(y_data["mean(12.3)"] == y_data["sum(12.3)"] / y_data["count(12.3)"])
@@ -435,7 +435,7 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
         c for c in itertools.product(bal_aggregates, com_aggregates, geo_aggregates)
     ]
 
-    ts_logger.debug(f"{attribute_permutations}")
+    ts.logger.debug(f"{attribute_permutations}")
     attribute_permutation_names = ["_".join(p[:]) for p in attribute_permutations]
     assert len(y.numeric_columns()) == len(attribute_permutations) * len(
         multiple_functions
@@ -447,7 +447,7 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
         )
 
     y_data = y.data[y.numeric_columns()]
-    ts_logger.debug(f"{set_name} --> \n{y_data}")
+    ts.logger.debug(f"{set_name} --> \n{y_data}")
 
     assert all(y_data.notna())
     assert all(y_data.notnull())
@@ -501,7 +501,7 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
     ]
     assert sorted(y.numeric_columns()) == sorted(expected_names)
     y_data = y.data[y.numeric_columns()]
-    ts_logger.debug(f"{set_name} --> \n{y_data}")
+    ts.logger.debug(f"{set_name} --> \n{y_data}")
     assert all(y_data.notna())
     assert all(y_data.notnull())
 
@@ -551,6 +551,6 @@ def test_aggregate_callable_for_hierarchical_taxonomy(
     ]
     assert sorted(y.numeric_columns()) == sorted(expected_names)
     y_data = y.data[y.numeric_columns()]
-    ts_logger.debug(f"{set_name} --> \n{y_data}")
+    ts.logger.debug(f"{set_name} --> \n{y_data}")
     assert all(y_data.notna())
     assert all(y_data.notnull())
