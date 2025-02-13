@@ -31,17 +31,18 @@ Some notable exceptions are taxonomy and hierarchy features of :py:mod:`ssb_time
 The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether data and metada are stored in files or databases and :py:mod:`ssb_timeseries.fs` is an abstraction for local vs GCS file systems.
 """
 
-import logging
+# import logging
 
 # getLogger(__name__).addHandler(logging.NullHandler())
 from ssb_timeseries.config import CONFIG as configuration
+from ssb_timeseries.logging import LOGGER as logger
 
-logger_name = getattr(configuration, "logger", "TIMESERIES")
-if logger_name:
-    logger = logging.getLogger(logger_name)
-else:
-    logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+# logger_name = getattr(configuration, "logger", "TIMESERIES")
+# if logger_name:
+#     logger = logging.getLogger(logger_name)
+# else:
+#     logger = logging.getLogger(__name__)
+# logger.addHandler(logging.NullHandler())
 
 __all__ = [
     # "config",

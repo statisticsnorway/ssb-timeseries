@@ -142,6 +142,34 @@ PRESETS: dict[str, dict] = {
 PRESETS["defaults"] = PRESETS["default"]
 DEFAULTS = PRESETS["default"]
 
+DEFAULT_LOGGING_CONFIG = {
+    "version": 1,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s - %(levelname)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        }
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+            "stream": "ext://sys.stdout",
+        },
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "default",
+            "filename": "",
+            "maxBytes": 1024,
+            "backupCount": 3,
+        },
+    },
+    "loggers": {"default": {"level": "DEBUG", "handlers": ["console", "file"]}},
+    "disable_existing_loggers": False,
+}
+
 
 class Config:
     """Configuration class; for reading and writing timeseries configurations.
