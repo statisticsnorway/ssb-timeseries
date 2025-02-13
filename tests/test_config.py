@@ -145,7 +145,6 @@ def test_config_validation(
     [
         ("defaults", "", ""),
         ("home", "", ""),
-        ("gcs", "", ""),
         ("shared-test", "", ""),
         ("shared-prod", "", ""),
         ("daplalab", "", ""),
@@ -217,7 +216,7 @@ def test_config_change(reset_config_after: config.Config) -> None:
     old_value = cfg.timeseries_root
     config_file = cfg.configuration_file
     if old_value == config.DAPLALAB_FUSE:
-        new_value = config.GCS
+        new_value = config.SHARED_TEST
     else:
         new_value = config.DAPLALAB_FUSE
     cfg.timeseries_root = new_value

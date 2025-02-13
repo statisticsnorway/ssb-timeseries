@@ -71,7 +71,7 @@ SHARED_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
 SHARED_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
 GCS = SHARED_PROD
 
-DAPLALAB_HOME = "/home/onyxia/work"
+DAPLALAB_WORK = "/home/onyxia/work"
 DAPLALAB_FUSE = "/buckets"
 SSB_DIR_NAME = "tidsserier"
 ROOT_DIR_NAME = "timeseries"
@@ -90,6 +90,7 @@ DAPLA_TEAM = os.getenv("DAPLA_TEAM", "")
 """Returns the Dapla team/project name.'"""
 DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-{DAPLA_ENV}"
 """Returns the Dapla product bucket name for the current environment: gs://{DAPLA_TEAM}-{DAPLA_ENV}."""
+
 PRESETS: dict[str, dict] = {
     "default": {
         "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
@@ -105,17 +106,10 @@ PRESETS: dict[str, dict] = {
         "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
         "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
     },
-    "gcs": {
-        "configuration_file": str(Path(GCS, ROOT_DIR_NAME, CONFIGFILE)),
-        "bucket": str(Path(GCS)),
-        "timeseries_root": str(Path(GCS, ROOT_DIR_NAME)),
-        "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
-        "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGFILE)),
-    },
     "shared-test": {
         "configuration_file": str(Path(HOME, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
         "bucket": str(Path(SHARED_TEST)),
-        "timeseries_root": str(Path(SHARED_TEST, ROOT_DIR_NAME)),
+        "timeseries_root": str(Path(SHARED_TEST, SSB_DIR_NAME)),
         "catalog": str(Path(SHARED_TEST, SSB_DIR_NAME, META_DIR_NAME)),
         "log_file": str(Path(SHARED_TEST, SSB_LOGDIR, LOGFILE)),
     },
@@ -124,7 +118,7 @@ PRESETS: dict[str, dict] = {
             Path(SHARED_PROD, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
         ),
         "bucket": str(Path(SHARED_PROD)),
-        "timeseries_root": str(Path(SHARED_PROD, ROOT_DIR_NAME)),
+        "timeseries_root": str(Path(SHARED_PROD, SSB_DIR_NAME)),
         "catalog": str(Path(SHARED_PROD, SSB_DIR_NAME, META_DIR_NAME)),
         "log_file": str(Path(SHARED_PROD, SSB_LOGDIR, LOGFILE)),
     },
@@ -148,17 +142,21 @@ DEFAULT_LOGGING_CONFIG = {
         "default": {
             "format": "%(asctime)s - %(levelname)s - %(message)s",
             "datefmt": "%Y-%m-%d %H:%M:%S",
-        }
+        },
+        "json": {
+            "format": '{"time": %(asctime)-s, "level": %(levelname)-s, "message": %(message)s},',
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "default",
             "stream": "ext://sys.stdout",
         },
         "file": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "default",
             "filename": "",
@@ -398,15 +396,11 @@ def migrate_to_new_config_location(file_to_copy: PathStr = "") -> str:
             },
             {
                 "replace": "_home",
-                "source": path_str(HOME, "timeseries_config.json"),
-            },
-            {
-                "replace": "_jovyan",
-                "source": "/home/joyan/timeseries_config.json",
+                "source": path_str(HOME, CONFIGFILE),
             },
             {
                 "replace": "_daplalab",
-                "source": "/home/joyan/work/timeseries_config.json",
+                "source": path_str(DAPLALAB_WORK, CONFIGFILE),
             },
         ]
         copied = []
@@ -558,7 +552,7 @@ if __name__ == "__main__":
 else:
     if active_file():
         if fs.exists(active_file()):
-            CONFIGURATION_FILE = active_file()
+            CONFIGFILE = active_file()
         elif DAPLA_TEAM_CONTEXT:
             raise MissingEnvironmentVariableError(
                 f"Environment variable {ENV_VAR_NAME} must be defined and point to a configuration file."
@@ -567,17 +561,17 @@ else:
             print(
                 f"No configuration file was foumd at {active_file()}.\nOther locatsions will be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied once more to {DEFAULTS['configuration_file']}"
             )
-            CONFIGURATION_FILE = migrate_to_new_config_location()
-            if not fs.exists(CONFIGURATION_FILE):
+            CONFIGFILE = migrate_to_new_config_location()
+            if not fs.exists(CONFIGFILE):
                 raise FileNotFoundError(
                     f"No configuration file was found at {active_file()}."
                 )
     else:
-        CONFIGURATION_FILE = ""  # PRESETS["defaults"]["configuration_file"]
+        CONFIGFILE = ""  # PRESETS["defaults"]["configuration_file"]
         # str(DEFAULTS["configuration_file"])
 
-    active_file(CONFIGURATION_FILE)
-    CONFIG = Config(configuration_file=CONFIGURATION_FILE)
+    active_file(CONFIGFILE)
+    CONFIG = Config(configuration_file=CONFIGFILE)
     """A Config object."""
     fs.touch(CONFIG.log_file)
     # do not save
