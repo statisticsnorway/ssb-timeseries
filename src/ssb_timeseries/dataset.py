@@ -105,7 +105,9 @@ class Dataset:
         )
         if identify_latest:
             ts.logger.debug(
-                f"Init {self.data_type} '{self.name}' without 'as_of_tz' --> identifying latest."
+                "Init %s '%s' without 'as_of_tz' --> identifying latest.",
+                self.data_type,
+                self.name,
             )
             self.io = io.FileSystem(
                 set_name=self.name, set_type=self.data_type, as_of_utc=None
@@ -188,7 +190,7 @@ class Dataset:
             self.as_of_utc = date_utc(as_of_tz)
 
         self.io = io.FileSystem(self.name, self.data_type, self.as_of_utc)
-        # ts.logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")
+        # ts.logger.debug("DATASET %s: SAVE. Tags:\n\t%s.", self.name, self.tags)
         if not self.tags:
             self.tags = self.default_tags()
             self.tags.update(self.io.read_metadata())
@@ -197,7 +199,7 @@ class Dataset:
             if not self.data.empty:
                 self.series_names_to_tags()
                 ts.logger.debug(
-                    f"DATASET {self.name}: attempt to save empty tags = {self.tags}."
+                    "DATASET %s: attempt to save empty tags = %s.", self.name, self.tags
                 )
 
         self.io.save(meta=self.tags, data=self.data)
@@ -211,7 +213,12 @@ class Dataset:
         date_from = self.data[self.datetime_columns()].min().min()
         date_to = self.data[self.datetime_columns()].max().max()
         ts.logger.debug(
-            f"DATASET {self.name}: Data {utc_iso(date_from)} - {utc_iso(date_to)}:\n{self.data.head()}\n...\n{self.data.tail()}"
+            "DATASET %s: Data %s - %s:\n%s\n...\n%s",
+            self.name,
+            utc_iso(date_from),
+            utc_iso(date_to),
+            self.data.head(),
+            self.data.tail(),
         )
 
         self.save(as_of_tz=self.as_of_utc)
@@ -235,7 +242,7 @@ class Dataset:
         if not versions:
             return []
         else:
-            ts.logger.debug(f"DATASET {self.name}: versions: {versions}.")
+            ts.logger.debug("DATASET %s: versions: %s.", self.name, versions)
 
         if self.data_type.versioning == ts.properties.Versioning.AS_OF:
             return_type = kwargs.get("return_type", "local")
@@ -571,7 +578,9 @@ class Dataset:
 
         if tags:
             matching_series = meta.search_by_tags(self.tags["series"], tags)
-            ts.logger.debug(f"DATASET.filter(tags) matched series:\n{matching_series} ")
+            ts.logger.debug(
+                "DATASET.filter(tags) matched series:\n%s ", matching_series
+            )
             df = self.data[matching_series].copy(deep=True)
 
         df = pd.concat([self.data[self.datetime_columns()], df], axis=1)
@@ -626,7 +635,7 @@ class Dataset:
         elif criteria and isinstance(criteria, dict):
             result = self.filter(tags=criteria)
         elif kwargs:
-            ts.logger.debug(f"DATASET.__getitem__(:\n\t{kwargs} ")
+            ts.logger.debug("DATASET.__getitem__(:\n\t%s ", kwargs)
             result = self.filter(**kwargs)
         else:
             return None
@@ -668,7 +677,7 @@ class Dataset:
         else:
             xlabels = self.datetime_columns()[0]
 
-        ts.logger.debug(f"DATASET.plot(): x labels = {xlabels}")
+        ts.logger.debug("DATASET.plot(): x labels = %s", xlabels)
         ts.logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
 
         return df.plot(  # type: ignore[call-overload]
@@ -717,12 +726,11 @@ class Dataset:
         datetime_columns = list(
             set(self.data.columns) & {"valid_at", "valid_to", "valid_from"}
         )
-        ts.logger.debug(f"DATASET {self.name}: datetime columns: {datetime_columns}.")
 
         # works for datetime_columns = "valid_at", untested for others
         # TODO: add support for ["valid_from", "valid_to"]
         period_index = pd.PeriodIndex(self.data[datetime_columns[0]], freq=freq)
-        ts.logger.debug(f"DATASET {self.name}: period index\n{period_index}.")
+        ts.logger.debug("DATASET %s: period index\n%s.", self.name, period_index)
 
         # Fix for case when **kwargs contains numeric_only
         if "numeric_only" in kwargs:
@@ -1120,8 +1128,6 @@ class Dataset:
             criteria = {}
             for attr, value in p.items():
                 criteria[attr] = taxonomy_dict[attr].leaf_nodes(value)
-            # criteria = {{attr, taxonomy_dict[attr].leaf_nodes(value)} for attr, value in p.items()}
-            ts.logger.debug(f"{criteria=}")
             output_series_name = sep.join(p.values())
             leaf_node_subset = self.filter(tags=criteria, output="df")
             for func in functions:
@@ -1138,7 +1144,7 @@ class Dataset:
 
 def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
     """Helper function to calculate aggregate over dataframe columns."""
-    # ts.logger.debug(f"DATASET.column_aggregate '{method}' over columns:\n{df.columns}")
+    # ts.logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
     if isinstance(method, F):  # type: ignore
         out = method(df)  # type: ignore[operator]
     else:
@@ -1181,7 +1187,7 @@ def search(
 ) -> list[io.SearchResult] | Dataset | list[None]:
     """Search for datasets by name matching pattern."""
     found = io.find_datasets(pattern=pattern)
-    ts.logger.debug(f"DATASET.search returned:\n{found} ")
+    ts.logger.debug("DATASET.search returned:\n%s", found)
 
     if len(found) == 1:
         return Dataset(
@@ -1200,7 +1206,7 @@ def catalog_search(
 ) -> list[io.SearchResult] | Dataset | list[None]:
     """Search across datasets by tags pattern."""
     found = io.find_datasets(pattern=pattern)
-    ts.logger.debug(f"DATASET.search returned:\n{found} ")
+    ts.logger.debug("DATASET.search returned:\n%s", found)
 
     if len(found) == 1:
         return Dataset(
