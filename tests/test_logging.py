@@ -96,6 +96,7 @@ def test_capture_warnings() -> None:
 # @pytest.mark.xfail
 def test_logged_warning_should_generate_real_warning(
     caplog: pytest.LogCaptureFixture,
+    buildup_and_teardown,
 ) -> None:
     """Not ready.
 

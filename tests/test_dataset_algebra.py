@@ -11,11 +11,13 @@ from ssb_timeseries.sample_data import create_df
 # magic comment disables mypy checks:
 # mypy: disable-error-code="arg-type,attr-defined,no-untyped-def"
 
+logger = logging.getLogger(__name__)
+
 
 @log_start_stop
 @pytest.mark.skipif(True, reason="dataset.identity needs rethinking/fixing")
 def test_dataset_instance_identity(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
     """Test SAMENESS as opposed to .data euality in terms of the == operator.
     Two Dataset are the same SET if name, type and storage location are the same.
     Two Dataset instances are the same INSTANCE if name, type and datafile are the same.
@@ -49,7 +51,7 @@ def test_dataset_instance_identity(caplog) -> None:
 
 
 def test_dataset_math(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     a_data = create_df(
         ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -102,7 +104,7 @@ def test_dataset_math(caplog) -> None:
 
 @log_start_stop
 def test_dataset_add_dataset(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     df = create_df(
         ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -140,7 +142,7 @@ def test_dataset_add_dataset(caplog) -> None:
 def test_algebra_expression_with_multiple_dataset(
     caplog,
 ) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     a = Dataset(
         name="A",
@@ -187,7 +189,7 @@ def test_algebra_expression_with_multiple_dataset(
 
 @log_start_stop
 def test_dataset_add_dataframe(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     df = create_df(
         ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -213,7 +215,7 @@ def test_dataset_add_dataframe(caplog) -> None:
 
 @log_start_stop
 def test_dataset_subtract_dataset(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     df = create_df(
         ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -243,7 +245,7 @@ def test_dataset_subtract_dataset(caplog) -> None:
 
 @log_start_stop
 def test_dataset_subtract_dataframe(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     data1 = create_df(
         ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -266,7 +268,7 @@ def test_dataset_subtract_dataframe(caplog) -> None:
 
 @log_start_stop
 def test_dataset_vectors(caplog):
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     x = Dataset(
         name="test-vectors",
@@ -298,7 +300,7 @@ def test_dataset_vectors(caplog):
 
 @log_start_stop
 def test_dataset_vectors_with_filter(caplog):
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     x = Dataset(
         name="test-vectors",
