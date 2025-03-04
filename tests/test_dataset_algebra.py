@@ -175,7 +175,7 @@ def test_algebra_expression_with_multiple_dataset(
 
     # logging.warning(f"d: {d.name}\n{d.data}")
     # logging.warning(f"e: {e.name}\n{e.data}")
-    logging.warning(
+    logging.debug(
         f"d.data[numeric] == e.data[numeric]: \n{d.data[d.numeric_columns()] == e.data[e.numeric_columns()]} --> all = {all(d.data[d.numeric_columns()] == e.data[e.numeric_columns()])}"
     )
     assert all(d.data[d.numeric_columns()] == e.data[e.numeric_columns()])

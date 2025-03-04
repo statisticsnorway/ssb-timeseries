@@ -1,5 +1,6 @@
 import inspect
 import logging
+import warnings
 
 # from pathlib import Path
 import pytest
@@ -16,6 +17,21 @@ from ssb_timeseries.sample_data import create_df
 TEST_CONFIG = ""
 ENV_VAR_NAME = "TIMESERIES_CONFIG"
 _ENV_VAR_VALUE_BEFORE_TESTS = config.active_file()
+
+
+class LogWarning(UserWarning):
+    pass
+
+
+class LogWarningFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Raises a real alert for all log messages with level warning or higher."""
+        if record.levelno == logging.WARNING:
+            warnings.warn(
+                LogWarning(record.getMessage()),
+                stacklevel=2,
+            )
+        return True
 
 
 class Helpers:
@@ -79,9 +95,10 @@ def buildup_and_teardown(
 
     global TEST_CONFIG
     TEST_CONFIG = config_file_for_testing
-
+    logging.getLogger().addFilter(LogWarningFilter())
     # run tests
     yield temp_configuration
+    logging.getLogger(__name__).removeFilter(LogWarningFilter())
 
     # teardown: reset config
     if before_tests.configuration_file:  # and isinstance(before_tests, config.Config):

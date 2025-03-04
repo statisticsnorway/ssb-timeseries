@@ -13,6 +13,8 @@ import pytest
 
 import ssb_timeseries as ts_logging
 
+from .conftest import LogWarning
+
 Cfg: TypeAlias = type(ts_logging.configuration)
 
 
@@ -91,7 +93,7 @@ def test_capture_warnings() -> None:
         )
 
 
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_logged_warning_should_generate_real_warning(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -102,7 +104,7 @@ def test_logged_warning_should_generate_real_warning(
     so that they are captured with `pytest -W error`
     This test attempts to verify that the above mechanism works.
     """
-    with pytest.warns(UserWarning):
+    with pytest.warns(LogWarning):
         ts_logging.logger.warning(
             "this log message should be turned into a proper warning"
         )

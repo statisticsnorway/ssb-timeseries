@@ -21,12 +21,12 @@ Running with a predefined configuration file depnds on:
 Fixtures
 """
 
-import logging
 import os
 import uuid
 
 import pytest
 
+import ssb_timeseries as ts
 from ssb_timeseries import config
 from ssb_timeseries import fs
 from tests.conftest import Helpers
@@ -46,7 +46,7 @@ from tests.conftest import Helpers
 def reset_config_after(buildup_and_teardown: config.Config):
     config_before_test = buildup_and_teardown
     cfg_file = config_before_test.configuration_file
-    logging.warning(f"Before tests: {cfg_file}; exists: {fs.exists(cfg_file)}")
+    ts.logger.debug(f"Before tests: {cfg_file}; exists: {fs.exists(cfg_file)}")
     # TODO: make sure this also removes config if none existed before?
     yield buildup_and_teardown
     config_before_test.save()
@@ -68,7 +68,7 @@ def ensure_config_file_exists_and_env_var_is_set_before_running(buildup_and_tear
     test_config = buildup_and_teardown
     test_config.save()
     test_config_file = test_config.configuration_file
-    logging.debug(
+    ts.logger.debug(
         f"Test running with env var set to {config.active_file()}\nand configuration file: {test_config.configuration_file}"
     )
     assert fs.exists(test_config.configuration_file)
@@ -131,7 +131,7 @@ def test_config_validation(
     caplog: pytest.LogCaptureFixture,
     buildup_and_teardown: config.Config,
 ) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
     configuration = buildup_and_teardown
     assert configuration.is_valid
 
@@ -167,9 +167,9 @@ def test_config_presets(
 
 
 def test_init_config_without_params(caplog: pytest.LogCaptureFixture) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
     new_config = config.Config(preset="default")
-    logging.debug(f"Created configuration: {new_config}")
+    ts.logger.debug(f"Created configuration: {new_config}")
     assert isinstance(new_config, config.Config)
     for key in config.DEFAULTS.keys():
         assert new_config[key] == config.DEFAULTS[key]
@@ -179,14 +179,14 @@ def test_init_with_incomplete_params_uses_defaults_for_missing(
     caplog: pytest.LogCaptureFixture,
     unset_env_var_and_hide_file_before_running: None,
 ) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
     assert os.environ.get("TIMESERIES_CONFIG") is None
     default_config = config.Config(preset="defaults")
     new_config = config.Config(
         timeseries_root=config.GCS,
         log_file=default_config["log_file"],
     )
-    logging.debug(
+    ts.logger.debug(
         f"Created configuration: {new_config} with root {new_config.timeseries_root}"
     )
     assert isinstance(new_config, config.Config)
@@ -199,13 +199,13 @@ def test_config_defaults(
     caplog: pytest.LogCaptureFixture,
     reset_config_after: config.Config,
 ) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
     # all of these should result in the same information, but in different objects
     cfg_0 = config.Config(preset="default")
     # cfg_0.save()  # for the rare occasions when the default location changes
     cfg_1 = config.Config(preset="defaults")
     cfg_2 = config.Config()
-    logging.debug(f"compare:\n{cfg_0=}\n{cfg_1=}\n{cfg_2=}")
+    ts.logger.debug(f"compare:\n{cfg_0=}\n{cfg_1=}\n{cfg_2=}")
     assert id(cfg_0) != id(cfg_1) != id(cfg_2)
     assert cfg_0.__dict__() == cfg_1.__dict__() == cfg_2
     assert cfg_0.timeseries_root == cfg_1.timeseries_root == cfg_2.timeseries_root
@@ -233,7 +233,7 @@ def test_read_config_from_file(
     unset_env_var_and_hide_file_before_running: config.Config,
 ) -> None:
     find_hidden_config_file = unset_env_var_and_hide_file_before_running["hidden"]
-    logging.debug(f"Using config file: {find_hidden_config_file}")
+    ts.logger.debug(f"Using config file: {find_hidden_config_file}")
     configuration = config.Config(configuration_file=find_hidden_config_file)
 
     assert isinstance(configuration, config.Config)
@@ -245,7 +245,7 @@ def test_init_of_not_already_existing_config_file_and_incomplete_config_params_r
     reset_config_after: config.Config,
     conftest: Helpers,
 ) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
     # setup: point to a config that does not exist (this should create the .json file):
     test_dir = config.CONFIG.bucket
     tmp_config = fs.path(test_dir, f"timeseries_temp_config_{uuid.uuid4()}.json")
@@ -255,7 +255,7 @@ def test_init_of_not_already_existing_config_file_and_incomplete_config_params_r
             bucket=test_dir,
             timeseries_root=test_dir,
         )
-        logging.debug(f"Created configuration: {configuration}")
+        ts.logger.debug(f"Created configuration: {configuration}")
 
 
 def test_init_of_not_already_existing_config_file_with_complete_params_creates_new_file(
@@ -263,7 +263,7 @@ def test_init_of_not_already_existing_config_file_with_complete_params_creates_n
     reset_config_after: config.Config,
     conftest: Helpers,
 ) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
     # setup: point to a config that does not exist (this should create the .json file):
     test_dir = config.CONFIG.bucket
     tmp_config = fs.path(test_dir, f"timeseries_temp_config_{uuid.uuid4()}.json")
@@ -276,7 +276,7 @@ def test_init_of_not_already_existing_config_file_with_complete_params_creates_n
         catalog=test_dir,
     )
 
-    logging.debug(
+    ts.logger.debug(
         f"Using testdir: {test_dir}. Created configuration: {tmp_config}\n{configuration}"
     )
     assert isinstance(configuration, config.Config)
@@ -288,7 +288,7 @@ def test_init_w_only_config_file_param_pointing_to_file_not_exists_raises_error(
     caplog: pytest.LogCaptureFixture,
     unset_env_var_and_hide_file_before_running,
 ) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     non_existing_file = os.path.join(os.getcwd(), "does_not_exist.json")
     assert config.active_file(non_existing_file) == non_existing_file
@@ -300,16 +300,16 @@ def test_init_w_only_config_file_param_pointing_to_file_not_exists_raises_error(
     with pytest.raises(FileNotFoundError):
         configuration = cfg.Config(configuration_file=non_existing_file)
         assert configuration.is_valid
-        logging.debug(f"Created configuration: {configuration}")
+        ts.logger.debug(f"Created configuration: {configuration}")
 
 
 def test_init_w_no_params_and_env_var_pointing_to_non_existing_file_raises_error(
     caplog: pytest.LogCaptureFixture,
     hide_file_before_running,
 ) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
     non_existing_file = hide_file_before_running["configured"]
-    logging.debug(
+    ts.logger.debug(
         f"Using config file: {non_existing_file}\nand env var: {config.active_file()}"
     )
 
@@ -321,4 +321,4 @@ def test_init_w_no_params_and_env_var_pointing_to_non_existing_file_raises_error
 
     with pytest.raises(FileNotFoundError):
         configuration = cfg.Config()
-        logging.debug(f"Created configuration: {configuration}")
+        ts.logger.debug(f"Created configuration: {configuration}")
