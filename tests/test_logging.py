@@ -69,7 +69,7 @@ def test_configured_logging_logs(caplog: pytest.LogCaptureFixture) -> None:
 
 @pytest.mark.filterwarnings(
     "ignore"
-)  # superfluous before logger.warning(...) --> warnings.warn(...)
+)  # superfluous before logger.warning(...) --> warnings.warn(...), meaningful after.
 def test_no_configured_logging_does_not_log(
     caplog: pytest.LogCaptureFixture,
     no_logging: Cfg,
@@ -81,7 +81,7 @@ def test_no_configured_logging_does_not_log(
 
 @pytest.mark.filterwarnings(
     "error"
-)  # superfluous when logger.warning(...) --> warnings.warn(...)
+)  # superfluous after logger.warning(...) --> warnings.warn(...)
 def test_capture_warnings() -> None:
     with pytest.raises(UserWarning):
         ts_logging.logger.warning(
@@ -93,17 +93,18 @@ def test_capture_warnings() -> None:
         )
 
 
-# @pytest.mark.xfail
+@pytest.mark.xfail
 def test_logged_warning_should_generate_real_warning(
     caplog: pytest.LogCaptureFixture,
-    buildup_and_teardown,
 ) -> None:
-    """Not ready.
+    """Not quite there yet.
 
     Idea: (in conftest module or session fixture?) create real warnings from log messages with log level warning,
     across ALL tests,
     so that they are captured with `pytest -W error`
     This test attempts to verify that the above mechanism works.
+
+    DOES NOT WORK (YET?) ... why not?
     """
     with pytest.warns(LogWarning):
         ts_logging.logger.warning(
