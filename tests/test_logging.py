@@ -7,24 +7,25 @@ such messages can create lots of visual noise in a Jupyter environment.)
 """
 
 import warnings
+from collections.abc import Generator
 from typing import TypeAlias
 
 import pytest
 
-import ssb_timeseries as ts_logging
+import ssb_timeseries as ts
 
 from .conftest import LogWarning
 
-Cfg: TypeAlias = type(ts_logging.configuration)
+Cfg: TypeAlias = type[ts.configuration]
 
 
 @pytest.fixture(scope="function", autouse=True)
-def no_logging(buildup_and_teardown: Cfg) -> None:
+def no_logging(buildup_and_teardown: Cfg) -> Generator:
     import ssb_timeseries as ts_no_logging
 
     cfg = buildup_and_teardown
-    log_file = getattr(ts_logging.configuration, "log_file", "")
-    dict_cfg = getattr(ts_logging.configuration, "logging", {})
+    log_file = getattr(ts.configuration, "log_file", "")
+    dict_cfg = getattr(ts.configuration, "logging", {})
 
     if log_file:
         cfg.log_file = ""
@@ -40,17 +41,17 @@ def no_logging(buildup_and_teardown: Cfg) -> None:
     "ignore"
 )  # superfluous before logger.warning(...) --> warnings.warn(...)
 def test_log_level_behaviour(caplog: pytest.LogCaptureFixture) -> None:
-    log_file = getattr(ts_logging.configuration, "log_file", "")
-    dict_cfg = getattr(ts_logging.configuration, "logging", {})
+    log_file = getattr(ts.configuration, "log_file", "")
+    dict_cfg = getattr(ts.configuration, "logging", {})
 
-    ts_logging.logger.debug(
+    ts.logger.debug(
         "configuration.log_file: %s and .logging: %s",
         log_file,
         dict_cfg,
     )
-    ts_logging.logger.debug("debug messages SHOULD NOT be visible by default")
-    ts_logging.logger.info("info messages SHOULD be visible per library defaults")
-    ts_logging.logger.warning("warnings SHOULD be visible too")
+    ts.logger.debug("debug messages SHOULD NOT be visible by default")
+    ts.logger.info("info messages SHOULD be visible per library defaults")
+    ts.logger.warning("warnings SHOULD be visible too")
 
     assert log_file or dict_cfg  # otherwise we test the wrong thing
     assert "DEBUG" not in caplog.text
@@ -63,7 +64,7 @@ def test_log_level_behaviour(caplog: pytest.LogCaptureFixture) -> None:
 )  # superfluous before logger.warning(...) --> warnings.warn(...)
 def test_configured_logging_logs(caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level("DEBUG")
-    ts_logging.logger.warning("#&#%¤#!!")
+    ts.logger.warning("#&#%¤#!!")
     assert "#&#%¤#!!" in caplog.text
 
 
@@ -75,7 +76,7 @@ def test_no_configured_logging_does_not_log(
     no_logging: Cfg,
 ) -> None:
     caplog.set_level("DEBUG")
-    ts_logging.logger.warning("warning message should be supressed ", stacklevel=2)
+    ts.logger.warning("warning message should be supressed ", stacklevel=2)
     assert "WARNING" in caplog.text
 
 
@@ -84,7 +85,7 @@ def test_no_configured_logging_does_not_log(
 )  # superfluous after logger.warning(...) --> warnings.warn(...)
 def test_capture_warnings() -> None:
     with pytest.raises(UserWarning):
-        ts_logging.logger.warning(
+        ts.logger.warning(
             "warning message should (eventually) be turned into a warning"
         )
         warnings.warn(
@@ -107,7 +108,5 @@ def test_logged_warning_should_generate_real_warning(
     DOES NOT WORK (YET?) ... why not?
     """
     with pytest.warns(LogWarning):
-        ts_logging.logger.warning(
-            "this log message should be turned into a proper warning"
-        )
+        ts.logger.warning("this log message should be turned into a proper warning")
         assert "WARNING" in caplog.text
