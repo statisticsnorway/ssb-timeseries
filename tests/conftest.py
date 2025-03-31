@@ -152,7 +152,6 @@ def xyz_from_to():
 @pytest.fixture(scope="function", autouse=False)
 def new_dataset_none_at(abc_at):
     """A fixture to create simple dataset before running the test."""
-    # buildup: create dataset
     x = Dataset(
         name="test-new-dataset-none-at",
         data_type=SeriesType.simple(),
@@ -161,16 +160,12 @@ def new_dataset_none_at(abc_at):
         name_pattern=["A", "B", "C"],
         dataset_tags={"E": "Eee"},
     )
-
-    # run tests
     yield x
-    # file was not saved, so no teardown is necessary
 
 
 @pytest.fixture(scope="function", autouse=False)
 def new_dataset_as_of_at(abc_at):
     """A fixture to create simple dataset before running the test."""
-    # buildup: create dataset
     x = Dataset(
         name="test-new-dataset-as-of-at",
         data_type=SeriesType.estimate(),
@@ -180,15 +175,12 @@ def new_dataset_as_of_at(abc_at):
         name_pattern=["A", "B", "C"],
         dataset_tags={"E": "Eee"},
     )
-    # run tests
     yield x
-    # file was not saved, so no teardown is necessary
 
 
 @pytest.fixture(scope="function", autouse=False)
 def new_dataset_none_from_to(abc_from_to):
     """A fixture to create simple dataset before running the test."""
-    # buildup: create dataset
     x = Dataset(
         name="test-new-dataset-none-from-to",
         data_type=SeriesType.from_to(),
@@ -197,15 +189,12 @@ def new_dataset_none_from_to(abc_from_to):
         name_pattern=["A", "B", "C"],
         dataset_tags={"E": "Eee"},
     )
-    # run tests
     yield x
-    # file was not saved, so no teardown is necessary
 
 
 @pytest.fixture(scope="function", autouse=False)
 def new_dataset_as_of_from_to(abc_from_to):
     """A fixture to create simple dataset before running the test."""
-    # buildup: create dataset
     x = Dataset(
         name="test-new-as-of-from-to",
         data_type=SeriesType.as_of_from_to(),
@@ -216,9 +205,7 @@ def new_dataset_as_of_from_to(abc_from_to):
         dataset_tags={"E": "Eee"},
     )
 
-    # run tests
     yield x
-    # file was not saved, so no teardown is necessary
 
 
 @pytest.fixture(scope="function", autouse=False)
@@ -235,13 +222,11 @@ def one_new_set_for_each_data_type(
         new_dataset_as_of_at,
         new_dataset_as_of_from_to,
     ]
-    # file was not saved, so no teardown is necessary
 
 
 @pytest.fixture(scope="module", autouse=False)
 def existing_simple_set(abc_at):
     """Create a simple dataset (and save so that files are existing) before running the test. Delete files afterwards."""
-    # buildup: create dataset and save
     x = Dataset(
         name="test-existing-simple-dataset",
         data_type=SeriesType.simple(),
@@ -249,26 +234,12 @@ def existing_simple_set(abc_at):
         name_pattern=["A", "B", "C"],
     )
     x.save()
-    # run tests
     yield x
-
-    # TEARDOWN
-    # Puzzling observation:
-    # Data is written for every invocation in test_dataset_core.py, as expected for function scope.
-    # However, the writes create duplicate data!
-    # This is not reproduced within an explicit test in test_dataset_core.py:
-    # test_same_simple_data_written_multiple_times_does_not_create_duplicates(...)
-    # --> Workarounds:
-    #  change scope of this fixture to module or session
-    # ... or delete data for each invocation:
-    # fs.rmtree(x.io.data_dir)
-    # fs.rm(x.io.metadata_fullpath)
 
 
 @pytest.fixture(scope="function", autouse=False)
 def existing_estimate_set(abc_at):
     """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
-    # buildup: create dataset and save
     x = Dataset(
         name="test-existing-estimate-dataset",
         data_type=SeriesType.estimate(),
@@ -277,19 +248,12 @@ def existing_estimate_set(abc_at):
         name_pattern=["A", "B", "C"],
     )
     x.save()
-
-    # tests run here
     yield x
-
-    # teardown: cleaning up files is handled by session scoped fixture
-    # fs.rmtree(x.io.data_dir)
-    # fs.rm(x.io.metadata_fullpath)
 
 
 @pytest.fixture(scope="function", autouse=False)
 def existing_from_to_set(abc_from_to):
     """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
-    # buildup: create dataset and save
     x = Dataset(
         name="test-existing-small-dataset",
         data_type=SeriesType.estimate(),
@@ -300,19 +264,12 @@ def existing_from_to_set(abc_from_to):
         dataset_tags={"E": "e", "F": ["f1", "f2"]},
     )
     x.save()
-
-    # tests run here
-    yield x
-
-    # teardown
-    # fs.rmtree(x.io.data_dir)
-    # fs.rm(x.io.metadata_fullpath)
+    yield
 
 
 @pytest.fixture(scope="function", autouse=False)
 def existing_small_set():
     """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
-    # buildup: create dataset and save
     tags = {"A": ["a1", "a2", "a3"], "B": ["b"], "C": ["c"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
@@ -330,13 +287,7 @@ def existing_small_set():
         dataset_tags={"E": "e", "F": ["f1", "f2"]},
     )
     x.save()
-
-    # tests run here
     yield x
-
-    # teardown
-    # fs.rmtree(x.io.data_dir)
-    # fs.rm(x.io.metadata_fullpath)
 
 
 @pytest.fixture(scope="function", autouse=False)

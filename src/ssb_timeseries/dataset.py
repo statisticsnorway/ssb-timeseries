@@ -837,7 +837,7 @@ class Dataset:
 
     def numeric_columns(self) -> list[str]:
         """Get names of all numeric series columns (ie columns that are not datetime)."""
-        return list(set(self.data.columns).difference(self.datetime_columns()))
+        return [c for c in self.data.columns if c not in self.datetime_columns()]
 
     def datetime_columns(self, *comparisons: Self | pd.DataFrame) -> list[str]:
         """Get names of datetime columns (valid_at, valid_from, valid_to).
@@ -1135,6 +1135,72 @@ class Dataset:
                 df[new_col_name] = column_aggregate(leaf_node_subset, func)
 
         return self.copy(f"{self.name}.{functions}", data=df)
+
+    def moving_average(
+        self,
+        start: int = 0,
+        stop: int = 0,
+        handle_nans: str = "",
+    ) -> Self:
+        """Returns a new Dataset with moving averages for all series.
+
+        The average is calculated over a time window defined by `from` and `to` period offsets.
+        Negative values denotes periods before current, positive after.
+        Both default to 0, ie the current period; so at least one of them should be used.
+
+        >>> x.moving_average(from: -3, to: -1)
+        signifies the average over the three periods before (not including the current).
+
+        Offset parameters will overflow the date range at the beginning or end.
+
+        TO DO: Add parameter to choose returned time window?
+        TO DO: Add more NaN handling options?
+        TO DO: Add parameter to ensure/alter sampling frequency before calculating.
+        """
+        n = stop - start + 1
+        numbers = self.data[self.numeric_columns()].to_numpy()
+        rows, columns = numbers.shape
+
+        r = np.array(range(rows))
+        r_from = r + start
+        r_to = r + stop
+
+        nans = np.ones((n, columns)) * np.nan
+        numbers_ext = np.append(numbers, nans, 0)
+
+        cumsums = np.cumsum(numbers_ext, axis=0)
+        # diffs = cumsums[r_to,:] - cumsums[r_from-1,:]
+        zeros = np.zeros((1, columns))
+        diffs = cumsums[r_to, :] - np.append(zeros, cumsums, 0)[r_from, :]
+
+        # ts_logger.debug("\n%s",numbers)
+        # ts_logger.debug("\n%s",cumsums)
+        # ts_logger.debug("\n%s",diffs)
+
+        # how to handle nans?
+        # choice between multiple strategies;
+        # - just return them (keep all rows) (default)
+        # - remove
+        # - return some value, use method:
+        #   - ignore nans when calculating avg
+        #   - impute, repeat/prepend first/interpolate
+        #   - estimation? henderson or other
+        #   - retrieve more values?
+        #
+        # ... distinguish between beginning/end/middle?
+        # r_intersect = np.intersect1d(r_from,r_to)
+
+        match handle_nans:
+            # result = np.ones(numbers.shape)*np.nan
+            # result[r_intersect,:] = diffs / n
+            case _:
+                result = diffs / n
+
+        out = self.copy(f"{self.name}.mov_avg({start},{stop})")
+        out.data[self.numeric_columns()] = result[0:rows, :]
+
+        # todo: update the metadata
+        return out
 
 
 def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
