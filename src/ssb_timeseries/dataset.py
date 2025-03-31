@@ -1140,7 +1140,7 @@ class Dataset:
         self,
         start: int = 0,
         stop: int = 0,
-        handle_nans: str = "",
+        nan_rows: str = "return",
     ) -> Self:
         """Returns a new Dataset with moving averages for all series.
 
@@ -1151,7 +1151,12 @@ class Dataset:
         >>> x.moving_average(from: -3, to: -1)
         signifies the average over the three periods before (not including the current).
 
-        Offset parameters will overflow the date range at the beginning or end.
+        Offset parameters will overflow the date range at the beginning and/or end,
+        Moving averages can not be calculated.
+
+        Set the parameter `nans` to control the behaviour in such cases:
+        'return' to return rows with all NaN values (default).
+        'remove' to remove these rows from both ends.
 
         TO DO: Add parameter to choose returned time window?
         TO DO: Add more NaN handling options?
@@ -1169,7 +1174,6 @@ class Dataset:
         numbers_ext = np.append(numbers, nans, 0)
 
         cumsums = np.cumsum(numbers_ext, axis=0)
-        # diffs = cumsums[r_to,:] - cumsums[r_from-1,:]
         zeros = np.zeros((1, columns))
         diffs = cumsums[r_to, :] - np.append(zeros, cumsums, 0)[r_from, :]
 
@@ -1188,16 +1192,30 @@ class Dataset:
         #   - retrieve more values?
         #
         # ... distinguish between beginning/end/middle?
-        # r_intersect = np.intersect1d(r_from,r_to)
 
-        match handle_nans:
-            # result = np.ones(numbers.shape)*np.nan
-            # result[r_intersect,:] = diffs / n
-            case _:
-                result = diffs / n
-
+        averages = diffs / n
         out = self.copy(f"{self.name}.mov_avg({start},{stop})")
-        out.data[self.numeric_columns()] = result[0:rows, :]
+        out.data[out.numeric_columns()] = averages[0:rows, :]
+        r_low = np.intersect1d(r_from, r)
+        r_high = np.intersect1d(r, r_to)
+        r_intersect = np.intersect1d(r_low, r_high)
+
+        ts_logger.debug("\n%s", [r_low, r_high, r_intersect])
+        match nan_rows:
+            case "remove":
+                out.data = out.data.iloc[r_intersect]
+            case "remove_beginning":
+                out.data = out.data.iloc[min(r_intersect) :, :]
+            case "remove_end":
+                out.data = out.data.iloc[0 : max(r_intersect), :]
+            case "return":
+                out.data = out.data.iloc[0:rows, :]
+            case _:
+                raise (
+                    ValueError(
+                        f"Received {nan_rows=}; allowed values includce return | remove | ... (See the docs for more.) "
+                    )
+                )
 
         # todo: update the metadata
         return out

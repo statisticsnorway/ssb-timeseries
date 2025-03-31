@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Generator
 
 import numpy as np
 import pytest
@@ -17,7 +18,7 @@ from ssb_timeseries.sample_data import create_df
 def xyz_w_ones_seq_quad(
     caplog,
     xyz_at,
-) -> None:
+) -> Generator:
     caplog.set_level(logging.DEBUG)
 
     ds = Dataset(
@@ -412,11 +413,7 @@ def test_dataset_calc_xyz_mov_avg_lag_1_to_leap_2_returns_expected_result(
             [1, 5.5, 31.5],
             [1, 6.5, 43.5],
             [1, 7.5, 57.5],
-            [
-                1,
-                8.5,
-                73.5,
-            ],
+            [1, 8.5, 73.5],
             [np.nan, np.nan, np.nan],
             [np.nan, np.nan, np.nan],
         ]
@@ -427,3 +424,58 @@ def test_dataset_calc_xyz_mov_avg_lag_1_to_leap_2_returns_expected_result(
         expected,
         equal_nan=True,
     )
+
+
+def test_dataset_calc_xyz_mov_avg_lag_2_to_leap_2_removing_nans_returns_numeric(
+    caplog,
+    xyz_w_ones_seq_quad,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    a = xyz_w_ones_seq_quad
+    logging.debug("Input:\n%s", a.data)
+    b = a.moving_average(-2, 2, nan_rows="remove")
+    c = a.moving_average(-2, 2, nan_rows="remove_end")
+    d = a.moving_average(-2, 2, nan_rows="remove_beginning")
+    logging.debug("Output:\n%s", b.data)
+
+    expected = np.array(
+        [
+            [np.nan, np.nan, np.nan],
+            [np.nan, np.nan, np.nan],
+            [1, 3, 11],
+            [1, 4, 18],
+            [1, 5, 27],
+            [1, 6, 38],
+            [1, 7, 51],
+            [1, 8, 66],
+            [np.nan, np.nan, np.nan],
+            [np.nan, np.nan, np.nan],
+        ]
+    )
+
+    assert np.array_equal(
+        np.array(b.data[b.numeric_columns()]),
+        expected[2:-2, :],
+        equal_nan=True,
+    )
+    assert np.array_equal(
+        np.array(c.data[c.numeric_columns()]),
+        expected[:7, :],
+        equal_nan=True,
+    )
+    assert np.array_equal(
+        np.array(d.data[d.numeric_columns()]),
+        expected[2:, :],
+        equal_nan=True,
+    )
+
+
+def test_dataset_calc_mov_avg_illegal_nanrows_param_raises_value_error(
+    caplog,
+    xyz_w_ones_seq_quad,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    a = xyz_w_ones_seq_quad
+
+    with pytest.raises(ValueError):
+        _ = a.moving_average(-2, 2, nan_rows="not_a_valid_param")
