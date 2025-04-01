@@ -1148,7 +1148,7 @@ class Dataset:
         Negative values denotes periods before current, positive after.
         Both default to 0, ie the current period; so at least one of them should be used.
 
-        >>> x.moving_average(from: -3, to: -1)
+        >>> x.moving_average(start= -3, stop= -1) # xdoctest: +SKIP
         signifies the average over the three periods before (not including the current).
 
         Offset parameters will overflow the date range at the beginning and/or end,
@@ -1181,26 +1181,17 @@ class Dataset:
         # ts_logger.debug("\n%s",cumsums)
         # ts_logger.debug("\n%s",diffs)
 
-        # how to handle nans?
-        # choice between multiple strategies;
-        # - just return them (keep all rows) (default)
-        # - remove
-        # - return some value, use method:
-        #   - ignore nans when calculating avg
-        #   - impute, repeat/prepend first/interpolate
-        #   - estimation? henderson or other
-        #   - retrieve more values?
-        #
-        # ... distinguish between beginning/end/middle?
-
         averages = diffs / n
         out = self.copy(f"{self.name}.mov_avg({start},{stop})")
         out.data[out.numeric_columns()] = averages[0:rows, :]
-        r_low = np.intersect1d(r_from, r)
-        r_high = np.intersect1d(r, r_to)
-        r_intersect = np.intersect1d(r_low, r_high)
+        r_intersect = np.intersect1d(r_from, r_to)
 
-        ts_logger.debug("\n%s", [r_low, r_high, r_intersect])
+        # how to handle nans? choice between multiple strategies;
+        # - just return them (keep all rows) (default)
+        # - remove
+        # - pass  through input
+        # - calculate something
+        # ... distinguish between beginning/end/middle?
         match nan_rows:
             case "remove":
                 out.data = out.data.iloc[r_intersect]
@@ -1213,11 +1204,16 @@ class Dataset:
             case _:
                 raise (
                     ValueError(
-                        f"Received {nan_rows=}; allowed values includce return | remove | ... (See the docs for more.) "
+                        f"Received {nan_rows=}; allowed values include return | remove | ... (See the docs for more.) "
                     )
                 )
+            # - return some value, use method:
+            #   - ignore nans when calculating avg
+            #   - impute, repeat/prepend first/interpolate
+            #   - estimation? henderson or other
+            #   - retrieve more values?
 
-        # todo: update the metadata
+        # TODO: update the metadata
         return out
 
 
