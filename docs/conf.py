@@ -123,7 +123,7 @@ rst_prolog = """
 
 .. |manual_tagging| replace:: Manually tagging a dataset with |tag_set| \
         will tag the set and propagate tags to all series in the set, while |tag_series| may be used to tag individual series.\
-        If corrections need to be made, tags can be replaced with |retag_set| and |retag_series| or removed with |detag_set| and |detag_series|.
+        If corrections need to be made, tags can be replaced with |replace_tags| or removed with |detag_set| and |detag_series|.
 
 .. |tag_set| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.tag_dataset`
 .. |tag_series| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.tag_series`
@@ -131,7 +131,9 @@ rst_prolog = """
 .. |retag_set| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.retag_dataset`
 .. |retag_series| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.retag_series`
 
-.. |detag_set| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.detag_dataset`
+.. |replace_tags| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.replace_tags`
+
+.. |detag_series| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.detag_series`
 .. |detag_series| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.detag_series`
 
 """
