@@ -174,3 +174,27 @@ def random_numbers(
     generator = np.random.default_rng()
     random_matrix = generator.standard_normal(size=(rows, cols))
     return midpoint + variance * random_matrix.round(decimals)
+
+
+def xyz_at() -> pd.DataFrame:
+    """Return a :py:class:`Temporality.AT` compliant dataframe with a year of monthly data for series 'x', 'y' and 'z'."""
+    df = create_df(
+        ["x", "y", "z"],
+        start_date="2022-01-01",
+        end_date="2022-12-31",
+        freq="MS",
+        temporality="AT",
+    )
+    return df
+
+
+def xyz_from_to() -> pd.DataFrame:
+    """Return a :py:class:`Temporality.FROM_TO` compliant dataframe with a year of monthly data for series 'x', 'y' and 'z'."""
+    df = create_df(
+        ["x", "y", "z"],
+        start_date="2022-01-01",
+        end_date="2022-12-31",
+        freq="MS",
+        temporality="FROM_TO",
+    )
+    return df

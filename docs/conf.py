@@ -35,6 +35,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
+    "sphinx.ext.doctest",
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
     "sphinx_togglebutton",
@@ -63,19 +64,15 @@ html_theme_options = {
     "navigation_with_keys": True,
 }
 
-# Bernhard: trying to increase sidebar nav depth (for reference page)
-# html_theme = "s
-# phinx_material" # fixes error with in page TOC, but looses the sidebar
-# html_theme_options = {
-#   "globaltoc_depth": 2,
-#   "globaltoc_collapse": False,
-# }
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ["_static"]
-
+html_static_path = ["ssb_static"]
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    "ssb.css",
+]
 
 # -- Other configuration ---------------------------------------------------
 
@@ -88,7 +85,7 @@ add_module_names = False
 # Specific to SSB Timeseries -----------------------------------------------
 
 # combine class and __init__ docstrings
-autoclass_content = "both"
+autoclass_content = "class"
 
 # Include special methods like __init__ and __call__ in the documentation
 napoleon_include_special_with_doc = True
@@ -107,3 +104,34 @@ autodoc_default_options = {
     "exclude-members": "__weakref__",  # not sure about this one?
 }
 copybutton_exclude = ".linenos, .gp"
+
+rst_prolog = """
+.. include:: <isogrk1.txt>
+.. |br| raw:: html
+
+   <br />
+
+.. |p| replace:: |br| |br|
+
+.. |tagging| replace:: There are several ways to maintain metadata (tags). \
+        See the tagging guide for detailed information. \
+        |p| |automatic_tagging| |p| |manual_tagging|
+
+.. |automatic_tagging| replace:: Tagging functions\
+    Automatic tagging with :py:meth:`~ssb_timeseries.dataset.Dataset.series_names_to_tags` is convenient when series names are constructed from metadata parts with a uniform pattern. \
+    Then tags may be derived from series names by mappping name parts to ``attributes`` either by splitting on a ``separator`` or ``regex``.
+
+.. |manual_tagging| replace:: Manually tagging a dataset with |tag_set| \
+        will tag the set and propagate tags to all series in the set, while |tag_series| may be used to tag individual series.\
+        If corrections need to be made, tags can be replaced with |retag_set| and |retag_series| or removed with |detag_set| and |detag_series|.
+
+.. |tag_set| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.tag_dataset`
+.. |tag_series| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.tag_series`
+
+.. |retag_set| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.retag_dataset`
+.. |retag_series| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.retag_series`
+
+.. |detag_set| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.detag_dataset`
+.. |detag_series| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.detag_series`
+
+"""

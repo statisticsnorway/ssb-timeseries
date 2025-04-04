@@ -1,0 +1,65 @@
+/* Includes the base theme CSS --> embrace & extend */
+@import '../furo.css';
+
+/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">*/
+:root {
+/*  --icon--ssb: url('data:image/svg+xml;charset=utf-8,
+ <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
+ <g>
+  <title>Layer 1</title>
+  <ellipse ry="11.5" rx="11.5" id="svg_1" cy="161.5" cx="38.5" stroke="#000" fill="#444444"/>
+  <ellipse ry="11.5" rx="11.5" id="svg_2" cy="126.5" cx="194.5" stroke="#000" fill="#444444"/>
+  <ellipse ry="11.5" rx="11.5" id="svg_3" cy="100.5" cx="103.5" stroke="#000" fill="#444444"/>
+  <ellipse ry="11.5" rx="11.5" id="svg_4" cy="45.5" cx="251.5" stroke="#000" fill="#444444"/>
+  <line stroke-width="8" id="svg_5" y2="102" x2="103" y1="162" x1="37" stroke="#000" fill="none"/>
+  <line stroke-width="8" id="svg_6" y2="102" x2="103" y1="162" x1="37" stroke="#000" fill="none"/>
+  <line stroke="#000" stroke-width="8" id="svg_7" y2="123" x2="188" y1="103" x1="106" fill="none"/>
+  <line stroke="#000" stroke-width="8" id="svg_8" y2="49" x2="249" y1="128" x1="193" fill="none"/>
+ </g>
+</svg>');
+  --color-sidebar-background: rgba(43,155,70,0.1);
+  --color-sidebar-background-border: rgba(43,155,70,0.8);
+  --color-toc-background: rgba(43,155,70,0.1);
+  --color-admonition-background: var(--color-background-secondary);
+  --color-admonition-background-border: var(--color-background-secondary);
+
+*/
+
+  --color-admonition-title: grey;
+  --color-admonition-title-background: grey;
+  --color-admonition-title-background-border: hsla(0,0%,50%,0.2);
+
+  --color-admonition-background-more: var(--color-admonition-background);
+  --color-admonition-background-border-more: var(--color-admonition-background-more);
+}
+
+.admonition {
+  border-color: var(--color-admonition-background-border);
+}
+.admonition > .admonition-title {
+  background-color: var(--color-admonition-title-background);
+  border-color: var(--color-admonition-title-background-border);
+}
+
+.admonition.more {
+  border-color: var(--color-admonition-background-border-more);
+}
+.admonition.more > .admonition-title {
+  background-color: var(--color-admonition-background-more);
+  border-color: var(--color-admonition-background-border-more);
+}
+.admonition.more > .admonition-title::before {
+  /*
+  background-color:var(--color-admonition-background-border-more);
+   -webkit-mask-image: var(--icon--ssb);
+  mask-image: var(--icon--ssb);
+  */
+}
+
+.toc-drawer {
+  background: var(--color-toc-background);
+}
+.sidebar-drawer {
+  background: var(--color-sidebar-background);
+  border-right: 1px solid var(--color-sidebar-background-border);
+}
