@@ -14,6 +14,7 @@ The types are crucial because they are reflected in the physical storage structu
 That in turn has practical implications for how the series can be interacted with, and for methods working on the data.
 
 .. admonition:: See also
+    :class: more
 
     The :py:mod:`ssb_timeseries.catalog` module for tools for searching for datasets or series by names or metadata.
 """
@@ -78,10 +79,10 @@ class Dataset:
     :var Dataframe data: A dataframe or table structure with one or more datetime columns defined by ``datatype`` and a column per series in the set.
     :var dict tags: A dictionary with metadata describing both the dataset itself and the series in the set.
 
-        .. admonition:: Maintaining tags
-            :class: more dropdown
+    .. admonition:: Maintaining tags
+        :class: more dropdown
 
-            |tagging|
+        |tagging|
 
     """
 
@@ -122,7 +123,7 @@ class Dataset:
         .. admonition:: Maintaining tags
            :class: more dropdown
 
-            |tagging|
+           |tagging|
 
 
         .. code::
