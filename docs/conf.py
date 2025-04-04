@@ -133,7 +133,7 @@ rst_prolog = """
 
 .. |replace_tags| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.replace_tags`
 
-.. |detag_series| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.detag_series`
+.. |detag_set| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.detag_dataset`
 .. |detag_series| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.detag_series`
 
 """
