@@ -11,7 +11,6 @@ from ssb_timeseries.sample_data import xyz_from_to
 def test_create_sample_from_single_string() -> None:
     df = create_df("a", start_date="2022-01-01", end_date="2022-01-03", freq="D")
     assert df.size == 6
-    # expected 3 days x (1 date column + 1 variable columns) = 6 values
 
 
 def test_create_sample_from_single_multichar_string(caplog) -> None:
