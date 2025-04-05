@@ -157,7 +157,7 @@ def new_dataset_none_at(abc_at):
         data_type=SeriesType.simple(),
         series_tags={"D": "d"},
         data=abc_at,
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
         dataset_tags={"E": "Eee"},
     )
     yield x
@@ -172,7 +172,7 @@ def new_dataset_as_of_at(abc_at):
         as_of_tz=date_utc("2022-01-01"),
         series_tags={"D": "d"},
         data=abc_at,
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
         dataset_tags={"E": "Eee"},
     )
     yield x
@@ -186,7 +186,7 @@ def new_dataset_none_from_to(abc_from_to):
         data_type=SeriesType.from_to(),
         series_tags={"D": "d"},
         data=abc_from_to,
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
         dataset_tags={"E": "Eee"},
     )
     yield x
@@ -201,7 +201,7 @@ def new_dataset_as_of_from_to(abc_from_to):
         as_of_tz=date_utc("2022-01-01"),
         series_tags={"D": "d"},
         data=abc_from_to,
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
         dataset_tags={"E": "Eee"},
     )
 
@@ -231,7 +231,7 @@ def existing_simple_set(abc_at):
         name="test-existing-simple-dataset",
         data_type=SeriesType.simple(),
         data=abc_at,
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
     x.save()
     yield x
@@ -245,7 +245,7 @@ def existing_estimate_set(abc_at):
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
         data=abc_at,
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
     x.save()
     yield x
@@ -259,7 +259,7 @@ def existing_from_to_set(abc_from_to):
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
         data=abc_from_to,
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
         series_tags={"D": "d"},
         dataset_tags={"E": "e", "F": ["f1", "f2"]},
     )
@@ -282,7 +282,7 @@ def existing_small_set():
             end_date="2024-01-03",
             freq="YS",
         ),
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
         series_tags={"D": "d"},
         dataset_tags={"E": "e", "F": ["f1", "f2"]},
     )
