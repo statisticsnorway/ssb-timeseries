@@ -396,8 +396,6 @@ class Dataset:
     def tag_series(
         self,
         identifiers: str | list[str] | None = None,
-        # attributes: list[str] | None = None,
-        # separator: str = "_",
         tags: meta.TagDict = None,
         **kwargs: str | list[str],
     ) -> None:
@@ -453,9 +451,6 @@ class Dataset:
                 "name": ident,
             }
             self.tags["series"][ident].update({**inherit_from_set_tags, **tags})
-
-        # if attributes:
-        #    self.series_names_to_tags(attributes=attributes, separator=separator)
 
     def detag_dataset(
         self,
