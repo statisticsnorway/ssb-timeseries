@@ -64,10 +64,10 @@ class Dataset:
     but more important, it allows the Dataset to become a core unit of analysis for workflow.
     It becomes a natural chunk of data for reads and writes, and calculation.
 
-    For all the series in a dataset to be of the same :py:class:`~ssb_timeseries.properties.SeriesType` means they share dimensionality characteristics :py:class:`~ssb_timeseries.properties.Versioning` and :py:class:`~ssb_timeseries.properties.Temporality` and any other schema information that have tecnicval implications for how the data is handled.
+    For all the series in a dataset to be of the same :py:class:`~ssb_timeseries.properties.SeriesType` means they share dimensionality characteristics :py:class:`~ssb_timeseries.properties.Versioning` and :py:class:`~ssb_timeseries.properties.Temporality` and any other schema information that have tecnical implications for how the data is handled.
     See the :doc:`../info-model` documentation for more about that.
 
-    The descriptive commonality is not enforced, but ome aspects have technical implications.
+    The descriptive commonality is not enforced, but some aspects have technical implications.
     In particular, it is strongly encouraged to make sure that the resolutions of the series in datasets are the same, and to minimize the number of gaps in the series.
     Sparse data is a strong indication that a dataset is not well defined and that series in the set have different origins.
     'Gaps' in this context is any representation of undefined values: None, null, NAN or "not a number" values, as opposed to the number zero.
