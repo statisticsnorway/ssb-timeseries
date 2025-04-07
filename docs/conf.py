@@ -61,6 +61,8 @@ pygments_dark_style = "zenburn"
 #
 html_theme = "furo"
 html_theme_options = {
+    "light_logo": "SSB_logo_black.svg",
+    "dark_logo": "SSB_logo_white.svg",
     "navigation_with_keys": True,
 }
 
