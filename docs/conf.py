@@ -58,11 +58,40 @@ pygments_dark_style = "zenburn"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
+color_ssb_dark_5 = "#274247"
+color_ssb_dark_2 = "#C3DCDC"
+color_ssb_dark_1 = "#F0F8F9"
+color_ssb_green_4 = "#00824D"
+color_ssb_green_2 = "#B6E8B8"
+color_ssb_green_1 = "#ECFEED"
+
 html_theme = "furo"
 html_theme_options = {
+    # pick from https://profil.ssb.no/ after identifying which options to use
     "light_logo": "SSB_logo_black.svg",
+    "light_css_variables": {
+        "color-sidebar-background": color_ssb_dark_2,
+        "color-sidebar-background-border": color_ssb_dark_2,
+        "color-sidebar-search-background": color_ssb_dark_1,
+        "color-sidebar-search-background--focus": color_ssb_green_1,
+        "color-brand-primary": "#274247",  # menu text level 1 --> ssb mørk 5
+        "color-background-hover": color_ssb_green_1,
+        "color-background-primary": color_ssb_dark_1,
+        "color-background-secondary": color_ssb_dark_1,  # affects both sidebar second level AND content
+        # "color-content-background": color_ssb_green_1,# does not include padding / headings / other toc items (smaller than -bakckground-secondary)
+        # "color-toc-background": "white", # = -bakcground-primary
+        "color-guilabel-background": "red",
+        "color-background-item": "orange",
+        "color-card-item": "orange",
+        "color-sidebar-item-expander-background": color_ssb_dark_2,
+        "color-sidebar-item-expander-background--hover": color_ssb_green_1,
+        "color-admonition-background": "white",
+    },
     "dark_logo": "SSB_logo_white.svg",
+    "dark_css_variables": {
+        "color-sidebar-background": "#274247",  # (attempt) menu background "ssb dark 5"
+        "color-brand-primary": "#F0F8F9",  # menu text - "ssb dark 1"
+    },
     "navigation_with_keys": True,
 }
 
