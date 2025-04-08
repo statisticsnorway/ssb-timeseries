@@ -64,6 +64,7 @@ color_ssb_dark_1 = "#F0F8F9"
 color_ssb_green_4 = "#00824D"
 color_ssb_green_2 = "#B6E8B8"
 color_ssb_green_1 = "#ECFEED"
+color_ssb_white = "#ffffff"
 
 html_theme = "furo"
 html_theme_options = {
@@ -71,26 +72,44 @@ html_theme_options = {
     "light_logo": "SSB_logo_black.svg",
     "light_css_variables": {
         "color-sidebar-background": color_ssb_dark_2,
-        "color-sidebar-background-border": color_ssb_dark_2,
+        "color-sidebar-background-border": color_ssb_dark_5,
         "color-sidebar-search-background": color_ssb_dark_1,
         "color-sidebar-search-background--focus": color_ssb_green_1,
-        "color-brand-primary": "#274247",  # menu text level 1 --> ssb mørk 5
+        "color-brand-primary": color_ssb_dark_5,  # menu text level 1
         "color-background-hover": color_ssb_green_1,
-        "color-background-primary": color_ssb_dark_1,
-        "color-background-secondary": color_ssb_dark_1,  # affects both sidebar second level AND content
-        # "color-content-background": color_ssb_green_1,# does not include padding / headings / other toc items (smaller than -bakckground-secondary)
+        "color-foreground-primary": color_ssb_dark_5,
+        "color-background-primary": color_ssb_white,
+        # TO DO: fix background colours for second level menu
+        # ...
+        "color-background-secondary": color_ssb_white,  # kind of works, but on both sidebar second level AND content keywords
         # "color-toc-background": "white", # = -bakcground-primary
         "color-guilabel-background": "red",
         "color-background-item": "orange",
         "color-card-item": "orange",
+        # ...
         "color-sidebar-item-expander-background": color_ssb_dark_2,
         "color-sidebar-item-expander-background--hover": color_ssb_green_1,
-        "color-admonition-background": "white",
+        "color-admonition-background": color_ssb_white,
+        "color-admonition-title-background": color_ssb_green_4,
+        "color-admonition-title-background-border": color_ssb_green_4,
     },
     "dark_logo": "SSB_logo_white.svg",
     "dark_css_variables": {
-        "color-sidebar-background": "#274247",  # (attempt) menu background "ssb dark 5"
-        "color-brand-primary": "#F0F8F9",  # menu text - "ssb dark 1"
+        "color-sidebar-background": "black",
+        "color-sidebar-background-border": "white",
+        "color-brand-primary": color_ssb_dark_1,  # menu text level 1
+        "color-foreground-secondary": color_ssb_dark_1,
+        "color-background-hover": color_ssb_dark_5,
+        "color-sidebar-search-background": color_ssb_dark_5,
+        # "color-sidebar-search-background--focus": color_ssb_green_4,
+        "color-sidebar-search-text": "yellow",  # does not take effect
+        "color_content_background": "orange",
+        # "color-background-primary":color_ssb_dark_5,  # (attempt) menu background "ssb dark 5"
+        # "color-background-secondary":color_ssb_dark_5,  # (attempt) menu background "ssb dark 5"
+        "color-sidebar-item-expander-background": "black",  # color_ssb_dark_5,
+        "color-sidebar-item-expander-background--hover": color_ssb_dark_5,
+        # TO DO: Changelog icon is too dark. Fix.
+        # TO DO: Blue reference headers / links are ugly/hard to read. Fix?
     },
     "navigation_with_keys": True,
 }
