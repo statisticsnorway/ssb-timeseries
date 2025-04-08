@@ -71,12 +71,12 @@ html_theme_options = {
     # pick from https://profil.ssb.no/ after identifying which options to use
     "light_logo": "SSB_logo_black.svg",
     "light_css_variables": {
-        "color-sidebar-background": color_ssb_dark_2,
+        "color-sidebar-background": color_ssb_dark_1,
         "color-sidebar-background-border": color_ssb_dark_5,
-        "color-sidebar-search-background": color_ssb_dark_1,
+        "color-sidebar-search-background": color_ssb_dark_2,
         "color-sidebar-search-background--focus": color_ssb_green_1,
         "color-brand-primary": color_ssb_dark_5,  # menu text level 1
-        "color-background-hover": color_ssb_green_1,
+        "color-background-hover": color_ssb_dark_2,
         "color-foreground-primary": color_ssb_dark_5,
         "color-background-primary": color_ssb_white,
         # TO DO: fix background colours for second level menu
@@ -87,7 +87,7 @@ html_theme_options = {
         "color-background-item": "orange",
         "color-card-item": "orange",
         # ...
-        "color-sidebar-item-expander-background": color_ssb_dark_2,
+        "color-sidebar-item-expander-background": color_ssb_dark_1,
         "color-sidebar-item-expander-background--hover": color_ssb_green_1,
         "color-admonition-background": color_ssb_white,
         "color-admonition-title-background": color_ssb_green_4,
