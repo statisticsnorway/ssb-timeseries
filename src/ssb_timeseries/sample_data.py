@@ -2,10 +2,12 @@
 
 import itertools
 from datetime import datetime
+from datetime import timedelta
 
 import numpy as np
 import pandas as pd
 
+from ssb_timeseries.dates import date_round
 from ssb_timeseries.dates import date_utc
 
 # mypy: disable-error-code="arg-type, type-arg, import-untyped, unreachable, attr-defined"
@@ -54,8 +56,8 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
 
 def create_df(
     *lists: dict | list[str] | tuple | str,
-    start_date: datetime | str | None = None,
-    end_date: datetime | str | None = None,
+    start_date: datetime | str = "",
+    end_date: datetime | str = "",
     freq: str = "D",
     interval: int = 1,
     separator: str = "_",
@@ -67,8 +69,8 @@ def create_df(
     """Generate sample data for specified date range and permutations over lists.
 
     Args:
-        start_date (datetime): The start date of the date range. Optional, default is negative infinity.
-        end_date (datetime): The end date of the date range. Optional, default is positive infinity.
+        start_date (datetime): The start date of the date range. Optional, default is today - 365 days.
+        end_date (datetime): The end date of the date range. Optional, default is today.
         *lists (list[str]): Lists of values to generate combinations from.
         freq (str): The frequency of date generation.
             'Y' for yearly at last day of year,
@@ -98,13 +100,11 @@ def create_df(
     sample_data = generate_sample_df(List1, List2, freq='D')
     ```
     """
-    # Handle start_date and end_date defaults
-    if start_date is None:
-        start_date = datetime.min  # Representing negative infinity
-    if end_date is None:
-        end_date = datetime.max  # Representing positive infinity
+    if not start_date:
+        start_date = date_round(datetime.now()) - timedelta(days=365)
+    if not end_date:
+        end_date = date_round(datetime.now())
 
-    # Add other frequencies as needed
     freq_lookup = {
         "Y": "years",
         "YS": "years",
@@ -150,7 +150,6 @@ def create_df(
         dtype="float32[pyarrow]",
     )
 
-    # Legg til "Dates" som den første kolonnen i "df"
     match temporality:
         case "AT":
             df.insert(0, "valid_at", valid_at)
@@ -174,3 +173,27 @@ def random_numbers(
     generator = np.random.default_rng()
     random_matrix = generator.standard_normal(size=(rows, cols))
     return midpoint + variance * random_matrix.round(decimals)
+
+
+def xyz_at() -> pd.DataFrame:
+    """Return a :py:class:`Temporality.AT` compliant dataframe with a year of monthly data for series 'x', 'y' and 'z'."""
+    df = create_df(
+        ["x", "y", "z"],
+        start_date="2022-01-01",
+        end_date="2022-12-31",
+        freq="MS",
+        temporality="AT",
+    )
+    return df
+
+
+def xyz_from_to() -> pd.DataFrame:
+    """Return a :py:class:`Temporality.FROM_TO` compliant dataframe with a year of monthly data for series 'x', 'y' and 'z'."""
+    df = create_df(
+        ["x", "y", "z"],
+        start_date="2022-01-01",
+        end_date="2022-12-31",
+        freq="MS",
+        temporality="FROM_TO",
+    )
+    return df
