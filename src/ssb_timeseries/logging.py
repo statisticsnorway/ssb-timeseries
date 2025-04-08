@@ -9,7 +9,10 @@ import functools
 import logging
 from datetime import datetime
 
-from typing_extensions import Self
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self  # noqa: UP035 #backport to 3.10
 
 from ssb_timeseries.config import Config
 from ssb_timeseries.types import F

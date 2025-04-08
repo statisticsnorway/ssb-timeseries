@@ -29,7 +29,6 @@ import pyarrow.compute
 from ssb_timeseries import fs
 from ssb_timeseries import properties
 from ssb_timeseries.config import Config
-from ssb_timeseries.dates import Interval
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.logging import ts_logger
@@ -173,9 +172,8 @@ class FileSystem:
         return os.path.join(self.metadata_dir, self.metadata_file)
 
     def read_data(
-        self,
-        interval: Interval = Interval.all,
-    ) -> pandas.DataFrame:
+        self, interval: str = ""
+    ) -> pandas.DataFrame:  #: Interval = Interval.all,
         """Read data from the filesystem. Return empty dataframe if not found."""
         ts_logger.debug(interval)
         if fs.exists(self.data_fullpath):

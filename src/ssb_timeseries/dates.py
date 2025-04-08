@@ -198,7 +198,7 @@ class Interval:
             # "round" to MAX_TIME_precision if provided
             ...
 
-        ts_logger.debug(f"Interval.__init__ returns self:\n{self}")
+        # ts_logger.debug(f"Interval.__init__ returns self:\n{self}")
 
     def includes(self, *args: dt | list[dt]):
         ts_logger.debug(f"Interval.include args: {args}")

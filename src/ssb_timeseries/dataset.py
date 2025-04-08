@@ -24,12 +24,16 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any
 from typing import Protocol
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self  # noqa: UP035 #backport to 3.10
 from typing import no_type_check
 
 import matplotlib.pyplot as plt  # noqa: F401
 import numpy as np
 import pandas as pd
-from typing_extensions import Self
 
 from ssb_timeseries import io
 from ssb_timeseries import meta

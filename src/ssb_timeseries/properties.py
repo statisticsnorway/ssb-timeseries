@@ -3,7 +3,10 @@
 from enum import Enum
 from itertools import product
 
-from typing_extensions import Self
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self  # noqa: UP035 #backport to 3.10
 
 # mypy: disable-error-code="type-arg, override"
 
