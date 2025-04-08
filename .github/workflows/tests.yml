@@ -161,9 +161,12 @@ jobs:
       # Need to fix coverage source paths for SonarCloud scanning in GitHub actions.
       # Replace root path with /github/workspace (mounted in docker container).
       - name: Override coverage source paths for SonarCloud
+        # run: |
+        #  sed -i "s/<source><\/source>/<source>\/github\/workspace<\/source>/g" coverage.xml
+        #  sed -i "s/<source>tests/<source>\/github\/workspace\/tests/g" coverage.xml
         run: |
-          sed -i "s/<source><\/source>/<source>\/github\/workspace<\/source>/g" coverage.xml
-          sed -i "s/<source>tests/<source>\/github\/workspace\/tests/g" coverage.xml
+          sed -i "s/<source><\/source>/<source>\/home\/runner\/work\/{{cookiecutter.project_name}}\/{{cookiecutter.project_name}}<\/source>/g" coverage.xml
+          sed -i "s/<source>tests/<source>\/home\/runner\/work\/{{cookiecutter.project_name}}\/{{cookiecutter.project_name}}\/tests/g" coverage.xml
 
       - name: SonarCloud Scan
         env:
@@ -171,4 +174,5 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         # No need to run SonarCloud analysis if dependabot update or token not defined
         if: env.SONAR_TOKEN != '' && (github.actor != 'dependabot[bot]')
-        uses: SonarSource/sonarcloud-github-action@v5.0.0
+        # uses: SonarSource/sonarcloud-github-action@v5.0.0
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
