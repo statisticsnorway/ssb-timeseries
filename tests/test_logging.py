@@ -8,6 +8,7 @@ such messages can create lots of visual noise in a Jupyter environment.)
 
 import warnings
 from collections.abc import Generator
+from typing import Any
 from typing import TypeAlias
 
 import pytest
@@ -20,7 +21,7 @@ Cfg: TypeAlias = type[ts.configuration]
 
 
 @pytest.fixture(scope="function", autouse=True)
-def no_logging(buildup_and_teardown: Cfg) -> Generator:
+def no_logging(buildup_and_teardown: Any) -> Generator:
     import ssb_timeseries as ts_no_logging
 
     cfg = buildup_and_teardown
@@ -55,7 +56,7 @@ def test_log_level_behaviour(caplog: pytest.LogCaptureFixture) -> None:
 
     assert log_file or dict_cfg  # otherwise we test the wrong thing
     assert "DEBUG" not in caplog.text
-    # assert "INFO" in caplog.text
+    assert "INFO" in caplog.text
     assert "WARNING" in caplog.text
 
 
@@ -94,7 +95,7 @@ def test_capture_warnings() -> None:
         )
 
 
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_logged_warning_should_generate_real_warning(
     caplog: pytest.LogCaptureFixture,
 ) -> None:

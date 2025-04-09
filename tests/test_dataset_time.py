@@ -60,7 +60,7 @@ def test_dataset_groupby_sum(caplog):
     )
     assert x.data.shape == (424, 4)
     y = x.groupby("M", "sum")
-    ts.logger.warning(f"groupby:\n{y.data}")
+    ts.logger.debug(f"groupby:\n{y.data}")
     assert y.data.shape == (14, 3)
 
 
@@ -78,7 +78,7 @@ def test_dataset_groupby_mean(caplog):
     )
     assert x.data.shape == (424, 4)
     y = x.groupby("M", "mean")
-    ts.logger.warning(f"groupby:\n{y.data}")
+    ts.logger.debug(f"groupby:\n{y.data}")
     assert y.data.shape == (14, 3)
 
 
@@ -99,7 +99,7 @@ def test_dataset_groupby_auto(caplog):
     df = x.groupby("M", "auto")
     df_mean = x.groupby("M", "mean")
     df_sum = x.groupby("M", "sum")
-    ts.logger.warning(f"groupby:\n{df}")
+    ts.logger.debug(f"groupby:\n{df}")
     # use of period index means 'valid_at' is not counted in columns
     assert df.shape == (14, 6)
     assert ~all(df == df_mean)
@@ -145,5 +145,5 @@ def test_dataset_resample_downsampling_w_mean(caplog):
     )
     assert x.data.shape == (12, 4)
     y = x.resample("QE", "mean")
-    ts.logger.warning(f"resample:\n{x.data}\n{y.name}\n{y.data}")
+    ts.logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
     assert y.data.shape == (4, 3)

@@ -51,7 +51,8 @@ import ssb_timeseries as ts
 LOG_CONFIG = getattr(ts.configuration, "logging", {})
 LOG_FILE = str(getattr(ts.configuration, "log_file", ""))
 
-LOGGER = logging.getLogger(getattr(LOG_CONFIG, "logger", __name__))
+# LOGGER = logging.getLogger(getattr(LOG_CONFIG, "logger", __name__))
+LOGGER = logging.getLogger(__package__)
 """The logger name can be configured `logging.logger = '<name>'`"""
 
 if LOG_CONFIG:

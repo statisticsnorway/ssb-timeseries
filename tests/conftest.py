@@ -95,7 +95,7 @@ def buildup_and_teardown(
 
     global TEST_CONFIG
     TEST_CONFIG = config_file_for_testing
-    logging.getLogger().addFilter(LogWarningFilter())
+    logging.getLogger("ssb_timeseries").addFilter(LogWarningFilter())
     # run tests
     yield temp_configuration
     logging.getLogger(__name__).removeFilter(LogWarningFilter())

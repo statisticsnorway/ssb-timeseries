@@ -188,7 +188,7 @@ def test_aggregate_sum_for_flat_list_taxonomy(
     )
 
     assert len(x.numeric_columns()) == len(klass48_leaves)
-    ts.logger.warning(f"{set_name}:\n{x.data}")
+    ts.logger.debug(f"{set_name}:\n{x.data}")
 
     y = x.aggregate(attributes=["A"], taxonomies=[klass48], functions=["sum"])
     assert isinstance(y, Dataset)
@@ -197,7 +197,7 @@ def test_aggregate_sum_for_flat_list_taxonomy(
         [f"sum({n.name})" for n in klass48.parent_nodes()]
     )
     y_data = y.data[y.numeric_columns()]
-    ts.logger.warning(f"{set_name}: \n{y_data}")
+    ts.logger.debug(f"{set_name}: \n{y_data}")
     assert all(y_data.notna())
     assert all(y_data.notnull())
 
