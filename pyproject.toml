@@ -20,7 +20,7 @@ pandas = ">=2.1.1"
 ssb-klass-python = ">=0.0.7"
 pyarrow = ">=14.0.0"
 bigtree = ">=0.17.2"
-typing-extensions = ">=4.11.0"
+typing-extensions = ">=4.11.0"   # "python-version"="<3.11",
 python-dateutil = ">=2.9.0.post0"
 numpy = ">=1.26.4"
 matplotlib = "^3.8.4"
@@ -86,7 +86,7 @@ disallow_any_generics = false
 force-exclude = true  # Apply excludes to pre-commit
 show-fixes = true
 src = ["src", "tests"]
-target-version = "py310"  # Minimum Python version supported
+target-version = "py311"  # Minimum Python version supported
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
 extend-exclude = [
     "__pycache__",
@@ -114,9 +114,11 @@ ignore = [
     "ANN202", # Don't requiere return type annotation for private functions.
     "ANN401", # Allow type annotation with type Any.
     "D100",   # Supress undocumented-public-module. Only doc of public api required.
+    "FBT001",  # Allow boolean positional arguments in a function
+    "FBT002",  # Allow boolean default positional arguments in a function
     "E402",   # Supress module-import-not-at-top-of-file, needed in jupyter notebooks.
     "E501",   # Supress line-too-long warnings: trust black's judgement on this one.
-    # "RUF100", # RYE: Don't get in the way of noqa: DAR...
+    "PLR2004", # Allow to compare with unnamed numerical constants
     "A005",   # RYE: Don't mind shadowing builtin modules (applies to: io, logging, type).
 ]
 
@@ -128,6 +130,9 @@ max-complexity = 15
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"  # You can also use "numpy".
+
+[tool.ruff.lint.pylint]
+max-args = 8
 
 [tool.ruff.lint.pep8-naming]
 classmethod-decorators = ["classmethod", "validator", "root_validator", "pydantic.validator"]
