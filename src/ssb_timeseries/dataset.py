@@ -2,13 +2,21 @@
 
 The dataset is the unit of analysis for both :doc:`information model <../info-model>` and :doc:`workflow integration <../workflow>`,and performance will benefit from linear algebra with sets as matrices consisting of series column vectors.
 
-As described in the :doc:`../info-model` time series datasets may consist of any number of series of the same :py:class:`type <ssb_timeseries.properties.SeriesType>`. Series types are defined by :py:class:`properties.Versioning` and :py:class:`properties.Temporality`, see :py:class:`properties.SeriesType`.
+As described in the :doc:`../info-model` time series datasets may consist of any number of series of the same :py:class:`~ssb_timeseries.properties.SeriesType`.
+The series types are defined by dimensionality characteristics:
 
-It is also strongly encouraged to make sure that the resolutions of the series in datasets are the same, and to minimize the number of gaps in the series. Very sparse data is a strong indication that a dataset is not well defined: may indicate that series in the set have different origins. What counts as 'gaps' in this context is any representation of undefined values: None, null, NAN or "not a number" values, as opposed to the number zero. The number zero is a gray area - it can be perfectly valid, but can also be an indication that not all the series should be part of the same set.
+* :py:class:`~ssb_timeseries.properties.Versioning` (NONE, AS_OF, NAMED)
+* :py:class:`~ssb_timeseries.properties.Temporality` (Valid AT point in time, or FROM and TO for duration)
+* The type of the value. For now only scalar values are supported.
 
-.. seealso::
-    See documentation for the :py:mod:`ssb_timeseries.catalog` module for tools for searching for datasets or series by names or metadata.
+Additional type determinants (sparsity, irregular frequencies, non-numeric or non-scalar values, ...) are conceivable and may be introduced later.
+The types are crucial because they are reflected in the physical storage structure.
+That in turn has practical implications for how the series can be interacted with, and for methods working on the data.
 
+.. admonition:: See also
+    :class: more
+
+    The :py:mod:`ssb_timeseries.catalog` module for tools for searching for datasets or series by names or metadata.
 """
 
 import re
@@ -16,12 +24,16 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any
 from typing import Protocol
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self  # noqa: UP035 #backport to 3.10
 from typing import no_type_check
 
 import matplotlib.pyplot as plt  # noqa: F401
 import numpy as np
 import pandas as pd
-from typing_extensions import Self
 
 import ssb_timeseries as ts
 from ssb_timeseries import io
@@ -49,17 +61,31 @@ class IO(Protocol):
 
 
 class Dataset:
-    """Datasets are the core unit of analysis for workflow and data storage.
+    """Datasets are containers for series of the same :py:class:`~ssb_timeseries.properties.SeriesType` with origin from the same process.
 
-    A dataset is a logical collection of data and metadata stemming from the same process origin. All the series in a dataset must be of the same type.
+    That generally implies some common denominator in terms of descriptive metadata,
+    but more important, it allows the Dataset to become a core unit of analysis for workflow.
+    It becomes a natural chunk of data for reads and writes, and calculation.
 
-    The type defines
-         * versioning (NONE, AS_OF, NAMED)
-         * temporality (Valid AT point in time, or FROM and TO for duration)
-         * value (for now only scalars)
+    For all the series in a dataset to be of the same :py:class:`~ssb_timeseries.properties.SeriesType` means they share dimensionality characteristics :py:class:`~ssb_timeseries.properties.Versioning` and :py:class:`~ssb_timeseries.properties.Temporality` and any other schema information that have tecnical implications for how the data is handled.
+    See the :doc:`../info-model` documentation for more about that.
 
-    .. seealso:
-        :doc:`../info-model`
+    The descriptive commonality is not enforced, but some aspects have technical implications.
+    In particular, it is strongly encouraged to make sure that the resolutions of the series in datasets are the same, and to minimize the number of gaps in the series.
+    Sparse data is a strong indication that a dataset is not well defined and that series in the set have different origins.
+    'Gaps' in this context is any representation of undefined values: None, null, NAN or "not a number" values, as opposed to the number zero.
+    The number zero is a gray area - it can be perfectly valid, but can also be an indication that not all the series should be part of the same set.
+
+    :var str name: The name of the set.
+    :var SeriesType data_type: The type of the contents of the set.
+    :var datetime as_of_tz: The version datetime, if applicable to the ``data_type``.
+    :var Dataframe data: A dataframe or table structure with one or more datetime columns defined by ``datatype`` and a column per series in the set.
+    :var dict tags: A dictionary with metadata describing both the dataset itself and the series in the set.
+
+    .. admonition:: Maintaining tags
+        :class: more dropdown
+
+        |tagging|
 
     """
 
@@ -71,21 +97,55 @@ class Dataset:
         load_data: bool = True,
         **kwargs: Any,
     ) -> None:
-        """**Initialising** a dataset object can either retrieve data and metadata for an existing set or prepare a new one.
+        """Initialising a dataset object either retrieves an existing set or prepares a new one.
 
+        When preparing a new set, data_type must be specified.
         If data_type versioning is specified as AS_OF, a datetime with timezone should be provided.
-        If not, but data is passed, ::py:meth:`as_of_tz` defaults to current time. Providing an AS_OF date has no effect if versioning is NONE.
+        Providing an AS_OF date has no effect if versioning is NONE.
+        If not, but data is passed, :py:meth:`as_of_tz` defaults to current time.
+        For all dates, if no timezone is provided, CET is assumed.
 
-        When loading existing sets, load_data = false can be set in order to suppress reading large amounts of data.
+        The `data` parameter accepts a dataframe with one or more date columns and one column per series.
+        Initially only Pandas was supported, but this dependency is about to be relaxed to include other implementations of the samedata structure.
+        Beyond Polars and Pyarrow, notable options under consideration include Ibis, DuckDB and Narwhals.
+
+        Data is kept in memory and not stored before explicit call to :py:meth:`save`.
+        The data is stored in parquet files, with JSON formatted metadata in the header.
+
+        Metadata will always be read if the set exists.
+        When loading existing sets, load_data = False will suppress reading large amounts of data.
         For data_types with AS_OF versioning, not providing the AS_OF date will have the same effect.
 
-        Metadata will always be read.
-        Data is represented as Pandas dataframes; but Polars lazyframes or Pyarrow tables is likely to be better.
-        Initial implementation assumes stores data in parquet files, but feather files and various database options are considered for later.
+        If series names can be mapped to metadata, the keyword arguments ``attributes``, ``separator`` and ``regex`` will, if provided, be passed through to :py:class:`~Dataset.series_names_to_tags`.
+        If series names are not easily translated to tags, :py:class:`~Dataset.tag_dataset` and :py:class:`~Dataset.tag_series` and their siblings :py:meth:`retag <Dataset.retag_series>` and :py:meth:`detag <Dataset.detag_series>` can be used for manual meta data maintenance.
 
-        Support for additional "type" features/flags behaviours like sparse data may be added later (if needed).
+        :keyword list[str] attributes: Attribute names for use with :py:class:`~Dataset.series_names_to_tags` in combination with either ``separator`` or ``regex``.
+        :keyword str separator: Character(s) separating ``attributes`` for use with :py:class:`~Dataset.series_names_to_tags`.
+        :keyword str regex: Regular expression with capture groups corresponding to ``attributes``. Used instead of the separator to match more complicated name patterns in :py:class:`~Dataset.series_names_to_tags`.
 
-        Data is kept in memory and not stored before explicit call to .save.
+        .. admonition:: Maintaining tags
+           :class: more dropdown
+
+           |tagging|
+
+
+        .. code::
+
+            import ssb_timeseries as ts
+            df = ts.sample_data.xyz_at()
+            print(df)
+
+            x = ts.dataset.Dataset(
+                name='mydataset',
+                data_type=ts.properties.SeriesType.simple(),
+                data=df
+            )
+
+        .. testoutput::
+            :hide:
+
+            34
+
         """
         self.name: str = name
         if data_type:
@@ -143,7 +203,7 @@ class Dataset:
 
         # autotag:
         self.auto_tag_config = {
-            "name_pattern": kwargs.get("name_pattern", ""),
+            "attributes": kwargs.get("attributes", ""),
             "separator": kwargs.get("separator", "_"),
             "regex": kwargs.get("regex", ""),
             "apply_to_all": kwargs.get("series_tags", {}),
@@ -300,9 +360,17 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
 
-        Examples:
-            **Dependencies**
+        Note that while no such restrictions are enforced, it is strongly recommended that both attribute names (``keys``) and ``values`` are standardised.
+        The best way to ensure that is to use taxonomies (for SSB: KLASS code lists).
+        However, custom controlled vocabularies can also be maintained in files.
 
+        .. admonition:: Maintaining tags
+            :class: more dropdown
+
+            |tagging|
+
+
+        Examples:
             >>> from ssb_timeseries.dataset import Dataset
             >>> from ssb_timeseries.properties import SeriesType
             >>> from ssb_timeseries.sample_data import create_df
@@ -318,12 +386,7 @@ class Dataset:
             >>> x.tag_dataset(tags={'country': 'Norway', 'about': 'something_important'})
             >>> x.tag_dataset(another_attribute='another_value')
 
-            Note that while no such restrictions are enforced, it is strongly recommended that both attribute names (``keys``) and ``values`` are standardised.
-            The best way to ensure that is to use taxonomies (for SSB: KLASS code lists). However, custom controlled vocabularies can also be maintained in files.i
 
-            .. seealso::
-                :doc:`../info-model`
-                :py:class:`Dataset.tag_series`
         """
         if not self.__getattribute__("tags"):
             # should not be possible, hence
@@ -343,8 +406,6 @@ class Dataset:
     def tag_series(
         self,
         identifiers: str | list[str] | None = None,
-        name_pattern: list[str] | None = None,
-        separator: str = "_",
         tags: meta.TagDict = None,
         **kwargs: str | list[str],
     ) -> None:
@@ -359,10 +420,15 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
 
-        If series names follow the same pattern of attribute values in the same order separated by the same character sequence, tags can be propagated accordingly by specifying ``name_pattern`` and ``separator`` parameters. The separator will default to underscore if not provided. Note that propagation by pattern will affect *all* series in the set, not only the ones identified by ``identifiers``.
+        If series names follow the same pattern of attribute values in the same order separated by the same character sequence, tags can be propagated accordingly by specifying ``attributes`` and ``separator`` parameters. The separator will default to underscore if not provided. Note that propagation by pattern will affect *all* series in the set, not only the ones identified by ``identifiers``.
+
+        .. admonition:: Maintaining tags
+            :class: more dropdown
+
+            |tagging|
 
         Examples:
-            **Dependencies**
+            Dependencies
 
             >>> from ssb_timeseries.dataset import Dataset
             >>> from ssb_timeseries.properties import SeriesType
@@ -370,15 +436,16 @@ class Dataset:
             >>>
             >>> some_data = create_df(['x', 'y', 'z'], start_date='2024-01-01', end_date='2024-12-31', freq='MS')
 
-            **Tag by kwargs**
+            Tag by kwargs
 
             >>> x = Dataset(name='sample_set',data_type=SeriesType.simple(),data=some_data)
             >>> x.tag_series(example_1='string_1', example_2=['a', 'b', 'c'])
 
-            **Tag by dict**
+            Tag by dict
 
             >>> x = Dataset(name='sample_set',data_type=SeriesType.simple(),data=some_data)
             >>> x.tag_series(tags={'example_1': 'string_1', 'example_2': ['a', 'b', 'c']})
+
         """
         if not tags:
             tags = {}
@@ -395,9 +462,6 @@ class Dataset:
             }
             self.tags["series"][ident].update({**inherit_from_set_tags, **tags})
 
-        # if name_pattern:
-        #    self.series_names_to_tags(attributes=name_pattern, separator=separator)
-
     def detag_dataset(
         self,
         *args: str,
@@ -406,6 +470,11 @@ class Dataset:
         """Detag selected attributes of the set.
 
         Tags to be removed may be provided as list of attribute names or as kwargs with attribute-value pairs.
+
+        .. admonition:: Maintaining tags
+            :class: more dropdown
+
+            |tagging|
         """
         self.tags = meta.delete_dataset_tags(
             self.tags,
@@ -426,6 +495,11 @@ class Dataset:
         Attributes listed in `args` will be removed from all series.
 
         For kwargs, attributes will be removed from the series if the value matches exactly. If the value is a list, the matching value is removed. If kwargs contain all=True, all attributes except defaults are removed.
+
+        .. admonition:: Maintaining tags
+            :class: more dropdown
+
+            |tagging|
         """
         self.tags["series"] = meta.delete_series_tags(
             self.tags["series"],
@@ -446,55 +520,80 @@ class Dataset:
         Ideally attributes relies on KLASS, ie a KLASS taxonomy defines the possible attribute values.
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
-        Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
 
-        Example:
-            **Dependencies**
+        .. admonition:: Maintaining tags
+            :class: more dropdown
 
+            |tagging|
+
+        Examples:
             >>> from ssb_timeseries.dataset import Dataset
             >>> from ssb_timeseries.properties import SeriesType
             >>> from ssb_timeseries.sample_data import create_df
 
-            **Tag using name_pattern**
+            Tag using attributes and dcefault separator:
 
-            If all series names follow a uniform pattern where attribute values are separated by the same character sequence:
+            Let us create some data where the series names are formed by the values ['x', 'y', 'z']
+            separated from ['a', 'b', 'c'] by an underscore:
 
-            >>> some_data = create_df(["x_a", "y_b", "z_c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS",)
-            >>> x = Dataset(name="sample_set",
+            >>> some_data = create_df(
+            >>>     ["x_a", "y_b", "z_c"],
+            >>>     start_date="2024-01-01",
+            >>>     end_date="2024-12-31",
+            >>>     freq="MS",
+            >>> )
+
+            Then put it into a dataset and tag:
+
+            >>> p = Dataset(
+            >>>     name="sample_set",
             >>>     data_type=SeriesType.simple(),
-            >>>     data=some_data)
-            >>> x.series_names_to_tags(attributes=['XYZ', 'ABC'])
+            >>>     data=some_data,
+            >>> )
+            >>> p.series_names_to_tags(attributes=['XYZ', 'ABC'])
 
-            **Tag by regex**
+            >>> p.tags
+
+            The above approach may be used at any time to add tags for an existing dataset, but the same arguments can also be provided when initialising the set:
+
+            >>> z = Dataset(
+            >>>     name="copy_of_sample_set",
+            >>>     data_type=SeriesType.simple(),
+            >>>     data=some_data,
+            >>>     attributes=['XYZ', 'ABC'],
+            >>> )
+
+            Best practice is to do this only in the process that writes data to the set.
+            For a finite number of series, it does not need to be repeated.
+
+            If, on the other hand, the number of series can change over time, doing so at the time of writing ensures all series are tagged.
+            Tag using attributes and regex:
 
             If series names are less well formed, a regular expression with groups matching the attribute list can be provided instead of the separator parameter.
 
-            >>> more_data = create_df(["x_1,,a", "y...b..", "z..1.1-23..c"], start_date="2024-01-01", end_date="2024-12-31", freq="MS")
-            >>> x = Dataset(name="sample_set",data_type=SeriesType.simple(),data=more_data,)
+            >>> more_data = create_df(
+            >>>     ["x_1,,a", "y...b..", "z..1.1-23..c"],
+            >>>     start_date="2024-01-01",
+            >>>     end_date="2024-12-31",
+            >>>     freq="MS",
+            >>> )
+            >>> x = Dataset(
+            >>>     name="bigger_sample_set",
+            >>>     data_type=SeriesType.simple(),
+            >>>     data=more_data,
+            >>> )
             >>> x.series_names_to_tags(attributes=['XYZ', 'ABC'], regex=r'([a-z])*([a-z])')
 
 
-            The above approach may be used to add tags for an existing dataset, but the same arguments can also be provided when initialising the set:
 
-            >>> # xdoctest: +SKIP
-            >>> # this line is not valid python code
-            >>> z = Dataset(name="sample_set",
-            >>>     data_type=SeriesType.simple(),
-            >>>     data=some_data,
-            >>>     name_pattern=['XYZ', 'ABC'])
-            >>> # xdoctest: -SKIP
-
-            Best practice is to do this only in the process that writes data to the set. For a finite number of series, it does not need to be repeated.
-
-            If, on the other hand, the number of series can change over time, doing so at the time of writing ensures all series are tagged.
         """
         # if attributes is None:
         #     attributes = []
 
         # if attributes:
-        #     self.auto_tag_config["name_pattern"] = attributes
+        #     self.auto_tag_config["attributes"] = attributes
         # else:
-        #    attributes = self.auto_tag_config["name_pattern"]
+        #    attributes = self.auto_tag_config["attributes"]
         apply_all = self.auto_tag_config.get("apply_to_all", {})
         inherited = meta.inherit_set_tags(self.tags)
         # self.tag_series({**inherited, **apply_all})
@@ -509,7 +608,7 @@ class Dataset:
             if apply_all:
                 self.tags["series"].get(series_key, {}).update(apply_all)
 
-        attributes = self.auto_tag_config["name_pattern"]
+        attributes = self.auto_tag_config["attributes"]
         separator = self.auto_tag_config["separator"]
         regex = self.auto_tag_config["regex"]
         if attributes:
@@ -529,10 +628,18 @@ class Dataset:
     ) -> None:
         """Retag selected attributes of series in the set.
 
-        The tags to be replaced and their replacements should be specified as tuple(s) of dictionaries for `(old_tags, new_tags)`. Both can contain multiple tags.
-         * Each tuple is evaluated independently for each series in the set.
-         * If the tag dict to be replaced contains multiple tags, all must match for tags to be replaced.
-         * If the new tag dict contains multiple tags, all are added where there is a match.
+        The tags to be replaced and their replacements should be specified in tuple(s) of :py:type:`tag dictionaries <ssb_timeseries.meta.TagDict>`;
+        each argument in ``*args`` should be on the form ``({<old_tags>},{<new_tags>})``.
+
+        Both old and new :py:type:`TagDict` can contain multiple tags.
+         - Each tuple is evaluated independently for each series in the set.
+         - If the tag dict to be replaced contains multiple tags, all must match for tags to be replaced.
+         - If the new tag dict contains multiple tags, all are added where there is a match.
+
+        .. admonition:: Maintaining tags
+            :class: more dropdown
+
+            |tagging|
         """
         for a in args:
             old = a[0]
@@ -1096,7 +1203,7 @@ class Dataset:
             >>> sample_set = Dataset(name="sample_set",
             >>>     data_type=SeriesType.simple(),
             >>>     data=sample_df,
-            >>>     name_pattern=["A", "B", "C"],
+            >>>     attributes=["A", "B", "C"],
             >>> )
             >>>
             >>> def perc10(x):
@@ -1296,3 +1403,9 @@ def catalog_search(
         )
     else:
         return found
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()

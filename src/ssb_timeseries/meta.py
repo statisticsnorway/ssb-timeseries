@@ -10,6 +10,11 @@ import itertools
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self  # noqa: UP035 #backport to 3.10
 from typing import TypeAlias
 from typing import TypedDict
 from typing import no_type_check
@@ -21,7 +26,6 @@ import pandas as pd
 from bigtree import get_tree_diff
 from bigtree import print_tree
 from klass import get_classification
-from typing_extensions import Self
 
 import ssb_timeseries as ts
 from ssb_timeseries import fs

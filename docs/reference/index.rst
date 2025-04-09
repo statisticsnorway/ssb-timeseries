@@ -13,6 +13,3 @@ The package includes several modules:
    :glob:
 
    ssb_timeseries*
-
-
-WTF?

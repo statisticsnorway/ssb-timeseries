@@ -41,7 +41,7 @@ def test_find_data_using_single_metadata_attribute(
         data=create_df(
             *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
 
     x_filtered_on_attribute_a = x.filter(tags={"A": "a"})
@@ -88,7 +88,7 @@ def test_find_data_using_multiple_metadata_attributes(
         data=create_df(
             *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
 
     x_filtered_on_attribute_a_and_b = x.filter(tags={"A": "a", "B": "q"})
@@ -136,7 +136,7 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
         data=create_df(
             *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
 
     x_filtered_on_attribute_a = x.filter(tags={"A": ["a", "b"]})
@@ -184,7 +184,7 @@ def test_aggregate_sum_for_flat_list_taxonomy(
         data=create_df(
             *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
 
     assert len(x.numeric_columns()) == len(klass48_leaves)
@@ -225,7 +225,7 @@ def test_aggregate_multiple_functions_for_flat_list_taxonomy(
         data=create_df(
             *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
 
     assert len(x.numeric_columns()) == len(klass48_leaves)
@@ -275,7 +275,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
         data=create_df(
             *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
 
     assert len(x.numeric_columns()) == len(klass157_leaves)
@@ -316,7 +316,7 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
             *tag_values, start_date="2020-01-01", end_date="2024-01-03", freq="YS"
         ),
         tags=set_tags,
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
 
     assert len(x.numeric_columns()) == len(klass157_leaves)
@@ -357,7 +357,7 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
         data=create_df(
             *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
 
     assert len(x.numeric_columns()) == len(klass157_leaves)
@@ -412,7 +412,7 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
         data=create_df(
             *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
-        name_pattern=["bal", "com", "geo"],
+        attributes=["bal", "com", "geo"],
     )
 
     assert len(x.numeric_columns()) == len(balance_leaves) * len(
@@ -481,7 +481,7 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
             *tag_values, start_date="2020-01-01", end_date="2024-01-03", freq="YS"
         ),
         tags=set_tags,
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
 
     assert len(x.numeric_columns()) == len(klass157_leaves)
@@ -530,7 +530,7 @@ def test_aggregate_callable_for_hierarchical_taxonomy(
             *tag_values, start_date="2020-01-01", end_date="2024-01-03", freq="YS"
         ),
         tags=set_tags,
-        name_pattern=["A", "B", "C"],
+        attributes=["A", "B", "C"],
     )
 
     assert len(x.numeric_columns()) == len(klass157_leaves)

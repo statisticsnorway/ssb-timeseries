@@ -32,9 +32,13 @@ import os
 import sys
 from pathlib import Path
 
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self  # noqa: UP035 #backport to 3.10
+
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as JsonValidationError
-from typing_extensions import Self
 
 from ssb_timeseries import fs
 from ssb_timeseries.types import PathStr

@@ -29,7 +29,10 @@ import logging
 from collections.abc import Callable
 from datetime import datetime
 
-from typing_extensions import Self
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self  # noqa: UP035 #backport to 3.10
 
 import ssb_timeseries as ts
 
