@@ -32,26 +32,25 @@ The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether da
 """
 
 # import logging
+# import logging.config
 
-# getLogger(__name__).addHandler(logging.NullHandler())
-from ssb_timeseries.config import CONFIG as configuration
-from ssb_timeseries.logging import LOGGER as logger
-
-# logger_name = getattr(configuration, "logger", "TIMESERIES")
-# if logger_name:
-#     logger = logging.getLogger(logger_name)
-# else:
-#     logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__package__)
 # logger.addHandler(logging.NullHandler())
 
+from ssb_timeseries.config import CONFIG as configuration
+from ssb_timeseries.logging import set_up_logging_according_to_config
+
+logger = set_up_logging_according_to_config(__name__, configuration.logging)
+
+# if configuration['logging']:
+#    logging.config.dictConfig(configuration['logging'])
+
 __all__ = [
-    # "config",
     "configuration",
     "dataset",
     "dates",
     "fs",
     "io",
-    # "logging",
     "logger",
     "properties",
     "sample_data",

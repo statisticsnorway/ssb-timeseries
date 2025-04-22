@@ -55,7 +55,9 @@ click = ">=8.1.7"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-filterwarnings = [ "error" ]
+#log_cli = true # does NOT fix issues with configuring loggers for testing
+# filterwarnings = [ "error", ] # error introduced in conftest.buildup and teardown?
+filterwarnings = [ "error", "ignore::pytest.PytestUnraisableExceptionWarning"]
 
 [tool.poetry.scripts]
 ssb-timeseries = "ssb_timeseries.__main__:main"

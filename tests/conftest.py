@@ -1,6 +1,7 @@
 import inspect
 import logging
 import warnings
+from copy import deepcopy
 
 # from pathlib import Path
 import pytest
@@ -9,14 +10,21 @@ from ssb_timeseries import config
 from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
+from ssb_timeseries.logging import set_up_logging_according_to_config
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
 # mypy: ignore-errors
 
-TEST_CONFIG = ""
 ENV_VAR_NAME = "TIMESERIES_CONFIG"
 _ENV_VAR_VALUE_BEFORE_TESTS = config.active_file()
+
+# TEST_LOGGER = "ssb_timeseries"  # should it be ts package logger?
+TEST_LOGGER = "tests"  # ... no, 'tests' is necessary, BUT requires a entry in config:
+TEST_LOG_CONFIG = deepcopy(config.LOGGING_PRESETS["console+file"])
+TEST_LOG_CONFIG["loggers"][TEST_LOGGER] = TEST_LOG_CONFIG["loggers"].pop(
+    config.PACKAGE_NAME
+)
 
 
 class LogWarning(UserWarning):
@@ -34,12 +42,19 @@ class LogWarningFilter(logging.Filter):
         return True
 
 
+def console_log_handler() -> None:
+    console = logging.StreamHandler()
+    string_format = logging.Formatter(
+        "%(name)s | %(levelname)s | %(asctime)s | %(message)s \n"
+    )
+    console.setFormatter(string_format)
+    console.setLevel("INFO")
+    return console
+
+
 class Helpers:
     configuration: config.Config
 
-    # @staticmethod
-    # def test_dir() -> str:
-    #    return TEST_DIR
     def __init__(self, configuration: config.Config | None = None) -> None:
         """Helpers for tests."""
         if configuration:
@@ -63,23 +78,18 @@ def conftest(buildup_and_teardown) -> Helpers:
 def buildup_and_teardown(
     tmp_path_factory,
 ):
-    """To make sure that tests do not change the configuration file."""
+    """Reset config and logging between modules."""
     before_tests = config.CONFIG
-
-    if before_tests.configuration_file and isinstance(before_tests, config.Config):
-        logging.debug(f"Configuration before running tests:\n{before_tests}")
-    else:
-        logging.debug(
-            f"No configuration file found before tests:\n{before_tests.configuration_file}"
-        )
-
     config_file_for_testing = str(
         fs.touch(tmp_path_factory.mktemp("config") / "config_for_tests.json")
     )
+    assert config_file_for_testing != ""
+
     log_file_for_testing = fs.touch(
         tmp_path_factory.mktemp("logs") / "log_for_tests.log"
     )
-    assert config_file_for_testing != ""
+    log_config = TEST_LOG_CONFIG
+    log_config["handlers"]["file"]["filename"] = str(log_file_for_testing)
 
     config.active_file(config_file_for_testing)
     temp_configuration = config.Config(
@@ -88,24 +98,24 @@ def buildup_and_teardown(
         timeseries_root=str(tmp_path_factory.mktemp("series")),
         catalog=str(tmp_path_factory.mktemp("metadata")),
         bucket=str(tmp_path_factory.mktemp("bucket")),
+        logging=log_config,
         ignore_file=True,
     )
     temp_configuration.save()
     assert fs.exists(temp_configuration.configuration_file)
 
-    global TEST_CONFIG
-    TEST_CONFIG = config_file_for_testing
-    logging.getLogger("ssb_timeseries").addFilter(LogWarningFilter())
-    # run tests
+    logger = set_up_logging_according_to_config(TEST_LOGGER, temp_configuration.logging)
+    # logger.addHandler(console_log_handler())
+    logger.addFilter(LogWarningFilter())
     yield temp_configuration
-    logging.getLogger(__name__).removeFilter(LogWarningFilter())
+    logging.getLogger(TEST_LOGGER).removeFilter(LogWarningFilter())
 
-    # teardown: reset config
     if before_tests.configuration_file:  # and isinstance(before_tests, config.Config):
         before_tests.save()
     else:
         config.unset_env_var()
 
+    set_up_logging_according_to_config(config.PACKAGE_NAME, before_tests.logging)
     active_config_after = config.active_file()
     assert active_config_after == _ENV_VAR_VALUE_BEFORE_TESTS
 

@@ -30,12 +30,15 @@ import json
 import logging
 import os
 import sys
+import warnings
 from pathlib import Path
 
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self  # noqa: UP035 #backport to 3.10
+
+from typing import Any
 
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as JsonValidationError
@@ -44,6 +47,7 @@ from ssb_timeseries import fs
 from ssb_timeseries.types import PathStr
 
 # mypy: disable-error-code="assignment, arg-type, override,call-arg,has-type,no-untyped-def,attr-defined,import-untyped,"
+
 _config_logger = logging.getLogger(__name__)
 PACKAGE_NAME = "ssb_timeseries"
 ENV_VAR_NAME = "TIMESERIES_CONFIG"
@@ -57,7 +61,7 @@ def unset_env_var() -> str:
 def active_file(path: PathStr = "") -> str:
     """If a path is provided, sets environment variable :py:const:`ENV_VAR_NAME` to specify the location of the configuration file.
 
-    Returns the value of the environment variable by way of :py:func:`get_active_file`.
+    Returns the value of the environment variable.
     """
     if path:
         os.environ[ENV_VAR_NAME] = str(path)
@@ -95,20 +99,73 @@ DAPLA_TEAM = os.getenv("DAPLA_TEAM", "")
 DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-{DAPLA_ENV}"
 """Returns the Dapla product bucket name for the current environment: gs://{DAPLA_TEAM}-{DAPLA_ENV}."""
 
-PRESETS: dict[str, dict] = {
-    "default": {
-        "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
-        "bucket": str(Path(HOME)),
-        "timeseries_root": str(Path(HOME, ROOT_DIR_NAME)),
-        "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
-        "log_file": str(Path(HOME, LOGDIR, LOGFILE)),
+LOGGING_PRESETS = {
+    "simple": {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stdout",
+                "level": "INFO",
+            },
+        },
+        "loggers": {
+            "ssb_timeseries": {
+                "level": "INFO",
+                "handlers": [
+                    "console",
+                ],
+                "propagate": False,
+            }
+        },
     },
+    "console+file": {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "format": "%(asctime)s - %(levelname)s - %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+            "json": {
+                "format": '{"time": %(asctime)-s, "level": %(levelname)-s, "message": %(message)s},',
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+        },
+        "handlers": {
+            "console": {
+                "level": "INFO",
+                "class": "logging.StreamHandler",
+                "formatter": "default",
+                "stream": "ext://sys.stdout",
+            },
+            "file": {
+                "level": "INFO",
+                "class": "logging.handlers.RotatingFileHandler",
+                "formatter": "default",
+                "filename": "ssb_timeseries.log",
+                "maxBytes": 10_000,
+                "backupCount": 3,
+            },
+        },
+        "loggers": {
+            PACKAGE_NAME: {
+                "level": "INFO",
+                "handlers": ["console", "file"],
+                "propagate": False,
+            }
+        },
+    },
+}
+PRESETS: dict[str, dict] = {
     "home": {
         "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
         "bucket": str(Path(HOME)),
         "timeseries_root": str(Path(HOME, ROOT_DIR_NAME)),
         "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
         "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
+        "logging": LOGGING_PRESETS,
     },
     "shared-test": {
         "configuration_file": str(Path(HOME, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
@@ -116,6 +173,7 @@ PRESETS: dict[str, dict] = {
         "timeseries_root": str(Path(SHARED_TEST, SSB_DIR_NAME)),
         "catalog": str(Path(SHARED_TEST, SSB_DIR_NAME, META_DIR_NAME)),
         "log_file": str(Path(SHARED_TEST, SSB_LOGDIR, LOGFILE)),
+        "logging": {},
     },
     "shared-prod": {
         "configuration_file": str(
@@ -125,6 +183,7 @@ PRESETS: dict[str, dict] = {
         "timeseries_root": str(Path(SHARED_PROD, SSB_DIR_NAME)),
         "catalog": str(Path(SHARED_PROD, SSB_DIR_NAME, META_DIR_NAME)),
         "log_file": str(Path(SHARED_PROD, SSB_LOGDIR, LOGFILE)),
+        "logging": {},
     },
     "daplalab": {
         "configuration_file": str(
@@ -134,43 +193,13 @@ PRESETS: dict[str, dict] = {
         "timeseries_root": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME)),
         "catalog": str(Path(DAPLALAB_FUSE, SSB_DIR_NAME, META_DIR_NAME)),
         "log_file": str(Path(DAPLALAB_FUSE, SSB_LOGDIR, LOGFILE)),
+        "logging": {},
     },
 }
 
-PRESETS["defaults"] = PRESETS["default"]
+PRESETS["default"] = PRESETS["home"]
+PRESETS["defaults"] = PRESETS["home"]
 DEFAULTS = PRESETS["default"]
-
-DEFAULT_LOGGING_CONFIG = {
-    "version": 1,
-    "formatters": {
-        "default": {
-            "format": "%(asctime)s - %(levelname)s - %(message)s",
-            "datefmt": "%Y-%m-%d %H:%M:%S",
-        },
-        "json": {
-            "format": '{"time": %(asctime)-s, "level": %(levelname)-s, "message": %(message)s},',
-            "datefmt": "%Y-%m-%d %H:%M:%S",
-        },
-    },
-    "handlers": {
-        "console": {
-            "level": "INFO",
-            "class": "logging.StreamHandler",
-            "formatter": "default",
-            "stream": "ext://sys.stdout",
-        },
-        "file": {
-            "level": "INFO",
-            "class": "logging.handlers.RotatingFileHandler",
-            "formatter": "default",
-            "filename": "",
-            "maxBytes": 1024,
-            "backupCount": 3,
-        },
-    },
-    "loggers": {"default": {"level": "DEBUG", "handlers": ["console", "file"]}},
-    "disable_existing_loggers": False,
-}
 
 
 class Config:
@@ -194,10 +223,10 @@ class Config:
     """The root directory for data storage of a repository."""
     catalog: PathStr
     """The path to the metadata directory of a repository ."""
-    log_file: PathStr
-    """The path to the log file."""
     bucket: PathStr
     """The topmost level of the GCS bucket for the team."""
+    logging: dict
+    """Logging configuration as a valid :py:mod:`logging.dictConfig`."""
 
     def __init__(self, **kwargs) -> None:  # noqa: D417, ANN003, DAR101, DAR402, RUF100
         """Initialize Config object from keyword arguments.
@@ -209,6 +238,7 @@ class Config:
             catalog (str): Path to the catalog file.
             log_file (str): Path to the log file.
             bucket (str): Name of the GCS bucket.
+            ignore_file (bool):
 
         Raises:
             :py:exc:`FileNotFoundError`: If the configuration file as implied by provided or not provided parameters does not exist.   # noqa: DAR402
@@ -216,10 +246,10 @@ class Config:
             :py:exc:`EnvVarNotDefinedeError`: If the environment variable TIMESERIES_CONFIG is not defined.
 
         Examples:
-            Load an existing config from TIMESERIES_CONFIG or default location:
+            To load an existing preset configuration:
 
                 >>> from ssb_timeseries.config import Config
-                >>> config = Config.active()
+                >>> config = Config(preset='daplalab')
         """
         preset_name = kwargs.pop("preset", "")
         ignore_file = kwargs.pop("ignore_file", False)
@@ -235,12 +265,16 @@ class Config:
             self.apply(kwargs)
             return
         elif param_specified_config_file:
+            # if config file is
             _config_logger.debug(
                 f"Loading configuration from {param_specified_config_file}"
             )
             if set(kwargs.keys()) == set(["configuration_file"]):
+                # if config file is the only parameter, it is an error for it not to exist
                 no_file_is_an_error = True
             else:
+                # if kwargs form a complete config, it is ok if the config file does not exist
+                # (otherwise it is needed to supplement the kwargs)
                 no_file_is_an_error = not is_valid_config(kwargs)[0]
 
             if not ignore_file:
@@ -269,25 +303,61 @@ class Config:
             )
             config_values = PRESETS["defaults"]
 
-        config_values.update(kwargs)
+        config_values.update(kwargs)  # in any case, provided kwargs override existing
 
         self.apply(config_values)
 
     def apply(self, configuration: dict) -> None:
         """Set configuration values from a dictionary."""
-        is_valid, reason = is_valid_config(configuration=configuration)
-        if is_valid:
-            for key, value in configuration.items():
-                setattr(self, key, value)
-        else:
+        log_config = configuration.get("logging", {})
+        if not log_config:
+            configuration["logging"] = {}
+        elif isinstance(log_config, str):
+            warnings.warn(
+                "string based log config! TO DO: look up named option", stacklevel=2
+            )
+            configuration["logging"] = {"str": log_config}
+
+        config_ok, reason = is_valid_config(configuration=configuration)
+
+        if not config_ok:
             _config_logger.error(f"Invalid configuration {configuration}\n{reason}.")
-            raise ValidationError(f"Invalid configuration {configuration}.")
+            raise ValidationError(f"Invalid configuration:\n{configuration}\n{reason}.")
+
+        logfile = configuration.pop("log_file", "")
+        if logfile and not logging:
+            # filehandler should be configured as dictConfig
+            configuration["logging"] = {"logfile": logfile}
+        else:
+            ...
+            # --- if logging is valid logging.dictConfig -->
+            # (add file handler first?)
+            # handlers = configuration['logging'].get('handlers',{})
+            # filehandler =  handlers.get('file',{})
+            # if logfile and filehandler:
+            #     configuration['logging']['handlers']['file']['filename'] = logfile
+
+        for key, value in configuration.items():
+            # if key == 'logging':
+            #    logging.warning(f'LOGGING: {value}')
+            setattr(self, key, value)
 
     @property
     def is_valid(self) -> bool:
         """Check if the configuration has all required fields."""
         result: bool = is_valid_config(self.__dict__())[0]
         return result
+
+    @property
+    def log_file(self) -> str:
+        """Get file name from logging configuration, if a file based log handler is defined."""
+        logging = getattr(self, "logging", {})
+        handlers = logging.get("handlers", {})
+        file_handler = handlers.get("file", {})
+        if file_handler:
+            return str(file_handler["filename"])
+        else:
+            return ""
 
     def save(self, path: PathStr = "") -> None:
         """Saves configurations to the JSON file defined by `path` or :py:attr:`configuration_file`.
@@ -315,9 +385,9 @@ class Config:
 
         active_file(str(path))
 
-    def __getitem__(self, item: str) -> str:
+    def __getitem__(self, item: str) -> Any | None:
         """Get the value of a configuration."""
-        return str(getattr(self, item))
+        return getattr(self, str(item), None)
 
     def __eq__(self, other: Self | dict) -> bool:
         """Equality test."""
@@ -332,7 +402,7 @@ class Config:
             "configuration_file",
             "timeseries_root",
             "catalog",
-            "log_file",
+            "logging",
             "bucket",
         ]
         out = {}
@@ -449,14 +519,15 @@ def configuration_schema(version: str = "0.3.1") -> dict:
                     "bucket": {"type": "string"},
                     "configuration_file": {"type": "string"},
                     "log_file": {"type": "string"},
+                    "logging": {},
                     "catalog": {"type": "string"},
                     "timeseries_root": {"type": "string"},
                 },
                 "required": [
                     "bucket",
                     "configuration_file",
-                    "log_file",
                     "catalog",
+                    # "logging", # fails tests --> need complete spec above?
                     "timeseries_root",
                 ],
             }
@@ -487,9 +558,7 @@ def is_valid_config(configuration: dict) -> tuple[bool, object]:
             schema=configuration_schema(),
         )
     except JsonValidationError as err:
-        _config_logger.debug(
-            f"Invalid configuration {configuration}\nValidation error. {err}"
-        )
+        # _config_logger.debug( "Invalid configuration %s Validation error. #s", configuration, err)
         out = (False, err)
     return out
 
@@ -498,9 +567,12 @@ def presets(named_config: str) -> dict:  # noqa: RUF100, DAR201
     """Set configurations to predefined defaults.
 
     Raises:
-        ValueError: If args is not 'home' | 'gcs' | 'jovyan'.
+        ValueError: If args is not 'home' | 'gcs' | 'daplalab'.
     """
     if named_config in PRESETS:
+        cfg = PRESETS[named_config]
+        # cfg['logging'] = DEFAULT_LOGGING_CONFIG
+        cfg["logging"]["handlers"]["file"]["filename"] = cfg.pop("log_file", "")
         return PRESETS[named_config]
     else:
         raise ValueError(
@@ -521,10 +593,10 @@ def main(*args: str | PathStr) -> None:
         ```
 
     Args:
-        *args (str): 'home' | 'gcs' | 'jovyan'.
+        *args (str): 'home' | 'gcs' | 'daplalab'.
 
     Raises:
-        ValueError: If args is not 'home' | 'gcs' | 'jovyan'. # noqa: DAR402
+        ValueError: If args is not 'home' | 'gcs' | 'daplalab'. # noqa: DAR402
 
     """
     if args:
@@ -532,11 +604,10 @@ def main(*args: str | PathStr) -> None:
     else:
         config_identifier = sys.argv[1]
 
-    print(f"Update configuration with named preset: '{config_identifier}'.")
     cfg = Config(preset=config_identifier)
     cfg.save(path=cfg.configuration_file)
 
-    print(
+    _config_logger.debug(
         f"Preset configuration '{config_identifier}' was applied:\n\t{cfg.__dict__}\nSaved to file: {cfg.configuration_file}.\nEnvironment variable set: {os.getenv('TIMESERIES_CONFIG')=}"
     )
 

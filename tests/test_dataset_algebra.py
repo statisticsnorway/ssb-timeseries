@@ -6,7 +6,6 @@ import pytest
 
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -35,7 +34,6 @@ def xyz_w_ones_seq_quad(
     yield ds
 
 
-@log_start_stop
 @pytest.mark.skipif(True, reason="dataset.identity needs rethinking/fixing")
 def test_dataset_instance_identity(caplog) -> None:
     caplog.set_level("DEBUG")
@@ -89,10 +87,10 @@ def test_dataset_math(caplog) -> None:
     scalar = 1000
 
     # TO DO: improve coverage by adding asserts for scalar cases
-    logging.debug(f"matrix:\n{a + scalar}")
-    logging.debug(f"matrix:\n{a - scalar}")
-    logging.debug(f"matrix:\n{a * scalar}")
-    logging.debug(f"matrix:\n{a / scalar}")
+    logger.debug(f"matrix:\n{a + scalar}")
+    logger.debug(f"matrix:\n{a - scalar}")
+    logger.debug(f"matrix:\n{a * scalar}")
+    logger.debug(f"matrix:\n{a / scalar}")
 
     # TO DO: add test cases for numpy arrays
     # col_vector = np.ones((1, 3)) * scalar
@@ -123,7 +121,6 @@ def test_dataset_math(caplog) -> None:
     # assert all((a / a) == (a / a_data))
 
 
-@log_start_stop
 def test_dataset_add_dataset(caplog) -> None:
     caplog.set_level("DEBUG")
 
@@ -159,7 +156,6 @@ def test_dataset_add_dataset(caplog) -> None:
     # assert all(c == d)
 
 
-@log_start_stop
 def test_algebra_expression_with_multiple_dataset(
     caplog,
 ) -> None:
@@ -208,7 +204,6 @@ def test_algebra_expression_with_multiple_dataset(
     # assert all(e == d)
 
 
-@log_start_stop
 def test_dataset_add_dataframe(caplog) -> None:
     caplog.set_level("DEBUG")
 
@@ -234,7 +229,6 @@ def test_dataset_add_dataframe(caplog) -> None:
     # assert all(b == c)
 
 
-@log_start_stop
 def test_dataset_subtract_dataset(caplog) -> None:
     caplog.set_level("DEBUG")
 
@@ -264,7 +258,6 @@ def test_dataset_subtract_dataset(caplog) -> None:
     assert all(c.data == 0)
 
 
-@log_start_stop
 def test_dataset_subtract_dataframe(caplog) -> None:
     caplog.set_level("DEBUG")
 
@@ -287,7 +280,6 @@ def test_dataset_subtract_dataframe(caplog) -> None:
     assert all(b.data == 0)
 
 
-@log_start_stop
 def test_dataset_vectors(caplog):
     caplog.set_level("DEBUG")
 
@@ -319,7 +311,6 @@ def test_dataset_vectors(caplog):
     assert all(eval("r") == x.data["r"])
 
 
-@log_start_stop
 def test_dataset_vectors_with_filter(caplog):
     caplog.set_level("DEBUG")
 

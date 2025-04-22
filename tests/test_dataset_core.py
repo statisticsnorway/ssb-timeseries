@@ -11,7 +11,6 @@ from ssb_timeseries.dataset import search
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.fs import file_count
-from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.properties import Versioning
 from ssb_timeseries.sample_data import create_df
@@ -23,7 +22,6 @@ from ssb_timeseries.sample_data import create_df
 # BUCKET = CONFIG.bucket
 
 
-@log_start_stop
 def test_dataset_instance_created(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -59,7 +57,6 @@ def test_dataset_instance_created_equals_repr(
 
 
 @pytest.mark.skip(reason="TODO: revisit dataset.identical.")
-@log_start_stop
 def test_dataset_instance_identity(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -132,7 +129,6 @@ def test_dataset_copy_creates_set_with_new_name_and__otherwise_identical_attribu
     assert copy == original
 
 
-@log_start_stop
 def test_datafile_exists_after_create_dataset_and_save(
     conftest,
     xyz_at,
@@ -150,7 +146,6 @@ def test_datafile_exists_after_create_dataset_and_save(
     assert check
 
 
-@log_start_stop
 def test_metafile_exists_after_create_dataset_and_save(
     caplog: LogCaptureFixture,
     xyz_at,
@@ -171,7 +166,6 @@ def test_metafile_exists_after_create_dataset_and_save(
     assert x.io.metadatafile_exists()
 
 
-@log_start_stop
 def test_same_simple_data_written_multiple_times_does_not_create_duplicates(
     caplog: LogCaptureFixture,
     conftest,
@@ -201,7 +195,6 @@ def test_same_simple_data_written_multiple_times_does_not_create_duplicates(
     assert y.data.shape == expected_data_size
 
 
-@log_start_stop
 def test_read_existing_simple_metadata(
     existing_simple_set: Dataset,
     caplog: LogCaptureFixture,
@@ -224,7 +217,6 @@ def test_read_existing_simple_metadata(
         raise AssertionError
 
 
-@log_start_stop
 def test_read_existing_simple_data(
     existing_simple_set: Dataset,
     caplog: LogCaptureFixture,
@@ -246,7 +238,6 @@ def test_read_existing_simple_data(
         raise AssertionError
 
 
-@log_start_stop
 def test_read_existing_estimate_metadata(
     # bup_and_tdwn,
     existing_estimate_set: Dataset,
@@ -269,7 +260,6 @@ def test_read_existing_estimate_metadata(
     assert x.tags["versioning"] == str(Versioning.AS_OF)
 
 
-@log_start_stop
 def test_read_existing_estimate_data(
     # bup_and_tdwn,
     existing_estimate_set: Dataset,
@@ -290,7 +280,6 @@ def test_read_existing_estimate_data(
     assert x.data.size == 336
 
 
-@log_start_stop
 def test_load_existing_set_without_loading_data(
     # bup_and_tdwn,
     conftest,
@@ -391,7 +380,6 @@ def test_search_for_dataset_by_part_of_name_two_matches(
     assert len(datasets_found) == 2
 
 
-@log_start_stop
 def test_search_for_nonexisting_dataset_returns_none(
     conftest,
     caplog: LogCaptureFixture,
@@ -410,7 +398,6 @@ def test_search_for_nonexisting_dataset_returns_none(
     assert not datasets_found
 
 
-@log_start_stop
 def test_list_versions(caplog: LogCaptureFixture, existing_estimate_set: Dataset):
     caplog.set_level(logging.DEBUG)
 
@@ -429,7 +416,6 @@ def test_list_versions(caplog: LogCaptureFixture, existing_estimate_set: Dataset
     assert len(versions_after_saving) == 4
 
 
-@log_start_stop
 def test_list_versions_return_empty_list_for_set_not_saved(
     caplog: LogCaptureFixture, new_dataset_none_from_to: Dataset
 ):
@@ -438,7 +424,6 @@ def test_list_versions_return_empty_list_for_set_not_saved(
     assert new_dataset_none_from_to.versions() == []
 
 
-@log_start_stop
 def test_list_versions_return_latest_for_not_versioned_set(
     caplog: LogCaptureFixture, existing_simple_set: Dataset
 ):
@@ -447,7 +432,6 @@ def test_list_versions_return_latest_for_not_versioned_set(
     assert existing_simple_set.versions() == ["latest"]
 
 
-@log_start_stop
 def test_dataset_getitem_by_string(
     existing_simple_set: Dataset, caplog: LogCaptureFixture
 ):
@@ -464,7 +448,6 @@ def test_dataset_getitem_by_string(
     assert list(y.data.columns) == ["valid_at", "b_q_z1"]
 
 
-@log_start_stop
 def test_dataset_getitem_by_tags(
     new_dataset_none_at: Dataset, caplog: LogCaptureFixture
 ):
@@ -481,7 +464,6 @@ def test_dataset_getitem_by_tags(
     assert list(y.data.columns) == ["valid_at", "a_q_z1"]
 
 
-@log_start_stop
 def test_filter_dataset_by_regex_return_dataframe(caplog):
     caplog.set_level(logging.DEBUG)
 
@@ -497,7 +479,6 @@ def test_filter_dataset_by_regex_return_dataframe(caplog):
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
 
-@log_start_stop
 def test_filter_dataset_by_regex_return_dataset(caplog):
     caplog.set_level(logging.DEBUG)
 
@@ -514,7 +495,6 @@ def test_filter_dataset_by_regex_return_dataset(caplog):
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
 
-@log_start_stop
 def test_correct_datetime_columns_valid_at(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -531,7 +511,6 @@ def test_correct_datetime_columns_valid_at(
     assert a.datetime_columns() == ["valid_at"]
 
 
-@log_start_stop
 def test_correct_datetime_columns_valid_from_to(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -553,7 +532,6 @@ def test_correct_datetime_columns_valid_from_to(
     assert a.datetime_columns().sort() == ["valid_from", "valid_to"].sort()
 
 
-@log_start_stop
 def test_versioning_as_of_creates_new_file(
     existing_estimate_set: Dataset, caplog: LogCaptureFixture
 ) -> None:
@@ -569,7 +547,6 @@ def test_versioning_as_of_creates_new_file(
     assert files_after == files_before + 1
 
 
-@log_start_stop
 def test_versioning_as_of_init_without_version_selects_latest(
     existing_estimate_set: Dataset, caplog: LogCaptureFixture
 ) -> None:
@@ -631,7 +608,6 @@ def test_versioning_none_appends_to_existing_file(
     assert b.data.size < c.data.size
 
 
-@log_start_stop
 def test_get_dataset_series_and_series_tags(
     new_dataset_none_at: Dataset,
     caplog: LogCaptureFixture,

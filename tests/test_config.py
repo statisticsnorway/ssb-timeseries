@@ -34,8 +34,7 @@ from tests.conftest import Helpers
 # NOSONAR
 # mypy: disable-error-code="no-untyped-def"
 
-# ================ fixtures: ===================
-
+# ================================ FIXTURES: ===================================
 # - make sure we use test configurations defined in conftest.py
 #   (designed to make sure we do not pollute the user environment with test data)
 # - control whether ENV VAR and CONF FILE exists or not before running tests
@@ -124,12 +123,12 @@ def unset_env_var_and_hide_file_before_running(
     yield hide_file_before_running
 
 
-# ======================= tests ==========================
+# =================================== TESTS ===================================
 
 
 def test_config_validation(
     caplog: pytest.LogCaptureFixture,
-    buildup_and_teardown: config.Config,
+    buildup_and_teardown,
 ) -> None:
     caplog.set_level("DEBUG")
     configuration = buildup_and_teardown
@@ -156,8 +155,6 @@ def test_config_presets(
     attr,
     value,
 ) -> None:
-    # all of these should result in the same information, but in different objects
-
     cfg = config.Config(preset=preset_name)
 
     assert isinstance(cfg, config.Config)
@@ -166,43 +163,27 @@ def test_config_presets(
         assert cfg.__getattribute__(attr) == value
 
 
-def test_init_config_without_params(caplog: pytest.LogCaptureFixture) -> None:
+def test_init_config_without_params_returns_existing_config_specified_by_env_var(
+    caplog: pytest.LogCaptureFixture,
+    ensure_config_file_exists_and_env_var_is_set_before_running,
+) -> None:
     caplog.set_level("DEBUG")
-    new_config = config.Config(preset="default")
+    new_config = config.Config()
     ts.logger.debug(f"Created configuration: {new_config}")
     assert isinstance(new_config, config.Config)
-    for key in config.DEFAULTS.keys():
+    expected = config.DEFAULTS
+    expected.pop("logging")
+    for key in expected.keys():
         assert new_config[key] == config.DEFAULTS[key]
 
 
-def test_init_with_incomplete_params_uses_defaults_for_missing(
-    caplog: pytest.LogCaptureFixture,
-    unset_env_var_and_hide_file_before_running: None,
-) -> None:
-    caplog.set_level("DEBUG")
-    assert os.environ.get("TIMESERIES_CONFIG") is None
-    default_config = config.Config(preset="defaults")
-    new_config = config.Config(
-        timeseries_root=config.GCS,
-        log_file=default_config["log_file"],
-    )
-    ts.logger.debug(
-        f"Created configuration: {new_config} with root {new_config.timeseries_root}"
-    )
-    assert isinstance(new_config, config.Config)
-    assert new_config.is_valid
-    assert new_config.timeseries_root == config.GCS
-    assert new_config.log_file == config.DEFAULTS["log_file"]
-
-
-def test_config_defaults(
+def test_config_init_for_no_params_returns_same_as_preset_defaults(
     caplog: pytest.LogCaptureFixture,
     reset_config_after: config.Config,
 ) -> None:
     caplog.set_level("DEBUG")
     # all of these should result in the same information, but in different objects
     cfg_0 = config.Config(preset="default")
-    # cfg_0.save()  # for the rare occasions when the default location changes
     cfg_1 = config.Config(preset="defaults")
     cfg_2 = config.Config()
     ts.logger.debug(f"compare:\n{cfg_0=}\n{cfg_1=}\n{cfg_2=}")
@@ -247,7 +228,7 @@ def test_init_of_not_already_existing_config_file_and_incomplete_config_params_r
 ) -> None:
     caplog.set_level("DEBUG")
     # setup: point to a config that does not exist (this should create the .json file):
-    test_dir = config.CONFIG.bucket
+    test_dir = reset_config_after.bucket
     tmp_config = fs.path(test_dir, f"timeseries_temp_config_{uuid.uuid4()}.json")
     with pytest.raises(FileNotFoundError):
         configuration = config.Config(
@@ -265,7 +246,7 @@ def test_init_of_not_already_existing_config_file_with_complete_params_creates_n
 ) -> None:
     caplog.set_level("DEBUG")
     # setup: point to a config that does not exist (this should create the .json file):
-    test_dir = config.CONFIG.bucket
+    test_dir = reset_config_after.bucket
     tmp_config = fs.path(test_dir, f"timeseries_temp_config_{uuid.uuid4()}.json")
 
     configuration = config.Config(
@@ -274,6 +255,7 @@ def test_init_of_not_already_existing_config_file_with_complete_params_creates_n
         bucket=test_dir,
         timeseries_root=test_dir,
         catalog=test_dir,
+        logging={},
     )
 
     ts.logger.debug(
