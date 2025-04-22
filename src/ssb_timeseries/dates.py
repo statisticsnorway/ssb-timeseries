@@ -12,7 +12,6 @@ from zoneinfo import ZoneInfo
 
 from dateutil import parser
 
-# from ssb_timeseries.logging import ts_logger
 import ssb_timeseries as ts
 
 

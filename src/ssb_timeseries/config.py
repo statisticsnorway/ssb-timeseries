@@ -165,7 +165,7 @@ PRESETS: dict[str, dict] = {
         "timeseries_root": str(Path(HOME, ROOT_DIR_NAME)),
         "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
         "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
-        "logging": LOGGING_PRESETS,
+        "logging": LOGGING_PRESETS["simple"],
     },
     "shared-test": {
         "configuration_file": str(Path(HOME, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
@@ -338,8 +338,6 @@ class Config:
             #     configuration['logging']['handlers']['file']['filename'] = logfile
 
         for key, value in configuration.items():
-            # if key == 'logging':
-            #    logging.warning(f'LOGGING: {value}')
             setattr(self, key, value)
 
     @property
@@ -558,7 +556,6 @@ def is_valid_config(configuration: dict) -> tuple[bool, object]:
             schema=configuration_schema(),
         )
     except JsonValidationError as err:
-        # _config_logger.debug( "Invalid configuration %s Validation error. #s", configuration, err)
         out = (False, err)
     return out
 
@@ -571,7 +568,6 @@ def presets(named_config: str) -> dict:  # noqa: RUF100, DAR201
     """
     if named_config in PRESETS:
         cfg = PRESETS[named_config]
-        # cfg['logging'] = DEFAULT_LOGGING_CONFIG
         cfg["logging"]["handlers"]["file"]["filename"] = cfg.pop("log_file", "")
         return PRESETS[named_config]
     else:
