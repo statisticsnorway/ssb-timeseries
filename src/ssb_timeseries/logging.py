@@ -1,23 +1,33 @@
 """Logging for time series library.
 
-The library is created to be used in a context where every dataset read or write operation should not only be logged, but also generate events to be picked up by centralised workflow control.
-In some system contexts this is handled by a backend database or API.
-However, the timeseries libary is designed to be possible to use with only a file system or object storage as backend.
-Since in that case the library is closer to the reads and writes than the application(s) using it, and hence may be better positioned to take the responsibility for consistent logging.
-(There is less opportunity for somethuing else to fail before logging takes place.)
+Logging every dataset read and write operation is useful for process monitoring and provides set level data lineage.
+Writes are natural drivers for an automated event based workflow.
 
-This concern should be balanced against the general recommendation that code libraries leave it up to the applications using them to make decisions on logging; https://docs.python.org/3.10/howto/logging.html#library-config.
-Since the library requires proper configuration anyway, the natural solution is to let the configuration file control the logging behaviour as well.
+It depends on the system context which role the time series library should play.
+Workflow control and monitoring should generally be managed by other components,
+but the time series system should play nicely with whatever these might be.
+In practical terms, that boils down to structured logging.
+That in turn allow generating events from the log information.
+In some system setups a backend database or an API could take care of logging and event generation.
+However, the timeseries library could also be used with only a file system or object storage as backend.
+In that case, the library is possibly the most central point close to the reads and writes.
 
-If the configuration contains a non empty `log_file` field, logs are written there and to console.
-If instead a field `logging`is specified, it takes presedence, and is used with `logging.config.dictConfig`.
-If neither is specified, or dictConfig does not specify any log handlers, logging should be disabled.
+Since the library requires proper configuration anyway, the natural solution is to let the configuration control the logging behaviour as well.
+This also leave it up to the application to make decisions on logging;
+in line with the general recommendation for code libraries, https://docs.python.org/3.10/howto/logging.html#library-config.
 
-TO DO: Add support for a 'workflow' log handler that puts all entries with log level INFO onto a queue. (A default logging configuration may be sufficient?)
+Legacy: If the configuration contains a non empty `log_file` field, logs are written there (and to console).
+
+If `logging` field is specified, it takes presedence, and is used with `logging.config.dictConfig`.
+If both are empty, or dictConfig does not specify any log handlers, logging should be disabled.
+
+TO DO: Add support for a 'workflow' log handler that puts all entries with log level INFO onto a queue.
+(A default/option for logging configuration may be sufficient?)
 
 TODO: Logs should provide lineage at the dataset level, identifying which named processes reads and writes data.
-That requires log messages to include process names or identifiers that are determined at higher levels.
-The time series library may be able to get this information (in the scope of the calling code) by stack inspection. Otherwise, it must be passed in as parameters to read/write functions.
+That requires log messages to include process names, UUIDs or other identifiers.
+The time series library may be able to get this information (from the scope of the calling code) by stack inspection.
+Otherwise, it must be passed in as parameters to read/write functions.
 """
 
 # Consider whether:
