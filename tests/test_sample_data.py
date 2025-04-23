@@ -1,6 +1,6 @@
 import logging
 
-from ssb_timeseries.logging import ts_logger
+import ssb_timeseries as ts
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.sample_data import xyz_at
 from ssb_timeseries.sample_data import xyz_from_to
@@ -102,7 +102,7 @@ def test_create_df_twice_returns_different_data(caplog) -> None:
         midpoint=50,
         variance=5,
     )
-    ts_logger.debug(f"{x=}, \n{y=}")
+    ts.logger.debug(f"{x=}, \n{y=}")
     assert any(x != y)
 
 

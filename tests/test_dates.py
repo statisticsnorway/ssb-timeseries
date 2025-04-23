@@ -5,13 +5,13 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
+import ssb_timeseries as ts
 from ssb_timeseries.dates import Interval
 from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_round
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso
 from ssb_timeseries.dates import utc_iso_no_colon
-from ssb_timeseries.logging import ts_logger
 
 # mypy: disable-error-code="no-untyped-def,attr-defined"
 
@@ -47,7 +47,7 @@ def test_conversions_right_before_beginning_of_daylight_saving(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     d_utc = date_utc(date_local("2024-03-31 01:00:00"))
     d_local = date_local("2024-03-31 01:00:00")
-    ts_logger.debug(
+    ts.logger.debug(
         f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
     )
     # right before beginning of daylight saving, Europe/Oslo = CET = UTC + 1h
@@ -59,7 +59,7 @@ def test_conversions_right_after_beginning_of_daylight_saving(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     d_utc = date_utc(date_local("2024-03-31 03:00:00"))
     d_local = date_local("2024-03-31 03:00:00")
-    ts_logger.debug(
+    ts.logger.debug(
         f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
     )
     # right after beginning of daylight saving, Europe/Oslo = CEST = UTC + 2h
@@ -71,7 +71,7 @@ def test_conversions_right_before_end_of_daylight_saving(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     d_utc = date_utc(date_local("2024-10-27 01:45:00"))
     d_local = date_local("2024-10-27 01:45:00")
-    ts_logger.debug(
+    ts.logger.debug(
         f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
     )
     # right before end of daylight saving, Europe/Oslo = CEST = UTC + 2h
@@ -83,7 +83,7 @@ def test_conversions_right_after_end_of_daylight_saving(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     d_utc = date_utc(date_local("2024-10-27 02:15:00"))
     d_local = date_local("2024-10-27 02:15:00")
-    ts_logger.debug(
+    ts.logger.debug(
         f"UTC: {d_utc} local: {d_local} date_utc(local):{date_utc(d_local)}"
     )
     # right after end of daylight saving, Europe/Oslo = CET = UTC + 1h
@@ -99,7 +99,7 @@ def test_define_without_params() -> None:
 def test_define_with_as_of_returns_start_equals_stop_equals_as_of() -> None:
     some_date = datetime.now()
     x = Interval(as_of=some_date)
-    ts_logger.debug(x)
+    ts.logger.debug(x)
     assert x.start == some_date and x.stop == some_date
 
 
@@ -110,7 +110,7 @@ def test_define_without_named_fromdate_and_todate_returns_correct_interval(
     date_from = datetime.now() - timedelta(days=7)
     date_to = datetime.now()
     x = Interval(date_from, date_to)
-    ts_logger.debug(x)
+    ts.logger.debug(x)
     assert x.start == date_from and x.stop == date_to
 
 
@@ -118,7 +118,7 @@ def test_define_with_fromdate_and_todate_returns_correct_interval() -> None:
     date_from = datetime.now() - timedelta(days=7)
     date_to = datetime.now()
     x = Interval(start=date_from, stop=date_to)
-    ts_logger.debug(x)
+    ts.logger.debug(x)
     assert x.start == date_from and x.stop == date_to
 
 
@@ -149,7 +149,7 @@ def test_define_with_just_todate_returns_interval_less_than_todate(caplog) -> No
     caplog.set_level(logging.DEBUG)
     date_to = datetime.now() - timedelta(days=7)
     x = Interval(stop=date_to)
-    ts_logger.debug(x)
+    ts.logger.debug(x)
     assert x.start == datetime.min and x.stop == date_to
 
 

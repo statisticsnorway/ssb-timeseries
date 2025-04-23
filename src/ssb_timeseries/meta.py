@@ -27,8 +27,8 @@ from bigtree import get_tree_diff
 from bigtree import print_tree
 from klass import get_classification
 
+import ssb_timeseries as ts
 from ssb_timeseries import fs
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import PathStr
 
 # mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-untyped-call,operator,valid-type,no-any-return"
@@ -132,7 +132,6 @@ class Taxonomy:
         elif data:
             # data.append(root_node)
             df = pd.DataFrame(data)
-            ts_logger.debug(f"df:\n{df=}")
             self.entities = add_root_node(df, root_node)
         elif path:
             dict_from_file = fs.read_json(str(path))
@@ -170,11 +169,15 @@ class Taxonomy:
         s_entities = self.entities[fields_to_compare].reset_index(drop=True)
         o_entities = other.entities[fields_to_compare].reset_index(drop=True)
 
-        ts_logger.debug(
-            f"comparing:\n{s_entities.to_string()}\n...and:\n{o_entities.to_string()}"
+        ts.logger.debug(
+            "comparing:\n%s\n...and:\n%s",
+            s_entities.to_string(),
+            o_entities.to_string(),
         )
-        ts_logger.debug(
-            f".info:\n{_df_info_as_string(s_entities)}\n...and:\n{_df_info_as_string(o_entities)}"
+        ts.logger.debug(
+            ".info:\n%s\n...and:\n%s",
+            _df_info_as_string(s_entities),
+            _df_info_as_string(o_entities),
         )
         entities_equal = all(s_entities == o_entities)
 
@@ -182,7 +185,7 @@ class Taxonomy:
 
     def __sub__(self, other: bigtree.Node) -> bigtree.Node:  # type: ignore
         """Return the tree difference between the two taxonomy (tree) structures."""
-        ts_logger.debug(f"other: {other}")
+        ts.logger.debug("other: %s", other)
         if isinstance(other, bigtree.Node):
             remove = self.subtree(other.name).asc  # noqa: F841
             # self.structure.show()
@@ -228,7 +231,7 @@ class Taxonomy:
                 # tree_node = bigtree.find_name(self.structure.root, name)[0]
                 # tree_node = bigtree.get_subtree(self.structure.root, name)[0]
 
-            ts_logger.debug(f"leaves: {leaves}")
+            ts.logger.debug("leaves: %s", leaves)
             return leaves
         else:
             return [n.name for n in self.structure.leaves]
@@ -240,7 +243,7 @@ class Taxonomy:
             for n in self.structure.root.descendants
             if n not in self.structure.root.leaves
         ] + [self.structure.root]
-        ts_logger.debug(f"parents: {parents}")
+        ts.logger.debug("parents: %s", parents)
         return parents
 
     def save(self, path: PathStr) -> None:
@@ -394,8 +397,10 @@ def add_tag_values(
 
     Will append new tags as a list if any values already exist. With parameters recursive=True, nested dicts are also traversed.
     """
-    ts_logger.debug(
-        f"add_tag_values - to existing tags:\n\t{old}, \nadd value(s): {additions=}."
+    ts.logger.debug(
+        "add_tag_values - to existing tags:\n\t%s, \nadd value(s): %s.",
+        old,
+        additions,
     )
     new = deepcopy(old)
     for attr, new_value in additions.items():
@@ -423,8 +428,10 @@ def rm_tag_values(
 
     Values to remove and in tags can be string or list of strings.
     """
-    ts_logger.debug(
-        f"rm_tag - from tag:\n\t{existing}, \nremove value(s): {tags_to_remove}."
+    ts.logger.debug(
+        "rm_tag - from tag:\n\t%s, \nremove value(s): %s.",
+        existing,
+        tags_to_remove,
     )
     new = deepcopy(existing)
     for attr, val in existing.items():
@@ -444,8 +451,10 @@ def rm_tag_values(
                         new[attr].remove(rm_value)
 
     if recursive and "series" in new:
-        ts_logger.debug(
-            f"rm_tag - from tag:\n\t{existing}, \nrecursively remove value(s): {tags_to_remove}."
+        ts.logger.debug(
+            "rm_tag - from tag:\n\t%s, \nrecursively remove value(s): %s.",
+            existing,
+            tags_to_remove,
         )
         for series_key, tags in new["series"].items():
             new["series"][series_key] = rm_tag_values(tags, tags_to_remove, False)
@@ -624,7 +633,7 @@ def permutations(
         for k, v in zip(taxonomies.keys(), c, strict=False):
             d[k] = v
         out.append(d)
-    ts_logger.debug(out)
+    ts.logger.debug(out)
     return out
 
 

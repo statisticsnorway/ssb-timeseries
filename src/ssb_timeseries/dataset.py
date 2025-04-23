@@ -35,13 +35,12 @@ import matplotlib.pyplot as plt  # noqa: F401
 import numpy as np
 import pandas as pd
 
+import ssb_timeseries as ts
 from ssb_timeseries import io
 from ssb_timeseries import meta
-from ssb_timeseries import properties
 from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
 from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
-from ssb_timeseries.logging import ts_logger
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
 
@@ -93,7 +92,7 @@ class Dataset:
     def __init__(
         self,
         name: str,
-        data_type: properties.SeriesType = None,
+        data_type: ts.properties.SeriesType = None,
         as_of_tz: datetime = None,
         load_data: bool = True,
         **kwargs: Any,
@@ -160,13 +159,15 @@ class Dataset:
                     f"Dataset {name} did not give a unique match. Specify data_type if you intend to initialise a new set."
                 )
         identify_latest: bool = (
-            self.data_type.versioning == properties.Versioning.AS_OF
+            self.data_type.versioning == ts.properties.Versioning.AS_OF
             and not as_of_tz
             and load_data
         )
         if identify_latest:
-            ts_logger.debug(
-                f"Init {self.data_type} '{self.name}' without 'as_of_tz' --> identifying latest."
+            ts.logger.debug(
+                "Init %s '%s' without 'as_of_tz' --> identifying latest.",
+                self.data_type,
+                self.name,
             )
             self.io = io.FileSystem(
                 set_name=self.name, set_type=self.data_type, as_of_utc=None
@@ -249,7 +250,7 @@ class Dataset:
             self.as_of_utc = date_utc(as_of_tz)
 
         self.io = io.FileSystem(self.name, self.data_type, self.as_of_utc)
-        # ts_logger.debug(f"DATASET {self.name}: SAVE. Tags:\n\t{self.tags}.")
+        # ts.logger.debug("DATASET %s: SAVE. Tags:\n\t%s.", self.name, self.tags)
         if not self.tags:
             self.tags = self.default_tags()
             self.tags.update(self.io.read_metadata())
@@ -257,8 +258,8 @@ class Dataset:
             # autotag:
             if not self.data.empty:
                 self.series_names_to_tags()
-                ts_logger.debug(
-                    f"DATASET {self.name}: attempt to save empty tags = {self.tags}."
+                ts.logger.debug(
+                    "DATASET %s: attempt to save empty tags = %s.", self.name, self.tags
                 )
 
         self.io.save(meta=self.tags, data=self.data)
@@ -271,8 +272,13 @@ class Dataset:
         """
         date_from = self.data[self.datetime_columns()].min().min()
         date_to = self.data[self.datetime_columns()].max().max()
-        ts_logger.debug(
-            f"DATASET {self.name}: Data {utc_iso(date_from)} - {utc_iso(date_to)}:\n{self.data.head()}\n...\n{self.data.tail()}"
+        ts.logger.debug(
+            "DATASET %s: Data %s - %s:\n%s\n...\n%s",
+            self.name,
+            utc_iso(date_from),
+            utc_iso(date_to),
+            self.data.head(),
+            self.data.tail(),
         )
 
         self.save(as_of_tz=self.as_of_utc)
@@ -296,9 +302,9 @@ class Dataset:
         if not versions:
             return []
         else:
-            ts_logger.debug(f"DATASET {self.name}: versions: {versions}.")
+            ts.logger.debug("DATASET %s: versions: %s.", self.name, versions)
 
-        if self.data_type.versioning == properties.Versioning.AS_OF:
+        if self.data_type.versioning == ts.properties.Versioning.AS_OF:
             return_type = kwargs.get("return_type", "local")
         else:
             return_type = "raw"
@@ -679,14 +685,16 @@ class Dataset:
 
         if tags:
             matching_series = meta.search_by_tags(self.tags["series"], tags)
-            ts_logger.debug(f"DATASET.filter(tags) matched series:\n{matching_series} ")
+            ts.logger.debug(
+                "DATASET.filter(tags) matched series:\n%s ", matching_series
+            )
             df = self.data[matching_series].copy(deep=True)
 
         df = pd.concat([self.data[self.datetime_columns()], df], axis=1)
 
         interval = kwargs.get("interval")
         if interval:
-            ts_logger.warning(
+            ts.logger.warning(
                 f"DATASET.__filter__: Attempted call with argument 'interval' = {interval} is not supported. --> TO DO!"
             )
 
@@ -734,7 +742,7 @@ class Dataset:
         elif criteria and isinstance(criteria, dict):
             result = self.filter(tags=criteria)
         elif kwargs:
-            ts_logger.debug(f"DATASET.__getitem__(:\n\t{kwargs} ")
+            ts.logger.debug("DATASET.__getitem__(:\n\t%s ", kwargs)
             result = self.filter(**kwargs)
         else:
             return None
@@ -750,7 +758,7 @@ class Dataset:
         """
         df = self.data.copy()
 
-        if self.data_type.temporality == properties.Temporality.FROM_TO:
+        if self.data_type.temporality == ts.properties.Temporality.FROM_TO:
             interval_handling = kwargs.pop("interval_handling", "interval").lower()
             match interval_handling:
                 case "interval":
@@ -776,8 +784,8 @@ class Dataset:
         else:
             xlabels = self.datetime_columns()[0]
 
-        ts_logger.debug(f"DATASET.plot(): x labels = {xlabels}")
-        ts_logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
+        ts.logger.debug("DATASET.plot(): x labels = %s", xlabels)
+        ts.logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
 
         return df.plot(  # type: ignore[call-overload]
             xlabels,
@@ -806,7 +814,7 @@ class Dataset:
         for col in self.data.columns:
             if col.__contains__(pattern):
                 cmd = f"{col} = self.data['{col}']"
-                ts_logger.debug(cmd)
+                ts.logger.debug(cmd)
                 # the original idea was running (in caller scope)
                 # exec(cmd)
                 locals_[col] = self.data[col]
@@ -825,12 +833,11 @@ class Dataset:
         datetime_columns = list(
             set(self.data.columns) & {"valid_at", "valid_to", "valid_from"}
         )
-        ts_logger.debug(f"DATASET {self.name}: datetime columns: {datetime_columns}.")
 
         # works for datetime_columns = "valid_at", untested for others
         # TODO: add support for ["valid_from", "valid_to"]
         period_index = pd.PeriodIndex(self.data[datetime_columns[0]], freq=freq)
-        ts_logger.debug(f"DATASET {self.name}: period index\n{period_index}.")
+        ts.logger.debug("DATASET %s: period index\n%s.", self.name, period_index)
 
         # Fix for case when **kwargs contains numeric_only
         if "numeric_only" in kwargs:
@@ -854,20 +861,20 @@ class Dataset:
                 df1 = self.data.groupby(period_index).mean(  # type: ignore[misc]
                     *args, numeric_only=numeric_only_value, **kwargs
                 )
-                ts_logger.debug(f"groupby\n{df1}.")
+                ts.logger.debug(f"groupby\n{df1}.")
 
                 df2 = (
                     self.data.groupby(period_index)
                     .sum(*args, numeric_only=numeric_only_value, **kwargs)  # type: ignore[misc]
                     .filter(regex="mendgde|volum|vekt")
                 )
-                ts_logger.debug(f"groupby\n{df2}.")
+                ts.logger.debug(f"groupby\n{df2}.")
 
                 df1[df2.columns] = df2[df2.columns]
 
                 out = df1
-                ts_logger.debug(f"groupby\n{out}.")
-                ts_logger.debug(f"DATASET {self.name}: groupby\n{out}.")
+                ts.logger.debug(f"groupby\n{out}.")
+                ts.logger.debug(f"DATASET {self.name}: groupby\n{out}.")
 
         new_name = f"({self.name}.groupby({freq},{func})"
 
@@ -935,7 +942,7 @@ class Dataset:
 
     def all(self) -> bool:
         """Check if all values in series columns evaluate to true."""
-        ts_logger.debug(all(self.data))
+        ts.logger.debug(all(self.data))
         return all(self.data[self.numeric_columns()])
 
     def any(self) -> bool:
@@ -991,10 +998,10 @@ class Dataset:
             Any:   Depending on the inputs: A new dataset / vector / scalar with the result. For datasets, the name of the new set is derived from inputs and the functions applied.
         """
         if isinstance(other, Dataset):
-            ts_logger.debug(
+            ts.logger.debug(
                 f"DATASET {self.name}: .math({self.name}.{func.__name__}(Dataset({other.name}))."
             )
-            ts_logger.debug(
+            ts.logger.debug(
                 f"DATASET {self.name}: .math({self.name},{other.name}) redirect to operating on {other.name}.data."
             )
             out_data = self.data.copy()
@@ -1006,7 +1013,7 @@ class Dataset:
 
         elif isinstance(other, pd.DataFrame):
             # element-wise matrix operation
-            ts_logger.debug(
+            ts.logger.debug(
                 f"DATASET {self.name}: .math({self.name}.{func.__name__}(pd.dataframe)."
             )
 
@@ -1063,7 +1070,7 @@ class Dataset:
             data=out_data,
         )
         # TODO: Should also update series names and set/series tags.
-        ts_logger.debug(
+        ts.logger.debug(
             f"DATASET.math({func.__name__}, {self.name}, {other_name}) --> {out.name}\n\t{out.data}."
         )
         return out
@@ -1228,8 +1235,6 @@ class Dataset:
             criteria = {}
             for attr, value in p.items():
                 criteria[attr] = taxonomy_dict[attr].leaf_nodes(value)
-            # criteria = {{attr, taxonomy_dict[attr].leaf_nodes(value)} for attr, value in p.items()}
-            ts_logger.debug(f"{criteria=}")
             output_series_name = sep.join(p.values())
             leaf_node_subset = self.filter(tags=criteria, output="df")
             for func in functions:
@@ -1326,7 +1331,7 @@ class Dataset:
 
 def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
     """Helper function to calculate aggregate over dataframe columns."""
-    # ts_logger.debug(f"DATASET.column_aggregate '{method}' over columns:\n{df.columns}")
+    # ts.logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
     if isinstance(method, F):  # type: ignore
         out = method(df)  # type: ignore[operator]
     else:
@@ -1369,12 +1374,12 @@ def search(
 ) -> list[io.SearchResult] | Dataset | list[None]:
     """Search for datasets by name matching pattern."""
     found = io.find_datasets(pattern=pattern)
-    ts_logger.debug(f"DATASET.search returned:\n{found} ")
+    ts.logger.debug("DATASET.search returned:\n%s", found)
 
     if len(found) == 1:
         return Dataset(
             name=found[0].name,
-            data_type=properties.seriestype_from_str(found[0].type_directory),
+            data_type=ts.properties.seriestype_from_str(found[0].type_directory),
             as_of_tz=as_of_tz,
         )
     else:
@@ -1388,12 +1393,12 @@ def catalog_search(
 ) -> list[io.SearchResult] | Dataset | list[None]:
     """Search across datasets by tags pattern."""
     found = io.find_datasets(pattern=pattern)
-    ts_logger.debug(f"DATASET.search returned:\n{found} ")
+    ts.logger.debug("DATASET.search returned:\n%s", found)
 
     if len(found) == 1:
         return Dataset(
             name=found[0].name,
-            data_type=properties.seriestype_from_str(found[0].type_directory),
+            data_type=ts.properties.seriestype_from_str(found[0].type_directory),
             as_of_tz=as_of_tz,
         )
     else:

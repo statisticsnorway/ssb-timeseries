@@ -6,12 +6,13 @@ import pytest
 
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
 # magic comment disables mypy checks:
 # mypy: disable-error-code="arg-type,attr-defined,no-untyped-def"
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
@@ -33,10 +34,9 @@ def xyz_w_ones_seq_quad(
     yield ds
 
 
-@log_start_stop
 @pytest.mark.skipif(True, reason="dataset.identity needs rethinking/fixing")
 def test_dataset_instance_identity(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
     """Test SAMENESS as opposed to .data euality in terms of the == operator.
     Two Dataset are the same SET if name, type and storage location are the same.
     Two Dataset instances are the same INSTANCE if name, type and datafile are the same.
@@ -70,7 +70,7 @@ def test_dataset_instance_identity(caplog) -> None:
 
 
 def test_dataset_math(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     a_data = create_df(
         ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -87,10 +87,10 @@ def test_dataset_math(caplog) -> None:
     scalar = 1000
 
     # TO DO: improve coverage by adding asserts for scalar cases
-    logging.debug(f"matrix:\n{a + scalar}")
-    logging.debug(f"matrix:\n{a - scalar}")
-    logging.debug(f"matrix:\n{a * scalar}")
-    logging.debug(f"matrix:\n{a / scalar}")
+    logger.debug(f"matrix:\n{a + scalar}")
+    logger.debug(f"matrix:\n{a - scalar}")
+    logger.debug(f"matrix:\n{a * scalar}")
+    logger.debug(f"matrix:\n{a / scalar}")
 
     # TO DO: add test cases for numpy arrays
     # col_vector = np.ones((1, 3)) * scalar
@@ -121,9 +121,8 @@ def test_dataset_math(caplog) -> None:
     # assert all((a / a) == (a / a_data))
 
 
-@log_start_stop
 def test_dataset_add_dataset(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     df = create_df(
         ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -157,11 +156,10 @@ def test_dataset_add_dataset(caplog) -> None:
     # assert all(c == d)
 
 
-@log_start_stop
 def test_algebra_expression_with_multiple_dataset(
     caplog,
 ) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     a = Dataset(
         name="A",
@@ -196,7 +194,7 @@ def test_algebra_expression_with_multiple_dataset(
 
     # logging.warning(f"d: {d.name}\n{d.data}")
     # logging.warning(f"e: {e.name}\n{e.data}")
-    logging.warning(
+    logging.debug(
         f"d.data[numeric] == e.data[numeric]: \n{d.data[d.numeric_columns()] == e.data[e.numeric_columns()]} --> all = {all(d.data[d.numeric_columns()] == e.data[e.numeric_columns()])}"
     )
     assert all(d.data[d.numeric_columns()] == e.data[e.numeric_columns()])
@@ -206,9 +204,8 @@ def test_algebra_expression_with_multiple_dataset(
     # assert all(e == d)
 
 
-@log_start_stop
 def test_dataset_add_dataframe(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     df = create_df(
         ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -232,9 +229,8 @@ def test_dataset_add_dataframe(caplog) -> None:
     # assert all(b == c)
 
 
-@log_start_stop
 def test_dataset_subtract_dataset(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     df = create_df(
         ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -262,9 +258,8 @@ def test_dataset_subtract_dataset(caplog) -> None:
     assert all(c.data == 0)
 
 
-@log_start_stop
 def test_dataset_subtract_dataframe(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     data1 = create_df(
         ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -285,9 +280,8 @@ def test_dataset_subtract_dataframe(caplog) -> None:
     assert all(b.data == 0)
 
 
-@log_start_stop
 def test_dataset_vectors(caplog):
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     x = Dataset(
         name="test-vectors",
@@ -317,9 +311,8 @@ def test_dataset_vectors(caplog):
     assert all(eval("r") == x.data["r"])
 
 
-@log_start_stop
 def test_dataset_vectors_with_filter(caplog):
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level("DEBUG")
 
     x = Dataset(
         name="test-vectors",
