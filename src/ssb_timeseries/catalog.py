@@ -259,8 +259,9 @@ class Catalog(_CatalogProtocol):
         Repositories are essentially just named locations.
 
         Example:
-            >>> from ssb_timeseries.config import CONFIG
-            >>> some_directory = CONFIG.catalog
+            >>> from ssb_timeseries.config import Config
+            >>> my_config = Config(preset='defaults')
+            >>> some_directory = my_config.repositories['<teamname>']['catalog']
 
             >>> repo1 = Repository(name="test_1", catalog=some_directory)
             >>> repo2 = Repository(name="test_2", catalog=some_directory)
