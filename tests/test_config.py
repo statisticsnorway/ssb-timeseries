@@ -194,6 +194,7 @@ def test_config_init_for_no_params_returns_same_as_preset_defaults(
     assert id(cfg_0) != id(cfg_1) != id(cfg_2)
     assert cfg_0.__dict__() == cfg_1.__dict__() == cfg_2
     r = "<teamname>"
+    r = REPO
     assert (
         cfg_0.repositories[r]["directory"]
         == cfg_1.repositories[r]["directory"]

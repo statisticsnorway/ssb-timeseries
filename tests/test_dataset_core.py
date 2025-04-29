@@ -8,6 +8,7 @@ from pytest import LogCaptureFixture
 import ssb_timeseries as ts
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import search
+from ssb_timeseries.dataset import select_repository
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.fs import file_count
@@ -17,6 +18,14 @@ from ssb_timeseries.sample_data import create_df
 
 # mypy: ignore-errors
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"
+
+
+def test_select_repository():
+    default = select_repository()
+    test_1 = select_repository(name="test_1")
+    test_2 = select_repository(name="test_2")
+    assert default == test_1
+    assert test_1 != test_2
 
 
 def test_dataset_instance_created(

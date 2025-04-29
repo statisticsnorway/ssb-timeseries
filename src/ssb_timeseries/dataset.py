@@ -49,14 +49,14 @@ from ssb_timeseries.types import PathStr
 # ruff: noqa: RUF013
 
 
-def pick_repository(name: str = "") -> Any:
-    """Pick named or default repository from configuration.
+def select_repository(name: str = "") -> Any:
+    """Select a named or default repository from the configuration.
 
     If there is only one repo, the choice is easy and criteria does not matter.
-    Otherwise, if the ``name`` is provided, only that is checked.
+    Otherwise, if a ``name`` is provided, only that is checked.
     If no name is provided, the first item marked with `'default': True` is picked.
     If no item is identified by name or marking as default, the last item is returned.
-    This behaviour is questionable - it may be better to raise an error?
+    (This behaviour is questionable - it may be turned into an error.)
     """
     repos = ts.active_config().repositories
     for k, v in repos.items():
@@ -174,7 +174,7 @@ class Dataset:
             34
 
         """
-        self.repository = pick_repository(repository)
+        self.repository = select_repository(repository)
         self.name: str = name
         if data_type:
             self.data_type = data_type

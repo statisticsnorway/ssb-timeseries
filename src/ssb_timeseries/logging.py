@@ -116,7 +116,7 @@ def log_start_stop(func: Callable) -> Callable:
     def wrapper(*args, **kwargs):
         name = kwargs.pop("logger", __package__)
         logger = logging.getLogger(name)
-        with EnterExitLog(func.__name__, logger):
+        with EnterExitLog(name=func.__name__, logger=logger):
             try:
                 out = func(*args, **kwargs)
             except:  # noqa: E722
