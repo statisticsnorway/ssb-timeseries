@@ -19,9 +19,6 @@ from ssb_timeseries.sample_data import create_df
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"
 
 
-# BUCKET = CONFIG.bucket
-
-
 def test_dataset_instance_created(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -157,8 +154,6 @@ def test_metafile_exists_after_create_dataset_and_save(
         name=set_name,
         data_type=SeriesType.estimate(),
         as_of_tz=now_utc(rounding="Min"),
-        # series_tags=tags,
-        # dataset_tags={},
     )
     x.data = xyz_at
     x.save()
@@ -239,7 +234,6 @@ def test_read_existing_simple_data(
 
 
 def test_read_existing_estimate_metadata(
-    # bup_and_tdwn,
     existing_estimate_set: Dataset,
     caplog: LogCaptureFixture,
 ) -> None:
@@ -261,7 +255,6 @@ def test_read_existing_estimate_metadata(
 
 
 def test_read_existing_estimate_data(
-    # bup_and_tdwn,
     existing_estimate_set: Dataset,
     caplog: LogCaptureFixture,
 ) -> None:
@@ -281,7 +274,6 @@ def test_read_existing_estimate_data(
 
 
 def test_load_existing_set_without_loading_data(
-    # bup_and_tdwn,
     conftest,
     caplog: LogCaptureFixture,
 ) -> None:
@@ -305,76 +297,87 @@ def test_load_existing_set_without_loading_data(
     assert not x.data.empty
 
 
-@pytest.mark.filterwarnings("ignore")
-# warning occuring here is not expected --> indicates an issue with .save()?
-# unrelated to intent of test, so ignore her
-# TODO: investigate
-def test_search_for_dataset_by_exact_name(
-    # bup_and_tdwn,
+def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
     conftest,
+    xyz_at,
     caplog: LogCaptureFixture,
 ):
     caplog.set_level(logging.DEBUG)
-    unique_new = uuid.uuid4().hex
-    set_name = f"{conftest.function_name()}_{unique_new}"
-    x = Dataset(name=set_name, data_type=SeriesType.simple(), load_data=False)
-    tag_values = [["p", "q", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+    set_name = conftest.function_name_hex()
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.simple(),
+        load_data=False,
+        data=xyz_at,
     )
     x.save()
-    datasets_found = search(pattern=set_name)
-    ts.logger.debug(f"datasets: {datasets_found!s}")
+    search_pattern = set_name
+    datasets_found = search(
+        # specify repo to ensure only one match; necessary because same repo is used twice
+        repository=conftest.repo["directory"],
+        pattern=search_pattern,
+    )
+    ts.logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
 
     assert isinstance(datasets_found, Dataset)
     assert datasets_found.name == set_name
     assert datasets_found.data_type == SeriesType.simple()
 
 
-@pytest.mark.filterwarnings("ignore")
-# warning occuring here is not expected --> indicates an issue with .save()?
-# unrelated to intent of test, so ignore her
-# TODO: investigate
-def test_search_for_dataset_by_part_of_name_one_match(
-    # bup_and_tdwn,
+def test_search_for_dataset_by_part_of_name_with_one_match_returns_the_set(
     conftest,
+    xyz_at,
     caplog: LogCaptureFixture,
 ):
     caplog.set_level(logging.DEBUG)
-    unique_new = uuid.uuid4().hex
-    set_name = f"{conftest.function_name()}_{unique_new}"
-    x = Dataset(name=set_name, data_type=SeriesType.simple(), load_data=False)
-    tag_values = [["p", "q", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+    set_name = conftest.function_name_hex()
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.simple(),
+        load_data=False,
+        data=xyz_at,
     )
     x.save()
-    datasets_found = search(pattern=unique_new)
-    ts.logger.debug(f"datasets: {datasets_found!s}")
+    search_pattern = set_name[-17:-1]
+    datasets_found = search(
+        # specify repo to ensure only one match; necessary because same repo is used twice
+        repository=conftest.repo["directory"],
+        pattern=search_pattern,
+    )
+    ts.logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
     assert isinstance(datasets_found, Dataset)
     assert datasets_found.name == set_name
     assert datasets_found.data_type == SeriesType.simple()
 
 
-def test_search_for_dataset_by_part_of_name_two_matches(
-    # bup_and_tdwn,
+def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
     conftest,
+    xyz_at,
     caplog: LogCaptureFixture,
 ):
     caplog.set_level(logging.DEBUG)
-    unique_new = str(uuid.uuid4())
-    set_name_1 = f"{conftest.function_name()}_{unique_new}-1"
-    set_name_2 = f"{conftest.function_name()}_{unique_new}-2"
-    tag_values = [["p", "q", "r"]]
-    df = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
+    base_name = conftest.function_name_hex()
+
+    x = Dataset(
+        name=f"{base_name}_1",
+        data_type=SeriesType.simple(),
+        data=xyz_at,
     )
-    x = Dataset(name=set_name_1, data_type=SeriesType.simple(), data=df)
     x.save()
-    y = Dataset(name=set_name_2, data_type=SeriesType.simple(), data=df)
+    y = Dataset(
+        name=f"{base_name}_2",
+        data_type=SeriesType.simple(),
+        data=xyz_at,
+    )
     y.save()
-    datasets_found = search(pattern=unique_new)
-    ts.logger.debug(f"datasets: {datasets_found!s}")
+
+    search_pattern = base_name
+    datasets_found = search(
+        pattern=search_pattern,
+        repository=conftest.repo["directory"],
+    )
+    ts.logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
+
     assert datasets_found
     assert isinstance(datasets_found, list)
     assert len(datasets_found) == 2
@@ -385,16 +388,9 @@ def test_search_for_nonexisting_dataset_returns_none(
     caplog: LogCaptureFixture,
 ):
     caplog.set_level(logging.DEBUG)
-    unique_new = uuid.uuid4().hex
-    set_name = f"{conftest.function_name()}_{unique_new}"
-    x = Dataset(name=set_name, data_type=SeriesType.simple(), load_data=False)
-    tag_values = [["p", "q", "r"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
-    )
-    datasets_found = search(pattern=unique_new)
+    set_name = conftest.function_name_hex()
+    datasets_found = search(pattern=set_name)
 
-    ts.logger.debug(f"datasets: {datasets_found!s}")
     assert not datasets_found
 
 
@@ -572,12 +568,11 @@ def test_versioning_as_of_init_without_version_selects_latest(
     assert y.as_of_utc == max(as_of)
 
 
-@pytest.mark.filterwarnings("ignore")
+# @pytest.mark.filterwarnings("ignore")
 # warning occuring here is not expected --> indicates an issue with .save()?
 # unrelated to intent of test, so ignore her
 # TODO: investigate
 def test_versioning_none_appends_to_existing_file(
-    # bup_and_tdwn,
     caplog: LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)

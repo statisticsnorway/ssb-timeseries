@@ -23,6 +23,7 @@ from typing import Protocol
 # from . import sql
 import duckdb
 
+from ssb_timeseries.config import FileBasedRepository
 from ssb_timeseries.io import find_metadata_files
 from ssb_timeseries.io import tags_from_json_file
 from ssb_timeseries.meta import TagDict
@@ -229,17 +230,28 @@ class _CatalogProtocol(Protocol):
         ...
 
 
-class _FileRepositoryProtocol(Protocol):
+class RepositoryProtocol(Protocol):
     """Defines required attributes for file repositories."""
 
     name: str
-    directory: str
+    catalog: str
+    # TODO: consider
+    #   IDEA 1:
+    #    - renaming 'catalog' to 'metadata' communicate the intent better?
+    #   IDEA 2: add properties
+    #    - type: enum('db' | 'files')
+    #      ... to disinguish between file based and databases, switch interpretation of:
+    #    - data: Path | ConnectionString
+    #      ... data directory for file based, connection string for database repositories?
+    #      (require data and metadata to be same type?)
+    #   IDEA 3:
+    #   - owner: str
 
 
 class Catalog(_CatalogProtocol):
     """A data catalog collects metadata from one or more physical data repositories and performs searches across them."""
 
-    def __init__(self, config: list[_FileRepositoryProtocol]) -> None:
+    def __init__(self, config: list[RepositoryProtocol | FileBasedRepository]) -> None:
         """Add all repositories in the configuration to catalog object.
 
         Repositories are essentially just named locations.
@@ -248,22 +260,22 @@ class Catalog(_CatalogProtocol):
             >>> from ssb_timeseries.config import CONFIG
             >>> some_directory = CONFIG.catalog
 
-            >>> repo1 = Repository(name="test_1", directory=some_directory)
-            >>> repo2 = Repository(name="test_2", directory=some_directory)
+            >>> repo1 = Repository(name="test_1", catalog=some_directory)
+            >>> repo2 = Repository(name="test_2", catalog=some_directory)
             >>> catalog = Catalog(config=[repo1, repo2])
 
             >>> series_in_repo1 = repo1.series(contains='KOSTRA')
             >>> sets_in_catalog = catalog.datasets()
         """
-        self.repository: list[Repository] = []
+        self.repositories: list[Repository] = []
         for filerepo in config:
-            # add register info: name, type, owner?
-            # begin assuming config is simply a list of directories
             if isinstance(filerepo, Repository):
-                self.repository.append(filerepo)
+                self.repositories.append(filerepo)
+            elif isinstance(filerepo, Repository):
+                self.repositories.append(filerepo)
             else:
-                self.repository.append(
-                    Repository(name=filerepo.name, directory=filerepo.directory)
+                self.repositories.append(
+                    Repository(name=filerepo.name, catalog=filerepo.catalog)
                 )
 
     def datasets(
@@ -273,7 +285,7 @@ class Catalog(_CatalogProtocol):
         # Inherit docs from protocol.
         # List all sets matching criteria.
         result: list[CatalogItem] = []
-        for r in self.repository:
+        for r in self.repositories:
             for rr in r.datasets(**kwargs):
                 result.append(rr)
             # problem if a dataset occurs in multiple repositories?
@@ -287,7 +299,7 @@ class Catalog(_CatalogProtocol):
         # Inherit detailed docs from porotocol.
         # List all series (across all sets) matching criteria.
         result: list[CatalogItem] = []
-        for r in self.repository:
+        for r in self.repositories:
             for rr in r.series(**kwargs):
                 result.append(rr)
             # problem if a dataset occurs in multiple repositories?
@@ -305,7 +317,7 @@ class Catalog(_CatalogProtocol):
         # Inherit docs from protocol.
         # Return number of datasets (default) or series (not yet implemented), or both (to be default).
         result: int = 0
-        for r in self.repository:
+        for r in self.repositories:
             result += r.count(
                 object_type=str(object_type),
                 equals=equals,
@@ -317,7 +329,7 @@ class Catalog(_CatalogProtocol):
 
     def __repr__(self) -> str:
         """Return a machine readable string representation that can regenerate the catalog object."""
-        return f"Catalog([{','.join([r.__repr__() for r in self.repository])}])"
+        return f"Catalog([{','.join([r.__repr__() for r in self.repositories])}])"
 
     def items(
         self,
@@ -329,7 +341,7 @@ class Catalog(_CatalogProtocol):
     ) -> list[CatalogItem]:
         """Aggregate all the information into a single dictionary."""
         result: list[CatalogItem] = []
-        for r in self.repository:
+        for r in self.repositories:
             for rr in r.items(
                 datasets=datasets,
                 series=series,
@@ -347,21 +359,25 @@ class Repository(_CatalogProtocol):
     """A physical storage repository for timeseries datasets."""
 
     name: str = ""
-    directory: str = ""
+    catalog: str = ""
+    data: str = ""
 
     def __init__(
         self,
         name: str = "",
-        directory: str = "",
-        repo_config: _FileRepositoryProtocol | None = None,
+        catalog: str = "",
+        repo_config: FileBasedRepository | RepositoryProtocol | None = None,
     ) -> None:
         """Initiate one repository."""
-        if name and directory:
+        if name and catalog:
             self.name = name
-            self.directory = directory
-        elif repo_config:
+            self.catalog = catalog
+        elif repo_config and isinstance(repo_config, RepositoryProtocol):
             self.name = repo_config.name
-            self.directory = repo_config.directory
+            self.catalog = repo_config.catalog
+        elif repo_config:
+            self.name = repo_config["name"]
+            self.catalog = repo_config["catalog"]
         else:
             raise TypeError(
                 "Repository requires name and directory to be provided, either as strings or wrapped in a configuration object."
@@ -416,7 +432,7 @@ class Repository(_CatalogProtocol):
     def files(self, *, contains: str = "", equals: str = "") -> list[str]:
         """Return all files in the repository."""
         jsonfiles = find_metadata_files(
-            repository=self.directory,
+            repository=self.catalog,
             equals=equals,
             contains=contains,
         )
@@ -469,7 +485,7 @@ class Repository(_CatalogProtocol):
 
     def __repr__(self) -> str:
         """Return a machine readable string representation that can regenerate the repository object."""
-        return f"Repository(name='{self.name}',directory='{self.directory}')"
+        return f"Repository(name='{self.name}',catalog='{self.catalog}')"
 
     def _query(self, queryname: str, **kwargs: TagValue) -> Any:
         """Helper function to make prepared statement queries using duckdb and .sql files."""

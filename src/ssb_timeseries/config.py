@@ -31,6 +31,7 @@ import logging
 import os
 import sys
 import warnings
+from copy import deepcopy
 from pathlib import Path
 
 try:
@@ -39,9 +40,9 @@ except ImportError:
     from typing_extensions import Self  # noqa: UP035 #backport to 3.10
 
 from typing import Any
-
-from jsonschema import validate
-from jsonschema.exceptions import ValidationError as JsonValidationError
+from typing import NotRequired
+from typing import Required
+from typing import TypedDict
 
 from ssb_timeseries import fs
 from ssb_timeseries.types import PathStr
@@ -51,6 +52,82 @@ from ssb_timeseries.types import PathStr
 _config_logger = logging.getLogger(__name__)
 PACKAGE_NAME = "ssb_timeseries"
 ENV_VAR_NAME = "TIMESERIES_CONFIG"
+
+
+class FileBasedRepository(TypedDict):
+    """Defines required attributes for file based repositories."""
+
+    name: Required[str]
+    directory: Required[str]
+    """Root directory for data storage; contains one directory per data type and (optionally) logs and metadata."""
+    catalog: str
+    """Directory for meta data files.
+
+    Can be equal to the data directory, a subdirectory, or any other location.
+    Multiple repositories can share a single catalog directory.
+    TODO: consider optionality: Set equal to data root directory if not provided.
+    """
+
+
+class ConfigDict(TypedDict):
+    """Required attributes for configuration."""
+
+    configuration_file: Required[str]
+    repositories: Required[dict[str, FileBasedRepository]]
+    log_file: NotRequired[str]
+    logging: Required[dict[str, Any]]
+
+
+def convert_schema_v1_to_v2(config: dict) -> ConfigDict:
+    """Till we are done."""
+    keys = list(config.keys())
+    cfg = deepcopy(config)
+    if keys == ["configuration_file"]:
+        ...
+    elif "timeseries_root" in keys:
+        data_dir = cfg.pop("timeseries_root", "")
+        meta_dir = cfg.pop("catalog", data_dir)
+        repo_name = "_".join([DAPLA_TEAM, PACKAGE_NAME])
+        cfg["repositories"] = {
+            repo_name: {
+                "name": repo_name,
+                "directory": data_dir,
+                "catalog": meta_dir,
+            }
+        }
+        _config_logger.debug(f"Configuration converted to v2\n{cfg}")
+    elif cfg.get("repositories", False):
+        _config_logger.debug("Configuration is already v2.")
+    else:
+        _config_logger.warning("Configuration conversion skipped.")
+    return cfg
+
+
+def is_valid_config(configuration: dict) -> tuple[bool, object]:
+    """Check if a dictionary is a valid configuration :py:class:`ConfigDict`."""
+    # configuration = convert_schema_v1_to_v2(configuration)
+    missing_required = ConfigDict.__required_keys__ - set(configuration.keys())
+    if missing_required:
+        msg = f"Configuration is missing required fields: {list(missing_required)}\n{configuration}"
+        _config_logger.debug(msg)
+        print(msg)
+        return (False, msg)
+
+    wrong_type = []
+    for cfg_key, cfg_expected_type in ConfigDict().items():
+        config_item = configuration.get(cfg_key, None)
+        cfg_got_type = type(config_item)
+        if cfg_got_type is type(cfg_expected_type):
+            wrong_type.append(
+                f"{cfg_key} - got {cfg_got_type} - expected {cfg_expected_type}"
+            )
+
+    if wrong_type:
+        msg = f"Configuration fields have wrong type: {wrong_type}"
+        _config_logger.warning(msg)
+        return (False, msg)
+
+    return (True, None)
 
 
 def unset_env_var() -> str:
@@ -74,6 +151,7 @@ def active_file(path: PathStr = "") -> str:
 # _config_logger.warning("want this to make tests fail - but they do not")
 # warnings.warn('this does!')
 
+
 HOME = str(Path.home())
 SHARED_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
 SHARED_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
@@ -94,7 +172,7 @@ CONFIGFILE = "timeseries_config.json"
 DAPLA_TEAM_CONTEXT = os.getenv("DAPLA_TEAM_CONTEXT", "")
 DAPLA_ENV = os.getenv("DAPLA_ENVIRONMENT", "")
 """Returns the Dapla environment: 'prod' | test | dev"""
-DAPLA_TEAM = os.getenv("DAPLA_TEAM", "")
+DAPLA_TEAM = os.getenv("DAPLA_TEAM", "<teamname>")
 """Returns the Dapla team/project name.'"""
 DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-{DAPLA_ENV}"
 """Returns the Dapla product bucket name for the current environment: gs://{DAPLA_TEAM}-{DAPLA_ENV}."""
@@ -111,11 +189,9 @@ LOGGING_PRESETS = {
             },
         },
         "loggers": {
-            "ssb_timeseries": {
+            PACKAGE_NAME: {
                 "level": "INFO",
-                "handlers": [
-                    "console",
-                ],
+                "handlers": ["console"],
                 "propagate": False,
             }
         },
@@ -158,44 +234,103 @@ LOGGING_PRESETS = {
         },
     },
 }
-PRESETS: dict[str, dict] = {
+PRESETS_v2: dict[str, ConfigDict] = {
     "home": {
         "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
         "bucket": str(Path(HOME)),
-        "timeseries_root": str(Path(HOME, ROOT_DIR_NAME)),
-        "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
+        "repositories": {
+            DAPLA_TEAM: {
+                "name": "home",
+                "directory": str(Path(HOME, ROOT_DIR_NAME)),
+                "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
+            }
+        },
         "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
         "logging": LOGGING_PRESETS["simple"],
     },
     "shared-test": {
         "configuration_file": str(Path(HOME, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
         "bucket": str(Path(SHARED_TEST)),
-        "timeseries_root": str(Path(SHARED_TEST, SSB_DIR_NAME)),
-        "catalog": str(Path(SHARED_TEST, SSB_DIR_NAME, META_DIR_NAME)),
+        "repositories": {
+            DAPLA_TEAM: {
+                "name": DAPLA_TEAM,
+                "directory": str(Path(SHARED_TEST, SSB_DIR_NAME)),
+                "catalog": str(Path(SHARED_TEST, SSB_DIR_NAME, META_DIR_NAME)),
+            }
+        },
         "log_file": str(Path(SHARED_TEST, SSB_LOGDIR, LOGFILE)),
-        "logging": {},
+        "logging": LOGGING_PRESETS["simple"],
     },
     "shared-prod": {
         "configuration_file": str(
             Path(SHARED_PROD, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
         ),
         "bucket": str(Path(SHARED_PROD)),
-        "timeseries_root": str(Path(SHARED_PROD, SSB_DIR_NAME)),
-        "catalog": str(Path(SHARED_PROD, SSB_DIR_NAME, META_DIR_NAME)),
+        "repositories": {
+            DAPLA_TEAM: {
+                "name": DAPLA_TEAM,
+                "directory": str(Path(SHARED_PROD, SSB_DIR_NAME)),
+                "catalog": str(Path(SHARED_PROD, SSB_DIR_NAME, META_DIR_NAME)),
+            }
+        },
         "log_file": str(Path(SHARED_PROD, SSB_LOGDIR, LOGFILE)),
-        "logging": {},
+        "logging": LOGGING_PRESETS["simple"],
     },
     "daplalab": {
         "configuration_file": str(
             Path(DAPLA_BUCKET, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
         ),
         "bucket": str(Path(DAPLALAB_FUSE)),
-        "timeseries_root": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME)),
-        "catalog": str(Path(DAPLALAB_FUSE, SSB_DIR_NAME, META_DIR_NAME)),
+        "repositories": {
+            DAPLA_TEAM: {
+                "name": DAPLA_TEAM,
+                "directory": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME)),
+                "catalog": str(Path(DAPLALAB_FUSE, SSB_DIR_NAME, META_DIR_NAME)),
+            }
+        },
         "log_file": str(Path(DAPLALAB_FUSE, SSB_LOGDIR, LOGFILE)),
-        "logging": {},
+        "logging": LOGGING_PRESETS["simple"],
     },
 }
+# PRESETS_v1: dict[str, dict] = {
+#     "home": {
+#         "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
+#         "bucket": str(Path(HOME)),
+#         "timeseries_root": str(Path(HOME, ROOT_DIR_NAME)),
+#         "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
+#         "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
+#         "logging": LOGGING_PRESETS["simple"],
+#     },
+#     "shared-test": {
+#         "configuration_file": str(Path(HOME, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
+#         "bucket": str(Path(SHARED_TEST)),
+#         "timeseries_root": str(Path(SHARED_TEST, SSB_DIR_NAME)),
+#         "catalog": str(Path(SHARED_TEST, SSB_DIR_NAME, META_DIR_NAME)),
+#         "log_file": str(Path(SHARED_TEST, SSB_LOGDIR, LOGFILE)),
+#         "logging": {},
+#     },
+#     "shared-prod": {
+#         "configuration_file": str(
+#             Path(SHARED_PROD, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
+#         ),
+#         "bucket": str(Path(SHARED_PROD)),
+#         "timeseries_root": str(Path(SHARED_PROD, SSB_DIR_NAME)),
+#         "catalog": str(Path(SHARED_PROD, SSB_DIR_NAME, META_DIR_NAME)),
+#         "log_file": str(Path(SHARED_PROD, SSB_LOGDIR, LOGFILE)),
+#         "logging": {},
+#     },
+#     "daplalab": {
+#         "configuration_file": str(
+#             Path(DAPLA_BUCKET, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
+#         ),
+#         "bucket": str(Path(DAPLALAB_FUSE)),
+#         "timeseries_root": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME)),
+#         "catalog": str(Path(DAPLALAB_FUSE, SSB_DIR_NAME, META_DIR_NAME)),
+#         "log_file": str(Path(DAPLALAB_FUSE, SSB_LOGDIR, LOGFILE)),
+#         "logging": {},
+#     },
+# }
+PRESETS = PRESETS_v2
 
 PRESETS["default"] = PRESETS["home"]
 PRESETS["defaults"] = PRESETS["home"]
@@ -219,12 +354,8 @@ class Config:
 
     configuration_file: PathStr
     """The path to the configuRation file."""
-    timeseries_root: PathStr
-    """The root directory for data storage of a repository."""
-    catalog: PathStr
-    """The path to the metadata directory of a repository ."""
-    bucket: PathStr
-    """The topmost level of the GCS bucket for the team."""
+    repositories: list[FileBasedRepository]
+    """A list of time series repositories."""
     logging: dict
     """Logging configuration as a valid :py:mod:`logging.dictConfig`."""
 
@@ -234,6 +365,7 @@ class Config:
         Keyword Arguments:
             preset (str): Optional. Name of a preset configuration. If provided, the preset configuration is loaded, and no other parameters are considered.
             configuration_file (str): Path to the configuration file. If the parameter is not provided, the environment variable TIMESERIES_CONFIG is used. If the environment variable is not set, the default configuration file location is used.
+            repositories (list[FileBasedRepository]): New in version 0.5.0. Replaces bucket, timeseries_root and catalog.
             timeseries_root (str): Path to the root directory for time series data. If one of these identifies a vaild json file, the configuration is loaded from that file and no other parameters are required. If provided, they will override values from the configuration file.
             catalog (str): Path to the catalog file.
             log_file (str): Path to the log file.
@@ -254,21 +386,31 @@ class Config:
         preset_name = kwargs.pop("preset", "")
         ignore_file = kwargs.pop("ignore_file", False)
         param_specified_config_file = kwargs.get("configuration_file", "")
-        kwargs_are_complete_config = is_valid_config(kwargs)[0]
+        kwargs = convert_schema_v1_to_v2(kwargs)  # remove after short transition
+        kwargs_are_complete_config = is_valid_config(convert_schema_v1_to_v2(kwargs))[0]
 
         if preset_name:
             _config_logger.debug(f"Loading preset configuration {preset_name}.")
             self.apply(PRESETS[preset_name])
             return
         elif kwargs_are_complete_config:
-            _config_logger.debug("Complete configuration in parameters.")
+            _config_logger.debug("Complete configuration in parameters.\n%s", kwargs)
             self.apply(kwargs)
             return
         elif param_specified_config_file:
             # if config file is
-            _config_logger.debug(
+            _config_logger.warning(
                 f"Loading configuration from {param_specified_config_file}"
             )
+            # if "timeseries_root" in kwargs.keys():
+            #     bucket= kwargs.pop("bucket")
+            #     dir = kwargs.pop("timeseries_root", "")
+            #     meta = kwargs.pop("catalog", dir)
+            #     # we do not support both new and old signature
+            #     kwargs["repositories"] = [{"name": DAPLA_TEAM+SSB_DIR_NAME,
+            #             "directory": dir,
+            #             "catalog": meta}]
+
             if set(kwargs.keys()) == set(["configuration_file"]):
                 # if config file is the only parameter, it is an error for it not to exist
                 no_file_is_an_error = True
@@ -309,6 +451,7 @@ class Config:
 
     def apply(self, configuration: dict) -> None:
         """Set configuration values from a dictionary."""
+        configuration = convert_schema_v1_to_v2(configuration)
         log_config = configuration.get("logging", {})
         if not log_config:
             configuration["logging"] = {}
@@ -398,8 +541,7 @@ class Config:
         """Return timeseries configurations as JSON string."""
         fields = [
             "configuration_file",
-            "timeseries_root",
-            "catalog",
+            "repositories",
             "logging",
             "bucket",
         ]
@@ -435,9 +577,9 @@ def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
     if fs.exists(path):
         from_json = fs.read_json(path)
         if not isinstance(from_json, dict):
-            return json.loads(from_json)  # type:ignore
-        else:
-            return from_json
+            from_json = json.loads(from_json)  # type:ignore
+
+        return convert_schema_v1_to_v2(from_json)
 
     elif error_on_missing:
         raise FileNotFoundError(
@@ -447,63 +589,63 @@ def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
         return {}
 
 
-def migrate_to_new_config_location(file_to_copy: PathStr = "") -> str:
-    """Copy existing configuration files to the new default location $HOME/.config/ssb_timeseries/.
-
-    The first file copied will be set to active.
-
-    Args:
-        file_to_copy (PathStr): Optional. Path to a existing configuration file. If not provided, the function will look in the most common location for SSBs old JupyterLab and DaplaLab.
-    """
-    DEFAULTS["configuration_file"]
-
-    if file_to_copy:
-        fs.cp(file_to_copy, DEFAULTS["configuration_file"])
-        return str(file_to_copy)
-    else:
-        copy_these = [
-            {
-                "replace": "_active",
-                "source": active_file(),
-            },
-            {
-                "replace": "_home",
-                "source": path_str(HOME, CONFIGFILE),
-            },
-            {
-                "replace": "_daplalab",
-                "source": path_str(DAPLALAB_WORK, CONFIGFILE),
-            },
-        ]
-        copied = []
-        not_found = []
-
-        for c in copy_these:
-            if fs.exists(c["source"]):
-                # copy all to .config, but let filename signal where it was copied from
-                target = DEFAULTS["configuration_file"].replace(
-                    ".json", f"{c['replace']}.json"
-                )
-                fs.cp(c["source"], target)
-                copied.append(target)
-            else:
-                not_found.append(c["source"])
-        else:
-            _config_logger.warning(f"Configuration files were not found: {not_found}.")
-
-    if copied:
-        # copy the first file = make it the active one
-        fs.cp(copied[0], DEFAULTS["configuration_file"])
-        active_file(copied[0])
-        _config_logger.info(
-            f"Configuration files were copied: {copied}.\nActive: {copied[0]}."
-        )
-        return str(copied[0])
-    else:
-        # no files were found --> create one from defaults?
-        # new = Config(preset="default")
-        # ew.save()
-        return ""
+# def migrate_to_new_config_location(file_to_copy: PathStr = "") -> str:
+#     """Copy existing configuration files to the new default location $HOME/.config/ssb_timeseries/.
+#
+#     The first file copied will be set to active.
+#
+#     Args:
+#         file_to_copy (PathStr): Optional. Path to a existing configuration file. If not provided, the function will look in the most common location for SSBs old JupyterLab and DaplaLab.
+#     """
+#     DEFAULTS["configuration_file"]
+#
+#     if file_to_copy:
+#         fs.cp(file_to_copy, DEFAULTS["configuration_file"])
+#         return str(file_to_copy)
+#     else:
+#         copy_these = [
+#             {
+#                 "replace": "_active",
+#                 "source": active_file(),
+#             },
+#             {
+#                 "replace": "_home",
+#                 "source": path_str(HOME, CONFIGFILE),
+#             },
+#             {
+#                 "replace": "_daplalab",
+#                 "source": path_str(DAPLALAB_WORK, CONFIGFILE),
+#             },
+#         ]
+#         copied = []
+#         not_found = []
+#
+#         for c in copy_these:
+#             if fs.exists(c["source"]):
+#                 # copy all to .config, but let filename signal where it was copied from
+#                 target = DEFAULTS["configuration_file"].replace(
+#                     ".json", f"{c['replace']}.json"
+#                 )
+#                 fs.cp(c["source"], target)
+#                 copied.append(target)
+#             else:
+#                 not_found.append(c["source"])
+#         else:
+#             _config_logger.warning(f"Configuration files were not found: {not_found}.")
+#
+#     if copied:
+#         # copy the first file = make it the active one
+#         fs.cp(copied[0], DEFAULTS["configuration_file"])
+#         active_file(copied[0])
+#         _config_logger.info(
+#             f"Configuration files were copied: {copied}.\nActive: {copied[0]}."
+#         )
+#         return str(copied[0])
+#     else:
+#         # no files were found --> create one from defaults?
+#         # new = Config(preset="default")
+#         # ew.save()
+#         return ""
 
 
 def configuration_schema(version: str = "0.3.1") -> dict:
@@ -544,20 +686,20 @@ class DictObject(object):  # noqa
         return json.loads(json.dumps(d), object_hook=DictObject)
 
 
-def is_valid_config(configuration: dict) -> tuple[bool, object]:
-    """Check if a dictionary is a valid configuration.
-
-    A valid configuration has the same keys as DEFAULTS.
-    """
-    try:
-        out = (True, None)
-        validate(
-            instance=configuration,
-            schema=configuration_schema(),
-        )
-    except JsonValidationError as err:
-        out = (False, err)
-    return out
+# def is_valid_config_v1(configuration: dict) -> tuple[bool, object]:
+#     """Check if a dictionary is a valid configuration.
+#
+#     A valid configuration has the same keys as DEFAULTS.
+#     """
+#     try:
+#         out = (True, None)
+#         validate(
+#             instance=configuration,
+#             schema=configuration_schema(),
+#         )
+#     except JsonValidationError as err:
+#         out = (False, err)
+#     return out
 
 
 def presets(named_config: str) -> dict:  # noqa: RUF100, DAR201
@@ -569,7 +711,7 @@ def presets(named_config: str) -> dict:  # noqa: RUF100, DAR201
     if named_config in PRESETS:
         cfg = PRESETS[named_config]
         cfg["logging"]["handlers"]["file"]["filename"] = cfg.pop("log_file", "")
-        return PRESETS[named_config]
+        return cfg  # PRESETS[named_config]
     else:
         raise ValueError(
             f"Named configuration preset '{named_config}' was not recognized."
@@ -632,7 +774,7 @@ else:
             print(
                 f"No configuration file was foumd at {active_file()}.\nOther locatsions will be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied once more to {DEFAULTS['configuration_file']}"
             )
-            CONFIGFILE = migrate_to_new_config_location()
+            # CONFIGFILE = migrate_to_new_config_location()
             if not fs.exists(CONFIGFILE):
                 raise FileNotFoundError(
                     f"No configuration file was found at {active_file()}."

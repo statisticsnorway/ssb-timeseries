@@ -32,12 +32,15 @@ The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether da
 """
 
 from ssb_timeseries.config import CONFIG as configuration
+from ssb_timeseries.config import Config
 from ssb_timeseries.logging import set_up_logging_according_to_config
 
 logger = set_up_logging_according_to_config(__name__, configuration.logging)
 
+active_config = Config.active
 
 __all__ = [
+    "active_config",
     "configuration",
     "dataset",
     "dates",

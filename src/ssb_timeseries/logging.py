@@ -114,12 +114,13 @@ def log_start_stop(func: Callable) -> Callable:
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        name = kwargs.get("logger", __package__)
+        name = kwargs.pop("logger", __package__)
         logger = logging.getLogger(name)
         with EnterExitLog(func.__name__, logger):
             try:
                 out = func(*args, **kwargs)
             except:  # noqa: E722
+                print(f"Logging failed!\n\t{name}\n\t{logger}")
                 warnings.warn(f"Logging failed! \n {logger}", stacklevel=2)
 
         return out
