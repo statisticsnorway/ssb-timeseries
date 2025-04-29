@@ -1409,7 +1409,7 @@ def search(
     pattern: str = "*",
     as_of_tz: datetime = None,
     repository: str = "",
-    require_unique: str = False,
+    require_unique: bool = False,
 ) -> list[io.SearchResult] | Dataset | list[None]:
     """Search for datasets by name matching pattern.
 
@@ -1443,28 +1443,6 @@ def search(
         )
     else:
         return found
-
-
-# def catalog_search(
-#     pattern: meta.TagDict,
-#     as_of_tz: datetime = None,
-#     object_type: str | list[str] = "dataset",
-#     repository='',
-# ) -> list[io.SearchResult] | Dataset | list[None]:
-#     """Search across datasets by tags pattern."""
-#     found = io.find_datasets(pattern=pattern,
-#         repository=repository,
-#     )
-#     ts.logger.debug("DATASET.search returned:\n%s", found)
-#
-#     if len(found) == 1:
-#         return Dataset(
-#             name=found[0].name,
-#             data_type=ts.properties.seriestype_from_str(found[0].type_directory),
-#             as_of_tz=as_of_tz,
-#         )
-#     else:
-#         return found
 
 
 if __name__ == "__main__":

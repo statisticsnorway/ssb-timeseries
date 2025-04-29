@@ -109,7 +109,6 @@ def convert_schema_v1_to_v2(config: dict) -> dict:
 
 def is_valid_config(configuration: dict) -> tuple[bool, object]:
     """Check if a dictionary is a valid configuration :py:class:`ConfigDict`."""
-    # configuration = convert_schema_v1_to_v2(configuration)
     missing_required = ConfigDict.__required_keys__ - set(configuration.keys())
     if missing_required:
         msg = f"Configuration is missing required fields: {list(missing_required)}\n{configuration}"
@@ -432,7 +431,9 @@ class Config:
 
         logfile = configuration.pop("log_file", "")
         if logfile and not logging:
-            # filehandler should be configured as dictConfig
+            # TODO: filehandler should be configured as dictConfig
+            # .. and we should not enter this block?
+            # --> TODO: Check / remove OR add dictConfig for the following:
             configuration["logging"] = {"logfile": logfile}
         else:
             ...
@@ -552,6 +553,7 @@ def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
         return {}
 
 
+## No longer needed?
 # def migrate_to_new_config_location(file_to_copy: PathStr = "") -> str:
 #     """Copy existing configuration files to the new default location $HOME/.config/ssb_timeseries/.
 #
@@ -649,22 +651,6 @@ class DictObject(object):  # noqa
         return json.loads(json.dumps(d), object_hook=DictObject)
 
 
-# def is_valid_config_v1(configuration: dict) -> tuple[bool, object]:
-#     """Check if a dictionary is a valid configuration.
-#
-#     A valid configuration has the same keys as DEFAULTS.
-#     """
-#     try:
-#         out = (True, None)
-#         validate(
-#             instance=configuration,
-#             schema=configuration_schema(),
-#         )
-#     except JsonValidationError as err:
-#         out = (False, err)
-#     return out
-
-
 def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100, DAR201
     """Set configurations to predefined defaults.
 
@@ -674,7 +660,7 @@ def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100, DAR201
     if named_config in PRESETS:
         cfg = PRESETS[named_config]
         cfg["logging"]["handlers"]["file"]["filename"] = cfg.pop("log_file", "")
-        return cfg  # PRESETS[named_config]
+        return cfg
     else:
         raise ValueError(
             f"Named configuration preset '{named_config}' was not recognized."
@@ -721,7 +707,7 @@ def path_str(*args) -> str:  # noqa: ANN002
 if __name__ == "__main__":
     """Execute when called directly, ie not via import statements."""
     # ??? `poetry run timeseries-config <option>` does not appear to go this route.
-    # --> then it is not obvious that this is a good idea.
+    # --> not obvious that this is a good idea.
     print(f"Name of the script      : {sys.argv[0]=}")
     print(f"Arguments of the script : {sys.argv[1:]=}")
     main(sys.argv[1])
@@ -744,7 +730,6 @@ else:
                 )
     else:
         CONFIGFILE = ""  # PRESETS["defaults"]["configuration_file"]
-        # str(DEFAULTS["configuration_file"])
 
     active_file(CONFIGFILE)
     CONFIG = Config(configuration_file=CONFIGFILE)
