@@ -48,7 +48,7 @@ from ssb_timeseries.types import PathStr
 
 Data: TypeAlias = pyarrow.Table | pandas.DataFrame | polars.DataFrame
 
-_cfg = Config.active
+active_config = Config.active
 
 
 def version_from_file_name(
@@ -109,7 +109,8 @@ class FileSystem:
         if isinstance(repository, dict):
             self.repository = repository
         else:
-            self.repository = _cfg().repositories[repository]
+            cfg = Config.active()
+            self.repository = cfg.repositories.get(repository)
 
         self.set_name = set_name
         self.data_type = set_type
@@ -245,7 +246,7 @@ class FileSystem:
 
             else:
                 ts.logger.warning(
-                    "Arrow schema not defined: %s.\nFalling back to writing with Pandas.",
+                    "Arrow schema is not defined: %s.\nFalling back to writing with Pandas.",
                     self.set_name,
                 )
                 fs.pandas_write_parquet(df, self.data_fullpath)
@@ -384,14 +385,17 @@ class FileSystem:
             return []
 
     def snapshot_directory(
-        self, product: str, process_stage: str = "statistikk"
+        self, bucket: str = "", product: str = "", process_stage: str = "statistikk"
     ) -> PathStr:
         """Get name of snapshot directory.
 
         Uses dataset parameters, configuration, product and process stage.
         """
+        if not bucket:
+            bucket = Config.active().bucket
+
         return os.path.join(
-            _cfg().bucket,
+            bucket,
             product,
             process_stage,
             "series",  # to distinguish from other data types
@@ -514,7 +518,7 @@ class FileSystem:
     def dir(cls, *args: str, **kwargs: bool) -> str:
         """Check that target directory is under BUCKET. If so, create it if it does not exist."""
         path = os.path.join(*args)
-        ts_root = str(_cfg().bucket)
+        ts_root = str(active_config().bucket)
 
         # hidden feature: also for kwarg 'force' == True
         if ts_root in path or kwargs.get("force", False):
@@ -541,16 +545,18 @@ def find_datasets(
     if repository:
         search_directories = [repository]
         repo_names = ["root"]
-        ts.logger.warning("IO.find_dataset pattern %s in repo %s", pattern, repository)
+        ts.logger.debug("IO.find_dataset pattern %s in repo %s", pattern, repository)
     else:
-        search_directories = [v["directory"] for k, v in _cfg().repositories.items()]
-        repo_names = [k for k in _cfg().repositories.keys()]
+        search_directories = [
+            v["directory"] for k, v in active_config().repositories.items()
+        ]
+        repo_names = [k for k in active_config().repositories.keys()]
 
     data_dirs = []
     for search_dir in search_directories:
         data_dirs.extend(fs.find(search_dir, pattern, full_path=True))
 
-    ts.logger.warning("%s %s", pattern, data_dirs)
+    ts.logger.debug("%s %s", pattern, data_dirs)
     if exclude:
         dirs = [d for d in data_dirs if exclude not in d]
         ts.logger.debug(
@@ -564,7 +570,7 @@ def find_datasets(
         ts.logger.debug("%s | %s", search_dir, repo)
         search_results.extend(
             [
-                # d.replace(_cfg().timeseries_root, "root").split(os.path.sep)
+                # d.replace(active_config().timeseries_root, "root").split(os.path.sep)
                 # d.replace(search_dir, "root").split(os.path.sep)
                 # VERIFY that identifying multiple repos by name works?
                 d.replace(search_dir, repo).split(os.path.sep)
@@ -606,7 +612,7 @@ def find_metadata_files(
             "find_metadata_files in default repo:\n%s.",
             repository,
         )
-        result = find_in_repo(_cfg())
+        result = find_in_repo(active_config())
     elif isinstance(repository, str):
         ts.logger.debug(
             "find_metadata_files in repo by str:\n%s.",
@@ -655,9 +661,10 @@ def for_all_datasets_move_metadata_files(
     else:
         pattern = "*"
 
-    dirs = fs.find(_cfg().timeseries_root, pattern, full_path=True)
+    dirs = fs.find(active_config().timeseries_root, pattern, full_path=True)
     search_results = [
-        d.replace(_cfg().timeseries_root, "root").split(os.path.sep) for d in dirs
+        d.replace(active_config().timeseries_root, "root").split(os.path.sep)
+        for d in dirs
     ]
     ts.logger.debug("DATASET.IO.SEARCH: results: %s", search_results)
 

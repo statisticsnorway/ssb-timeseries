@@ -35,14 +35,17 @@ from copy import deepcopy
 from pathlib import Path
 
 try:
+    from typing import NotRequired
+    from typing import Required
     from typing import Self
+    from typing import TypedDict
 except ImportError:
+    from typing_extensions import NotRequired  # noqa: UP035 #backport to 3.10
+    from typing_extensions import Required  # noqa: UP035 #backport to 3.10
     from typing_extensions import Self  # noqa: UP035 #backport to 3.10
+    from typing_extensions import TypedDict
 
 from typing import Any
-from typing import NotRequired
-from typing import Required
-from typing import TypedDict
 
 from ssb_timeseries import fs
 from ssb_timeseries.types import PathStr
@@ -78,7 +81,7 @@ class ConfigDict(TypedDict):
     logging: Required[dict[str, Any]]
 
 
-def convert_schema_v1_to_v2(config: dict) -> ConfigDict:
+def convert_schema_v1_to_v2(config: dict) -> dict:
     """Till we are done."""
     keys = list(config.keys())
     cfg = deepcopy(config)
@@ -89,12 +92,13 @@ def convert_schema_v1_to_v2(config: dict) -> ConfigDict:
         meta_dir = cfg.pop("catalog", data_dir)
         repo_name = "_".join([DAPLA_TEAM, PACKAGE_NAME])
         cfg["repositories"] = {
-            repo_name: {
-                "name": repo_name,
-                "directory": data_dir,
-                "catalog": meta_dir,
-            }
+            repo_name: FileBasedRepository(
+                name=repo_name,
+                directory=data_dir,
+                catalog=meta_dir,
+            )
         }
+
         _config_logger.debug(f"Configuration converted to v2\n{cfg}")
     elif cfg.get("repositories", False):
         _config_logger.debug("Configuration is already v2.")
@@ -114,7 +118,10 @@ def is_valid_config(configuration: dict) -> tuple[bool, object]:
         return (False, msg)
 
     wrong_type = []
-    for cfg_key, cfg_expected_type in ConfigDict().items():
+    for (
+        cfg_key,
+        cfg_expected_type,
+    ) in ConfigDict().items():  # type: ignore [typeddict-item]
         config_item = configuration.get(cfg_key, None)
         cfg_got_type = type(config_item)
         if cfg_got_type is type(cfg_expected_type):
@@ -145,11 +152,6 @@ def active_file(path: PathStr = "") -> str:
         _config_logger.debug(f"Set environment variable {ENV_VAR_NAME} to {path}")
 
     return os.environ.get(ENV_VAR_NAME, "")
-
-
-# failed to make tests fail on warning???
-# _config_logger.warning("want this to make tests fail - but they do not")
-# warnings.warn('this does!')
 
 
 HOME = str(Path.home())
@@ -234,10 +236,11 @@ LOGGING_PRESETS = {
         },
     },
 }
-PRESETS_v2: dict[str, ConfigDict] = {
+
+PRESETS: dict[str, ConfigDict] = {
     "home": {
         "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
-        "bucket": str(Path(HOME)),
+        # "bucket": str(Path(HOME)),
         "repositories": {
             DAPLA_TEAM: {
                 "name": "home",
@@ -250,7 +253,7 @@ PRESETS_v2: dict[str, ConfigDict] = {
     },
     "shared-test": {
         "configuration_file": str(Path(HOME, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
-        "bucket": str(Path(SHARED_TEST)),
+        # "bucket": str(Path(SHARED_TEST)),
         "repositories": {
             DAPLA_TEAM: {
                 "name": DAPLA_TEAM,
@@ -265,7 +268,7 @@ PRESETS_v2: dict[str, ConfigDict] = {
         "configuration_file": str(
             Path(SHARED_PROD, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
         ),
-        "bucket": str(Path(SHARED_PROD)),
+        # "bucket": str(Path(SHARED_PROD)),
         "repositories": {
             DAPLA_TEAM: {
                 "name": DAPLA_TEAM,
@@ -280,7 +283,7 @@ PRESETS_v2: dict[str, ConfigDict] = {
         "configuration_file": str(
             Path(DAPLA_BUCKET, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
         ),
-        "bucket": str(Path(DAPLALAB_FUSE)),
+        # "bucket": str(Path(DAPLALAB_FUSE)),
         "repositories": {
             DAPLA_TEAM: {
                 "name": DAPLA_TEAM,
@@ -292,45 +295,6 @@ PRESETS_v2: dict[str, ConfigDict] = {
         "logging": LOGGING_PRESETS["simple"],
     },
 }
-# PRESETS_v1: dict[str, dict] = {
-#     "home": {
-#         "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
-#         "bucket": str(Path(HOME)),
-#         "timeseries_root": str(Path(HOME, ROOT_DIR_NAME)),
-#         "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
-#         "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
-#         "logging": LOGGING_PRESETS["simple"],
-#     },
-#     "shared-test": {
-#         "configuration_file": str(Path(HOME, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
-#         "bucket": str(Path(SHARED_TEST)),
-#         "timeseries_root": str(Path(SHARED_TEST, SSB_DIR_NAME)),
-#         "catalog": str(Path(SHARED_TEST, SSB_DIR_NAME, META_DIR_NAME)),
-#         "log_file": str(Path(SHARED_TEST, SSB_LOGDIR, LOGFILE)),
-#         "logging": {},
-#     },
-#     "shared-prod": {
-#         "configuration_file": str(
-#             Path(SHARED_PROD, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
-#         ),
-#         "bucket": str(Path(SHARED_PROD)),
-#         "timeseries_root": str(Path(SHARED_PROD, SSB_DIR_NAME)),
-#         "catalog": str(Path(SHARED_PROD, SSB_DIR_NAME, META_DIR_NAME)),
-#         "log_file": str(Path(SHARED_PROD, SSB_LOGDIR, LOGFILE)),
-#         "logging": {},
-#     },
-#     "daplalab": {
-#         "configuration_file": str(
-#             Path(DAPLA_BUCKET, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
-#         ),
-#         "bucket": str(Path(DAPLALAB_FUSE)),
-#         "timeseries_root": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME)),
-#         "catalog": str(Path(DAPLALAB_FUSE, SSB_DIR_NAME, META_DIR_NAME)),
-#         "log_file": str(Path(DAPLALAB_FUSE, SSB_LOGDIR, LOGFILE)),
-#         "logging": {},
-#     },
-# }
-PRESETS = PRESETS_v2
 
 PRESETS["default"] = PRESETS["home"]
 PRESETS["defaults"] = PRESETS["home"]
@@ -428,7 +392,7 @@ class Config:
                 config_from_file = {}
 
             config_values = PRESETS["default"]
-            config_values.update(config_from_file)
+            config_values.update(config_from_file)  # type: ignore [typeddict-item]
             _config_logger.debug(f"{config_values=}")
         elif active_file():
             # if the path is specified by the environment variable, not finding it is an error
@@ -445,8 +409,7 @@ class Config:
             )
             config_values = PRESETS["defaults"]
 
-        config_values.update(kwargs)  # in any case, provided kwargs override existing
-
+        config_values.update(kwargs)  # type: ignore [typeddict-item]
         self.apply(config_values)
 
     def apply(self, configuration: dict) -> None:
@@ -556,7 +519,7 @@ class Config:
 
     @classmethod
     def active(cls) -> Self:
-        """Force reload and return the configuration identified by :py:const:`ENV_VAR_NAME`."""
+        """Force reload the file identified by :py:const:`ENV_VAR_NAME` and return the configuration."""
         return cls(configuration_file=active_file())
 
 
@@ -702,7 +665,7 @@ class DictObject(object):  # noqa
 #     return out
 
 
-def presets(named_config: str) -> dict:  # noqa: RUF100, DAR201
+def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100, DAR201
     """Set configurations to predefined defaults.
 
     Raises:

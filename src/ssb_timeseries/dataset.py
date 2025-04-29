@@ -49,7 +49,7 @@ from ssb_timeseries.types import PathStr
 # ruff: noqa: RUF013
 
 
-def pick_repository(name: str = "") -> dict:
+def pick_repository(name: str = "") -> Any:
     """Pick named or default repository from configuration.
 
     If there is only one repo, the choice is easy and criteria does not matter.

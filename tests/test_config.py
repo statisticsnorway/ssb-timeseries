@@ -33,7 +33,7 @@ from ssb_timeseries import fs
 from tests.conftest import Helpers
 
 # NOSONAR
-# mypy: disable-error-code="no-untyped-def"
+# mypy: disable-error-code="no-untyped-def,call-overload,attr-defined,literal-required"
 
 # ================================ FIXTURES: ===================================
 # - make sure we use test configurations defined in conftest.py

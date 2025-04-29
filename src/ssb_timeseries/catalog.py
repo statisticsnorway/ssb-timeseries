@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 from typing import Protocol
+from typing import runtime_checkable
 
 # from . import sql
 import duckdb
@@ -230,6 +231,7 @@ class _CatalogProtocol(Protocol):
         ...
 
 
+@runtime_checkable
 class RepositoryProtocol(Protocol):
     """Defines required attributes for file repositories."""
 
@@ -271,8 +273,10 @@ class Catalog(_CatalogProtocol):
         for filerepo in config:
             if isinstance(filerepo, Repository):
                 self.repositories.append(filerepo)
-            elif isinstance(filerepo, Repository):
-                self.repositories.append(filerepo)
+            elif isinstance(filerepo, dict):
+                self.repositories.append(
+                    Repository(name=filerepo["name"], catalog=filerepo["catalog"])
+                )
             else:
                 self.repositories.append(
                     Repository(name=filerepo.name, catalog=filerepo.catalog)
@@ -375,7 +379,7 @@ class Repository(_CatalogProtocol):
         elif repo_config and isinstance(repo_config, RepositoryProtocol):
             self.name = repo_config.name
             self.catalog = repo_config.catalog
-        elif repo_config:
+        elif repo_config and isinstance(repo_config, dict):
             self.name = repo_config["name"]
             self.catalog = repo_config["catalog"]
         else:
