@@ -20,6 +20,7 @@ That in turn has practical implications for how the series can be interacted wit
 """
 
 import re
+import warnings
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
@@ -46,6 +47,31 @@ from ssb_timeseries.types import PathStr
 
 # mypy: disable-error-code="assignment,attr-defined,union-attr,arg-type,call-overload,no-untyped-call,dict-item"
 # ruff: noqa: RUF013
+
+
+def select_repository(name: str = "") -> Any:
+    """Select a named or default repository from the configuration.
+
+    If there is only one repo, the choice is easy and criteria does not matter.
+    Otherwise, if a ``name`` is provided, only that is checked.
+    If no name is provided, the first item marked with `'default': True` is picked.
+    If no item is identified by name or marking as default, the last item is returned.
+    (This behaviour is questionable - it may be turned into an error.)
+    """
+    repos = ts.active_config().repositories
+    for k, v in repos.items():
+        if len(repos) == 1:
+            return v
+        if k == name:
+            return v
+        elif not name and v.get("default", False):
+            return v
+    else:
+        warnings.warn(
+            f"Repository with name '{name}' could not be picked among {len(repos)}. The last one ({v['name']}) is used.",
+            stacklevel=2,
+        )
+        return v
 
 
 class IO(Protocol):
@@ -94,6 +120,7 @@ class Dataset:
         name: str,
         data_type: ts.properties.SeriesType = None,
         as_of_tz: datetime = None,
+        repository: str = "",
         load_data: bool = True,
         **kwargs: Any,
     ) -> None:
@@ -147,17 +174,19 @@ class Dataset:
             34
 
         """
+        self.repository = select_repository(repository)
         self.name: str = name
         if data_type:
             self.data_type = data_type
         else:
-            look_for_it = search(name)
+            look_for_it = search(
+                repository=self.repository["directory"],
+                pattern=name,
+                require_unique=True,
+            )
             if isinstance(look_for_it, Dataset):
                 self.data_type = look_for_it.data_type
-            else:
-                raise ValueError(
-                    f"Dataset {name} did not give a unique match. Specify data_type if you intend to initialise a new set."
-                )
+
         identify_latest: bool = (
             self.data_type.versioning == ts.properties.Versioning.AS_OF
             and not as_of_tz
@@ -170,7 +199,10 @@ class Dataset:
                 self.name,
             )
             self.io = io.FileSystem(
-                set_name=self.name, set_type=self.data_type, as_of_utc=None
+                repository=self.repository,
+                set_name=self.name,
+                set_type=self.data_type,
+                as_of_utc=None,
             )
             lookup_as_of = self.versions()[-1]
             if isinstance(lookup_as_of, datetime):
@@ -180,6 +212,7 @@ class Dataset:
             self.as_of_utc = date_utc(as_of_tz)
 
         self.io: IO = io.FileSystem(  # type: ignore[no-redef]
+            repository=self.repository,
             set_name=self.name,
             set_type=self.data_type,
             as_of_utc=self.as_of_utc,
@@ -249,7 +282,9 @@ class Dataset:
         if as_of_tz is not None:
             self.as_of_utc = date_utc(as_of_tz)
 
-        self.io = io.FileSystem(self.name, self.data_type, self.as_of_utc)
+        self.io = io.FileSystem(
+            self.repository, self.name, self.data_type, self.as_of_utc
+        )
         # ts.logger.debug("DATASET %s: SAVE. Tags:\n\t%s.", self.name, self.tags)
         if not self.tags:
             self.tags = self.default_tags()
@@ -297,7 +332,8 @@ class Dataset:
         By default `as_of` dates will be returned in local timezone. Provide `return_type = 'utc'` to return in UTC, 'raw' to return as-is.
         """
         versions = self.io.list_versions(
-            file_pattern="*.parquet", pattern=self.data_type.versioning
+            file_pattern="*.parquet",
+            pattern=self.data_type.versioning,
         )
         if not versions:
             return []
@@ -1370,36 +1406,40 @@ def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
 
 
 def search(
-    pattern: str = "*", as_of_tz: datetime = None
+    pattern: str = "*",
+    as_of_tz: datetime = None,
+    repository: str = "",
+    require_unique: bool = False,
 ) -> list[io.SearchResult] | Dataset | list[None]:
-    """Search for datasets by name matching pattern."""
-    found = io.find_datasets(pattern=pattern)
-    ts.logger.debug("DATASET.search returned:\n%s", found)
+    """Search for datasets by name matching pattern.
 
-    if len(found) == 1:
+    Returns:
+         list[io.SearchResult] | Dataset | list[None]: The dataset for a single match, a list for no or multiple matches.
+
+    Raises:
+        ValueError: If `require_unique = True` and a unique result is not found.
+    """
+    found = io.find_datasets(
+        pattern=pattern,
+        repository=repository,
+    )
+    ts.logger.debug(
+        "DATASET.search for '%s'\nin repositories\n%s\nreturned:\n%s",
+        pattern,
+        repository,
+        found,
+    )
+    number_of_results = len(found)
+
+    if number_of_results == 1:
         return Dataset(
             name=found[0].name,
             data_type=ts.properties.seriestype_from_str(found[0].type_directory),
             as_of_tz=as_of_tz,
         )
-    else:
-        return found
-
-
-def catalog_search(
-    pattern: meta.TagDict,
-    as_of_tz: datetime = None,
-    object_type: str | list[str] = "dataset",
-) -> list[io.SearchResult] | Dataset | list[None]:
-    """Search across datasets by tags pattern."""
-    found = io.find_datasets(pattern=pattern)
-    ts.logger.debug("DATASET.search returned:\n%s", found)
-
-    if len(found) == 1:
-        return Dataset(
-            name=found[0].name,
-            data_type=ts.properties.seriestype_from_str(found[0].type_directory),
-            as_of_tz=as_of_tz,
+    elif require_unique:
+        raise ValueError(
+            f"Search for '{pattern}' returned:\n{number_of_results} results when exactly one was expected:\n{found}",
         )
     else:
         return found

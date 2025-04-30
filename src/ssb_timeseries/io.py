@@ -30,6 +30,7 @@ import ssb_timeseries as ts
 from ssb_timeseries import fs
 from ssb_timeseries import properties
 from ssb_timeseries.config import Config
+from ssb_timeseries.config import FileBasedRepository
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.meta import DatasetTagDict
@@ -46,6 +47,8 @@ from ssb_timeseries.types import PathStr
 # ruff: noqa: D202
 
 Data: TypeAlias = pyarrow.Table | pandas.DataFrame | polars.DataFrame
+
+active_config = Config.active
 
 
 def version_from_file_name(
@@ -91,6 +94,7 @@ class FileSystem:
 
     def __init__(
         self,
+        repository: str | FileBasedRepository,
         set_name: str,
         set_type: properties.SeriesType,
         as_of_utc: datetime | None = None,
@@ -102,6 +106,12 @@ class FileSystem:
         Calculate directory structure based on dataset type and name.
 
         """
+        if isinstance(repository, dict):
+            self.repository = repository
+        else:
+            cfg = Config.active()
+            self.repository = cfg.repositories.get(repository)
+
         self.set_name = set_name
         self.data_type = set_type
         self.process_stage = process_stage
@@ -117,7 +127,7 @@ class FileSystem:
     @property
     def root(self) -> str:
         """The root path is the basis for all other paths."""
-        ts_root = Config.active().timeseries_root
+        ts_root = self.repository["directory"]
         return ts_root
 
     @property
@@ -167,7 +177,7 @@ class FileSystem:
 
         In the inital implementation with data and metadata in separate files it made sense for this to be the same as the data directory. However, Most likely, in a future version we will change this apporach and store metadata as header information in the data file, and the same information in a central meta data directory.
         """
-        return Config.active().catalog
+        return self.repository["catalog"]
         # replaces: return os.path.join(self.type_path, self.set_name)
 
     @property
@@ -236,7 +246,7 @@ class FileSystem:
 
             else:
                 ts.logger.warning(
-                    "Arrow schema not defined: %s.\nFalling back to writing with Pandas.",
+                    "Arrow schema is not defined: %s.\nFalling back to writing with Pandas.",
                     self.set_name,
                 )
                 fs.pandas_write_parquet(df, self.data_fullpath)
@@ -375,14 +385,17 @@ class FileSystem:
             return []
 
     def snapshot_directory(
-        self, product: str, process_stage: str = "statistikk"
+        self, bucket: str = "", product: str = "", process_stage: str = "statistikk"
     ) -> PathStr:
         """Get name of snapshot directory.
 
         Uses dataset parameters, configuration, product and process stage.
         """
+        if not bucket:
+            bucket = Config.active().bucket
+
         return os.path.join(
-            Config.active().bucket,
+            bucket,
             product,
             process_stage,
             "series",  # to distinguish from other data types
@@ -505,7 +518,7 @@ class FileSystem:
     def dir(cls, *args: str, **kwargs: bool) -> str:
         """Check that target directory is under BUCKET. If so, create it if it does not exist."""
         path = os.path.join(*args)
-        ts_root = str(Config.active().bucket)
+        ts_root = str(active_config().bucket)
 
         # hidden feature: also for kwarg 'force' == True
         if ts_root in path or kwargs.get("force", False):
@@ -521,27 +534,50 @@ class FileSystem:
 def find_datasets(
     pattern: str | PathStr = "",  # as_of: datetime | None = None
     exclude: str = "metadata",
+    repository: list[PathStr] | PathStr = "",
 ) -> list[SearchResult]:
-    """Search for files in under timeseries root."""
+    """Search for files in data directories of all configured repositories."""
     if pattern:
         pattern = f"*{pattern}*"
     else:
         pattern = "*"
-    configuration = Config.active()
-    dirs = fs.find(configuration.timeseries_root, pattern, full_path=True)
+
+    if repository:
+        search_directories = [repository]
+        repo_names = ["root"]
+        ts.logger.debug("IO.find_dataset pattern %s in repo %s", pattern, repository)
+    else:
+        search_directories = [
+            v["directory"] for k, v in active_config().repositories.items()
+        ]
+        repo_names = [k for k in active_config().repositories.keys()]
+
+    data_dirs = []
+    for search_dir in search_directories:
+        data_dirs.extend(fs.find(search_dir, pattern, full_path=True))
+
+    ts.logger.debug("%s %s", pattern, data_dirs)
     if exclude:
-        dirs = [d for d in dirs if exclude not in d]
+        dirs = [d for d in data_dirs if exclude not in d]
         ts.logger.debug(
             "DATASET.IO.find_datasets: exclude '%s' eliminated:\n%s",
             exclude,
             [d for d in dirs if exclude in d],
         )
-    search_results = [
-        d.replace(configuration.timeseries_root, "root").split(os.path.sep)
-        for d in dirs
-    ]
-    ts.logger.debug("DATASET.IO.SEARCH: results: %s", search_results)
-
+    print(data_dirs)
+    search_results = []
+    for search_dir, repo in zip(search_directories, repo_names, strict=False):
+        ts.logger.debug("%s | %s", search_dir, repo)
+        search_results.extend(
+            [
+                # d.replace(active_config().timeseries_root, "root").split(os.path.sep)
+                # d.replace(search_dir, "root").split(os.path.sep)
+                # VERIFY that identifying multiple repos by name works?
+                d.replace(search_dir, repo).split(os.path.sep)
+                for d in dirs
+            ]
+        )
+    ts.logger.debug("search results: %s", search_results)
     return [SearchResult(f[2], f[1]) for f in search_results]
 
 
@@ -576,7 +612,7 @@ def find_metadata_files(
             "find_metadata_files in default repo:\n%s.",
             repository,
         )
-        result = find_in_repo(Config.active())
+        result = find_in_repo(active_config())
     elif isinstance(repository, str):
         ts.logger.debug(
             "find_metadata_files in repo by str:\n%s.",
@@ -625,9 +661,9 @@ def for_all_datasets_move_metadata_files(
     else:
         pattern = "*"
 
-    dirs = fs.find(Config.active().timeseries_root, pattern, full_path=True)
+    dirs = fs.find(active_config().timeseries_root, pattern, full_path=True)
     search_results = [
-        d.replace(Config.active().timeseries_root, "root").split(os.path.sep)
+        d.replace(active_config().timeseries_root, "root").split(os.path.sep)
         for d in dirs
     ]
     ts.logger.debug("DATASET.IO.SEARCH: results: %s", search_results)

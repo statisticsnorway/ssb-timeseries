@@ -21,7 +21,9 @@ def repo_1(
 ):
     """Init repo 'test_1'."""
     config = buildup_and_teardown
-    repo = Repository(name="test_1", directory=config.catalog)
+    r = config.repositories
+    # cheat an use the same repo twice:
+    repo = Repository(name="test_1", catalog=r["test_1"]["catalog"])
     yield repo
 
 
@@ -31,7 +33,9 @@ def repo_2(
 ):
     """Init repo 'test_2'."""
     config = buildup_and_teardown
-    repo = Repository(name="test_2", directory=config.catalog)
+    r = config.repositories
+    # cheat an use the same repo twice:
+    repo = Repository(name="test_2", catalog=r["test_2"]["catalog"])
     yield repo
 
 
@@ -136,24 +140,28 @@ def test_init_catalog_with_repo_like_objects(
     """Find datasets where ."""
     caplog.set_level(logging.DEBUG)
 
-    # any object with .name and .directory should work(?)
-    # we will try with dict and namedtuple:
-    ConfigTuple = namedtuple("ConfigTuple", ["name", "directory"])
-    config_from_named_tuple = ConfigTuple(
-        "test_named_tuple", buildup_and_teardown.catalog
-    )
+    # any object with .name and .catalog should work(?)
+    # we will try namedtuple:
+    ConfigTuple = namedtuple("ConfigTuple", ["name", "catalog"])
+    repo_1_catalog = buildup_and_teardown.repositories["test_1"]["catalog"]
+    tuple_repo = ConfigTuple("test_named_tuple", repo_1_catalog)
     catalog = Catalog(
         config=[
-            repo_1,
             repo_2,
-            config_from_named_tuple,
+            repo_1,
+            tuple_repo,
         ]
     )
+    ts.logger.warning(f"{catalog.repositories=}")
     assert isinstance(catalog, Catalog)
+    assert len(catalog.repositories) == 3
     assert catalog.count(object_type="dataset") > 0
-    assert catalog.count(object_type="dataset") == repo_1.count(
-        object_type="dataset"
-    ) * len(catalog.repository)
+    n_0 = catalog.repositories[0].count(object_type="dataset")
+    n_1 = catalog.repositories[1].count(object_type="dataset")
+    n_2 = catalog.repositories[2].count(object_type="dataset")
+
+    assert n_0 == 0
+    assert n_1 == n_2 == catalog.count(object_type="dataset") / 2
 
 
 def test_catalog_datasets_called_with_no_params_lists_all_datasets_for_catalog_w_one_repo(
@@ -164,7 +172,7 @@ def test_catalog_datasets_called_with_no_params_lists_all_datasets_for_catalog_w
     """No criteria returns all datasets."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
-    repos = [r.name for r in catalog.repository]
+    repos = [r.name for r in catalog.repositories]
 
     all_sets_in_catalog = {
         ds.repository_name + ":" + ds.object_name for ds in catalog.datasets()
@@ -182,7 +190,7 @@ def test_catalog_datasets_called_with_no_params_lists_all_datasets_for_catalog_w
     """No criteria returns all datasets."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
-    repos = [r.name for r in catalog.repository]
+    repos = [r.name for r in catalog.repositories]
 
     all_sets_in_catalog = {
         ds.repository_name + ":" + ds.object_name for ds in catalog.datasets()
@@ -202,7 +210,7 @@ def test_catalog_series_called_with_no_params_lists_all_datasets_for_catalog_w_t
     """No criteria returns all seriess."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
-    repos = [r.name for r in catalog.repository]
+    repos = [r.name for r in catalog.repositories]
 
     all_series_in_catalog = {
         f"{ds.repository_name}:{ds.parent}:{ds.object_name}" for ds in catalog.series()
@@ -264,7 +272,7 @@ def test_catalog_search_by_tag_dict(
     """Simple test case for filtering by tags."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
-    num_repos = len(catalog.repository)
+    num_repos = len(catalog.repositories)
 
     def log_items(cc):
         for c in catalog.items(tags=cc):
@@ -298,7 +306,7 @@ def test_catalog_search_by_tag_dict_multiple_criteria(
     """Simple test case for filtering by tags."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
-    num_repos = len(catalog.repository)
+    num_repos = len(catalog.repositories)
     # The tag: D=d gives a match only in dataset 'test-exising-small-dataset'
     criteria = {"B": "b", "D": "d"}
     for result in catalog.items(tags=criteria):

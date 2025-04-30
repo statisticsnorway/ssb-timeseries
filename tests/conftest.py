@@ -1,5 +1,6 @@
 import inspect
 import logging
+import uuid
 import warnings
 from copy import deepcopy
 
@@ -54,18 +55,25 @@ def console_log_handler() -> None:
 
 class Helpers:
     configuration: config.Config
+    repo: dict | None = None
+    logger: str = TEST_LOGGER
 
     def __init__(self, configuration: config.Config | None = None) -> None:
         """Helpers for tests."""
         if configuration:
             self.configuration = configuration
+            self.repo = self.configuration.repositories["test_1"]
 
     @staticmethod
     def function_name() -> str:
         return str(inspect.stack()[1][3])
 
+    @staticmethod
+    def function_name_hex() -> str:
+        return f"{inspect.stack()[1][3]!s}_{uuid.uuid4().hex}"
 
-@pytest.fixture(scope="function", autouse=False)
+
+@pytest.fixture(scope="function")
 def conftest(buildup_and_teardown) -> Helpers:
     h = Helpers(configuration=buildup_and_teardown)
     return h
@@ -95,8 +103,19 @@ def buildup_and_teardown(
     temp_configuration = config.Config(
         configuration_file=str(config_file_for_testing),
         log_file=str(log_file_for_testing),
-        timeseries_root=str(tmp_path_factory.mktemp("series")),
-        catalog=str(tmp_path_factory.mktemp("metadata")),
+        repositories={
+            "test_1": {
+                "name": "test_1",
+                "directory": str(tmp_path_factory.mktemp("series_test_1")),
+                "catalog": str(tmp_path_factory.mktemp("metadata_test_1")),
+                "default": True,
+            },
+            "test_2": {
+                "name": "test_2",
+                "directory": str(tmp_path_factory.mktemp("series_test_2")),
+                "catalog": str(tmp_path_factory.mktemp("metadata_test_2")),
+            },
+        },
         bucket=str(tmp_path_factory.mktemp("bucket")),
         logging=log_config,
         ignore_file=True,
@@ -105,7 +124,7 @@ def buildup_and_teardown(
     assert fs.exists(temp_configuration.configuration_file)
 
     logger = set_up_logging_according_to_config(TEST_LOGGER, temp_configuration.logging)
-    # logger.addHandler(console_log_handler())
+    logger.addHandler(console_log_handler())
     logger.addFilter(LogWarningFilter())
     yield temp_configuration
     logging.getLogger(TEST_LOGGER).removeFilter(LogWarningFilter())
@@ -120,7 +139,7 @@ def buildup_and_teardown(
     assert active_config_after == _ENV_VAR_VALUE_BEFORE_TESTS
 
 
-@pytest.fixture(scope="session", autouse=False)
+@pytest.fixture(scope="session")
 def tag_values():
     """Define series names for which to generate test data."""
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
@@ -128,7 +147,7 @@ def tag_values():
     yield tag_values
 
 
-@pytest.fixture(scope="session", autouse=False)
+@pytest.fixture(scope="session")
 def abc_at(tag_values):
     df = create_df(
         *tag_values,
@@ -140,7 +159,7 @@ def abc_at(tag_values):
     yield df
 
 
-@pytest.fixture(scope="session", autouse=False)
+@pytest.fixture(scope="session")
 def abc_from_to(tag_values):
     df = create_df(
         *tag_values,
@@ -152,7 +171,7 @@ def abc_from_to(tag_values):
     yield df
 
 
-@pytest.fixture(scope="function", autouse=False)
+@pytest.fixture(scope="session")
 def xyz_at():
     df = create_df(
         ["x", "y", "z"],
@@ -164,7 +183,7 @@ def xyz_at():
     yield df
 
 
-@pytest.fixture(scope="function", autouse=False)
+@pytest.fixture(scope="session")
 def xyz_from_to():
     df = create_df(
         ["x", "y", "z"],
@@ -176,8 +195,8 @@ def xyz_from_to():
     yield df
 
 
-@pytest.fixture(scope="function", autouse=False)
-def new_dataset_none_at(abc_at):
+@pytest.fixture(scope="function")
+def new_dataset_none_at(abc_at, buildup_and_teardown):
     """A fixture to create simple dataset before running the test."""
     x = Dataset(
         name="test-new-dataset-none-at",
@@ -190,8 +209,8 @@ def new_dataset_none_at(abc_at):
     yield x
 
 
-@pytest.fixture(scope="function", autouse=False)
-def new_dataset_as_of_at(abc_at):
+@pytest.fixture(scope="function")
+def new_dataset_as_of_at(abc_at, buildup_and_teardown):
     """A fixture to create simple dataset before running the test."""
     x = Dataset(
         name="test-new-dataset-as-of-at",
@@ -205,8 +224,8 @@ def new_dataset_as_of_at(abc_at):
     yield x
 
 
-@pytest.fixture(scope="function", autouse=False)
-def new_dataset_none_from_to(abc_from_to):
+@pytest.fixture(scope="function")
+def new_dataset_none_from_to(abc_from_to, buildup_and_teardown):
     """A fixture to create simple dataset before running the test."""
     x = Dataset(
         name="test-new-dataset-none-from-to",
@@ -219,8 +238,8 @@ def new_dataset_none_from_to(abc_from_to):
     yield x
 
 
-@pytest.fixture(scope="function", autouse=False)
-def new_dataset_as_of_from_to(abc_from_to):
+@pytest.fixture(scope="function")
+def new_dataset_as_of_from_to(abc_from_to, buildup_and_teardown):
     """A fixture to create simple dataset before running the test."""
     x = Dataset(
         name="test-new-as-of-from-to",
@@ -235,7 +254,7 @@ def new_dataset_as_of_from_to(abc_from_to):
     yield x
 
 
-@pytest.fixture(scope="function", autouse=False)
+@pytest.fixture(scope="function")
 def one_new_set_for_each_data_type(
     new_dataset_none_at,
     new_dataset_none_from_to,
@@ -251,8 +270,8 @@ def one_new_set_for_each_data_type(
     ]
 
 
-@pytest.fixture(scope="module", autouse=False)
-def existing_simple_set(abc_at):
+@pytest.fixture(scope="module")
+def existing_simple_set(abc_at, buildup_and_teardown):
     """Create a simple dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     x = Dataset(
         name="test-existing-simple-dataset",
@@ -264,8 +283,8 @@ def existing_simple_set(abc_at):
     yield x
 
 
-@pytest.fixture(scope="function", autouse=False)
-def existing_estimate_set(abc_at):
+@pytest.fixture(scope="function")
+def existing_estimate_set(abc_at, buildup_and_teardown):
     """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     x = Dataset(
         name="test-existing-estimate-dataset",
@@ -278,8 +297,8 @@ def existing_estimate_set(abc_at):
     yield x
 
 
-@pytest.fixture(scope="function", autouse=False)
-def existing_from_to_set(abc_from_to):
+@pytest.fixture(scope="function")
+def existing_from_to_set(abc_from_to, buildup_and_teardown):
     """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     x = Dataset(
         name="test-existing-small-dataset",
@@ -294,8 +313,8 @@ def existing_from_to_set(abc_from_to):
     yield
 
 
-@pytest.fixture(scope="function", autouse=False)
-def existing_small_set():
+@pytest.fixture(scope="function")
+def existing_small_set(buildup_and_teardown):
     """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     tags = {"A": ["a1", "a2", "a3"], "B": ["b"], "C": ["c"]}
     tag_values = [value for value in tags.values()]
@@ -317,7 +336,7 @@ def existing_small_set():
     yield x
 
 
-@pytest.fixture(scope="function", autouse=False)
+@pytest.fixture(scope="function")
 def existing_sets(existing_estimate_set, existing_simple_set, existing_small_set):
     """A fixture returning one existing (previously saved) example dataset for each data type."""
     yield [

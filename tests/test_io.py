@@ -12,9 +12,12 @@ from ssb_timeseries.sample_data import create_df
 # mypy: ignore-errors
 
 
-def test_io_dirs() -> None:
+def test_io_dirs(conftest) -> None:
     dirs = io.FileSystem(
-        set_name="test-1", set_type=SeriesType.simple(), as_of_utc=None
+        repository=conftest.repo,
+        set_name="test-1",
+        set_type=SeriesType.simple(),
+        as_of_utc=None,
     )
     assert isinstance(dirs, io.FileSystem)
 
@@ -25,7 +28,10 @@ def test_io_datadir_path_as_expected(
 ) -> None:
     test_name = conftest.function_name()
     test_io = io.FileSystem(
-        set_name=test_name, set_type=SeriesType.simple(), as_of_utc=None
+        repository=conftest.repo,
+        set_name=test_name,
+        set_type=SeriesType.simple(),
+        as_of_utc=None,
     )
     expected: str = Path(test_io.metadata_dir) / test_io.type_path / test_name
     assert str(test_io.data_dir) == str(expected)
@@ -37,10 +43,12 @@ def test_io_metadir_path_is_equal_to_configured_metadata_catalog(
 ) -> None:
     test_name = conftest.function_name()
     set_type = SeriesType.simple()
-    test_io = io.FileSystem(set_name=test_name, set_type=set_type, as_of_utc=None)
+    test_io = io.FileSystem(
+        repository=conftest.repo, set_name=test_name, set_type=set_type, as_of_utc=None
+    )
     # expected: str = Path(test_io.data_dir) / test_io.type_path / test_name
     # expected: str = Path(test_io.root) / "metadata"
-    expected = conftest.configuration.catalog
+    expected = conftest.repo["catalog"]
     assert str(test_io.metadata_dir) == str(expected)
     assert str(test_io.metadata_dir) != ""
 
@@ -54,6 +62,7 @@ def test_io_parquet_schema_as_of_at(
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_none_at
     test_io = io.FileSystem(
+        repository=conftest.repo,
         set_name=dataset.name,
         set_type=dataset.data_type,
         as_of_utc=dataset.as_of_utc,
@@ -78,6 +87,7 @@ def test_io_parquet_schema_none_from_to(
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_none_from_to
     test_io = io.FileSystem(
+        repository=conftest.repo,
         set_name=dataset.name,
         set_type=dataset.data_type,
         as_of_utc=dataset.as_of_utc,
@@ -102,6 +112,7 @@ def test_io_parquet_schema_none_at(
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_as_of_at
     test_io = io.FileSystem(
+        repository=conftest.repo,
         set_name=dataset.name,
         set_type=dataset.data_type,
         as_of_utc=dataset.as_of_utc,
@@ -126,6 +137,7 @@ def test_io_parquet_schema_as_of_from_to(
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_as_of_from_to
     test_io = io.FileSystem(
+        repository=conftest.repo,
         set_name=dataset.name,
         set_type=dataset.data_type,
         as_of_utc=dataset.as_of_utc,

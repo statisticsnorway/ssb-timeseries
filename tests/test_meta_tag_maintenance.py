@@ -7,7 +7,6 @@ import pytest
 
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -16,7 +15,6 @@ from ssb_timeseries.sample_data import create_df
 test_logger = logging.getLogger(__name__)
 
 
-@log_start_stop
 def test_init_dataset_returns_expected_set_level_tags(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
@@ -68,7 +66,6 @@ def test_init_dataset_returns_expected_set_level_tags(caplog) -> None:
     assert x.tags["SeriesDifferentiatingAttributes"] == ["A", "B", "C"]
 
 
-@log_start_stop
 def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dataset(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -136,7 +133,6 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
             assert d[key][x_key] == x_value
 
 
-@log_start_stop
 def test_tag_set_with_kwargs(
     new_dataset_as_of_at: Dataset, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -156,7 +152,6 @@ def test_tag_set_with_kwargs(
         assert series_tags["example_2"] == ["a", "b", "c"]
 
 
-@log_start_stop
 def test_tag_set_with_dict(
     new_dataset_as_of_at: Dataset, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -174,7 +169,6 @@ def test_tag_set_with_dict(
         assert series_tags["example_2"] == ["a", "b", "c"]
 
 
-@log_start_stop
 def test_tag_set_with_both_dict_and_kwargs(new_dataset_as_of_at: Dataset) -> None:
     new_dataset_as_of_at.tag_dataset(
         tags={"example_1": "string_1"}, example_2=["a", "b", "c"]
@@ -189,7 +183,6 @@ def test_tag_set_with_both_dict_and_kwargs(new_dataset_as_of_at: Dataset) -> Non
         assert series_tags["example_2"] == ["a", "b", "c"]
 
 
-@log_start_stop
 def test_tagging_set_second_time_appends(
     new_dataset_as_of_at: Dataset,
     caplog: pytest.LogCaptureFixture,
@@ -209,7 +202,6 @@ def test_tagging_set_second_time_appends(
         assert series_tags["example_2"] == ["a", "b", "c"]
 
 
-@log_start_stop
 def test_tagging_with_empty_dict_does_nothing(
     new_dataset_as_of_at: Dataset,
     caplog: pytest.LogCaptureFixture,
@@ -231,7 +223,6 @@ def test_tagging_with_empty_dict_does_nothing(
         assert series_tags["example_2"] == ["a", "b", "c"]
 
 
-@log_start_stop
 def test_detag_dataset_arg_removes_single_value_tags(
     existing_small_set: Dataset,
     caplog: pytest.LogCaptureFixture,
@@ -253,7 +244,6 @@ def test_detag_dataset_arg_removes_single_value_tags(
         assert series_tags.get("E") is None
 
 
-@log_start_stop
 def test_detag_dataset_arg_removes_all_list_values_from_tags(
     existing_small_set: Dataset,
     caplog: pytest.LogCaptureFixture,
@@ -275,7 +265,6 @@ def test_detag_dataset_arg_removes_all_list_values_from_tags(
         assert series_tags.get("F") is None
 
 
-@log_start_stop
 def test_detag_dataset_kwarg_removes_single_value_tags(
     existing_small_set: Dataset,
     caplog: pytest.LogCaptureFixture,
@@ -297,7 +286,6 @@ def test_detag_dataset_kwarg_removes_single_value_tags(
         assert series_tags.get("E") is None
 
 
-@log_start_stop
 def test_detag_dataset_kwarg_removes_all_list_values_from_tags(
     existing_small_set: Dataset,
     caplog: pytest.LogCaptureFixture,
@@ -319,7 +307,6 @@ def test_detag_dataset_kwarg_removes_all_list_values_from_tags(
         assert series_tags.get("F") is None
 
 
-@log_start_stop
 def test_detag_dataset_kwarg_removes_only_specified_value_from_tag_with_multiple_values(
     existing_small_set: Dataset,
     caplog: pytest.LogCaptureFixture,
@@ -341,10 +328,9 @@ def test_detag_dataset_kwarg_removes_only_specified_value_from_tag_with_multiple
         assert series_tags.get("F") == "f2"
 
 
-@log_start_stop
 def test_detag_series_removes_tags_from_series_but_not_from_set(
-    caplog: pytest.LogCaptureFixture,
     existing_small_set: Dataset,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
@@ -374,7 +360,6 @@ def test_detag_series_removes_tags_from_series_but_not_from_set(
     assert y.tags["example_2"] == ["a", "b", "c"]
 
 
-@log_start_stop
 def test_retag_dataset(
     existing_small_set: Dataset,
     caplog: pytest.LogCaptureFixture,

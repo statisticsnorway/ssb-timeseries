@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ssb-timeseries"
-version = "0.4.3"
+version = "0.5.0"
 description = "SSB Timeseries"
 authors = ["Bernhard Ryeng <bernhard.ryeng@ssb.no>"]
 license = "MIT"
@@ -55,7 +55,7 @@ click = ">=8.1.7"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-#log_cli = true # does NOT fix issues with configuring loggers for testing
+# log_cli = true # does NOT fix issues with configuring loggers for testing
 # filterwarnings = [ "error", ] # error introduced in conftest.buildup and teardown?
 filterwarnings = [ "error", "ignore::pytest.PytestUnraisableExceptionWarning"]
 
