@@ -361,7 +361,7 @@ class Config:
             return
         elif param_specified_config_file:
             # if config file is
-            _config_logger.debug(
+            _config_logger.info(
                 f"Loading configuration from {param_specified_config_file}"
             )
             # if "timeseries_root" in kwargs.keys():
