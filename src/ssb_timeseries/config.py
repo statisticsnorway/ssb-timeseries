@@ -113,7 +113,6 @@ def is_valid_config(configuration: dict) -> tuple[bool, object]:
     if missing_required:
         msg = f"Configuration is missing required fields: {list(missing_required)}\n{configuration}"
         _config_logger.debug(msg)
-        print(msg)
         return (False, msg)
 
     wrong_type = []
@@ -362,7 +361,7 @@ class Config:
             return
         elif param_specified_config_file:
             # if config file is
-            _config_logger.warning(
+            _config_logger.debug(
                 f"Loading configuration from {param_specified_config_file}"
             )
             # if "timeseries_root" in kwargs.keys():
