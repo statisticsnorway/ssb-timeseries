@@ -376,3 +376,47 @@ def test_retag_dataset(
     assert existing_small_set.filter(tags={"A": "a1"}).series == []
     assert existing_small_set.filter(tags={"A1": "a11"}).series == ["a1_b_c"]
     assert existing_small_set.filter(tags={"A2": "a21"}).series == ["a1_b_c"]
+
+
+def test_series_names_to_tags_works_the_same_in_init_and_explicit_call() -> None:
+    some_data = create_df(
+        ["x_a", "y_b", "z_c"],
+        start_date="2024-01-01",
+        end_date="2024-12-31",
+        freq="MS",
+    )
+    p = Dataset(
+        name="sample_set",
+        data_type=SeriesType.simple(),
+        data=some_data,
+        attributes=["xyz", "abc"],
+    )
+    q = Dataset(
+        name="sample_set",
+        data_type=SeriesType.simple(),
+        data=some_data,
+    )
+    q.series_names_to_tags(attributes=["xyz", "abc"])
+    assert p.tags == q.tags
+    for r in [p, q]:
+        assert r.tags["series"]["x_a"]["xyz"] == "x"
+        assert r.tags["series"]["x_a"]["abc"] == "a"
+        assert r.tags["series"]["y_b"]["xyz"] == "y"
+        assert r.tags["series"]["y_b"]["abc"] == "b"
+        assert r.tags["series"]["z_c"]["xyz"] == "z"
+        assert r.tags["series"]["z_c"]["abc"] == "c"
+
+
+def test_series_names_to_tags_failed_xdoctest() -> None:
+    more_data = create_df(
+        ["x_1,,a", "y...b..", "z..1.1-23..c"],
+        start_date="2024-01-01",
+        end_date="2024-12-31",
+        freq="MS",
+    )
+    x = Dataset(
+        name="bigger_sample_set",
+        data_type=SeriesType.simple(),
+        data=more_data,
+    )
+    x.series_names_to_tags(attributes=["xyz", "abc"], regex=r"([a-z])*([a-z])")

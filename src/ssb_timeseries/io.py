@@ -273,6 +273,8 @@ class FileSystem:
                 self.metadata_fullpath,
             )
             meta = fs.read_json(self.metadata_fullpath)
+        else:
+            ts.logger.debug("Metadata file %s was not found.", self.metadata_fullpath)
         return meta
 
     def write_metadata(self, meta: dict) -> None:
