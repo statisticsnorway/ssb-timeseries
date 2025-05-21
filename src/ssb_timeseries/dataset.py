@@ -653,7 +653,7 @@ class Dataset:
         if attributes:
             for series_key in self.tags["series"].keys():
                 if regex:
-                    name_parts = re.search(regex, series_key)
+                    name_parts = re.search(regex, series_key).groups()
                 elif separator:
                     name_parts = series_key.split(separator)
                 else:
