@@ -236,7 +236,7 @@ class Dataset:
 
         # autotag:
         self.auto_tag_config = {
-            "attributes": kwargs.get("attributes", ""),
+            "attributes": kwargs.get("attributes", []),
             "separator": kwargs.get("separator", "_"),
             "regex": kwargs.get("regex", ""),
             "apply_to_all": kwargs.get("series_tags", {}),
@@ -377,7 +377,7 @@ class Dataset:
             "name": self.name,
             "versioning": str(self.data_type.versioning),
             "temporality": str(self.data_type.temporality),
-            "series": {s: {"dataset": self.name, "name:": s} for s in self.series},
+            "series": {s: {"dataset": self.name, "name": s} for s in self.series},
         }
 
     def tag_dataset(
@@ -441,11 +441,11 @@ class Dataset:
 
     def tag_series(
         self,
-        identifiers: str | list[str] | None = None,
+        names: str | list[str] = "*",
         tags: meta.TagDict = None,
         **kwargs: str | list[str],
     ) -> None:
-        """Tag the series identified by ``identifiers`` with provided tags.
+        """Tag the series identified by ``names`` with provided tags.
 
         Tags may be provided as dictionary of tags, or as kwargs.
 
@@ -456,7 +456,7 @@ class Dataset:
 
         Value (str): Element identifier, unique within the taxonomy. Ideally KLASS code.
 
-        If series names follow the same pattern of attribute values in the same order separated by the same character sequence, tags can be propagated accordingly by specifying ``attributes`` and ``separator`` parameters. The separator will default to underscore if not provided. Note that propagation by pattern will affect *all* series in the set, not only the ones identified by ``identifiers``.
+        If series names follow the same pattern of attribute values in the same order separated by the same character sequence, tags can be propagated accordingly by specifying ``attributes`` and ``separator`` parameters. The separator will default to underscore if not provided. Note that propagation by pattern will affect *all* series in the set, not only the ones identified by ``names``.
 
         .. admonition:: Maintaining tags
             :class: more dropdown
@@ -483,20 +483,24 @@ class Dataset:
             >>> x.tag_series(tags={'example_1': 'string_1', 'example_2': ['a', 'b', 'c']})
 
         """
+        if not tags and not kwargs:
+            return
+
         if not tags:
             tags = {}
         tags.update(kwargs)
 
-        if not identifiers:
-            identifiers = self.series
+        if names == "*":
+            names = self.series
+        elif isinstance(names, str):
+            names = [names]
 
         inherit_from_set_tags = meta.inherit_set_tags(self.tags)
 
-        for ident in identifiers:
-            self.tags["series"][ident] = {
-                "name": ident,
-            }
-            self.tags["series"][ident].update({**inherit_from_set_tags, **tags})
+        for n in names:
+            if not self.tags["series"][n]:
+                self.tags["series"][n] = {"name": n}
+            self.tags["series"][n].update({**inherit_from_set_tags, **tags})
 
     def detag_dataset(
         self,
@@ -620,43 +624,51 @@ class Dataset:
             >>> )
             >>> x.series_names_to_tags(attributes=['XYZ', 'ABC'], regex=r'([a-z])*([a-z])')
 
-
-
         """
-        # if attributes is None:
-        #     attributes = []
-
         if attributes:
             self.auto_tag_config["attributes"] = attributes
         else:
             attributes = self.auto_tag_config["attributes"]
+
+        if separator:
+            self.auto_tag_config["separator"] = separator
+        else:
+            separator = self.auto_tag_config["separator"]
+
+        if regex:
+            self.auto_tag_config["regex"] = regex
+        else:
+            regex = self.auto_tag_config["regex"]
+
         apply_all = self.auto_tag_config.get("apply_to_all", {})
         inherited = meta.inherit_set_tags(self.tags)
-        # self.tag_series({**inherited, **apply_all})
+        self.tag_series({**inherited, **apply_all})
 
-        # if separator:
-        #     self.auto_tag_config["separator"] = separator
-        # else:
-        #    separator = self.auto_tag_config["separator"]
-
+        # always apply tags inherited from dataset and tags specificly applied to all series first
         for series_key in self.series:
             self.tags["series"].get(series_key, {}).update(inherited)
             if apply_all:
                 self.tags["series"].get(series_key, {}).update(apply_all)
 
-        attributes = self.auto_tag_config["attributes"]
-        separator = self.auto_tag_config["separator"]
-        regex = self.auto_tag_config["regex"]
         if attributes:
             for series_key in self.tags["series"].keys():
                 if regex:
                     name_parts = re.search(regex, series_key)
-                else:
+                elif separator:
                     name_parts = series_key.split(separator)
+                else:
+                    raise AttributeError(
+                        "DATASET.series_names_to_tags() requires either a regex or a separator."
+                    )
 
                 for attribute, value in zip(attributes, name_parts, strict=False):
                     # not necessary? self.tags["series"][series_key][attribute] = deepcopy(value)
                     self.tags["series"][series_key][attribute] = value
+        else:
+            ts.logger.warning(
+                "DATASET.series_names_to_tags() requires attributes to be defined for the Dataset object or to be passed as an argument."
+            )
+            # raise AttributeError( "Attributes must be defined in Dataset.auto_tag_config or passed as an argument.")
 
     def replace_tags(
         self,
