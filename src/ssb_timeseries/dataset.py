@@ -626,10 +626,10 @@ class Dataset:
         # if attributes is None:
         #     attributes = []
 
-        # if attributes:
-        #     self.auto_tag_config["attributes"] = attributes
-        # else:
-        #    attributes = self.auto_tag_config["attributes"]
+        if attributes:
+            self.auto_tag_config["attributes"] = attributes
+        else:
+            attributes = self.auto_tag_config["attributes"]
         apply_all = self.auto_tag_config.get("apply_to_all", {})
         inherited = meta.inherit_set_tags(self.tags)
         # self.tag_series({**inherited, **apply_all})

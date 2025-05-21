@@ -261,6 +261,8 @@ def test_read_existing_estimate_metadata(
     ts.logger.debug(x.tags)
     assert x.tags["name"] == set_name
     assert x.tags["versioning"] == str(Versioning.AS_OF)
+    for _, v in x.series_tags.items():
+        assert v["A"] in ["a", "b", "c"]
 
 
 def test_read_existing_estimate_data(
@@ -295,7 +297,6 @@ def test_load_existing_set_without_loading_data(
         data_type=SeriesType.estimate(),
         load_data=False,
         as_of_tz=date_utc("2022-01-01"),
-        series_tags=tags,
     )
     assert x.data.empty
     tag_values = [value for value in tags.values()]
