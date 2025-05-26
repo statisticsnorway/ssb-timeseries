@@ -215,12 +215,13 @@ class FileSystem:
         """Write data to the filesystem. If versioning is AS_OF, write to new file. If versioning is NONE, write to existing file."""
         if self.data_type.versioning == properties.Versioning.AS_OF:
             df = new
+            # df["as_of"] = self.as_of_utc
         else:
             old = self.read_data(self.set_name)
             if old.empty:
                 df = new
             else:
-                df = merge_data(old, new, self.data_type.temporality.date_columns)
+                df = merge_data(old, new, self.data_type.date_columns)
 
         ts.logger.info(
             "DATASET.write.start %s: writing data to file\n\t%s\nstarted.",
