@@ -36,7 +36,6 @@ Otherwise, it must be passed in as parameters to read/write functions.
 
 import functools
 import logging
-import warnings
 from collections.abc import Callable
 from datetime import datetime
 from logging.config import dictConfig
@@ -105,7 +104,18 @@ class EnterExitLog:
         """After each workflow process step, do this."""
         self.end_time = datetime.now()
         self.elapsed_time = self.end_time - self.init_time
-        logger.info(f"FINISH: {self.name}. Completed in: {self.elapsed_time} seconds.")
+        if not exc_type:
+            logger.info(
+                "FINISH: %s completed successfully. Execution time: %s seconds.",
+                self.name,
+                self.elapsed_time,
+            )
+        else:
+            logger.error(
+                "FAILED: %s failed. Execution time: %s seconds.",
+                self.name,
+                self.elapsed_time,
+            )
 
 
 def log_start_stop(func: Callable) -> Callable:
@@ -117,11 +127,7 @@ def log_start_stop(func: Callable) -> Callable:
         name = kwargs.pop("logger", __package__)
         logger = logging.getLogger(name)
         with EnterExitLog(name=func.__name__, logger=logger):
-            try:
-                out = func(*args, **kwargs)
-            except:  # noqa: E722
-                print(f"Logging failed!\n\t{name}\n\t{logger}")
-                warnings.warn(f"Logging failed! \n {logger}", stacklevel=2)
+            out = func(*args, **kwargs)
 
         return out
 

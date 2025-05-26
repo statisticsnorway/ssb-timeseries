@@ -149,10 +149,16 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
     assert sorted(x_filtered_on_attribute_a.numeric_columns()) == sorted(
         expected_matches
     )
+    assert (
+        x_filtered_on_attribute_a.name != set_name
+    )  # .filter() returns a new set and changes the name
 
     returned_series_tags = x_filtered_on_attribute_a.tags["series"]
     for key in returned_series_tags.keys():
-        assert returned_series_tags[key]["dataset"] != set_name
+        assert (
+            returned_series_tags[key]["dataset"] != set_name
+        )  # new set name propagates to the series
+        ts.logger.warning("debug: %s¨", returned_series_tags[key])
         assert returned_series_tags[key]["name"] == key
         assert (
             returned_series_tags[key]["A"] == "a"
@@ -160,7 +166,6 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
         )
 
 
-# @pytest.mark.skip(reason="Not ready yet.")
 def test_aggregate_sum_for_flat_list_taxonomy(
     conftest,
     caplog: pytest.LogCaptureFixture,
