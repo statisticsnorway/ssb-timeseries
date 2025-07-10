@@ -144,8 +144,8 @@ def test_configured_logging_logs_at_level_info_and_above(
     ts_with_logging.logger.log(level, message)
     stdout = "\n".join(capsys.readouterr().out) + "\n".join(capsys.readouterr().err)
     captured = (
-        caplog.text
-    ) + stdout  # caplog.text SHOULD suffice, but something goes wrong. Workaround with this?
+        (caplog.text) + stdout
+    )  # caplog.text SHOULD suffice, but something goes wrong. Workaround with this?
     print(ts_with_logging.name)
     print(ts_with_logging.configuration)
     print(ts_with_logging.logger.__dict__)

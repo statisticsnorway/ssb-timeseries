@@ -50,8 +50,8 @@ import ssb_timeseries as ts
 from ssb_timeseries import io
 from ssb_timeseries import meta
 from ssb_timeseries.dates import date_local
-from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
-from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
+from ssb_timeseries.dates import date_utc
+from ssb_timeseries.dates import utc_iso
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
 
@@ -1885,7 +1885,7 @@ def copy(df: IntoFrameT) -> IntoFrameT:
 
 def empty(df: IntoFrame) -> bool:
     """Check if dataframe is empty."""
-    return nw.from_native(df).is_empty()
+    return cast(bool, nw.from_native(df).is_empty())
 
 
 def is_df_like(obj: Any) -> bool:

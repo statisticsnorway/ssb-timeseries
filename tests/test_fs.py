@@ -71,8 +71,7 @@ def test_fs_path() -> None:
 @pytest.mark.skipif(platform != "linux", reason="Can not see GCS.")
 def test_same_path() -> None:
     assert (
-        fs.same_path(BUCKET, "/home/jovyan")
-        == fs.path_to_str("/")
+        fs.same_path(BUCKET, "/home/jovyan") == fs.path_to_str("/")
         # or fs.same_path(BUCKET, "/home/jovyan") == "\\"
     )
     assert fs.same_path(

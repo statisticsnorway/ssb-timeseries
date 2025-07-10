@@ -11,7 +11,7 @@ from ssb_timeseries.dates import date_utc
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
-# mypy: disable-error-code="arg-type,attr-defined,no-untyped-def,index,union-attribute"
+# mypy: disable-error-code="arg-type,attr-defined,no-untyped-def,index,no-untyped-def"
 # ruff: noqa
 
 logger = logging.getLogger(__name__)
@@ -282,7 +282,7 @@ def test_dataset_math_with_two_sets_gives_same_result_as_set_and_df(caplog) -> N
     # matrix = np.ones((4, 3)) * scalar
 
     assert ((a + a) == (a + df_a)).all()
-    assert (((a - a)) == (a - df_a)).all()
+    assert ((a - a) == (a - df_a)).all()
     assert ((a * a) == (a * df_a)).all()
     assert ((a / a) == (a / df_a)).all()
 

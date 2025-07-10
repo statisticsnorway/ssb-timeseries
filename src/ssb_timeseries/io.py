@@ -610,7 +610,7 @@ def find_metadata_files(
             repository,
         )
         result = find_in_repo(repository)
-    elif isinstance(repository, "Path"):  # type: ignore
+    elif isinstance(repository, "Path"):
         ts.logger.debug(
             "find_metadata_files in repo by Path:\n%s.",
             repository,

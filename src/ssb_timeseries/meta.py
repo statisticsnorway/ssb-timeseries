@@ -183,7 +183,7 @@ class Taxonomy:
 
         return trees_equal and entities_equal
 
-    def __sub__(self, other: bigtree.Node) -> bigtree.Node:  # type: ignore
+    def __sub__(self, other: bigtree.Node) -> bigtree.Node:
         """Return the tree difference between the two taxonomy (tree) structures."""
         ts.logger.debug("other: %s", other)
         if isinstance(other, bigtree.Node):
@@ -192,7 +192,7 @@ class Taxonomy:
             # remove.show()
             raise NotImplementedError("... not yet!")
 
-    def __getitem__(self, key: str) -> bigtree.Node:  # type: ignore
+    def __getitem__(self, key: str) -> bigtree.Node:
         """Get tree node by name (KLASS code)."""
         return bigtree.find_name(self.structure.root, key)
 
@@ -215,11 +215,11 @@ class Taxonomy:
             output = buf.getvalue()
         return output
 
-    def all_nodes(self) -> list[bigtree.node]:  # type: ignore
+    def all_nodes(self) -> list[bigtree.node]:
         """Return all nodes in the taxonomy."""
         return [n for n in self.structure.root.descendants]
 
-    def leaf_nodes(self, name: bigtree.Node | str = "") -> list[bigtree.node]:  # type: ignore
+    def leaf_nodes(self, name: bigtree.Node | str = "") -> list[bigtree.node]:
         """Return all leaf nodes in the taxonomy."""
         if name:
             if isinstance(name, bigtree.Node):
@@ -236,7 +236,7 @@ class Taxonomy:
         else:
             return [n.name for n in self.structure.leaves]
 
-    def parent_nodes(self) -> list[bigtree.node]:  # type: ignore
+    def parent_nodes(self) -> list[bigtree.node]:
         """Return all non-leaf nodes in the taxonomy."""
         parents = [
             n
