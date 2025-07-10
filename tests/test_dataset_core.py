@@ -5,7 +5,6 @@ from datetime import timedelta
 import pytest
 from pytest import LogCaptureFixture
 
-import ssb_timeseries as ts
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import search
 from ssb_timeseries.dataset import select_repository
@@ -18,6 +17,10 @@ from ssb_timeseries.sample_data import create_df
 
 # mypy: ignore-errors
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"
+
+# test_logger = logging.getLogger(__name__)
+test_logger = logging.getLogger()
+# test_logger = ts.logger
 
 
 def test_select_repository():
@@ -54,9 +57,9 @@ def test_dataset_instance_created_equals_repr(
             freq="MS",
         ),
     )
-    ts.logger.debug(f"Dataset a: {a!r}")
+    test_logger.debug(f"Dataset a: {a!r}")
     b = eval(repr(a))
-    ts.logger.debug(f"Dataset b: {b!r}")
+    test_logger.debug(f"Dataset b: {b!r}")
 
     # TODO: fix __repr__ OR identical so that this works
     assert a.identical(b)
@@ -105,34 +108,36 @@ def test_dataset_copy_creates_new_instance(caplog) -> None:
 
 
 def test_dataset_copy_creates_set_with_new_name_and__otherwise_identical_attributes(
+    xyz_at,
     caplog: LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
-    original = Dataset(name="test-copying-original-set", data_type=SeriesType.simple())
-    new_name = "test-copying-copied-set"
-    copy = original.copy(new_name)
+    original = Dataset(
+        name="test-copying-original-set", data_type=SeriesType.simple(), data=xyz_at
+    )
+    assert isinstance(original, Dataset)
+    copy = original.copy(new_name="test-copying-copied-set")
+    assert isinstance(copy, Dataset)
 
     assert id(copy) != id(original)
     assert copy.name != original.name
     assert copy.tags != original.tags
-    # popping dataset name from set and series tags before comparing should remove all differences:
-    # original.tags.pop("name")
-    # copy.tags.pop("name")
-    # for series in copy.tags["series"].values():
-    #     series.pop("dataset")
-    # for series in original.tags["series"].values():
-    #     series.pop("dataset")
+    # popping dataset name from set and series tags would remove all differences
     # ... but renaming either object should have same effect:
     copy.rename(original.name)
     # this should still be true
     assert id(copy) != id(original)
-    # ..buyt because
+    # .. but because of the rename these should now work
     assert copy.name == original.name
     assert copy.tags == original.tags
-    assert all(copy.data == original.data)
-    # but this should now hold!
-    assert copy == original
+    assert (copy.numeric_array() == original.numeric_array()).all()
+
+    # and this should also hold
+    check_equal = copy == original
+    assert isinstance(check_equal, Dataset)
+    assert check_equal.data.shape == original.data.shape
+    assert check_equal.all()
 
 
 def test_datafile_exists_after_create_dataset_and_save(
@@ -166,7 +171,7 @@ def test_metafile_exists_after_create_dataset_and_save(
     )
     x.data = xyz_at
     x.save()
-    ts.logger.debug(x.io.metadata_fullpath)
+    test_logger.debug(x.io.metadata_fullpath)
     assert x.io.metadatafile_exists()
 
 
@@ -194,8 +199,8 @@ def test_same_simple_data_written_multiple_times_does_not_create_duplicates(
         data_type=SeriesType.estimate(),
         as_of_tz=now_utc(rounding="Min"),
     )
-    ts.logger.debug(f"{y.data=}\n==\n{xyz_at=}")
-    ts.logger.debug(f"{y.data['valid_at'].unique()=}")
+    test_logger.debug(f"{y.data=}\n==\n{xyz_at=}")
+    test_logger.debug(f"{y.data['valid_at'].unique()=}")
     assert y.data.shape == expected_data_size
 
 
@@ -208,14 +213,14 @@ def test_read_existing_simple_metadata(
     set_name = existing_simple_set.name
     x = Dataset(name=set_name, data_type=SeriesType.simple())
     if x.io.metadatafile_exists():
-        ts.logger.debug(x.io.metadata_fullpath)
-        ts.logger.debug(x.tags)
-        ts.logger.debug(x.tags["name"])
+        test_logger.debug(x.io.metadata_fullpath)
+        test_logger.debug(x.tags)
+        test_logger.debug(x.tags["name"])
         assert x.tags["name"] == set_name and x.tags["versioning"] == str(
             Versioning.NONE
         )
     else:
-        ts.logger.debug(
+        test_logger.debug(
             f"DATASET {x.name}: Metadata not found at {x.io.metadata_fullpath}. Writing."
         )
         raise AssertionError
@@ -229,14 +234,14 @@ def test_read_existing_simple_data(
 
     set_name = existing_simple_set.name
     x = Dataset(name=set_name, data_type=SeriesType.simple())
-    ts.logger.debug(f"DATASET {x.name}: \n{x.data}")
+    test_logger.debug(f"DATASET {x.name}: \n{x.data}")
     if x.io.datafile_exists():
-        ts.logger.debug(x.io.data_fullpath)
-        ts.logger.debug(f"{x.data=}")
-        ts.logger.debug(f"{x.data['valid_at'].unique()=}")
-        assert x.data.size == 336
+        test_logger.debug(x.io.data_fullpath)
+        test_logger.debug(f"{x.data=}")
+        test_logger.debug(f"{x.data['valid_at'].unique()=}")
+        assert x.data.shape == (12, 28)
     else:
-        ts.logger.debug(
+        test_logger.debug(
             f"DATASET {x.name}: Data not found at {x.io.data_fullpath}. Writing."
         )
         raise AssertionError
@@ -257,8 +262,8 @@ def test_read_existing_estimate_metadata(
     )
 
     assert x.io.metadatafile_exists()
-    ts.logger.debug(x.io.metadata_fullpath)
-    ts.logger.debug(x.tags)
+    test_logger.debug(x.io.metadata_fullpath)
+    test_logger.debug(x.tags)
     assert x.tags["name"] == set_name
     assert x.tags["versioning"] == str(Versioning.AS_OF)
     for _, v in x.series_tags.items():
@@ -280,8 +285,8 @@ def test_read_existing_estimate_data(
     )
 
     assert x.io.datafile_exists()
-    ts.logger.debug(x)
-    assert x.data.size == 336
+    test_logger.debug(x)
+    assert x.data.shape == (12, 28)
 
 
 def test_load_existing_set_without_loading_data(
@@ -327,7 +332,7 @@ def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
         repository=conftest.repo["directory"],
         pattern=search_pattern,
     )
-    ts.logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
+    test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
 
     assert isinstance(datasets_found, Dataset)
     assert datasets_found.name == set_name
@@ -354,7 +359,7 @@ def test_search_for_dataset_by_part_of_name_with_one_match_returns_the_set(
         repository=conftest.repo["directory"],
         pattern=search_pattern,
     )
-    ts.logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
+    test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
     assert isinstance(datasets_found, Dataset)
     assert datasets_found.name == set_name
     assert datasets_found.data_type == SeriesType.simple()
@@ -386,7 +391,7 @@ def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
         pattern=search_pattern,
         repository=conftest.repo["directory"],
     )
-    ts.logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
+    test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
 
     assert datasets_found
     assert isinstance(datasets_found, list)
@@ -415,7 +420,7 @@ def test_list_versions(caplog: LogCaptureFixture, existing_estimate_set: Dataset
         existing_estimate_set.data = create_df(
             existing_estimate_set.series, start_date="2023-01-01", end_date=d, freq="MS"
         )
-        ts.logger.debug(f"Do we have data?\n{existing_estimate_set.data}")
+        test_logger.debug(f"Do we have data?\n{existing_estimate_set.data}")
         existing_estimate_set.save()
 
     versions_after_saving = existing_estimate_set.versions()
@@ -445,11 +450,11 @@ def test_dataset_getitem_by_string(
 
     x = existing_simple_set
     y = x["b_q_z1"]
+    test_logger.debug(f"y = x['b']\n{y}")
+    test_logger.debug(f"{__name__}look at y:\n\t{y}")
+    test_logger.debug(f"{__name__}look at x:\n\t{x.data}")
     assert isinstance(y, Dataset)
 
-    ts.logger.debug(f"y = x['b']\n{y}")
-    ts.logger.debug(f"{__name__}look at y:\n\t{y}")
-    ts.logger.debug(f"{__name__}look at x:\n\t{x.data}")
     assert id(x) != id(y)
     assert list(y.data.columns) == ["valid_at", "b_q_z1"]
 
@@ -460,12 +465,12 @@ def test_dataset_getitem_by_tags(
     caplog.set_level(logging.DEBUG)
 
     x = new_dataset_none_at
-    y = x[{"A": "a", "B": "q", "C": "z1"}]
+    y = x[[{"A": "a", "B": "q", "C": "z1"}]]
     assert isinstance(y, Dataset)
 
-    ts.logger.debug(f"y = x['b']\n{y}")
-    ts.logger.debug(f"{__name__}look at y:\n\t{y}")
-    ts.logger.debug(f"{__name__}look at x:\n\t{x.data}")
+    test_logger.debug(f"y = x['b']\n{y}")
+    test_logger.debug(f"{__name__}look at y:\n\t{y}")
+    test_logger.debug(f"{__name__}look at x:\n\t{x.data}")
     assert id(x) != id(y)
     assert list(y.data.columns) == ["valid_at", "a_q_z1"]
 
@@ -479,7 +484,7 @@ def test_filter_dataset_by_regex_return_dataframe(caplog):
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
     y = x.filter(regex="^x", output="dataframe")
-    ts.logger.debug(f"y = x.filter(regex='^x')\n{y}")
+    test_logger.debug(f"y = x.filter(regex='^x')\n{y}")
 
     assert list(y.columns) == ["valid_at", "xd", "xe"]
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
@@ -494,7 +499,7 @@ def test_filter_dataset_by_regex_return_dataset(caplog):
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
     y = x.filter(regex="^x")
-    ts.logger.debug(f"y = x.filter(regex='^x')\n{y}")
+    test_logger.debug(f"y = x.filter(regex='^x')\n{y}")
 
     assert isinstance(y, Dataset)
     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
@@ -513,8 +518,9 @@ def test_correct_datetime_columns_valid_at(
             ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
     )
-    ts.logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
+    test_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
     assert a.datetime_columns() == ["valid_at"]
+    assert a.numeric_columns() == ["x", "y", "z"]
 
 
 def test_correct_datetime_columns_valid_from_to(
@@ -534,8 +540,9 @@ def test_correct_datetime_columns_valid_from_to(
             temporality="FROM_TO",
         ),
     )
-    ts.logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
-    assert a.datetime_columns().sort() == ["valid_from", "valid_to"].sort()
+    test_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
+    assert a.datetime_columns() == ["valid_from", "valid_to"]
+    assert a.numeric_columns() == ["x", "y", "z"]
 
 
 def test_versioning_as_of_creates_new_file(
@@ -559,7 +566,7 @@ def test_versioning_as_of_init_without_version_selects_latest(
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(existing_estimate_set.name)
-    ts.logger.debug(
+    test_logger.debug(
         f"Init with only name of existing versioned set: {x.name}\n\t... identified {x.as_of_utc} as latest version."
     )
     assert isinstance(x, Dataset)
@@ -568,7 +575,7 @@ def test_versioning_as_of_init_without_version_selects_latest(
     as_of = [now_utc() - timedelta(hours=n) for n in range(4)]
     for d in as_of:
         x.as_of_utc = date_utc(d)
-        ts.logger.debug(f"As of date:{d=}\nseries: {x.series}")
+        test_logger.debug(f"As of date:{d=}\nseries: {x.series}")
         x.data = create_df(
             x.series, start_date="2024-01-01", end_date="2024-12-03", freq="MS"
         )
@@ -587,30 +594,34 @@ def test_versioning_none_appends_to_existing_file(
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
+    dataset_name = f"test-merge-{uuid.uuid4().hex}"
+    dataset_type = SeriesType.simple()
     a = Dataset(
-        name=f"test-merge-{uuid.uuid4().hex}",
-        data_type=SeriesType.simple(),
-        load_data=False,
-        as_of_tz=None,
-    )
-    a.data = create_df(
-        ["x", "y", "z"], start_date="2022-01-01", end_date="2022-12-03", freq="MS"
+        name=dataset_name,
+        data_type=dataset_type,
+        data=create_df(
+            ["x", "y", "z"], start_date="2022-01-01", end_date="2023-12-03", freq="MS"
+        ),
     )
     a.save()
 
-    b = Dataset(name=a.name, data_type=a.data_type, load_data=False)
-    b.data = create_df(
-        ["x", "y", "z"], start_date="2022-07-01", end_date="2023-06-03", freq="MS"
+    b = Dataset(
+        name=dataset_name,
+        data_type=dataset_type,
+        data=create_df(
+            ["x", "y", "z"], start_date="2023-01-01", end_date="2024-12-03", freq="MS"
+        ),
     )
     b.save()
 
-    c = Dataset(name=a.name, data_type=a.data_type, load_data=True)
-    ts.logger.debug(
-        f"DATASET: {a.name}: First write {a.data.size} values, writing {b.data.size} values (50% new) --> combined {c.data.size} values."
+    c = Dataset(name=dataset_name, data_type=dataset_type)
+    test_logger.debug(
+        f"DATASET: {a.name}: First write {len(a.data)} rows, second write {len(b.data)} rows (50% new) --> combined {len(c.data)} rows."
     )
-
-    assert a.data.size < c.data.size
-    assert b.data.size < c.data.size
+    test_logger.debug(f"{a.data}\n{b.data}\n{c.data}\n{len(c.data)}")
+    assert len(c.data) > len(a.data)
+    assert len(c.data) > len(b.data)
+    assert len(c.data) < len(a.data) + len(b.data)
 
 
 def test_get_dataset_series_and_series_tags(

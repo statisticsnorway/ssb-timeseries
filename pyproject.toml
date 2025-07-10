@@ -32,6 +32,8 @@ sphinx-togglebutton = ">=0.3.2"
 sphinx-copybutton = ">=0.5.2"
 pandas-stubs = "^2.2.3.250308"
 narwhals = "^1.38.0"
+multipledispatch = "^1.0.0"
+darglint = "^1.8.1"
 
 [tool.poetry.group.dev.dependencies]
 pygments = ">=2.10.0"
@@ -105,13 +107,15 @@ select = [
     "A",    # prevent using keywords that clobber python builtins
     "ANN",  # check type annotations
     "B",    # bugbear: security warnings
+    #"C4",   # flake8 comprehensions (RYE: add later)
     "D",    # documentation
-    "E",    # pycodestyle
+    "E",    # pycodestyle (errors)
     "F",    # pyflakes
     "ISC",  # implicit string concatenation
     "I",    # sort imports
     "UP",   # alert you when better syntax is available in your python version
     "RUF",  # the ruff developer's own rules
+    #"W",    #pycodestyle (warnings)
 ]
 ignore = [
     "ANN202", # Don't requiere return type annotation for private functions.
