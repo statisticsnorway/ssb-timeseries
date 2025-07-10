@@ -409,22 +409,73 @@ def test_search_for_nonexisting_dataset_returns_none(
     assert not datasets_found
 
 
-def test_list_versions(caplog: LogCaptureFixture, existing_estimate_set: Dataset):
+def test_list_versions_after_n_writes_returns_n_versions_with_different_data(
+    caplog: LogCaptureFixture, existing_estimate_set: Dataset, conftest
+):
     caplog.set_level(logging.DEBUG)
 
-    versions_before_saving = existing_estimate_set.versions()
-    assert len(versions_before_saving) == 1
+    new_set_name = conftest.function_name_hex()
+    new_set = existing_estimate_set.copy(new_set_name)
+    versions_before_saving = new_set.versions()
+    assert len(versions_before_saving) == 0
 
-    for d in ["2024-01-01", "2024-02-01", "2024-03-01"]:
-        existing_estimate_set.as_of_utc = date_utc(d)
-        existing_estimate_set.data = create_df(
-            existing_estimate_set.series, start_date="2023-01-01", end_date=d, freq="MS"
+    as_of_dates = [
+        "2024-01-01",
+        "2024-02-01",
+        "2024-03-01",
+        "2024-04-01",
+        "2024-05-01",
+        "2024-06-01",
+    ]
+    for d in as_of_dates:
+        growing_data = create_df(
+            ["a", "b"], start_date="2023-01-01", end_date=d, freq="MS"
         )
-        test_logger.debug(f"Do we have data?\n{existing_estimate_set.data}")
-        existing_estimate_set.save()
+        ds = Dataset(
+            new_set_name, new_set.data_type, date_utc(d), data=growing_data
+        ).save()
+        test_logger.debug("Compare first and last as_of date:\n%s\n", str(ds))
 
-    versions_after_saving = existing_estimate_set.versions()
-    assert len(versions_after_saving) == 4
+    versions_after_saving = new_set.versions()
+    assert len(versions_after_saving) == len(as_of_dates)
+
+    first_vs = Dataset(new_set_name, as_of_tz=date_utc(as_of_dates[0]))
+    last_vs = Dataset(new_set_name, as_of_tz=date_utc(as_of_dates[-1]))
+    assert len(first_vs) != len(last_vs)
+
+
+@pytest.mark.skip("TO DO: test the right thing")
+def test_read_versioned_data_partitions_by_as_of(
+    caplog: LogCaptureFixture,
+    existing_estimate_set: Dataset,
+    conftest,
+):
+    caplog.set_level(logging.DEBUG)
+
+    new_set_name = conftest.function_name_hex()
+    new_set = existing_estimate_set.copy(new_set_name)
+    versions_before_saving = new_set.versions()
+    assert isinstance(new_set, Dataset)
+    assert len(versions_before_saving) == 0
+
+    as_of_dates = [
+        "2024-01-01",
+        "2024-02-01",
+        "2024-03-01",
+        "2024-04-01",
+        "2024-05-01",
+        "2024-06-01",
+    ]
+    for d in as_of_dates:
+        new_set.as_of_utc = date_utc(d)
+        new_set.data = create_df(
+            new_set.series, start_date="2023-01-01", end_date=d, freq="MS"
+        )
+        new_set.save()
+
+    # TO DO: this works, but we should check stored returned columns / Hive partitioning, not just the versions!
+    versions_after_saving = new_set.versions()
+    assert len(versions_after_saving) > len(versions_before_saving)
 
 
 def test_list_versions_return_empty_list_for_set_not_saved(

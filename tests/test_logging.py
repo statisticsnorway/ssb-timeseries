@@ -122,14 +122,24 @@ def test_no_configured_logging_does_not_log(
     assert message not in caplog.text
 
 
-@pytest.mark.xfail  #'test is broken, but std out looks right!?!' (ok for logger = ssb_timeseries)
+# @pytest.mark.xfail  #'test is broken, but std out looks right!?!' (ok for logger = ssb_timeseries)
 @pytest.mark.filterwarnings("ignore")
 @pytest.mark.parametrize(
     "level,message,expected",
     [
         (10, "DEBUG messages ARE NOT logged per defaults", False),
-        (20, "INFO messages ARE logged per (library) defaults", True),
-        (30, "WARNING messages ARE logged by Python defaults", True),
+        pytest.param(
+            20,
+            "INFO messages ARE logged per (library) defaults",
+            True,
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            30,
+            "WARNING messages ARE logged by Python defaults",
+            True,
+            marks=pytest.mark.xfail,
+        ),
     ],
 )
 def test_configured_logging_logs_at_level_info_and_above(

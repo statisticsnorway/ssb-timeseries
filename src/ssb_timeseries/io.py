@@ -60,7 +60,9 @@ def version_from_file_name(
         case "persisted":
             regex = r"(_v)(\d+)(.parquet)"
         case "as_of":
-            regex = "(as_of_)(.*)(-data.parquet)"
+            # date_part = REGEX_ISO_TIME
+            date_part = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{6}[+-][0-9]{4}"
+            regex = f"(as_of_)({date_part})(-data.parquet)"
         case "names":
             # type is not implemented
             regex = "(_v)(*)(-data.parquet)"

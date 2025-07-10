@@ -292,9 +292,9 @@ class Dataset:
         data = kwargs.pop("data", self.data)
         match select.lower():
             case "dates_only":
-                ...
+                raise NotImplementedError("TODO!")
             case "select":
-                ...
+                raise NotImplementedError("TODO!")
             case "all" | _:
                 data = data
 
@@ -815,39 +815,23 @@ class Dataset:
 
         expressions = [nw.col(self.datetime_columns())]
         if names:
-            # print(f"DATASET.filter(names):\n{names}")
             expressions.append(nw.col(*names))
-            # [expressions.append(nw.col(n)) for n in names]
 
         if regex:
-            # print(f"DATASET.filter(regex):\n{regex}")
-            # df = self.data.filter(regex=regex).copy(deep=True)
             expressions.append(ncs.matches(regex))
-            # df = deepcopy(self.data).filter(regex=regex)
-            # matching_series = df.columns
 
         if pattern:
-            # print(f"DATASET.filter(tags):\n{pattern}")
-            # df = self.data.filter(like=pattern).copy(deep=True)
-            # df = deepcopy(self.data).filter(like=pattern)
-            # matching_series = df.columns
             expressions.append(ncs.matches(f".*{pattern}.*"))
 
         if tags:
-            # print(f"DATASET.filter(tags):\n{tags}")
             if isinstance(tags, list):
                 matching_series = meta.search_by_tags(self.tags["series"], *tags)
             else:
                 matching_series = meta.search_by_tags(self.tags["series"], tags)
-            # print(f"DATASET.filter(tags) found:\n{len(matching_series)=}")
             ts.logger.debug("DATASET.filter(tags) found:\n%s ", matching_series)
             expressions.append(nw.col(matching_series))
-            # df = deepcopy(self.data)[matching_series] #.copy(deep=True)
 
         df = nw.from_native(self.data).select(expressions).to_native()
-        # df = pd.concat([self.data[self.datetime_columns()], df], axis=1)
-        # print(f"DATASET.filter found:\n{df.columns=}")
-
         interval = kwargs.get("interval")
         if interval:
             ts.logger.warning(
@@ -1809,7 +1793,7 @@ def search(
     as_of_tz: datetime = None,
     repository: str = "",
     require_unique: bool = False,
-) -> list[io.SearchResult] | Dataset | list[None]:
+) -> list[io.SearchResult] | Dataset | None:
     """Search for datasets by name matching pattern.
 
     Returns:
@@ -1836,6 +1820,8 @@ def search(
             data_type=ts.properties.seriestype_from_str(found[0].type_directory),
             as_of_tz=as_of_tz,
         )
+    elif number_of_results == 0:
+        return None
     elif require_unique:
         raise ValueError(
             f"Search for '{pattern}' returned:\n{number_of_results} results when exactly one was expected:\n{found}",
