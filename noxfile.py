@@ -146,7 +146,7 @@ def mypy(session: Session) -> None:
     args = session.posargs or ["src", "tests"]
     session.install(".")
     session.install("mypy", "pytest", "click")
-    session.run("mypy", *args)
+    session.run("mypy", , "--config-file", "pyproject.toml", *args)
     if not session.posargs:
         session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
