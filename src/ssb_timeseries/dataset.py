@@ -1473,7 +1473,9 @@ class Dataset:
         return self.math(-1, np.multiply)
 
     @no_type_check
-    def __eq__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __eq__(
+        self, other: object
+    ) -> Any:  # Self | pd.DataFrame | pd.Series | int | float) -> Any:
         """Check equality of two datasets or one dataset and a dataframe, numpy array or scalar.
 
         Note that this is a pure value comparison, and thus different from comparing dataset identity as reflected in the metadata of two dataset instances.

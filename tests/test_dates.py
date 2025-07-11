@@ -7,7 +7,7 @@ import narwhals as nw
 import narwhals.selectors as ncs
 import pandas as pd
 import polars as pl
-import pyarrow as pa  # type: ignore
+import pyarrow as pa
 import pytest
 
 import ssb_timeseries as ts

@@ -41,5 +41,7 @@ repos:
     rev: v1.16.1
     hooks:
       - id: mypy
-        additional_dependencies: ["pytest-mypy==1.0.1"]
+        exclude: ^noxfile\.py$
+        additional_dependencies: ["pytest-mypy==1.0.1","nox"]
         # args: [--strict]
+        #- exclude: ["noxfile.py"]

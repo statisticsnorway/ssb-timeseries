@@ -32,7 +32,7 @@ from ssb_timeseries.meta import TagValue
 from ssb_timeseries.meta import matches_criteria
 
 # mypy: disable-error-code="no-untyped-def"
-# ruff: noqa:ANN002 ANN003 D102 D417
+# ruff: noqa: ANN002, ANN003, D102
 
 
 SEARCH_OPTIONS = """
