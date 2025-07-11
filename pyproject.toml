@@ -102,6 +102,10 @@ disallow_incomplete_defs = false    # Don't require functions to have type annot
 disallow_untyped_calls = false      # OK to call functions that are not fully annotated
 # ignore_errors = true # This will suppress ALL type errors from the tests directory.
 
+[[tool.mypy.overrides]]
+module = "noxfile.py"
+ignore_errors = true
+
 [tool.ruff]
 force-exclude = true  # Apply excludes to pre-commit
 show-fixes = true

@@ -45,7 +45,7 @@ class Interval:
         begin = kwargs.get("begin")
         end = kwargs.get("end")
 
-        precision: str = kwargs.get("precision", ts.dates.MAX_TIME_PRECISION)
+        precision = kwargs.get("precision", ts.dates.MAX_TIME_PRECISION)
 
         ts.logger.debug(f"Interval.__init__ with kwargs:\n{kwargs}")
 
@@ -94,7 +94,7 @@ class Interval:
         self.start = datetime.min
         self.stop = datetime.max
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check if two intervals are equal."""
         return (self.start == other.start) and (self.stop == other.stop)
 
