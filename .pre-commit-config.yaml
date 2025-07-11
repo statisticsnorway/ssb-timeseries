@@ -24,9 +24,11 @@ repos:
       - id: pytest-check
         name: pytest-check
         entry: pytest
-        language: system
-        pass_filenames: false
-        always_run: true
+        language: python
+        types: [python]
+        additional_dependencies: [pytest, .]
+        #pass_filenames: false
+        #always_run: true
 
   # Ruff for Python Linting and Formatting.
   - repo: https://github.com/astral-sh/ruff-pre-commit
