@@ -23,6 +23,7 @@ import re
 import warnings
 from collections.abc import Iterable
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 from typing import Protocol
 from typing import cast
@@ -39,6 +40,7 @@ import narwhals.selectors as ncs
 import numpy as np
 import pandas as pd
 from narwhals.typing import Frame
+from narwhals.typing import IntoDType
 from narwhals.typing import IntoFrame
 from narwhals.typing import IntoFrameT
 from narwhals.typing import IntoSeries
@@ -1607,7 +1609,7 @@ class Dataset:
                 obj = meta.Taxonomy(klass_id=t)
             elif isinstance(t, dict):
                 obj = meta.Taxonomy(data=t)
-            elif isinstance(t, PathStr):
+            elif isinstance(t, (str | Path)):
                 obj = meta.Taxonomy(path=t)
             else:
                 raise TypeError(
@@ -1849,10 +1851,10 @@ def _has_auto_tag_information(ds: Dataset, caller_workspace: dict) -> bool:
         return False
 
 
-def _nw_normalize_dtype(t: Any) -> Any:
+def _nw_normalize_dtype(t: IntoDType) -> IntoDType:
     """Normalize datatypes."""
     match t:
-        case nw.Int8, nw.Int16, nw.Int32:
+        case nw.Int8 | nw.Int16 | nw.Int32:
             out = nw.Int64
         case nw.Float32:
             out = nw.Float64
@@ -1873,7 +1875,10 @@ def copy(df: IntoFrameT) -> IntoFrameT:
 
 def empty(df: IntoFrame) -> bool:
     """Check if dataframe is empty."""
-    return cast(bool, nw.from_native(df).is_empty())
+    # nox/mypy vs 1.10.1 --> [redundant-cast] | pre-commit --> [no-any-return]
+    # (but cast was introduced because of other error with other mypy env)
+    return cast(bool, nw.from_native(df).is_empty())  # nox --> [redundant-cast]
+    # return nw.from_native(df).is_empty() # pre-commit --> [no-any-return]
 
 
 def is_df_like(obj: Any) -> bool:

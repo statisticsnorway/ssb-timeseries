@@ -29,10 +29,11 @@ repos:
         #additional_dependencies: [pytest]
         pass_filenames: false
         always_run: true
+        stages: ["manual","pre-commit",]
 
   # Ruff for Python Linting and Formatting.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.2
+    rev: v0.12.3
     hooks:
       - id: ruff
         args: [--fix]
@@ -40,7 +41,7 @@ repos:
 
   # Mypy for Static Type Checking.
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.16.1
+    rev: v1.10.1
     hooks:
       - id: mypy
         exclude: ^noxfile\.py$

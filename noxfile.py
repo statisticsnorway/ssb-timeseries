@@ -152,6 +152,38 @@ def mypy(session: Session) -> None:
         if not session.posargs:
             session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
+# Note: using the standard @nox.session, not the one from nox-poetry,
+# because nox-poetry may be the culprit for weird issues
+@nox.session(name="mypy-vanilla", python=python_versions[0])
+def mypy_vanilla(session: nox.Session) -> None:
+    """A vanilla Mypy session to bypass nox-poetry's magic."""
+    session.log("Running a vanilla Mypy session to ensure a clean environment.")
+    # Step 1: Explicitly export all dependencies to a requirements file.
+    # USe external=True because `poetry` is not in the nox venv.
+    session.run(
+        "poetry",
+        "export",
+        "--with", "dev",
+        "-f", "requirements.txt",
+        "--output", "requirements-dev.txt",
+        "--without-hashes",
+        external=True,
+    )
+    # Step 2: Install Mypy and all project dependencies from that file.
+    # This is the most reliable way to install a complex environment.
+    session.install( "-r", "requirements-dev.txt")
+
+    args = ["src", "tests"]
+    # Step 3: Run Mypy from the project root.
+    # This uses the chdir pattern which we know is robust.
+    with session.chdir(Path(__file__).parent):
+        session.run("mypy", "--config-file", "pyproject.toml", *args)
+        #session.run("mypy", "src", "tests")
+
+    # Optional: You can add the noxfile check back here if desired.
+    # with session.chdir(pathlib.Path(__file__).parent):
+    #     session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
+
 
 @session(python=python_versions_for_test)
 def tests(session: Session) -> None:

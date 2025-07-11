@@ -34,6 +34,7 @@ multipledispatch = "^1.0.0"
 sphinx-togglebutton = ">=0.3.2"
 sphinx-copybutton = ">=0.5.2"
 darglint = "^1.8.1"
+pyarrow-stubs = "^20.0.0.20250627"
 
 [tool.poetry.group.dev.dependencies]
 pygments = ">=2.10.0"
@@ -41,7 +42,7 @@ black = { extras = ["jupyter"], version = ">=23.1.0" }
 coverage = { extras = ["toml"], version = ">=6.2" }
 darglint = ">=1.8.1"
 furo = ">=2021.11.12"
-mypy = ">=0.930"
+mypy = "=1.10.1"
 pre-commit = ">=2.16.0"
 pre-commit-hooks = ">=4.1.0"
 ruff = ">=0.0.284"
