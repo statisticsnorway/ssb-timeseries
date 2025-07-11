@@ -157,6 +157,11 @@ def prepend_as_of(df: nw.typing.IntoFrameT, as_of: datetime) -> nw.typing.IntoFr
     ).to_native()
 
 
+def local_timezone() -> ZoneInfo:
+    """Return the local timezone of the computer."""
+    return datetime.now().astimezone().tzinfo
+
+
 def validate_timezone(tz: TimeZone = "") -> str:
     """Return a valid time zone as string or 'DEFAULT_TZ' for the empty string or 'None'."""
     if not tz:
