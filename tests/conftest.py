@@ -28,11 +28,6 @@ TEST_LOG_CONFIG["loggers"][TEST_LOGGER] = TEST_LOG_CONFIG["loggers"].pop(
 )
 
 
-def pytest_configure(config):
-    plugin = config.pluginmanager.getplugin("mypy")
-    plugin.mypy_argv.append("--check-untyped-defs")
-
-
 class LogWarning(UserWarning):
     pass
 

@@ -15,13 +15,15 @@ import ssb_timeseries as ts
 # from ssb_timeseries.dates import MAX_TIME_PRECISION
 
 # mypy: disable-error-code="no-untyped-def,return-value,no-any-return,attr-defined,operator"
-# ruff: noqa: RUF013,ANN003
+# ruff: noqa: ANN003
 
 
 class Interval:
     """Intervals specify date ranges by way of inclusive 'start' and exclusive 'stop' datetimes."""
 
-    def __init__(self, f: datetime = None, t: datetime = None, **kwargs) -> None:
+    def __init__(
+        self, f: datetime | None = None, t: datetime | None = None, **kwargs
+    ) -> None:
         """Interval(date_from, date_to).
 
         A number of variations of named parameters: start/stop, begin/end, as_of, as_of_from/as_of_to, valid_from, valid_to -

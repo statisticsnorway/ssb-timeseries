@@ -145,10 +145,12 @@ def mypy(session: Session) -> None:
     """Type-check using mypy."""
     args = session.posargs or ["src", "tests"]
     session.install(".")
-    session.install("mypy", "pytest", "click")
-    session.run("mypy", "--config-file", "pyproject.toml", *args)
-    if not session.posargs:
-        session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
+    session.install("mypy", "pytest", "pytest-mypy", "click")
+    project_root = Path(__file__).parent
+    with session.chdir(project_root):
+        session.run("mypy", "--config-file", "pyproject.toml", *args)
+        if not session.posargs:
+            session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
 
 @session(python=python_versions_for_test)
