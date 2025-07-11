@@ -33,7 +33,7 @@ def test_cet_is_default() -> None:
     # assert date_local("2024-03-31 01:00:00").astimezone(DEFAULT_TZ) == date_local( "2024-03-31 01:00:00+01:00")
     # E       AssertionError: assert datetime.datetime(2024, 3, 31, 3, 0, tzinfo=zoneinfo.ZoneInfo(key='Europe/Oslo')) == datetime.datetime(2024, 3, 31, 1, 0, tzinfo=tzoffset(None, 3600))
     # convert to utc before comparing, in order to "normalize" interpreted timezone
-    naive_to_default_tz = date_local("2024-03-31 01:00:00").astimezone(DEFAULT_TZ)
+    naive_to_default_tz = date_local("2024-03-31 01:00:00")  # .astimezone(DEFAULT_TZ)
     cet = date_local("2024-03-31 01:00:00+01:00")
     assert date_utc(naive_to_default_tz) == date_utc(cet)
 

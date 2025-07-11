@@ -26,6 +26,7 @@ DEFAULT_TIMESPEC: str = "seconds"
 NW_DEFAULT_TIME_UNIT: str = "ns"
 
 DEFAULT_TZ = ZoneInfo("Europe/Oslo")  # Will shift between CET and CEST
+CET = ZoneInfo("CET")
 UTC = ZoneInfo("UTC")
 TimeZone: TypeAlias = ZoneInfo | str | None
 
@@ -55,6 +56,16 @@ def date_local(some_date: datetime | str, **kwargs) -> datetime:
     Default precision 'minute' will be used if none is provided.
     """
     dt_type = ensure_datetime(some_date, tz=DEFAULT_TZ)
+    return date_round(dt_type, **kwargs)
+
+
+def date_cet(some_date: datetime | str, **kwargs) -> datetime:
+    """Convert date to time_zone Europe/Oslo which provides automatic shifts between CET and CEST.
+
+    The output can be rounded to the precision specified by kwarg 'rounding'.
+    Default precision 'minute' will be used if none is provided.
+    """
+    dt_type = ensure_datetime(some_date, tz=CET)
     return date_round(dt_type, **kwargs)
 
 

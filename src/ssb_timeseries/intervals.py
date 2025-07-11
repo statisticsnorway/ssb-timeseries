@@ -8,11 +8,13 @@ or time steps or windows relative to another date atribute, eg 'valid_at == as_o
 """
 
 from datetime import datetime
-from typing import Self
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self  # noqa: UP035 #backport to 3.10
 
 import ssb_timeseries as ts
-
-# from ssb_timeseries.dates import MAX_TIME_PRECISION
 
 # mypy: disable-error-code="no-untyped-def,return-value,no-any-return,attr-defined,operator"
 # ruff: noqa: ANN003
