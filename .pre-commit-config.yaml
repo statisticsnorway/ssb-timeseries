@@ -23,12 +23,12 @@ repos:
     hooks:
       - id: pytest-check
         name: pytest-check
-        entry: pytest
-        language: python
+        entry: poetry run pytest
+        language: system
         types: [python]
-        additional_dependencies: [pytest, .]
-        #pass_filenames: false
-        #always_run: true
+          #additional_dependencies: [pytest]
+        pass_filenames: false
+        always_run: true
 
   # Ruff for Python Linting and Formatting.
   - repo: https://github.com/astral-sh/ruff-pre-commit
