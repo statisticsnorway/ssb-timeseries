@@ -26,7 +26,7 @@ repos:
         entry: poetry run pytest
         language: system
         types: [python]
-          #additional_dependencies: [pytest]
+        #additional_dependencies: [pytest]
         pass_filenames: false
         always_run: true
 
@@ -44,6 +44,6 @@ repos:
     hooks:
       - id: mypy
         exclude: ^noxfile\.py$
-        additional_dependencies: ["pytest-mypy==1.0.1","nox"]
+        additional_dependencies: ["pytest-mypy==1.0.1",]
         # args: [--strict]
         #- exclude: ["noxfile.py"]
