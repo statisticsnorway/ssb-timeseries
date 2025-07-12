@@ -28,7 +28,7 @@ repos:
         language: system
         types: [python]
         #additional_dependencies: [pytest]
-        pass_filenames: false
+        pass_filenames: true
         always_run: true
         stages: ["pre-commit",]
 
