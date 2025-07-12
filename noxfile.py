@@ -119,21 +119,21 @@ def insert_header_in_hook(header: dict[str, str], lines: list[str]) -> str:
     return "\n".join(lines)
 
 
-@session(name="pre-commit", python=python_versions[0])
-def precommit(session: Session) -> None:
-    """Lint using pre-commit."""
-    args = session.posargs or [ "run", "--all-files",]
-    #"--hook-stage=manual", # "--show-diff-on-failure",
-    session.install(
-        "pre-commit",
-        "pre-commit-hooks",
-        #"darglint",
-        "ruff",
-        #"black",
-    )
-    session.run("pre-commit", *args)
-    if args and args[0] == "install":
-        activate_virtualenv_in_precommit_hooks(session)
+# @session(name="pre-commit", python=python_versions[0])
+# def precommit(session: Session) -> None:
+#     """Lint using pre-commit."""
+#     args = session.posargs or [ "run", "--all-files",]
+#     #"--hook-stage=manual", # "--show-diff-on-failure",
+#     session.install(
+#         "pre-commit",
+#         "pre-commit-hooks",
+#         #"darglint",
+#         "ruff",
+#         #"black",
+#     )
+#     session.run("pre-commit", *args)
+#     if args and args[0] == "install":
+#         activate_virtualenv_in_precommit_hooks(session)
 
 
 @session(python=python_versions)
