@@ -30,7 +30,7 @@ repos:
         #additional_dependencies: [pytest]
         pass_filenames: false
         always_run: true
-        stages: ["manual","pre-commit",]
+        stages: ["pre-commit",]
 
   # Ruff for Python Linting and Formatting.
   - repo: https://github.com/astral-sh/ruff-pre-commit
