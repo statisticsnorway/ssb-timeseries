@@ -136,51 +136,37 @@ def setup_windows_tzdata(session: Session) -> None:
 
     session.log("Windows detected. Manually setting up timezone database for PyArrow.")
 
-    # Define a predictable location inside the session's temp directory
-    tz_dir = Path(session.create_tmp()) / "tzdata"
-    tz_dir.mkdir()
-    tz_archive_path = tz_dir / "tzdata.tar.gz"
+    home_dir = Path(session.env.get("USERPROFILE", "C:/Users/runneradmin"))
+    target_dir = home_dir / "Downloads" / "tzdata"
+    # ------------------------------------
 
-    # This is a stable URL for the latest timezone database
-    IANA_URL = "https://data.iana.org/time-zones/releases/tzdata-latest.tar.gz"
+    session.log(f"Target directory is: {target_dir}")
+    # Create the directory, including parent directories if they don't exist.
+    target_dir.mkdir(parents=True, exist_ok=True)
 
-    # Use curl (available on GitHub Actions Windows runners) to download the file
+    # Use a temporary file for the download to keep things clean
+    temp_archive_path = Path(session.create_tmp()) / "tzdata.tar.gz"
+
+    IANA_URL = "https://data.iana.org/time-zones/tzdata-latest.tar.gz"
+
+    # Use PowerShell's reliable Invoke-WebRequest
     session.run(
-        "curl",
-        "--location",  # Follow redirects
-        "--output", str(tz_archive_path),
-        IANA_URL,
-        external=True, # 'curl' is an external command
-    )
-
-    # Use tar (also available) to extract the archive into the same directory
-    session.run(
-        "tar",
-        "-xzf", str(tz_archive_path),
-        "-C", str(tz_dir),
+        "powershell",
+        "-Command",
+        f"Invoke-WebRequest -Uri {IANA_URL} -OutFile {temp_archive_path}",
         external=True,
     )
 
-    # Set the environment variable. PyArrow will now use this path.
-    session.env["PYARROW_TZDATA_PATH"] = str(tz_dir)
-    session.log(f"Successfully set PYARROW_TZDATA_PATH to: {tz_dir}")
+    # Now, extract the archive directly into the target directory PyArrow expects.
+    session.run(
+        "tar",
+        "-xzf", str(temp_archive_path),
+        "-C", str(target_dir),
+        external=True,
+    )
 
+    session.log(f"Extracted timezone database to {target_dir}.")
 
-# @session(name="pre-commit", python=python_versions[0])
-# def precommit(session: Session) -> None:
-#     """Lint using pre-commit."""
-#     args = session.posargs or [ "run", "--all-files",]
-#     #"--hook-stage=manual", # "--show-diff-on-failure",
-#     session.install(
-#         "pre-commit",
-#         "pre-commit-hooks",
-#         #"darglint",
-#         "ruff",
-#         #"black",
-#     )
-#     session.run("pre-commit", *args)
-#     if args and args[0] == "install":
-#         activate_virtualenv_in_precommit_hooks(session)
 
 @nox.session(python=python_versions[0])
 def lint(session: Session) -> None:
