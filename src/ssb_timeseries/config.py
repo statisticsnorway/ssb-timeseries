@@ -719,8 +719,8 @@ else:
                 f"Environment variable {ENV_VAR_NAME} must be defined and point to a configuration file."
             )
         else:
-            print(
-                f"No configuration file was foumd at {active_file()}.\nOther locatsions will be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied once more to {DEFAULTS['configuration_file']}"
+            _config_logger.warning(
+                f"No configuration file was foumd at {active_file()}.\nOther locations may be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied once more to {DEFAULTS['configuration_file']}"
             )
             # CONFIGFILE = migrate_to_new_config_location()
             if not fs.exists(CONFIGFILE):
