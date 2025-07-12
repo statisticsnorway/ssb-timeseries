@@ -61,16 +61,13 @@ pytest-mypy = "^1.0.1"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-addopts = [
-    "--import-mode=importlib",
+#addopts = [ "--import-mode=importlib", ] # RYE: not needed? (added in a wild goose chase)
+filterwarnings = [
+    "error",
+    "error", "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*", # Introduced with Pillow 13; await pandas update.
 ]
 # log_cli = true # does NOT fix issues with configuring loggers for testing
-filterwarnings = [
-    "error", "ignore::pytest.PytestUnraisableExceptionWarning",
-    "ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*",
-]
-
-#[tool.pytest-mypy-plugins.mypy-config]
 
 [tool.poetry.scripts]
 ssb-timeseries = "ssb_timeseries.__main__:main"
@@ -97,7 +94,6 @@ show_column_numbers = true
 show_error_context = true
 disallow_any_generics = false
 no_implicit_optional = false
-#plugins = ["pytest_mypy"]    # BRy: Attempt to fix Mypy issues with pytest fixtures.
 
 [[tool.mypy.overrides]]
 module = "tests.*"
