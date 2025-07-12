@@ -121,51 +121,44 @@ def insert_header_in_hook(header: dict[str, str], lines: list[str]) -> str:
 
 def setup_windows_tzdata(session: Session) -> None:
     """
-    Download and set up the IANA timezone database for Windows runners.
-
-    This is necessary because Windows does not have a system-wide timezone
-    database, and PyArrow's auto-detection of the `tzdata` package can be
-    unreliable in some CI environments.
-
-    Args:
-        session: The nox.Session object.
+    Download and set up the IANA timezone database AND the Windows-to-IANA
+    mapping file for Windows runners.
     """
     if sys.platform != "win32":
-        session.log("Skipping timezone database setup on non-Windows OS.")
         return
 
-    session.log("Windows detected. Manually setting up timezone database for PyArrow.")
+    session.log("Windows detected. Setting up full timezone database for PyArrow.")
 
+    # 1. Define the target directory PyArrow is looking for.
     home_dir = Path(session.env.get("USERPROFILE", "C:/Users/runneradmin"))
     target_dir = home_dir / "Downloads" / "tzdata"
-    # ------------------------------------
-
-    session.log(f"Target directory is: {target_dir}")
-    # Create the directory, including parent directories if they don't exist.
     target_dir.mkdir(parents=True, exist_ok=True)
+    session.log(f"Target directory is: {target_dir}")
 
-    # Use a temporary file for the download to keep things clean
-    temp_archive_path = Path(session.create_tmp()) / "tzdata.tar.gz"
-
-    IANA_URL = "https://data.iana.org/time-zones/tzdata-latest.tar.gz"
-
-    # Use PowerShell's reliable Invoke-WebRequest
+    # 2. Download and extract the main IANA timezone database.
+    session.log("Downloading IANA tzdata...")
+    iana_url = "https://data.iana.org/time-zones/tzdata-latest.tar.gz"
+    iana_archive = Path(session.create_tmp()) / "iana.tar.gz"
     session.run(
-        "powershell",
-        "-Command",
-        f"Invoke-WebRequest -Uri {IANA_URL} -OutFile {temp_archive_path}",
+        "powershell", "-Command", f"Invoke-WebRequest -Uri {iana_url} -OutFile {iana_archive}",
+        external=True,
+    )
+    session.run(
+        "tar", "-xzf", str(iana_archive), "-C", str(target_dir),
         external=True,
     )
 
-    # Now, extract the archive directly into the target directory PyArrow expects.
+    # 3. Download the essential windowsZones.xml mapping file.
+    #    This file is sourced from the Unicode CLDR project.
+    session.log("Downloading windowsZones.xml mapping file...")
+    cldr_url = "https://raw.githubusercontent.com/unicode-org/cldr/main/common/supplemental/windowsZones.xml"
+    cldr_target_path = target_dir / "windowsZones.xml"
     session.run(
-        "tar",
-        "-xzf", str(temp_archive_path),
-        "-C", str(target_dir),
+        "powershell", "-Command", f"Invoke-WebRequest -Uri {cldr_url} -OutFile {cldr_target_path}",
         external=True,
     )
 
-    session.log(f"Extracted timezone database to {target_dir}.")
+    session.log(f"Successfully created timezone database at {target_dir}.")
 
 
 @nox.session(python=python_versions[0])
