@@ -65,8 +65,10 @@ addopts = [
     "--import-mode=importlib",
 ]
 # log_cli = true # does NOT fix issues with configuring loggers for testing
-# filterwarnings = [ "error", ] # error introduced in conftest.buildup and teardown?
-filterwarnings = [ "error", "ignore::pytest.PytestUnraisableExceptionWarning"]
+filterwarnings = [
+    "error", "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*",
+]
 
 #[tool.pytest-mypy-plugins.mypy-config]
 
