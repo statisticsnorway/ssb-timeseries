@@ -257,6 +257,13 @@ def datetime_localize(df: IntoFrameT, target_tz: TimeZone = "") -> IntoFrameT:
     Columns without timezone information are localized using 'target_tz' parameter if provided, otherwise falling back to default.
 
     If the dataframe contains datelike columns of types other than Datetime, ie. Date, Object or string representations, see the twin function 'datelike_localize()'
+        >>> # xdoctest: +SETUP  #-----------------------------------------
+        >>> import pandas as pd
+        >>> from ssb_timeseries.dates import datelike_to_datetime
+        >>> # ------------------------------------------------------------
+
+        >>> df = pd.DataFrame({'time': ['2022-01-01 11:30','2022-01-01 12:00','2022-01-01 12:30,'2022-01-01 13:00']})
+        >>> datetime_localize(datelike_to_datetime(df))
     """
     nw_df = nw.from_native(df)
     expression = _nw_expr_tz_localize(
@@ -270,7 +277,13 @@ def datelike_localize(df: IntoFrameT, target_tz: TimeZone = "") -> IntoFrameT:
     """Convert all datelike columns of a dataframe to timezone aware Narwhals Datetime.
 
     Equivalent to
-    >>> datetime_localize(datelike_to_datetime(df))
+        >>> # xdoctest: +SETUP  #-----------------------------------------
+        >>> import pandas as pd
+        >>> from ssb_timeseries.dates import datelike_to_datetime
+        >>> # ------------------------------------------------------------
+
+        >>> df = pd.DataFrame({'time': ['2022-01-01','2022-01-01','2022-01-01','2022-01-01']})
+        >>> datetime_localize(datelike_to_datetime(df))
     """
     df_with_dt_cols = datelike_to_datetime(df)
     return datetime_localize(df_with_dt_cols, target_tz)
