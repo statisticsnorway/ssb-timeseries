@@ -540,7 +540,7 @@ def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
     if fs.exists(path):
         from_json = fs.read_json(path)
         if not isinstance(from_json, dict):
-            from_json = json.loads(from_json)  # type:ignore
+            from_json = json.loads(from_json)
 
         return convert_schema_v1_to_v2(from_json)
 

@@ -1643,7 +1643,7 @@ class Dataset:
                     new_col_name = f"{func}({output_series_name})"
                     func_name = func
                 elif isinstance(func, list):
-                    new_col_name = f"{func[0]}{func[1]}({output_series_name})"  # type: ignore[unreachable]
+                    new_col_name = f"{func[0]}{func[1]}({output_series_name})"
                     func_name = f"{func[0]}{func[1]}"
                 else:
                     new_col_name = f"{func.__name__}({output_series_name})"
@@ -1772,7 +1772,7 @@ def column_aggregate(df: IntoFrameT, method: str | F) -> pd.Series | Any:
             case "median":
                 out = df.quantile(0.5, axis=1, numeric_only=True)
             case ["quantile", *params] | ["percentile", *params]:
-                if len(params) > 1:  # type: ignore[unreachable]
+                if len(params) > 1:
                     interpolation: str = params[1]
                 else:
                     interpolation = "linear"

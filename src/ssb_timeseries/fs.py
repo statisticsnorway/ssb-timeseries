@@ -418,7 +418,7 @@ def write_parquet(
         )
     else:
         # TODO: figure out how to do schema validation, then this would do:
-        narwhals.from_native(data).write_parquet(path)  # type: ignore[unreachable]
+        narwhals.from_native(data).write_parquet(path)
     # pyarrow.dataset.write_dataset(
     #     data,
     #     path,
