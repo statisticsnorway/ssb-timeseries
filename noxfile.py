@@ -165,7 +165,7 @@ def mypy(session: Session) -> None:
 def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(".")
-    session.install("coverage[toml]", "pytest", "pygments", "click")
+    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata")
     try:
         session.run(
             "coverage",
