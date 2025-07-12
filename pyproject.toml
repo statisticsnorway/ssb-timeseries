@@ -35,6 +35,7 @@ sphinx-togglebutton = ">=0.3.2"
 sphinx-copybutton = ">=0.5.2"
 darglint = "^1.8.1"
 pyarrow-stubs = "^20.0.0.20250627"
+tzdata = "^2025.2"
 
 [tool.poetry.group.dev.dependencies]
 pygments = ">=2.10.0"
