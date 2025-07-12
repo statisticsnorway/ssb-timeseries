@@ -28,7 +28,7 @@ repos:
         language: system
         types: [python]
         #additional_dependencies: [pytest]
-        pass_filenames: true
+        pass_filenames: false
         always_run: true
         stages: ["pre-commit",]
 
@@ -39,6 +39,7 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+        stages: ["pre-commit",]
 
   # Mypy for Static Type Checking ... of SRC:
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -49,8 +50,9 @@ repos:
         entry: poetry run mypy src
         language: system
         types: [python]
+        stages: ["pre-commit",]
         pass_filenames: false
-        #exclude: ^noxfile\.py$
+        exclude: ^noxfile\.py$
         # not for 'system' hooks:
         # additional_dependencies: ["pytest-mypy==1.0.1",]
 
@@ -64,3 +66,4 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+        stages: ["pre-commit",]

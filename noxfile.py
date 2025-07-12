@@ -122,12 +122,8 @@ def insert_header_in_hook(header: dict[str, str], lines: list[str]) -> str:
 @session(name="pre-commit", python=python_versions[0])
 def precommit(session: Session) -> None:
     """Lint using pre-commit."""
-    args = session.posargs or [
-        "run",
-        "--all-files",
-        "--hook-stage=manual",
-        # "--show-diff-on-failure",
-    ]
+    args = session.posargs or [ "run", "--all-files",]
+    #"--hook-stage=manual", # "--show-diff-on-failure",
     session.install(
         "pre-commit",
         "pre-commit-hooks",
