@@ -210,6 +210,7 @@ def xdoctest(session: Session) -> None:
         args = [package, *session.posargs]
     else:
         args = [f"--modname={package}", "--command=all"]
+        args.append("--style=google") # RYE: enable  directives +SETUP and +REQUIRES
         if "FORCE_COLOR" in os.environ:
             args.append("--colored=1")
 
