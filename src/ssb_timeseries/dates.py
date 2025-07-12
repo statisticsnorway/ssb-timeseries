@@ -270,7 +270,7 @@ def datelike_localize(df: IntoFrameT, target_tz: TimeZone = "") -> IntoFrameT:
     """Convert all datelike columns of a dataframe to timezone aware Narwhals Datetime.
 
     Equivalent to
-    >>> datetime_to_tz_aware(datelike_to_datetime(df))
+    >>> datetime_localize(datelike_to_datetime(df))
     """
     df_with_dt_cols = datelike_to_datetime(df)
     return datetime_localize(df_with_dt_cols, target_tz)
