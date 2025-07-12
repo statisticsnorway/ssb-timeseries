@@ -227,6 +227,15 @@ def _nw_expr_tz_convert(schema: dict, target_tz: TimeZone) -> list[nw.Expr]:
     return expressions
 
 
+def datetime_time_unit(
+    df: IntoFrameT, time_unit: str = NW_DEFAULT_TIME_UNIT
+) -> IntoFrameT:
+    """Ensure all datetime columns of a dataframe use the same time unit."""
+    nw_df = nw.from_native(df)
+    expression = _nw_expr_datetime_time_unit(nw_df.schema, time_unit=time_unit)
+    return nw_df.with_columns(expression).to_native()
+
+
 def datelike_to_datetime(
     df: IntoFrameT,
 ) -> IntoFrameT:
@@ -239,15 +248,6 @@ def datelike_to_datetime(
     """
     nw_df = nw.from_native(df)
     expression = _nw_expr_datelike_to_datetime()
-    return nw_df.with_columns(expression).to_native()
-
-
-def datetime_time_unit(
-    df: IntoFrameT, time_unit: str = NW_DEFAULT_TIME_UNIT
-) -> IntoFrameT:
-    """Ensure all datetime columns of a dataframe use the same time unit."""
-    nw_df = nw.from_native(df)
-    expression = _nw_expr_datetime_time_unit(nw_df.schema, time_unit=time_unit)
     return nw_df.with_columns(expression).to_native()
 
 

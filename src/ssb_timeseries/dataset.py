@@ -51,6 +51,8 @@ from numpy.typing import NDArray
 import ssb_timeseries as ts
 from ssb_timeseries import io
 from ssb_timeseries import meta
+from ssb_timeseries.dataframes import empty
+from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import utc_iso
@@ -233,8 +235,10 @@ class Dataset:
         # If data is provided by kwarg, use it.
         # Otherwise, load it ... unless explicitly told not to.
         # kwarg_data: IntoFrameT = kwargs.get("data", pd.DataFrame())
-        kwarg_data = kwargs.get("data", pd.DataFrame())
-        if not empty(kwarg_data):
+        # kwarg_data = kwargs.get("data", pd.DataFrame())
+        # if not empty(kwarg_data):
+        kwarg_data = kwargs.get("data", None)
+        if is_df_like(kwarg_data) and not empty(kwarg_data):
             self.data = kwarg_data
         elif load_data:  # and self.data_type.versioning == properties.Versioning.AS_OF:
             self.data = self.io.read_data(self.as_of_utc)  # .to_native()
@@ -1863,47 +1867,6 @@ def _nw_normalize_dtype(t: IntoDType) -> IntoDType:
         case _:
             out = t
     return out
-
-
-# move to df.py? ---------------------------------------------------------------
-
-
-def copy(df: IntoFrameT) -> IntoFrameT:
-    """Check if dataframe is empty."""
-    return nw.from_native(df).clone().to_native()
-
-
-def empty(df: IntoFrame) -> bool:
-    """Check if dataframe is empty."""
-    # nox/mypy vs 1.10.1 --> [redundant-cast] | pre-commit --> [no-any-return]
-    # (but cast was introduced because of other error with other mypy env)
-    return cast(bool, nw.from_native(df).is_empty())  # nox --> [redundant-cast]
-    # return nw.from_native(df).is_empty() # pre-commit --> [no-any-return]
-
-
-def is_df_like(obj: Any) -> bool:
-    """Checks if an object is "dataframe-like" for Narwhals compatibility.
-
-    This is a robust, duck-typing alternative to `isinstance(obj, IntoFrameT)`,
-    which is not possible. It checks for attributes that are common to all
-    supported dataframe libraries (pandas, polars, pyarrow).
-
-    Args:
-        obj: The object to check.
-
-    Returns:
-        True if the object has dataframe-like attributes, False otherwise.
-    """
-    # All supported dataframe objects have a `.shape` tuple (rows, cols)
-    # and a `.columns` attribute (a list or index of column names).
-    # We also check that the object is not a NumPy array, as arrays also
-    # have a .shape but are not dataframes.
-    return (
-        hasattr(obj, "shape")
-        and isinstance(getattr(obj, "shape", None), tuple)
-        and hasattr(obj, "columns")
-        and "numpy.ndarray" not in str(type(obj))  # A simple way to exclude numpy
-    )
 
 
 # ==============================================================================

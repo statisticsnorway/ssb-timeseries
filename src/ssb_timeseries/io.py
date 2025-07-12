@@ -20,6 +20,7 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any
 from typing import NamedTuple
+from typing import cast
 
 import narwhals as nw
 import pandas
@@ -199,7 +200,7 @@ class FileSystem:
             )
             try:
                 # df = fs.read_parquet(self.data_fullpath, implementation=implementation)
-                df = nw.from_native(fs.read_parquet(self.data_fullpath))
+                df = nw.from_native(fs.read_parquet(self.data_fullpath)).to_arrow()
                 ts.logger.info("DATASET.read.success %s: Read data.", self.set_name)
             except FileNotFoundError:
                 ts.logger.exception(
@@ -211,12 +212,13 @@ class FileSystem:
 
         else:
             df = nw.from_native(pandas.DataFrame()).to_arrow()
-            # df = nw.from_numpy(np.empty((0, 0)),backend=implementation)
             ts.logger.debug(
                 f"No file {self.data_fullpath} - return empty frame instead."
             )
+            # df = nw.from_numpy(np.empty((0, 0)),backend=implementation)
             # df = nw.from_dict({{k,[]} for k in self.set_type.date_columns()},backend=implementation)
-        return datelike_to_utc(df)
+        pa_table = datelike_to_utc(df)
+        return cast(pyarrow.Table, pa_table)
 
     def read_metadata(self) -> dict:
         """Read tags from the metadata file."""
@@ -676,11 +678,6 @@ def normalize_numeric(
     # return eager(normalized)
 
 
-def eager(df: IntoFrameT) -> nw.DataFrame:
-    """Collect or compute for lazy implementations."""
-    return nw.from_native(df).lazy(backend="polars").collect()
-
-
 def merge_data(
     old: IntoFrameT, new: IntoFrameT, date_cols: Iterable[str]
 ) -> pyarrow.Table:
@@ -703,7 +700,8 @@ def merge_data(
         subset=date_cols,
         keep="last",
     ).sort(by=sorted(date_cols))
-    return out.to_arrow()
+    pa_table = nw.from_native(out).to_arrow()
+    return cast(pyarrow.Table, pa_table)
 
 
 def parquet_schema(

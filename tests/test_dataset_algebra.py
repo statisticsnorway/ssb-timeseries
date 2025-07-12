@@ -52,11 +52,7 @@ df_c = create_df(
 )
 
 a = Dataset(name="A", data_type=T, data=df_a)
-b = Dataset(
-    name="B",
-    data_type=T,
-    data=df_b,
-)
+b = Dataset(name="B", data_type=T, data=df_b)
 c = Dataset(name="C", data_type=T, data=df_c)
 
 

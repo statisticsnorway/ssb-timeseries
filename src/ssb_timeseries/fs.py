@@ -17,6 +17,7 @@ import tomli_w
 from dapla import FileClient
 from narwhals.typing import IntoFrame
 
+from ssb_timeseries.dataframes import to_arrow
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
 
@@ -380,19 +381,6 @@ def write_json(path: PathStr, content: str | dict) -> None:
 #     pq.write_table(table, filename)
 
 
-def to_arrow(
-    df: IntoFrame,
-    # pyarrow.Table | polars.DataFrame | pandas.DataFrame,
-    schema: pyarrow.Schema | None = None,
-) -> pyarrow.Table:
-    """Convert Pandas or Polars (or other Narwhals compatible) Data Frame to Pyarrow table, cast schema if provided."""
-    table = narwhals.from_native(df).to_arrow()
-    if schema:
-        return table.select(schema.names).cast(schema)
-    else:
-        return table
-
-
 def read_parquet(
     path: PathStr,
     lazy: bool = False,  # TODO: Later steps need lazy-proofing before we can switch defaults.
@@ -430,7 +418,7 @@ def write_parquet(
         )
     else:
         # TODO: figure out how to do schema validation, then this would do:
-        narwhals.from_native(data).write_parquet(path)
+        narwhals.from_native(data).write_parquet(path)  # type: ignore[unreachable]
     # pyarrow.dataset.write_dataset(
     #     data,
     #     path,

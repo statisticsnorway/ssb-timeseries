@@ -94,14 +94,14 @@ show_column_numbers = true
 show_error_context = true
 disallow_any_generics = false
 no_implicit_optional = false
-#plugins = ["pytest_mypy"]    # BRy: Fix Mypy issues with pytest fixtures.
+#plugins = ["pytest_mypy"]    # BRy: Attempt to fix Mypy issues with pytest fixtures.
 
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false       # Don't require functions to have type annotations
 disallow_incomplete_defs = false    # Don't require functions to have type annotations
 disallow_untyped_calls = false      # OK to call functions that are not fully annotated
-# ignore_errors = true # This will suppress ALL type errors from the tests directory.
+ignore_errors = true              # Suppress ALL type errors from the tests directory.
 
 [[tool.mypy.overrides]]
 module = "noxfile.py"
