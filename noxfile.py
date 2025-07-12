@@ -135,6 +135,13 @@ def insert_header_in_hook(header: dict[str, str], lines: list[str]) -> str:
 #     if args and args[0] == "install":
 #         activate_virtualenv_in_precommit_hooks(session)
 
+@nox.session(python=python_versions[0])
+def lint(session: Session) -> None:
+    """Lint using ruff."""
+    # We install ruff directly.
+    session.install("ruff")
+    session.run("ruff", "check", ".")
+    session.run("ruff", "format", "--check", ".")
 
 @session(python=python_versions)
 def mypy(session: Session) -> None:
