@@ -119,6 +119,53 @@ def insert_header_in_hook(header: dict[str, str], lines: list[str]) -> str:
     return "\n".join(lines)
 
 
+def setup_windows_tzdata(session: Session) -> None:
+    """
+    Download and set up the IANA timezone database for Windows runners.
+
+    This is necessary because Windows does not have a system-wide timezone
+    database, and PyArrow's auto-detection of the `tzdata` package can be
+    unreliable in some CI environments.
+
+    Args:
+        session: The nox.Session object.
+    """
+    if sys.platform != "win32":
+        session.log("Skipping timezone database setup on non-Windows OS.")
+        return
+
+    session.log("Windows detected. Manually setting up timezone database for PyArrow.")
+
+    # Define a predictable location inside the session's temp directory
+    tz_dir = Path(session.create_tmp()) / "tzdata"
+    tz_dir.mkdir()
+    tz_archive_path = tz_dir / "tzdata.tar.gz"
+
+    # This is a stable URL for the latest timezone database
+    IANA_URL = "https://data.iana.org/time-zones/releases/tzdata-latest.tar.gz"
+
+    # Use curl (available on GitHub Actions Windows runners) to download the file
+    session.run(
+        "curl",
+        "--location",  # Follow redirects
+        "--output", str(tz_archive_path),
+        IANA_URL,
+        external=True, # 'curl' is an external command
+    )
+
+    # Use tar (also available) to extract the archive into the same directory
+    session.run(
+        "tar",
+        "-xzf", str(tz_archive_path),
+        "-C", str(tz_dir),
+        external=True,
+    )
+
+    # Set the environment variable. PyArrow will now use this path.
+    session.env["PYARROW_TZDATA_PATH"] = str(tz_dir)
+    session.log(f"Successfully set PYARROW_TZDATA_PATH to: {tz_dir}")
+
+
 # @session(name="pre-commit", python=python_versions[0])
 # def precommit(session: Session) -> None:
 #     """Lint using pre-commit."""
@@ -166,6 +213,12 @@ def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(".")
     session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata")
+
+    # If on Windows, find the installed tzdata path and set the env var to avoid:
+    #  E  pyarrow.lib.ArrowInvalid: Cannot locate timezone 'Europe/Oslo':
+    #     Timezone database not found at "C:\Users\runneradmin\Downloads\tzdata"
+    setup_windows_tzdata(session)
+
     try:
         session.run(
             "coverage",
