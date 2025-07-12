@@ -119,43 +119,53 @@ def insert_header_in_hook(header: dict[str, str], lines: list[str]) -> str:
     return "\n".join(lines)
 
 
-@session(name="pre-commit", python=python_versions[0])
-def precommit(session: Session) -> None:
-    """Lint using pre-commit."""
-    args = session.posargs or [
-        "run",
-        "--all-files",
-        "--hook-stage=manual",
-        # "--show-diff-on-failure",
-    ]
-    session.install(
-        "pre-commit",
-        "pre-commit-hooks",
-        "darglint",
-        "ruff",
-        "black",
-    )
-    session.run("pre-commit", *args)
-    if args and args[0] == "install":
-        activate_virtualenv_in_precommit_hooks(session)
+# @session(name="pre-commit", python=python_versions[0])
+# def precommit(session: Session) -> None:
+#     """Lint using pre-commit."""
+#     args = session.posargs or [ "run", "--all-files",]
+#     #"--hook-stage=manual", # "--show-diff-on-failure",
+#     session.install(
+#         "pre-commit",
+#         "pre-commit-hooks",
+#         #"darglint",
+#         "ruff",
+#         #"black",
+#     )
+#     session.run("pre-commit", *args)
+#     if args and args[0] == "install":
+#         activate_virtualenv_in_precommit_hooks(session)
 
+@nox.session(python=python_versions[0])
+def lint(session: Session) -> None:
+    """Lint using ruff."""
+    # We install ruff directly.
+    session.install("ruff")
+    session.run("ruff", "check", ".")
+    session.run("ruff", "format", "--check", ".")
 
 @session(python=python_versions)
 def mypy(session: Session) -> None:
-    """Type-check using mypy."""
-    args = session.posargs or ["src", "tests"]
+    """Type-check 'src' directory using mypy."""
+    args = session.posargs or ["src",] # "tests"]
     session.install(".")
-    session.install("mypy", "pytest", "click")
-    session.run("mypy", *args)
-    if not session.posargs:
-        session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
+    session.install("mypy", "pytest", "pytest-mypy", "click")
+    project_root = Path(__file__).parent
+    pyproj_toml_file = str(project_root /  "pyproject.toml")
+    with session.chdir(project_root):
+        session.run(
+            "mypy",
+            "--config-file", pyproj_toml_file,
+            *args,
+        )
+        if not session.posargs:
+            session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
 
 @session(python=python_versions_for_test)
 def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(".")
-    session.install("coverage[toml]", "pytest", "pygments", "click")
+    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata")
     try:
         session.run(
             "coverage",

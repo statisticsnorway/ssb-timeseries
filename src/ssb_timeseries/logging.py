@@ -52,9 +52,7 @@ except ImportError:
 # ruff: noqa: ANN002, ANN003
 
 _STRING_FORMAT: str = "%(name)s | %(levelname)s | %(asctime)s | %(message)s \n"
-_JSON_FORMAT: str = (
-    '{"name": "%(name)s"; "level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" }'
-)
+_JSON_FORMAT: str = '{"name": "%(name)s"; "level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" }'
 
 
 def console_handler(

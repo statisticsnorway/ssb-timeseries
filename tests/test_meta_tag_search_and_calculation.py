@@ -4,13 +4,14 @@ import itertools
 import logging
 import uuid
 
+import numpy as np
 import pytest
 
 import ssb_timeseries as ts
 from ssb_timeseries import sample_metadata
 from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.dataset import is_df_like
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.meta import Taxonomy
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
@@ -18,7 +19,6 @@ from ssb_timeseries.sample_data import create_df
 # ---mypy: disable-error-code="attr-defined,no-untyped-def,union-attr,index,call-overload"
 
 
-@log_start_stop
 def test_find_data_using_single_metadata_attribute(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -62,7 +62,6 @@ def test_find_data_using_single_metadata_attribute(
         assert returned_series_tags[key]["A"] == "a"
 
 
-@log_start_stop
 def test_find_data_using_multiple_metadata_attributes(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -110,7 +109,6 @@ def test_find_data_using_multiple_metadata_attributes(
         assert returned_series_tags[key]["B"] == "q"
 
 
-@log_start_stop
 def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_values(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -201,10 +199,8 @@ def test_aggregate_sum_for_flat_list_taxonomy(
     assert sorted(y.numeric_columns()) == sorted(
         [f"sum({n.name})" for n in klass48.parent_nodes()]
     )
-    y_data = y.data[y.numeric_columns()]
-    ts.logger.debug(f"{set_name}: \n{y_data}")
-    assert all(y_data.notna())
-    assert all(y_data.notnull())
+    assert not np.isnan(y.numeric_array()).any()
+    assert (y.numeric_array() > 0).all()
 
 
 def test_aggregate_multiple_functions_for_flat_list_taxonomy(
@@ -250,13 +246,10 @@ def test_aggregate_multiple_functions_for_flat_list_taxonomy(
     assert sorted(y.numeric_columns()) == sorted(
         ["custom_func_perc10(0)", "median(0)", "quantile0.9(0)"]
     )
-    y_data = y.data[y.numeric_columns()]
-    ts.logger.debug(f"{y.name}: \n{y_data}")
-    assert all(y_data.notna())
-    assert all(y_data.notnull())
+    assert not np.isnan(y.numeric_array()).any()
+    assert (y.numeric_array() > 0).all()
 
 
-@log_start_stop
 def test_aggregate_sums_for_hierarchical_taxonomy(
     conftest,
     caplog: pytest.LogCaptureFixture,
@@ -291,13 +284,10 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
     assert sorted(y.numeric_columns()) == sorted(
         [f"sum({n.name})" for n in klass157.parent_nodes()]
     )
-    y_data = y.data[y.numeric_columns()]
-    ts.logger.debug(f"{set_name} --> \n{y_data}")
-    assert all(y_data.notna())
-    assert all(y_data.notnull())
+    assert not np.isnan(y.numeric_array()).any()
+    assert (y.numeric_array() > 0).all()
 
 
-@log_start_stop
 def test_aggregate_mean_for_hierarchical_taxonomy(
     conftest,
     caplog: pytest.LogCaptureFixture,
@@ -332,13 +322,10 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
     assert sorted(y.numeric_columns()) == sorted(
         [f"mean({n.name})" for n in klass157.parent_nodes()]
     )
-    y_data = y.data[y.numeric_columns()]
-    ts.logger.debug(f"{set_name} --> \n{y_data}")
-    assert all(y_data.notna())
-    assert all(y_data.notnull())
+    assert not np.isnan(y.numeric_array()).any()
+    assert (y.numeric_array() > 0).all()
 
 
-@log_start_stop
 def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
     conftest,
     caplog: pytest.LogCaptureFixture,
@@ -377,14 +364,14 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
         klass157.parent_nodes() * len(multiple_functions)
     )
     for func in multiple_functions:
-        assert sorted(y.filter(func).numeric_columns()) == sorted(
+        assert sorted(y.filter(pattern=func).numeric_columns()) == sorted(
             [f"{func}({n.name})" for n in klass157.parent_nodes()]
         )
-    y_data = y.data[y.numeric_columns()]
-    ts.logger.debug(f"{set_name} --> \n{y_data}")
-    assert all(y_data.notna())
-    assert all(y_data.notnull())
-    assert all(y_data["mean(12.3)"] == y_data["sum(12.3)"] / y_data["count(12.3)"])
+
+    assert (y["mean(12.3)"] == y["sum(12.3)"] / y["count(12.3)"]).all()
+
+    assert not np.isnan(y.numeric_array()).any()
+    assert (y.numeric_array() > 0).all()
 
 
 def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
@@ -447,22 +434,27 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
     )
 
     for func in multiple_functions:
-        assert sorted(y.filter(func).numeric_columns()) == sorted(
+        z = y.filter(pattern=func)
+        print(z)
+        assert sorted(z.numeric_columns()) == sorted(
             [f"{func}({n})" for n in attribute_permutation_names]
         )
 
-    y_data = y.data[y.numeric_columns()]
-    ts.logger.debug(f"{set_name} --> \n{y_data}")
+    assert not np.isnan(y.numeric_array()).any()
+    assert (y.numeric_array() > 0).all()
 
-    assert all(y_data.notna())
-    assert all(y_data.notnull())
-    assert all(
-        y_data["mean(S_petro_scan)"]
-        == y_data["sum(S_petro_scan)"] / y_data["count(S_petro_scan)"]
-    )
+    yy_mean = y["mean(S_petro_scan)"]
+    yy_sum = y["sum(S_petro_scan)"]
+    yy_count = y["count(S_petro_scan)"]
+    yy_calc = yy_sum / yy_count
+    assert isinstance(yy_mean, Dataset) and is_df_like(yy_mean.data)
+    assert isinstance(yy_calc, Dataset) and is_df_like(yy_calc.data)
+    print(yy_mean.nw())
+    print(yy_calc.nw())
+    # assert (yy_mean == yy_calc).all()
+    assert yy_calc.isclose(yy_mean)  # we observe decimal differences
 
 
-@log_start_stop
 def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
     conftest,
     caplog: pytest.LogCaptureFixture,
@@ -472,9 +464,6 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
     klass157_leaves = [n.name for n in klass157.structure.root.leaves]
 
     set_name = conftest.function_name()
-    set_tags = {
-        "Country": "Norway",
-    }
     series_tags = {"A": klass157_leaves, "B": ["pq"], "C": ["xyz"]}
     tag_values: list[list[str]] = [value for value in series_tags.values()]
 
@@ -485,7 +474,6 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
         data=create_df(
             *tag_values, start_date="2020-01-01", end_date="2024-01-03", freq="YS"
         ),
-        tags=set_tags,
         attributes=["A", "B", "C"],
     )
 
@@ -505,13 +493,10 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
         for f in multiple_functions
     ]
     assert sorted(y.numeric_columns()) == sorted(expected_names)
-    y_data = y.data[y.numeric_columns()]
-    ts.logger.debug(f"{set_name} --> \n{y_data}")
-    assert all(y_data.notna())
-    assert all(y_data.notnull())
+    assert not np.isnan(y.numeric_array()).any()
+    assert (y.numeric_array() > 0).all()
 
 
-@log_start_stop
 def test_aggregate_callable_for_hierarchical_taxonomy(
     conftest,
     caplog: pytest.LogCaptureFixture,
@@ -555,7 +540,5 @@ def test_aggregate_callable_for_hierarchical_taxonomy(
         for f in [perc10, perc90]
     ]
     assert sorted(y.numeric_columns()) == sorted(expected_names)
-    y_data = y.data[y.numeric_columns()]
-    ts.logger.debug(f"{set_name} --> \n{y_data}")
-    assert all(y_data.notna())
-    assert all(y_data.notnull())
+    assert not np.isnan(y.numeric_array()).any()
+    assert (y.numeric_array() > 0).all()

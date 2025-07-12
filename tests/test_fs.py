@@ -71,8 +71,7 @@ def test_fs_path() -> None:
 @pytest.mark.skipif(platform != "linux", reason="Can not see GCS.")
 def test_same_path() -> None:
     assert (
-        fs.same_path(BUCKET, "/home/jovyan")
-        == fs.path_to_str("/")
+        fs.same_path(BUCKET, "/home/jovyan") == fs.path_to_str("/")
         # or fs.same_path(BUCKET, "/home/jovyan") == "\\"
     )
     assert fs.same_path(
@@ -129,7 +128,7 @@ def test_write_parquet_with_no_schema_creates_a_file(
         schema=None,
     )
     assert fs.exists(temp_file)
-    xyz = fs.pandas_read_parquet(path=temp_file)
+    xyz = fs.read_parquet(path=temp_file, implementation="pandas").to_native()
     assert all(df == xyz)
 
 
@@ -213,7 +212,7 @@ def test_write_parquet_handles_that_df_contains_column_not_defined_in_schema_but
         schema=schema_without_z,
     )
     assert fs.exists(temp_file)
-    read_back = fs.pandas_read_parquet(path=temp_file)
+    read_back = fs.read_parquet(path=temp_file)
     assert sorted(read_back.columns) == sorted(schema_without_z.names)
     # assert sorted(read_back.columns) == sorted(df.columns)
 
@@ -284,7 +283,7 @@ def test_write_parquet_supports_pandas_df_input(
     fs.write_parquet(
         path=temp_file,
         data=df,
-        schema=None,
+        # schema=None,
     )
     assert fs.exists(temp_file)
 
