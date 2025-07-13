@@ -187,3 +187,20 @@ rst_prolog = """
 .. |detag_series| replace:: :py:meth:`~ssb_timeseries.dataset.Dataset.detag_series`
 
 """
+
+# -- Options for autodoc ---------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#configuration
+
+# This mapping is used to resolve forward references in type annotations.
+# It maps the string name to the fully qualified object name.
+autodoc_type_aliases = {
+    'Any': 'typing.Any',
+    'DataFrame': 'narwhals.DataFrame',
+    'LazyFrame': 'narwhals.LazyFrame',
+    'Frame': 'narwhals.typing.Frame',
+    'FrameT': 'narwhals.typing.FrameT',
+    'IntoDataFrame': 'narwhals.typing.IntoDataFrame',
+    'IntoDataFrameT': 'narwhals.typing.IntoDataFrameT',
+    'IntoLazyFrame': 'narwhals.typing.IntoLazyFrame',
+    'IntoLazyFrameT': 'narwhals.typing.IntoLazyFrameT',
+}

@@ -38,7 +38,7 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
     for arg in args:
         if arg is None:
             final_args.append([""])
-        if isinstance(arg, str):
+        elif isinstance(arg, str):
             final_args.append([arg])
         elif isinstance(arg, list):
             final_args.append(arg)
@@ -101,7 +101,7 @@ def create_df(
     ```
     """
     if not start_date:
-        start_date = date_round(datetime.now()) - timedelta(days=365)
+        start_date = date_round(datetime.now()) - timedelta(days=364)
     if not end_date:
         end_date = date_round(datetime.now())
 

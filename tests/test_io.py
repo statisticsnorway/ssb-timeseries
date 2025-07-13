@@ -6,6 +6,7 @@ import polars
 import pyarrow
 
 from ssb_timeseries import io
+from ssb_timeseries.dates import datelike_to_utc
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -53,7 +54,6 @@ def test_io_metadir_path_is_equal_to_configured_metadata_catalog(
     assert str(test_io.metadata_dir) != ""
 
 
-# @pytest.mark.xfail
 def test_io_parquet_schema_as_of_at(
     new_dataset_none_at,
     conftest,
@@ -61,13 +61,7 @@ def test_io_parquet_schema_as_of_at(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_none_at
-    test_io = io.FileSystem(
-        repository=conftest.repo,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
-    )
-    schema = test_io.parquet_schema(dataset.tags)
+    schema = io.parquet_schema(dataset.data_type, dataset.tags)
     assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
@@ -78,7 +72,6 @@ def test_io_parquet_schema_as_of_at(
             assert dataset.tags["series"][key][k] == v
 
 
-# @pytest.mark.xfail
 def test_io_parquet_schema_none_from_to(
     new_dataset_none_from_to,
     conftest,
@@ -86,13 +79,7 @@ def test_io_parquet_schema_none_from_to(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_none_from_to
-    test_io = io.FileSystem(
-        repository=conftest.repo,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
-    )
-    schema = test_io.parquet_schema(dataset.tags)
+    schema = io.parquet_schema(dataset.data_type, dataset.tags)
     assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
@@ -103,7 +90,6 @@ def test_io_parquet_schema_none_from_to(
             assert dataset.tags["series"][key][k] == v
 
 
-# @pytest.mark.xfail
 def test_io_parquet_schema_none_at(
     new_dataset_as_of_at,
     conftest,
@@ -111,13 +97,7 @@ def test_io_parquet_schema_none_at(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_as_of_at
-    test_io = io.FileSystem(
-        repository=conftest.repo,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
-    )
-    schema = test_io.parquet_schema(dataset.tags)
+    schema = io.parquet_schema(dataset.data_type, dataset.tags)
     assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
@@ -128,7 +108,6 @@ def test_io_parquet_schema_none_at(
             assert dataset.tags["series"][key][k] == v
 
 
-# @pytest.mark.xfail
 def test_io_parquet_schema_as_of_from_to(
     new_dataset_as_of_from_to,
     conftest,
@@ -136,13 +115,7 @@ def test_io_parquet_schema_as_of_from_to(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_as_of_from_to
-    test_io = io.FileSystem(
-        repository=conftest.repo,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
-    )
-    schema = test_io.parquet_schema(dataset.tags)
+    schema = io.parquet_schema(dataset.data_type, dataset.tags)
     assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
@@ -199,9 +172,10 @@ def test_io_merge_data_with_pandas_dataframes(
         freq="MS",
     )
     assert isinstance(x1, pandas.DataFrame) and isinstance(x2, pandas.DataFrame)
-    df = io.merge_data(x1, x2, {"valid_at"})
+    df = io.merge_data(x1, x2, ["valid_at"])
     logging.debug(f"merge pandas dataframes:\nOLD\n{x1}\n\nNEW\n{x2}\n\nRESULT\n{df}")
-    assert isinstance(df, pandas.DataFrame)
+    assert isinstance(df, pyarrow.Table)
+    # assert isinstance(df, pandas.DataFrame)
     assert df.shape == (12, 4)
 
 
@@ -217,6 +191,7 @@ def test_io_merge_data_with_polars_dataframes(
             freq="MS",
         )
     ).sort("valid_at")
+    x1 = datelike_to_utc(x1)
     x2 = polars.from_pandas(
         create_df(
             ["x", "y", "z"],
@@ -225,10 +200,15 @@ def test_io_merge_data_with_polars_dataframes(
             freq="MS",
         )
     ).sort("valid_at")
+    x2 = datelike_to_utc(x2)
     assert isinstance(x1, polars.DataFrame) and isinstance(x2, polars.DataFrame)
     df = io.merge_data(x1, x2, {"valid_at"})
     logging.debug(
         f"merge polars dataframes:\nOLD\n{x1.to_pandas()}\n\nNEW:\n{x2.to_pandas()}\n\nRESULT:\n{df.to_pandas()}"
     )
-    assert isinstance(df, polars.DataFrame)
+    #   assert isinstance(df, polars.DataFrame)
+    assert isinstance(df, pyarrow.Table)
+    assert len(df) > len(x1)
+    assert len(df) > len(x2)
+    assert len(df) < len(x1) + len(x2)
     assert df.shape == (12, 4)

@@ -15,16 +15,20 @@ See `config` module docs for details.
 import json
 import os
 import re
+from collections.abc import Iterable
 from copy import deepcopy
 from datetime import datetime
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import NamedTuple
-from typing import TypeAlias
+from typing import cast
 
+import narwhals as nw
 import pandas
-import polars
 import pyarrow
 import pyarrow.compute
+from narwhals.typing import FrameT
+from narwhals.typing import IntoFrameT
 
 import ssb_timeseries as ts
 from ssb_timeseries import fs
@@ -32,21 +36,20 @@ from ssb_timeseries import properties
 from ssb_timeseries.config import Config
 from ssb_timeseries.config import FileBasedRepository
 from ssb_timeseries.dates import date_utc
+from ssb_timeseries.dates import datelike_to_utc
+from ssb_timeseries.dates import prepend_as_of
+from ssb_timeseries.dates import standardize_dates
 from ssb_timeseries.dates import utc_iso_no_colon
 from ssb_timeseries.meta import DatasetTagDict
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.types import PathStr
 
-# consider:
-# from ssb_timeseries.types import F
-# from abc import ABC, abstractmethod
-# from typing import Protocol
-# import contextlib
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 # ruff: noqa: D202
 
-Data: TypeAlias = pyarrow.Table | pandas.DataFrame | polars.DataFrame
 
 active_config = Config.active
 
@@ -62,7 +65,8 @@ def version_from_file_name(
         case "persisted":
             regex = r"(_v)(\d+)(.parquet)"
         case "as_of":
-            regex = "(as_of_)(.*)(-data.parquet)"
+            date_part = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{6}[+-][0-9]{4}"
+            regex = f"(as_of_)({date_part})(-data.parquet)"
         case "names":
             # type is not implemented
             regex = "(_v)(*)(-data.parquet)"
@@ -118,8 +122,8 @@ class FileSystem:
         self.sharing = sharing
 
         # consider:
-        # if as_of_utc is None:
-        #     ...
+        # if as_of_utc is None and set_type.versioning == properties.Versioning.AS_OF:
+        #     raise ValueError('As of data must be specified when data type has Versioning.AS_OF.')
         #     # exception if type is AS_OF?
         # else:
         self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
@@ -178,7 +182,6 @@ class FileSystem:
         In the inital implementation with data and metadata in separate files it made sense for this to be the same as the data directory. However, Most likely, in a future version we will change this apporach and store metadata as header information in the data file, and the same information in a central meta data directory.
         """
         return self.repository["catalog"]
-        # replaces: return os.path.join(self.type_path, self.set_name)
 
     @property
     def metadata_fullpath(self) -> str:
@@ -186,18 +189,21 @@ class FileSystem:
         return os.path.join(self.metadata_dir, self.metadata_file)
 
     def read_data(
-        self, interval: str = ""
-    ) -> pandas.DataFrame:  #: Interval = Interval.all,
+        self,
+        interval: str = "",  # TODO: Implement use av interval = Interval.all,
+        # implementation: str = "pandas",
+    ) -> pyarrow.Table:  # nw.LazyFrame | nw.DataFrame:
         """Read data from the filesystem. Return empty dataframe if not found."""
         ts.logger.debug(interval)
         if fs.exists(self.data_fullpath):
-            ts.logger.debug(
+            ts.logger.info(
                 "DATASET.read.start %s: Reading data from file %s",
                 self.set_name,
                 self.data_fullpath,
             )
             try:
-                df = fs.pandas_read_parquet(self.data_fullpath)
+                # df = fs.read_parquet(self.data_fullpath, implementation=implementation)
+                df = nw.from_native(fs.read_parquet(self.data_fullpath)).to_arrow()
                 ts.logger.info("DATASET.read.success %s: Read data.", self.set_name)
             except FileNotFoundError:
                 ts.logger.exception(
@@ -205,63 +211,15 @@ class FileSystem:
                     self.set_name,
                     self.data_fullpath,
                 )
-                df = pandas.DataFrame()
+                df = nw.from_native(pandas.DataFrame()).to_arrow()
 
         else:
-            df = pandas.DataFrame()
-        return df
-
-    def write_data(self, new: pandas.DataFrame, tags: dict | None = None) -> None:
-        """Write data to the filesystem. If versioning is AS_OF, write to new file. If versioning is NONE, write to existing file."""
-        if self.data_type.versioning == properties.Versioning.AS_OF:
-            df = new
-        else:
-            old = self.read_data(self.set_name)
-            if old.empty:
-                df = new
-            else:
-                df = merge_data(old, new, self.data_type.temporality.date_columns)
-
-        ts.logger.info(
-            "DATASET.write.start %s: writing data to file\n\t%s\nstarted.",
-            self.set_name,
-            self.data_fullpath,
-        )
-        try:
-            if tags:
-                schema = self.parquet_schema(tags)
-            else:
-                raise ValueError("Tags can not be empty.")
-            #     schema = self.parquet_schema_from_df(df)
-
-            # test logs show test-merge- has many NANs in oldest data
-            if schema:
-                ts.logger.debug("Pyarrow schema defined: \n%s\n%s.", schema, df)
-                fs.write_parquet(
-                    data=df,
-                    path=self.data_fullpath,
-                    schema=schema,
-                    # existing_data_behavior="overwrite_or_ignore",
-                )
-
-            else:
-                ts.logger.warning(
-                    "Arrow schema is not defined: %s.\nFalling back to writing with Pandas.",
-                    self.set_name,
-                )
-                fs.pandas_write_parquet(df, self.data_fullpath)
-        except Exception as e:
-            ts.logger.exception(
-                "DATASET.write.error %s: writing data to file\n\t%s\nreturned exception: %s.",
-                self.set_name,
-                self.data_fullpath,
-                e,
+            df = nw.from_native(pandas.DataFrame()).to_arrow()
+            ts.logger.debug(
+                f"No file {self.data_fullpath} - return empty frame instead."
             )
-        ts.logger.info(
-            "DATASET.write.success %s: writing data to file\n\t%s\nended.",
-            self.set_name,
-            self.data_fullpath,
-        )
+        pa_table = datelike_to_utc(df)
+        return cast(pyarrow.Table, pa_table)
 
     def read_metadata(self) -> dict:
         """Read tags from the metadata file."""
@@ -276,6 +234,48 @@ class FileSystem:
         else:
             ts.logger.debug("Metadata file %s was not found.", self.metadata_fullpath)
         return meta
+
+    def write_data(self, data: FrameT, tags: dict | None = None) -> None:
+        """Write data to the filesystem. If versioning is AS_OF, write to new file. If versioning is NONE, write to existing file."""
+        new = nw.from_native(data)
+        if self.data_type.versioning == properties.Versioning.AS_OF:
+            # consider a merge option for versioned writing?
+            df = prepend_as_of(new, self.as_of_utc)
+        else:
+            old = self.read_data(self.set_name)
+            if ts.dataset.empty(old):
+                df = datelike_to_utc(new)
+            else:
+                df = merge_data(
+                    new=datelike_to_utc(new),
+                    old=datelike_to_utc(old),
+                    date_cols=self.data_type.date_columns,
+                )
+
+        ts.logger.info(
+            "DATASET.write.start %s: writing data to file\n\t%s\nstarted.",
+            self.set_name,
+            self.data_fullpath,
+        )
+        try:
+            fs.write_parquet(
+                data=df,
+                path=self.data_fullpath,
+                schema=parquet_schema(self.data_type, tags),
+                # existing_data_behavior="overwrite_or_ignore",
+            )
+        except Exception as e:
+            ts.logger.exception(
+                "DATASET.write.error %s: writing data to file\n\t%s\nreturned exception: %s.",
+                self.set_name,
+                self.data_fullpath,
+                e,
+            )
+        ts.logger.info(
+            "DATASET.write.success %s: writing data to file\n\t%s\nended.",
+            self.set_name,
+            self.data_fullpath,
+        )
 
     def write_metadata(self, meta: dict) -> None:
         """Write tags to the metadata file."""
@@ -294,17 +294,17 @@ class FileSystem:
                 e,
             )
 
-    def parquet_schema(
-        self,
-        meta: dict[str, Any],
-    ) -> pyarrow.Schema | None:
-        """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
-        return parquet_schema(self.data_type, meta)
-
-    def parquet_schema_from_df(self, df: pandas.DataFrame) -> pyarrow.Schema | None:
-        """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
-        schema = pyarrow.schema(df.columns, metadata=df.dtypes.to_dict())
-        return schema
+    # we may need to reintroduce these?
+    # def parquet_schema(
+    #     self,
+    #     meta: dict[str, Any],
+    # ) -> pyarrow.Schema | None:
+    #     """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
+    #     return parquet_schema(self.data_type, meta)
+    # def parquet_schema_from_df(self, df: pandas.DataFrame) -> pyarrow.Schema | None:
+    #     """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
+    #     schema = pyarrow.schema(df.columns, metadata=df.dtypes.to_dict())
+    #     return schema
 
     def datafile_exists(self) -> bool:
         """Check if the data file exists."""
@@ -314,7 +314,7 @@ class FileSystem:
         """Check if the metadata file exists."""
         return fs.exists(self.metadata_fullpath)
 
-    def save(self, meta: dict, data: pandas.DataFrame = None) -> None:
+    def save(self, meta: dict, data: nw.typing.IntoFrame) -> None:
         """Save data and metadata to disk."""
         if meta:
             self.write_metadata(meta)
@@ -323,9 +323,12 @@ class FileSystem:
                 "DATASET %s: Metadata is empty. Nothing to write.",
                 self.set_name,
             )
-
-        if not data.empty:
-            self.write_data(data, tags=meta)
+        data = nw.from_native(data)
+        if not ts.dataset.empty(data):
+            self.write_data(
+                data,
+                tags=meta,
+            )
         else:
             ts.logger.warning(
                 "DATASET %s: Data is empty. Nothing to write.",
@@ -520,16 +523,7 @@ class FileSystem:
     def dir(cls, *args: str, **kwargs: bool) -> str:
         """Check that target directory is under BUCKET. If so, create it if it does not exist."""
         path = os.path.join(*args)
-        ts_root = str(active_config().bucket)
-
-        # hidden feature: also for kwarg 'force' == True
-        if ts_root in path or kwargs.get("force", False):
-            fs.mkdir(path)
-        else:
-            # this should be relaxed when support for multiple shared buckets is added
-            raise DatasetIoException(
-                f"Directory {path} must be below {ts_root} in file tree."
-            )
+        fs.mkdir(path)
         return path
 
 
@@ -566,7 +560,6 @@ def find_datasets(
             exclude,
             [d for d in dirs if exclude in d],
         )
-    print(data_dirs)
     search_results = []
     for search_dir, repo in zip(search_directories, repo_names, strict=False):
         ts.logger.debug("%s | %s", search_dir, repo)
@@ -621,7 +614,7 @@ def find_metadata_files(
             repository,
         )
         result = find_in_repo(repository)
-    elif isinstance(repository, "Path"):  # type: ignore
+    elif isinstance(repository, Path):
         ts.logger.debug(
             "find_metadata_files in repo by Path:\n%s.",
             repository,
@@ -673,26 +666,36 @@ def for_all_datasets_move_metadata_files(
     return [SearchResult(f[2], f[1]) for f in search_results]
 
 
-def merge_data(old: Data, new: Data, date_cols: set[str]) -> Data:
+def normalize_numeric(
+    df: IntoFrameT,
+) -> IntoFrameT:
+    """Normalize datatypes for numeric columns of dataframe."""
+    nw_df = nw.from_native(df).lazy(backend="polars")
+    expressions = []
+    expressions.append(nw.selectors.by_dtype(nw.Float32).cast(nw.Float64))
+    return nw_df.with_columns(expressions).collect()  # .to_native()
+
+
+def merge_data(
+    old: IntoFrameT, new: IntoFrameT, date_cols: Iterable[str]
+) -> pyarrow.Table:
     """Merge new data into old data."""
+    new = standardize_dates(new)
+    old = standardize_dates(old)
+    new = normalize_numeric(new)
+    old = normalize_numeric(old)
 
-    if isinstance(new, pandas.DataFrame) and isinstance(old, pandas.DataFrame):
-        df = pandas.concat(
-            [old, new],
-            axis=0,
-            ignore_index=True,
-        ).drop_duplicates(list(date_cols), keep="last")
-
-    elif isinstance(new, pyarrow.Table) and isinstance(old, pyarrow.Table):
-        sort_order = [(d, "ascending") for d in date_cols]
-        arrow_table = pyarrow.concat_tables([old, new]).sort_by(sort_order)
-        polars_df = polars.from_arrow(arrow_table).unique(date_cols, keep="last")  # type: ignore [call-arg,misc]
-        df = polars_df.to_arrow().sort_by(sort_order)
-
-    elif isinstance(new, polars.DataFrame) and isinstance(old, polars.DataFrame):
-        df = polars.concat([old, new]).unique(date_cols, keep="last").sort(date_cols)
-
-    return df
+    ts.logger.debug("merge_data schemas \n%s\n%s", old.schema, new.schema)
+    merged = nw.concat(
+        [old, new],
+        how="diagonal",
+    )
+    out = merged.unique(
+        subset=date_cols,
+        keep="last",
+    ).sort(by=sorted(date_cols))
+    pa_table = nw.from_native(out).to_arrow()
+    return cast(pyarrow.Table, pa_table)
 
 
 def parquet_schema(
@@ -702,8 +705,6 @@ def parquet_schema(
     """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
 
     if not meta:
-        # return None
-        # better?
         raise ValueError("Tags can not be empty.")
 
     dataset_meta = deepcopy(meta)
@@ -715,7 +716,9 @@ def parquet_schema(
     date_col_fields = [
         pyarrow.field(
             d,
-            "date64",
+            pyarrow.timestamp(
+                "ns", tz="UTC"
+            ),  # TODO: get this from config / dataset metadata
             nullable=False,
         )
         for d in data_type.temporality.date_columns
@@ -724,7 +727,7 @@ def parquet_schema(
     num_col_fields = [
         pyarrow.field(
             series_key,
-            "float64",
+            "float64",  # TODO: get this from config / dataset metadata
             nullable=True,
             metadata=tags_to_json(series_tags),
         )

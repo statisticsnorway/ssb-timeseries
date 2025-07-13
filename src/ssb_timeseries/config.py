@@ -373,7 +373,7 @@ class Config:
             #             "directory": dir,
             #             "catalog": meta}]
 
-            if set(kwargs.keys()) == set(["configuration_file"]):
+            if set(kwargs.keys()) == {"configuration_file"}:
                 # if config file is the only parameter, it is an error for it not to exist
                 no_file_is_an_error = True
             else:
@@ -540,7 +540,7 @@ def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
     if fs.exists(path):
         from_json = fs.read_json(path)
         if not isinstance(from_json, dict):
-            from_json = json.loads(from_json)  # type:ignore
+            from_json = json.loads(from_json)
 
         return convert_schema_v1_to_v2(from_json)
 
@@ -719,8 +719,8 @@ else:
                 f"Environment variable {ENV_VAR_NAME} must be defined and point to a configuration file."
             )
         else:
-            print(
-                f"No configuration file was foumd at {active_file()}.\nOther locatsions will be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied once more to {DEFAULTS['configuration_file']}"
+            _config_logger.warning(
+                f"No configuration file was foumd at {active_file()}.\nOther locations may be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied once more to {DEFAULTS['configuration_file']}"
             )
             # CONFIGFILE = migrate_to_new_config_location()
             if not fs.exists(CONFIGFILE):

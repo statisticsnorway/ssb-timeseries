@@ -52,9 +52,7 @@ except ImportError:
 # ruff: noqa: ANN002, ANN003
 
 _STRING_FORMAT: str = "%(name)s | %(levelname)s | %(asctime)s | %(message)s \n"
-_JSON_FORMAT: str = (
-    '{"name": "%(name)s"; "level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" }'
-)
+_JSON_FORMAT: str = '{"name": "%(name)s"; "level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" }'
 
 
 def console_handler(
@@ -150,7 +148,12 @@ def set_up_logging_according_to_config(
     (For later imports, a cached instance will be retrieved.)
     """
     logger = logging.getLogger(name)
-    logger.handlers.clear()
+    # loop instead of  logger.handlers.clear() is more robust?
+    # (suggested as fix for ResourceWarnings)
+    for handler in logger.handlers[:]:
+        handler.close()
+        logger.removeHandler(handler)
+
     logger.propagate = False
     logger.setLevel("INFO")
 

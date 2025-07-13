@@ -1,5 +1,6 @@
 import logging
 
+import matplotlib
 from matplotlib import pyplot as plt
 from pytest import LogCaptureFixture
 
@@ -8,7 +9,11 @@ from ssb_timeseries.dataset import Dataset
 
 # magic comment disables mypy checks:
 # mypy: disable-error-code="attr-defined,no-untyped-def"
-# arg-type,,union-attr
+
+# Set the backend to 'Agg' to prevent matplotlib from auto-selecting a platform-dependent GUI backend (like TkAgg).
+# This was observed to fail in CI for Windows and Python 3.13 environments after upgrade to Pillow 13.
+# "ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*" in pyproject.toml did not help on Windows
+matplotlib.use("Agg")
 
 
 def test_dataset_plot_none_at_returns_axes(

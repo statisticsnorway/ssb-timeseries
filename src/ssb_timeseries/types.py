@@ -6,5 +6,3 @@ from typing import TypeAlias
 
 PathStr: TypeAlias = str | PathLike[str]
 F: TypeAlias = Callable
-
-# ruff: noqa: D202
