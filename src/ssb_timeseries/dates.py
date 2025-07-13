@@ -1,4 +1,4 @@
-# ruff: noqa
+# ruff: noqa   #NOSONAR
 # type: ignore #NOSONAR
 """
 Helper module for date and time utility functions.
@@ -341,7 +341,7 @@ def datetime_to_utc(
 
 def datelike_to_utc(df: IntoFrameT, unlocalized_tz: TimeZone = "") -> IntoFrameT:
     """Convert"""
-    df_localized = datelike_localize(df)
+    df_localized = datelike_localize(df, target_tz=unlocalized_tz)
     return datetime_to_utc(df_localized)
 
     # chaining expresssions should have performance advantages
@@ -366,7 +366,7 @@ def validate_dates(
 
     columns_exist = [d in nw_df.columns for d in date_columns]
     if all(columns_exist):
-        pass
+        ...
     elif throw_error:
         columns_not_found = set(date_columns) - set(columns_exist)
         raise ValueError(f"Expected date columns {columns_not_found} was not found.")
@@ -377,11 +377,14 @@ def validate_dates(
         d in nw_df.select(ncs.datetime(time_zone="UTC")).columns for d in date_columns
     ]
     if all(dates_are_utc):
-        pass
+        ...
     elif throw_error:
         all_date_cols = nw_df.select(ncs.datetime()).schema
         utc_date_cols = nw_df.select(ncs.datetime(time_zone="UTC")).schema
-        raise ValueError(f"Some provided date columns where not UTC:\n{all_date_cols}.")
+        non_utc = set(all_date_cols.keys()) - set(utc_date_cols.keys())
+        raise ValueError(
+            f"Some provided date columns where not UTC: {non_utc}\n{all_date_cols}."
+        )
     else:
         return False
 

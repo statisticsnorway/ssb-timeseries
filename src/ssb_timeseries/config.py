@@ -373,7 +373,7 @@ class Config:
             #             "directory": dir,
             #             "catalog": meta}]
 
-            if set(kwargs.keys()) == set(["configuration_file"]):
+            if set(kwargs.keys()) == {"configuration_file"}:
                 # if config file is the only parameter, it is an error for it not to exist
                 no_file_is_an_error = True
             else:

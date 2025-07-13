@@ -18,6 +18,7 @@ import re
 from collections.abc import Iterable
 from copy import deepcopy
 from datetime import datetime
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import NamedTuple
 from typing import cast
@@ -43,6 +44,9 @@ from ssb_timeseries.meta import DatasetTagDict
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.types import PathStr
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 # ruff: noqa: D202
 
@@ -61,7 +65,6 @@ def version_from_file_name(
         case "persisted":
             regex = r"(_v)(\d+)(.parquet)"
         case "as_of":
-            # date_part = REGEX_ISO_TIME
             date_part = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{6}[+-][0-9]{4}"
             regex = f"(as_of_)({date_part})(-data.parquet)"
         case "names":
@@ -188,7 +191,7 @@ class FileSystem:
     def read_data(
         self,
         interval: str = "",  # TODO: Implement use av interval = Interval.all,
-        implementation: str = "pandas",
+        # implementation: str = "pandas",
     ) -> pyarrow.Table:  # nw.LazyFrame | nw.DataFrame:
         """Read data from the filesystem. Return empty dataframe if not found."""
         ts.logger.debug(interval)
@@ -215,8 +218,6 @@ class FileSystem:
             ts.logger.debug(
                 f"No file {self.data_fullpath} - return empty frame instead."
             )
-            # df = nw.from_numpy(np.empty((0, 0)),backend=implementation)
-            # df = nw.from_dict({{k,[]} for k in self.set_type.date_columns()},backend=implementation)
         pa_table = datelike_to_utc(df)
         return cast(pyarrow.Table, pa_table)
 
@@ -241,8 +242,7 @@ class FileSystem:
             # consider a merge option for versioned writing?
             df = prepend_as_of(new, self.as_of_utc)
         else:
-            old = self.read_data(self.set_name, implementation=new.implementation)
-            # old = nw.from_native(old)
+            old = self.read_data(self.set_name)
             if ts.dataset.empty(old):
                 df = datelike_to_utc(new)
             else:
@@ -294,13 +294,13 @@ class FileSystem:
                 e,
             )
 
+    # we may need to reintroduce these?
     # def parquet_schema(
     #     self,
     #     meta: dict[str, Any],
     # ) -> pyarrow.Schema | None:
     #     """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
     #     return parquet_schema(self.data_type, meta)
-
     # def parquet_schema_from_df(self, df: pandas.DataFrame) -> pyarrow.Schema | None:
     #     """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
     #     schema = pyarrow.schema(df.columns, metadata=df.dtypes.to_dict())
@@ -614,7 +614,7 @@ def find_metadata_files(
             repository,
         )
         result = find_in_repo(repository)
-    elif isinstance(repository, "Path"):
+    elif isinstance(repository, Path):
         ts.logger.debug(
             "find_metadata_files in repo by Path:\n%s.",
             repository,
@@ -674,8 +674,6 @@ def normalize_numeric(
     expressions = []
     expressions.append(nw.selectors.by_dtype(nw.Float32).cast(nw.Float64))
     return nw_df.with_columns(expressions).collect()  # .to_native()
-    # normalized = nw_df.with_columns(expressions).to_native()
-    # return eager(normalized)
 
 
 def merge_data(
@@ -684,14 +682,10 @@ def merge_data(
     """Merge new data into old data."""
     new = standardize_dates(new)
     old = standardize_dates(old)
-    # dates_of_old_df_are_ok = validate_dates(old, date_cols,throw_error=True)
-    # dates_of_new_df_are_ok = validate_dates(new, date_cols,throw_error=True)
-    # if not (dates_of_old_df_are_ok and dates_of_new_df_are_ok):
-    #     raise ValueError("Dates need to be tz aware and UTC.")
     new = normalize_numeric(new)
     old = normalize_numeric(old)
 
-    # ts.logger.debug("merge_data schemas \n%s\n%s", old.schema, new.schema)
+    ts.logger.debug("merge_data schemas \n%s\n%s", old.schema, new.schema)
     merged = nw.concat(
         [old, new],
         how="diagonal",

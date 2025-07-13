@@ -28,7 +28,6 @@ def empty(df: IntoFrame) -> bool:
     nw_df = nw.from_native(df)
     df_is_empty = eager(nw_df).is_empty()
     return df_is_empty
-    # return cast(bool,df_is_empty) # type: ignore[redundant-cast]
 
 
 def is_df_like(obj: Any) -> bool:

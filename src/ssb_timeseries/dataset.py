@@ -302,7 +302,7 @@ class Dataset:
             case "select":
                 raise NotImplementedError("TODO!")
             case "all" | _:
-                data = data
+                ...  # data = data
 
         # Observed here: OSError: [Errno 36] File name too long
         # New names from .filter() or column aggregations easily become too long.
@@ -318,6 +318,7 @@ class Dataset:
             attributes=autotag_attr,
             **kwargs,
         )
+        # not necessary?
         # for k, v in self.__dict__.items():
         #    #print(f"copy attr from self: {k=}, ")
         #    setattr(out, k, v)
@@ -325,8 +326,6 @@ class Dataset:
         # lineage coalesce: kwarg, self, new_name
         lineage = getattr(self, "lineage", new_name)
         out.lineage = kwargs.pop("lineage", lineage)
-        # for k, v in kwargs.items():
-        #    setattr(out, k, v)
 
         copied_series_tags = out.tags["series"]
         tags_to_eliminate = set(copied_series_tags.keys()) - set(out.series)
@@ -443,6 +442,7 @@ class Dataset:
         #    raise ValueError("WFT - something fishy with series names or data types.")
         return sorted(num_cols)
 
+        # first implementation was more complicated
         # if (
         #    self.__getattribute__("data") is None
         #    and self.__getattribute__("tags") is None
@@ -786,9 +786,7 @@ class Dataset:
         *names: str | list[str],
         pattern: str = "",
         regex: str = "",
-        tags: (
-            meta.TagDict | list[meta.TagDict]
-        ) = None,  # dict[str, str|list[str]] = None,
+        tags: (meta.TagDict | list[meta.TagDict]) = None,
         output: str = "dataset",
         new_name: str = "",
         **kwargs: Any,
@@ -1165,35 +1163,18 @@ class Dataset:
     def any(self) -> bool:
         """Check if any values in series columns evaluate to true."""
         return bool(np.all(self.numeric_array()))
-        # return any(self.data)
 
     def boolean_columns(self) -> list[str]:
         """Get names of all numeric series columns (ie columns that are not datetime)."""
-        return [c for c in nw.from_native(self.data).select(ncs.boolean()).columns]
+        return list(nw.from_native(self.data).select(ncs.boolean()).columns)
         # replaces: return [c for c in self.data.columns if c not in self.datetime_columns()]
 
     # def datetime_columns(self, *comparisons: Self | pd.DataFrame) -> list[str]:
     def datetime_columns(self) -> list[str]:
         """Get names of applicable datetime columns (as_of, valid_at, valid_from, valid_to)."""
-        return [
-            col_name
-            for col_name in nw.from_native(self.data).select(ncs.datetime()).columns
-        ]
-        ## intersect = set(nw.from_native(self.data).columns) & {"valid_at", "valid_from", "valid_to"}
-        # intersect = {col for col in self.data.columns} & {
-        #    "as_of",
-        #    "valid_at",
-        #    "valid_from",
-        #    "valid_to",
-        # }
-        # for c in comparisons:
-        #    if isinstance(c, Dataset):
-        #        intersect = set(c.data.columns) & intersect
-        #    elif isinstance(c, pd.DataFrame):
-        #        intersect = set(c.columns) & intersect
-        #    else:
-        #        raise ValueError(f"Unsupported type: {type(c)}")
-        #
+        return list(nw.from_native(self.data).select(ncs.datetime()).columns)
+        # no need to check against column names (for current data type)?
+        # intersect = set(nw.from_native(self.data).columns) & {"valid_at", "valid_from", "valid_to"}
         # return sorted(list(intersect))
 
     def numeric_columns(self) -> list[str]:
@@ -1269,9 +1250,6 @@ class Dataset:
 
         elif is_df_like(other):
             other = nw.from_native(other).select(num_cols).to_numpy()
-            # ts.logger.debug
-            # print( f"DATASET {self.name}: .math({self.name}.{func.__name__}(pd.dataframe).")
-
             out[num_cols] = func(self.numeric_array(), other)
             other_name = "df"
 
@@ -1304,8 +1282,9 @@ class Dataset:
                 )
             other_name = "ndarray"
         else:
+            # So that __r<op>__ of other object may be called, instead of:
+            # raise ValueError(f"Unsupported operand type: {type(other)}.") -->
             return NotImplemented
-        # raise ValueError(f"Unsupported operand type: {type(other)}.")
 
         new_name = (f"({self.name}.{func.__name__}.{other_name})",)
         out.rename(new_name)
@@ -1621,23 +1600,15 @@ class Dataset:
                 )
             taxonomy_dict[name] = obj
 
-        # df = deepcopy(self.data).drop(columns=self.numeric_columns())
         df = nw.from_native(self.data).drop(self.numeric_columns()).to_pandas()
-        # print('DATASET.aggregate\n', self.data)
-        # print('DATASET.aggregate\n', df)
-        # print(f"DATASET.aggregate {self.data is df=}")
-        # print(f"DATASET.aggregate {taxonomy_dict=}")
         new_series_tags = {}
         permutations = meta.permutations(taxonomy_dict, "parents")
         for p in permutations:
             criteria = {}
-            # print(f"DATASET.aggregate tags={p=}")
             for attr, value in p.items():
                 criteria[attr] = taxonomy_dict[attr].leaf_nodes(value)
             output_series_name = sep.join(p.values())  # move into func loop?
-            # print(f"DATASET.aggregate tags={criteria=}")
             leaf_node_subset = self.filter(tags=criteria, output="df")
-            # print(f"DATASET.aggregate leafnodes {leaf_node_subset}")
             for func in functions:
                 if isinstance(func, str):
                     new_col_name = f"{func}({output_series_name})"
@@ -1655,7 +1626,6 @@ class Dataset:
                     "output": new_col_name,
                     "function": func_name,
                 }
-                # print(lineage_info)
                 new_series_tags[new_col_name] = lineage_info
 
         out = self.copy(f"{self.name}.{functions}", data=df)

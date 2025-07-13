@@ -445,6 +445,7 @@ class Repository(_CatalogProtocol):
 
     def items(
         self,
+        *,
         datasets: bool = True,
         series: bool = True,
         equals: str = "",
@@ -509,6 +510,7 @@ class Repository(_CatalogProtocol):
 def _read_sql_file(filename: str) -> str:
     """Read SQL statement from a .sql file."""
     raise NotImplementedError("pkg_resources.open_text ")
+    # implement with (something like( this:
     # with pkg_resources.open_text(sql, filename) as file:
     #     return file.read()
 
@@ -525,37 +527,3 @@ def _execute_prepared_sql(connection: Any, queryname: str, **kwargs: Any) -> Any
         return connection.execute(sql_query, kwargs).fetchall()
     else:
         return connection.execute(sql_query).fetchall()
-
-
-# experimental ---
-# def _xdoctest() -> None:
-#     """Tests the code provided in doctstrings.
-#
-#     Provided as an experiment with simple self contained tests for the library that can be run after an import.
-#
-#     DISABLED.
-#     """
-#     # from nox import session
-#     # or simply:
-#     # import xdoctest
-#
-#     from ssb_timeseries.config import Config
-#     from ssb_timeseries.fs import exists
-#
-#     cfg = Config().configuration_file
-#     if exists(cfg):
-#         print(f"Configuration file found: {cfg}")
-#         # xdoctest.doctest_module(__file__)
-#     else:
-#         print("Configuration file not found. Skipping xdoctests.")
-#         # ... name of script = sys.argv[0]; do something with arguments of the script: sys.argv[1:]?
-#
-#
-# if __name__ == "__main__":
-#     """Execute when called directly, ie not via import statements."""
-#     # run xdoctest
-#     # _xdoctest()
-#
-#     import doctest
-#
-#     doctest.testmod()

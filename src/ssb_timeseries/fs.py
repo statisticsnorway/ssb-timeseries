@@ -414,11 +414,12 @@ def write_parquet(
             where=path,
             filesystem=fs,
             # schema=schema,
-            # **kwargs,
+            **kwargs,
         )
     else:
         # TODO: figure out how to do schema validation, then this would do:
         narwhals.from_native(data).write_parquet(path)
+    # to make schema validation work / keep IO pure pyarrow it may bew better to go back to this(?):
     # pyarrow.dataset.write_dataset(
     #     data,
     #     path,
