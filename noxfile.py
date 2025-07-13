@@ -198,13 +198,22 @@ def tests(session: Session) -> None:
     #     Timezone database not found at "C:\Users\runneradmin\Downloads\tzdata"
     setup_windows_tzdata(session)
 
+    pytest_command = ["pytest"]
+
+    if sys.platform == "win32":
+        session.log("Windows detected. Adding explicit warning filter for Pillow deprecation.")
+        pytest_command.extend([
+            "-W",
+            "ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*"
+        ])
+
     try:
         session.run(
             "coverage",
             "run",
             "--parallel",
             "-m",
-            "pytest",
+            *pytest_command,
             "-o",
             "pythonpath=",
             *session.posargs,

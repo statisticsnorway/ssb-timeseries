@@ -148,10 +148,12 @@ def set_up_logging_according_to_config(
     (For later imports, a cached instance will be retrieved.)
     """
     logger = logging.getLogger(name)
+    # loop instead of  logger.handlers.clear() is more robust?
+    # (suggested as fix for ResourceWarnings)
     for handler in logger.handlers[:]:
         handler.close()
         logger.removeHandler(handler)
-    logger.handlers.clear()
+
     logger.propagate = False
     logger.setLevel("INFO")
 
