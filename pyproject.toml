@@ -65,7 +65,7 @@ pythonpath = ["src"]
 filterwarnings = [
     "error",
     "error", "ignore::pytest.PytestUnraisableExceptionWarning",
-    "ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*", # Introduced with Pillow 13; await pandas update.
+    #"ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*", # Introduced with Pillow 13; await pandas update.
 ]
 # log_cli = true # does NOT fix issues with configuring loggers for testing
 
