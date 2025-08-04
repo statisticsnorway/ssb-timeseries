@@ -47,7 +47,7 @@ def test_utc_iso_strings() -> None:
     assert utc_iso(tz_naive).replace(":", "") == utc_iso_no_colon(tz_naive)
 
 
-def test_conversionGs_right_before_beginning_of_daylight_saving(caplog) -> None:
+def test_conversions_right_before_beginning_of_daylight_saving(caplog) -> None:
     caplog.set_level(logging.DEBUG)
     d_utc = date_utc(date_local("2024-03-31 01:00:00"))
     d_local = date_local("2024-03-31 01:00:00")
