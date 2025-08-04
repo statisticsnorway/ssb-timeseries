@@ -321,7 +321,7 @@ class Config:
     logging: dict
     """Logging configuration as a valid :py:mod:`logging.dictConfig`."""
 
-    def __init__(self, **kwargs) -> None:  # noqa: D417, ANN003, DAR101, DAR402, RUF100
+    def __init__(self, **kwargs) -> None:  # noqa: D417, ANN003, RUF100
         """Initialize Config object from keyword arguments.
 
         Keyword Arguments:
@@ -650,7 +650,7 @@ class DictObject(object):  # noqa
         return json.loads(json.dumps(d), object_hook=DictObject)
 
 
-def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100, DAR201
+def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100
     """Set configurations to predefined defaults.
 
     Raises:

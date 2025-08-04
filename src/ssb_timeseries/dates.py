@@ -36,7 +36,8 @@ def date_utc(some_date: datetime | str | None, **kwargs) -> datetime:
 
     If date has no timezone information, the data is assumed to be in default timezone (CET).
 
-    The output will be rounded to the precision specified by kwarg 'rounding'. Max precision 'second' will be used if none is provided.
+    The output will be rounded to the precision specified by kwarg 'rounding'.
+    Max precision 'second' will be used if none is provided.
     """
     if some_date is None or some_date == "":
         return date_round(now_utc())
@@ -340,7 +341,7 @@ def datetime_to_utc(
 
 
 def datelike_to_utc(df: IntoFrameT, unlocalized_tz: TimeZone = "") -> IntoFrameT:
-    """ Convert all datelike columns of a dataframe to UTC."""
+    """Convert all datelike columns of a dataframe to UTC."""
     df_localized = datelike_localize(df, target_tz=unlocalized_tz)
     return datetime_to_utc(df_localized)
 
