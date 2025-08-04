@@ -97,7 +97,6 @@ def test_create_df_without_specifying_dates_returns_one_year_back() -> None:
         ["a", "b", "c", "d"],
         freq="MS",
     )
-    print(df)
     assert df.size == 60
 
 
