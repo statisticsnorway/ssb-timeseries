@@ -340,7 +340,7 @@ def datetime_to_utc(
 
 
 def datelike_to_utc(df: IntoFrameT, unlocalized_tz: TimeZone = "") -> IntoFrameT:
-    """Convert"""
+    """ Convert all datelike columns of a dataframe to UTC."""
     df_localized = datelike_localize(df, target_tz=unlocalized_tz)
     return datetime_to_utc(df_localized)
 
