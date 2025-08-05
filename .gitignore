@@ -6,6 +6,7 @@
 # PROJECT SPECIFIC
 .poetry
 .ipynb
+requirements-dev.txt
 
 # The section below is from the GitHub .gitignore template for Python:
 # https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore

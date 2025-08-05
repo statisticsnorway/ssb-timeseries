@@ -59,6 +59,11 @@ class Versioning(SuperEnum):
     SEMANTIC = 3
     """Consider adding support for: Versions identified by numbers on form X.Y.Z, ie. Major.Minor.Patch."""
 
+    @property
+    def date_columns(self) -> list[str]:
+        """Returns the date columns for versioning."""
+        return ["as_of"] if self == Versioning.AS_OF else []
+
 
 class Temporality(SuperEnum):
     """Temporality describes the time dimensionality of each data point; notably duration or lack thereof."""
@@ -71,9 +76,9 @@ class Temporality(SuperEnum):
     """Duration from-to expressed with 'valid_from' and 'valid_to' dates."""
 
     @property
-    def date_columns(self) -> set[str]:
+    def date_columns(self) -> list[str]:
         """Returns the data columns of the temporality."""
-        return {"valid_at"} if self == Temporality.AT else {"valid_from", "valid_to"}
+        return ["valid_at"] if self == Temporality.AT else ["valid_from", "valid_to"]
 
 
 class SeriesType:
@@ -136,9 +141,11 @@ class SeriesType:
         return ["_".join(c) for c in product(Versioning.keys(), Temporality.keys())]
 
     @property
-    def date_columns(self) -> set[str]:
+    def date_columns(self) -> list[str]:
         """Returns the data columns corresponding to the series type temporality."""
-        return self.temporality.date_columns
+        return list(
+            set(self.versioning.date_columns) | set(self.temporality.date_columns)
+        )
 
     def __str__(self) -> str:
         """Helper; returns '<versioning>_<temporality>'."""

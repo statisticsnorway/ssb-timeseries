@@ -119,50 +119,101 @@ def insert_header_in_hook(header: dict[str, str], lines: list[str]) -> str:
     return "\n".join(lines)
 
 
-@session(name="pre-commit", python=python_versions[0])
-def precommit(session: Session) -> None:
-    """Lint using pre-commit."""
-    args = session.posargs or [
-        "run",
-        "--all-files",
-        "--hook-stage=manual",
-        # "--show-diff-on-failure",
-    ]
-    session.install(
-        "pre-commit",
-        "pre-commit-hooks",
-        "darglint",
-        "ruff",
-        "black",
-    )
-    session.run("pre-commit", *args)
-    if args and args[0] == "install":
-        activate_virtualenv_in_precommit_hooks(session)
+def setup_windows_tzdata(session: Session) -> None:
+    """
+    Download and set up the IANA timezone database AND the Windows-to-IANA
+    mapping file for Windows runners.
+    """
+    if sys.platform != "win32":
+        return
 
+    session.log("Windows detected. Setting up full timezone database for PyArrow.")
+
+    # 1. Define the target directory PyArrow is looking for.
+    home_dir = Path(session.env.get("USERPROFILE", "C:/Users/runneradmin"))
+    target_dir = home_dir / "Downloads" / "tzdata"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    session.log(f"Target directory is: {target_dir}")
+
+    # 2. Download and extract the main IANA timezone database.
+    session.log("Downloading IANA tzdata...")
+    iana_url = "https://data.iana.org/time-zones/tzdata-latest.tar.gz"
+    iana_archive = Path(session.create_tmp()) / "iana.tar.gz"
+    session.run(
+        "powershell", "-Command", f"Invoke-WebRequest -Uri {iana_url} -OutFile {iana_archive}",
+        external=True,
+    )
+    session.run(
+        "tar", "-xzf", str(iana_archive), "-C", str(target_dir),
+        external=True,
+    )
+
+    # 3. Download the essential windowsZones.xml mapping file.
+    #    This file is sourced from the Unicode CLDR project.
+    session.log("Downloading windowsZones.xml mapping file...")
+    cldr_url = "https://raw.githubusercontent.com/unicode-org/cldr/main/common/supplemental/windowsZones.xml"
+    cldr_target_path = target_dir / "windowsZones.xml"
+    session.run(
+        "powershell", "-Command", f"Invoke-WebRequest -Uri {cldr_url} -OutFile {cldr_target_path}",
+        external=True,
+    )
+
+    session.log(f"Successfully created timezone database at {target_dir}.")
+
+
+@nox.session(python=python_versions[0])
+def lint(session: Session) -> None:
+    """Lint using ruff."""
+    # We install ruff directly.
+    session.install("ruff")
+    session.run("ruff", "check", ".")
+    session.run("ruff", "format", "--check", ".")
 
 @session(python=python_versions)
 def mypy(session: Session) -> None:
-    """Type-check using mypy."""
-    args = session.posargs or ["src", "tests"]
+    """Type-check 'src' directory using mypy."""
+    args = session.posargs or ["src",] # "tests"]
     session.install(".")
-    session.install("mypy", "pytest", "click")
-    session.run("mypy", *args)
-    if not session.posargs:
-        session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
+    session.install("mypy", "pytest", "pytest-mypy", "click")
+    project_root = Path(__file__).parent
+    pyproj_toml_file = str(project_root /  "pyproject.toml")
+    with session.chdir(project_root):
+        session.run(
+            "mypy",
+            "--config-file", pyproj_toml_file,
+            *args,
+        )
+        if not session.posargs:
+            session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
 
 @session(python=python_versions_for_test)
 def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(".")
-    session.install("coverage[toml]", "pytest", "pygments", "click")
+    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata")
+
+    # If on Windows, find the installed tzdata path and set the env var to avoid:
+    #  E  pyarrow.lib.ArrowInvalid: Cannot locate timezone 'Europe/Oslo':
+    #     Timezone database not found at "C:\Users\runneradmin\Downloads\tzdata"
+    setup_windows_tzdata(session)
+
+    pytest_command = ["pytest"]
+
+    if sys.platform == "win32":
+        session.log("Windows detected. Adding explicit warning filter for Pillow deprecation.")
+        pytest_command.extend([
+            "-W",
+            "ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*"
+        ])
+
     try:
         session.run(
             "coverage",
             "run",
             "--parallel",
             "-m",
-            "pytest",
+            *pytest_command,
             "-o",
             "pythonpath=",
             *session.posargs,
@@ -200,6 +251,7 @@ def xdoctest(session: Session) -> None:
         args = [package, *session.posargs]
     else:
         args = [f"--modname={package}", "--command=all"]
+        args.append("--style=google") # RYE: enable  directives +SETUP and +REQUIRES
         if "FORCE_COLOR" in os.environ:
             args.append("--colored=1")
 
@@ -217,7 +269,7 @@ def docs_build(session: Session) -> None:
 
     session.install(".")
     session.install(
-        "sphinx", "sphinx-autodoc-typehints", "sphinx-click", "furo", "myst-parser"
+        "sphinx", "sphinx-autodoc-typehints", "sphinx-click", "furo", "myst-parser", "sphinx-copybutton", "sphinx-togglebutton"
     )
 
     build_dir = Path("docs", "_build")

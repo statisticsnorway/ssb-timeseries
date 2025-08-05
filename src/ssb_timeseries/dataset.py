@@ -21,10 +21,12 @@ That in turn has practical implications for how the series can be interacted wit
 
 import re
 import warnings
-from copy import deepcopy
+from collections.abc import Iterable
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 from typing import Protocol
+from typing import cast
 
 try:
     from typing import Self
@@ -33,15 +35,27 @@ except ImportError:
 from typing import no_type_check
 
 import matplotlib.pyplot as plt  # noqa: F401
+import narwhals as nw
+import narwhals.selectors as ncs
 import numpy as np
 import pandas as pd
+from narwhals.typing import Frame
+from narwhals.typing import IntoDType
+from narwhals.typing import IntoFrame
+from narwhals.typing import IntoFrameT
+from narwhals.typing import IntoSeries
+
+# if TYPE_CHECKING:
+from numpy.typing import NDArray
 
 import ssb_timeseries as ts
 from ssb_timeseries import io
 from ssb_timeseries import meta
+from ssb_timeseries.dataframes import empty
+from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.dates import date_local
-from ssb_timeseries.dates import date_utc  # type: ignore[attr-defined]
-from ssb_timeseries.dates import utc_iso  # type: ignore[attr-defined]
+from ssb_timeseries.dates import date_utc
+from ssb_timeseries.dates import utc_iso
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
 
@@ -220,11 +234,14 @@ class Dataset:
 
         # If data is provided by kwarg, use it.
         # Otherwise, load it ... unless explicitly told not to.
-        kwarg_data: pd.DataFrame = kwargs.get("data", pd.DataFrame())
-        if not kwarg_data.empty:
+        # kwarg_data: IntoFrameT = kwargs.get("data", pd.DataFrame())
+        # kwarg_data = kwargs.get("data", pd.DataFrame())
+        # if not empty(kwarg_data):
+        kwarg_data = kwargs.get("data", None)
+        if is_df_like(kwarg_data) and not empty(kwarg_data):
             self.data = kwarg_data
         elif load_data:  # and self.data_type.versioning == properties.Versioning.AS_OF:
-            self.data = self.io.read_data(self.as_of_utc)
+            self.data = self.io.read_data(self.as_of_utc)  # .to_native()
         else:
             self.data = pd.DataFrame()
 
@@ -235,31 +252,86 @@ class Dataset:
         # all of the following should be turned into set level tags - or find another way into the parquet files?
 
         # autotag:
+        attributes = kwargs.get("attributes", [])
+        separator = kwargs.get("separator", "_")
+        regex = kwargs.get("regex", "")
+        ready_to_auto_tag = _has_auto_tag_information(self, locals())
+        apply_to_all = kwargs.get("series_tags", {})
         self.auto_tag_config = {
-            "attributes": kwargs.get("attributes", []),
-            "separator": kwargs.get("separator", "_"),
-            "regex": kwargs.get("regex", ""),
-            "apply_to_all": kwargs.get("series_tags", {}),
+            "attributes": attributes,
+            "separator": separator,
+            "regex": regex,
         }
-        if not self.data.empty:
-            self.tag_series(tags=self.auto_tag_config["apply_to_all"])
-            self.series_names_to_tags()
+        if not empty(self.data):
+            self.tag_series(tags=apply_to_all)
+            if ready_to_auto_tag:
+                self.series_names_to_tags()
 
         # "owner" / sharing / access
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
         self.sharing: dict[str, str] = kwargs.get("sharing", {})
 
-    def copy(self, new_name: str, **kwargs: Any) -> Self:
+    def copy(
+        self,
+        new_name: str = "",
+        select: str | list[str] = "",
+        **kwargs: Any,
+    ) -> Self:
         """Create a copy of the Dataset.
 
-        The copy need to get a new name, but unless other information is spcecified, it will be create wiht the same data_type, as_of_tz, data, and tags.
-        """
-        out = deepcopy(self)
-        for k, v in kwargs.items():
-            setattr(out, k, v)
+        The copy will be created with the same data_type, as_of_tz, data, and tags.
+        The name will be altered as a safeguard against accidentally overwriting existing data.
+        Tags are updated accordingly, using 'Dataset.rename()'.
 
-        out.rename(new_name)
+        Args:
+            new_name: An optional new name for the copied dataset.
+            select: An optional list of columns to include in the copy.
+            **kwargs: Additional keyword arguments passed to underlying functions.
+
+        Keyword Args:
+            allow providing parameters for initializing the copied set.
+        """
+        if not new_name:
+            new_name = f"COPY of {self.name}"
+
+        data = kwargs.pop("data", self.data)
+        match select.lower():
+            case "dates_only":
+                raise NotImplementedError("TODO!")
+            case "select":
+                raise NotImplementedError("TODO!")
+            case "all" | _:
+                ...  # data = data
+
+        # Observed here: OSError: [Errno 36] File name too long
+        # New names from .filter() or column aggregations easily become too long.
+        # A workaround was applied in fs.exists()
+        # out = deepcopy(self)
+        # out.rename(new_name)
+        autotag_attr = kwargs.pop("attributes", self.auto_tag_config["attributes"])
+        out = self.__class__(
+            name=new_name,
+            data_type=kwargs.pop("data_type", self.data_type),
+            data=data,
+            load_data=False,  # kwargs.pop('load_data', False),
+            attributes=autotag_attr,
+            **kwargs,
+        )
+        # not necessary?
+        # for k, v in self.__dict__.items():
+        #    #print(f"copy attr from self: {k=}, ")
+        #    setattr(out, k, v)
+
+        # lineage coalesce: kwarg, self, new_name
+        lineage = getattr(self, "lineage", new_name)
+        out.lineage = kwargs.pop("lineage", lineage)
+
+        copied_series_tags = out.tags["series"]
+        tags_to_eliminate = set(copied_series_tags.keys()) - set(out.series)
+        for series_key in tags_to_eliminate:
+            copied_series_tags.pop(series_key)
+        out.tags["series"] = copied_series_tags
         return out
 
     def rename(self, new_name: str) -> None:
@@ -291,7 +363,7 @@ class Dataset:
             self.tags.update(self.io.read_metadata())
 
             # autotag:
-            if not self.data.empty:
+            if not empty(self.data):
                 self.series_names_to_tags()
                 ts.logger.debug(
                     "DATASET %s: attempt to save empty tags = %s.", self.name, self.tags
@@ -357,14 +429,27 @@ class Dataset:
 
     @property
     def series(self) -> list[str]:
-        """Get series names."""
-        if (
-            self.__getattribute__("data") is None
-            and self.__getattribute__("tags") is None
-        ):
-            return sorted(self.series_tags.keys())
-        else:
-            return sorted(self.numeric_columns())
+        """Get (sorted) series names.
+
+        This is the same as the numeric columns of the data field.
+        """
+        num_cols = self.numeric_columns()
+        # dt_expr = ~ncs.by_dtype(nw.Datetime,nw.Date)
+        # non_datetime_cols = self.nw().select(dt_expr).columns
+        ## does not necessarily exist:
+        ## tag_keys = self.series_tags.keys()
+        # if num_cols != non_datetime_cols:
+        #    raise ValueError("WFT - something fishy with series names or data types.")
+        return sorted(num_cols)
+
+        # first implementation was more complicated
+        # if (
+        #    self.__getattribute__("data") is None
+        #    and self.__getattribute__("tags") is None
+        # ):
+        #    return sorted(self.series_tags.keys())
+        # else:
+        #    return sorted(self.numeric_columns())
 
     @property
     def series_tags(self) -> meta.SeriesTagDict:
@@ -698,48 +783,59 @@ class Dataset:
     @no_type_check
     def filter(
         self,
+        *names: str | list[str],
         pattern: str = "",
-        tags: dict[str, str | list[str]] = None,
         regex: str = "",
+        tags: (meta.TagDict | list[meta.TagDict]) = None,
         output: str = "dataset",
         new_name: str = "",
-        **kwargs: str | list[str],
-    ) -> pd.DataFrame | Self:
+        **kwargs: Any,
+    ) -> IntoFrameT | Self:
         """Filter dataset.data by textual pattern, regex or metadata tag dictionary.
 
         Or a combination.
 
         Args:
-            pattern (str): Text pattern for search 'like' in column names. Defaults to ''.
-            regex (str): Expression for regex search in column names. Defaults to ''.
-            tags (dict): Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
+            names (str|list[str]): Series names
+
+        Keyword Args:
+            pattern: Text pattern for search 'like' in column names. Defaults to ''.
+            regex: Expression for regex search in column names. Defaults to ''.
+            tags: Dictionary with tags to search for. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
-            output (str): Output type - dataset or dataframe.(df). Defaults to 'dataset'. Short forms 'df' or 'ds' are accepted.
-            new_name (str): Name of new Dataset. If not provided, a new name is generated.
+            output: Output type - dataset or dataframe.(df). Defaults to 'dataset'. Short forms 'df' or 'ds' are accepted.
+            new_name: Name of new Dataset. If not provided, a new name is generated.
             **kwargs: if provided, goes into the init of the new set.
 
         Returns:
             Dataset | Dataframe:
-            By default a new Dataset (a deep copy of self). If output="dataframe" or "df", a dataframe.
+            By default a new Dataset (a deep copy of self).
+            If output="dataframe" or "df", a dataframe.
             TODO: Explore shallow copy / nocopy options.
         """
+        if not any([names, pattern, regex, tags]):
+            error_message = f"DATASET.filter() was called without valid criteria:\n{names=}, {pattern=}, {regex=}, {tags=}"
+            raise ValueError(error_message)
+
+        expressions = [nw.col(self.datetime_columns())]
+        if names:
+            expressions.append(nw.col(*names))
+
         if regex:
-            df = self.data.filter(regex=regex).copy(deep=True)
-            matching_series = df.columns
+            expressions.append(ncs.matches(regex))
 
         if pattern:
-            df = self.data.filter(like=pattern).copy(deep=True)
-            matching_series = df.columns
+            expressions.append(ncs.matches(f".*{pattern}.*"))
 
         if tags:
-            matching_series = meta.search_by_tags(self.tags["series"], tags)
-            ts.logger.debug(
-                "DATASET.filter(tags) matched series:\n%s ", matching_series
-            )
-            df = self.data[matching_series].copy(deep=True)
+            if isinstance(tags, list):
+                matching_series = meta.search_by_tags(self.tags["series"], *tags)
+            else:
+                matching_series = meta.search_by_tags(self.tags["series"], tags)
+            ts.logger.debug("DATASET.filter(tags) found:\n%s ", matching_series)
+            expressions.append(nw.col(matching_series))
 
-        df = pd.concat([self.data[self.datetime_columns()], df], axis=1)
-
+        df = nw.from_native(self.data).select(expressions).to_native()
         interval = kwargs.get("interval")
         if interval:
             ts.logger.warning(
@@ -749,25 +845,29 @@ class Dataset:
         match output:
             case "dataframe" | "df":
                 out = df
-            case "dataset" | "ds" | _:
+            case "dataset" | "ds":
                 if not new_name:
-                    new_name = f"COPY of({self.name} FILTERED by pattern: {pattern}, regex: {regex} tags: {tags})"
-                out = self.copy(new_name=new_name, data=df, **kwargs)
+                    new_name = f"COPY of({self.name} FILTERED by names {names}, pattern: {pattern}, regex: {regex} tags: {tags})"
+                out = self.copy(new_name, data=df, **kwargs)
                 matching_series_tags = {
-                    k: v for k, v in out.tags["series"].items() if k in matching_series
+                    k: v
+                    for k, v in out.tags["series"].items()
+                    if k in out.numeric_columns()
                 }
                 out.tags["series"] = matching_series_tags
+            case _:
+                out = df
         return out
 
     @no_type_check
     def __getitem__(
-        self, criteria: str | dict[str, str | list[str]] = "", **kwargs: Any
+        self,
+        names_or_tags: str | meta.TagDict | Iterable[str | meta.TagDict] = "",
     ) -> Self | None:
-        """Access Dataset.data.columns via Dataset[ list[column_names] | pattern | tags].
+        """Access Dataset.data.columns via Dataset.filter on list[column_names | tags ] | pattern | regex.
 
         Arguments:
-            criteria:  Either a string pattern or a dict of tags.
-            kwargs: If criteria is empty, this is passed to filter().
+            names_or_tags:  Either a string pattern, name, list of names or a dict of tags.
 
         Returns:
             Self | None
@@ -775,36 +875,103 @@ class Dataset:
         Raises:
             TypeError: If filter() returns another type than Dataset.
         """
-        # pattern: str = "", regex: str = "", tags: dict = {}):
-        # Dataset[...] should return a Dataset object (?) with only the requested items (columns).
-        # but should not mutate the original object, ie "self",
-        # so that if x is a Dataset and x[a] a columnwise subset of x
-        # x[a] *= 100 should update x[a] "inside" the original x, without "setting" x to z[a]
-        # that later references to x should return the entire x, not only x[a].
-        # Is this possible, or do we need to return a copy?
-        # (Then the original x is not affected by updates to x[a])?
-        # Or, is there a trick using dataframe views?
-        # --->
-        if criteria and isinstance(criteria, str):
-            result = self.filter(pattern=criteria)
-        elif criteria and isinstance(criteria, dict):
-            result = self.filter(tags=criteria)
-        elif kwargs:
-            ts.logger.debug("DATASET.__getitem__(:\n\t%s ", kwargs)
-            result = self.filter(**kwargs)
+        if names_or_tags and isinstance(names_or_tags, str) and "*" in names_or_tags:
+            result = self.filter(regex=names_or_tags)
+            # TODO: s is uncharted territory. Explore behaviour / add test cases!
+        elif names_or_tags and isinstance(names_or_tags, str):
+            result = self.filter(names_or_tags)
+        elif names_or_tags and isinstance(names_or_tags, dict):
+            t = [names_or_tags]
+            result = self.filter(tags=t)
+        elif names_or_tags and isinstance(names_or_tags, Iterable):
+            n = [s for s in names_or_tags if isinstance(s, str)]
+            t = [d for d in names_or_tags if isinstance(d, dict)]
+            result = self.filter(n, tags=t)
+            # TODO: ensure test cases cover all permutations (a,b) that can be drawn from [{a},{},'a',''] and [{b},{},'b',''] (expect errors raised for combinations with only empty items).
+        elif names_or_tags:
+            raise TypeError(
+                f"DATASET.__getitem__ received a positional argument of type {type(names_or_tags)}. Required: > str | list[str|dict] with a single name, a list of names, a list of tag dicts. Or even a list with combinations of names and tag dicts."
+            )
         else:
             return None
+
         if isinstance(result, Dataset):
             return result
         else:
-            raise TypeError("Dataset.filter() did not return a Dataset type.")
+            raise TypeError(
+                "DATASET.__getitem__ call to .filter() did not return a Dataset type."
+            )
+
+    def __setitem__(
+        self, columns: str | Iterable[str], data: IntoFrame | np.ndarray
+    ) -> None:
+        """Access Dataset.data.columns via Dataset[ list[column_names]."""
+        if columns and isinstance(columns, str):
+            columns = [columns]
+        elif columns and isinstance(columns, Iterable):
+            columns = list(columns)
+        else:
+            raise TypeError(
+                "DATASET.__setitem__ columns should be specified as string or iterable, not {type(columns).__name__}."
+            )
+        nw_self = nw.from_native(self.nw().to_arrow())
+
+        # if False:
+        if isinstance(data, np.ndarray):
+            # The array shape must be aligned with the numeric subset self[columns].
+            if data.ndim == 1:
+                data = data.reshape(-1, 1)
+
+            if len(columns) != data.shape[1]:
+                raise ValueError(
+                    f"Key has {len(columns)} cols, but NumPy array has {data.shape[1]} cols."
+                )
+            if len(self) != data.shape[0]:
+                raise ValueError(
+                    f"Dataset has {len(self)} rows, but NumPy array has {data.shape[0]} rows."
+                )
+
+            temp_col_names = [f"__temp_{i}" for i in range(data.shape[1])]
+            data_df = nw.from_dict(
+                {col_name: data[:, i] for i, col_name in enumerate(temp_col_names)},
+                backend=nw_self.implementation,
+            )
+            expressions = [
+                data_df.get_column(temp_name).alias(final_name)
+                for temp_name, final_name in zip(temp_col_names, columns, strict=False)
+            ]
+        else:
+            data_to_write = nw.from_native(data, backend=nw_self.implementation).select(
+                ncs.numeric()
+            )
+
+            # TODO: do more to validate/normalize dtypes here?
+            # ... and validate/name/order columns?
+            columns_dtypes = {
+                k: _nw_normalize_dtype(v)
+                for k, v in nw_self.schema.items()
+                if k in columns
+            }
+            expressions = [
+                data_to_write.get_column(original_name).alias(new_name).cast(dtype)
+                for new_name, original_name, dtype in zip(
+                    columns, data_to_write.columns, columns_dtypes, strict=False
+                )
+            ]
+
+        self.data = nw_self.with_columns(expressions).to_native()
+
+    def __len__(self) -> int:
+        """Returns the length of the dataset along the time axis, ie. the number of rows."""
+        (length, _) = self.data.shape
+        return int(length)
 
     def plot(self, *args: Any, **kwargs: Any) -> Any:
         """Plot dataset data.
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
         """
-        df = self.data.copy()
+        df = nw.from_native(self.data).to_pandas()
 
         if self.data_type.temporality == ts.properties.Temporality.FROM_TO:
             interval_handling = kwargs.pop("interval_handling", "interval").lower()
@@ -835,7 +1002,7 @@ class Dataset:
         ts.logger.debug("DATASET.plot(): x labels = %s", xlabels)
         ts.logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
 
-        return df.plot(  # type: ignore[call-overload]
+        return df.plot(
             xlabels,
             *args,
             legend=len(self.data.columns) < 9,
@@ -894,11 +1061,11 @@ class Dataset:
 
         match func:
             case "mean":
-                out = self.data.groupby(period_index).mean(  # type: ignore[misc]
+                out = self.data.groupby(period_index).mean(
                     *args, numeric_only=numeric_only_value, **kwargs
                 )
             case "sum":
-                out = self.data.groupby(period_index).sum(  # type: ignore[misc]
+                out = self.data.groupby(period_index).sum(
                     *args, numeric_only=numeric_only_value, **kwargs
                 )
             case "auto":
@@ -906,14 +1073,14 @@ class Dataset:
                 # in particular, how to check meta data and blend d1 and df2 values as appropriate
                 # (this implementation is just to show how it can be done)
                 # QUESTION: do we need a default for "other" series / what should it be?
-                df1 = self.data.groupby(period_index).mean(  # type: ignore[misc]
+                df1 = self.data.groupby(period_index).mean(
                     *args, numeric_only=numeric_only_value, **kwargs
                 )
                 ts.logger.debug(f"groupby\n{df1}.")
 
                 df2 = (
                     self.data.groupby(period_index)
-                    .sum(*args, numeric_only=numeric_only_value, **kwargs)  # type: ignore[misc]
+                    .sum(*args, numeric_only=numeric_only_value, **kwargs)
                     .filter(regex="mendgde|volum|vekt")
                 )
                 ts.logger.debug(f"groupby\n{df2}.")
@@ -990,44 +1157,57 @@ class Dataset:
 
     def all(self) -> bool:
         """Check if all values in series columns evaluate to true."""
-        ts.logger.debug(all(self.data))
-        return all(self.data[self.numeric_columns()])
+        return bool(np.all(self.numeric_array()))
+        # wrong: all(self.data) -- why?
 
     def any(self) -> bool:
         """Check if any values in series columns evaluate to true."""
-        return any(self.data[self.numeric_columns()])
+        return bool(np.any(self.numeric_array()))
+
+    def boolean_columns(self) -> list[str]:
+        """Get names of all numeric series columns (ie columns that are not datetime)."""
+        return list(nw.from_native(self.data).select(ncs.boolean()).columns)
+        # replaces: return [c for c in self.data.columns if c not in self.datetime_columns()]
+
+    # def datetime_columns(self, *comparisons: Self | pd.DataFrame) -> list[str]:
+    def datetime_columns(self) -> list[str]:
+        """Get names of applicable datetime columns (as_of, valid_at, valid_from, valid_to)."""
+        return list(nw.from_native(self.data).select(ncs.datetime()).columns)
+        # no need to check against column names (for current data type)?
+        # intersect = set(nw.from_native(self.data).columns) & {"valid_at", "valid_from", "valid_to"}
+        # return sorted(list(intersect))
 
     def numeric_columns(self) -> list[str]:
         """Get names of all numeric series columns (ie columns that are not datetime)."""
-        return [c for c in self.data.columns if c not in self.datetime_columns()]
+        return sorted(nw.from_native(self.data).select(ncs.numeric()).columns)
+        # replaces: return [c for c in self.data.columns if c not in self.datetime_columns()]
 
-    def datetime_columns(self, *comparisons: Self | pd.DataFrame) -> list[str]:
-        """Get names of datetime columns (valid_at, valid_from, valid_to).
+    def numeric_array(self, series: str | list[str] = "") -> NDArray:
+        """Get the data of numeric series columns in matrix format as a Numpy NDArray.
 
-        Args:
-            *comparisons (Self | pd.DataFrame): Objects to compare with. If provided, returns the intersection of self and all comparisons.
-
-        Returns:
-            list[str]: The (common) datetime column names of self (and comparisons).
-
-        Raises:
-            ValueError: If comparisons are not of type Self or pd.DataFrame.
+        This will omit datetime columns, hence is convenient for linear algebra operations.
+        Optionally, series names can be provided to get a subset of columns.
         """
-        intersect = set(self.data.columns) & {"valid_at", "valid_from", "valid_to"}
-        for c in comparisons:
-            if isinstance(c, Dataset):
-                intersect = set(c.data.columns) & intersect
-            elif isinstance(c, pd.DataFrame):
-                intersect = set(c.columns) & intersect
-            else:
-                raise ValueError(f"Unsupported type: {type(c)}")
+        expr = [ncs.numeric() | ncs.boolean()]
+        if series:
+            expr.append(nw.col(series))
+        np_array = nw.from_native(self.data).select(expr).to_numpy()
+        return cast("NDArray", np_array)
 
-        return list(intersect)
+    def nw(self) -> Frame:
+        """Returns data as a (new) Narwhals frame.
+
+        This allows making use not only of the functionality of Narwhals https://narwhals-dev.github.io/narwhals/api-reference/,
+        but also that of other supported dataframe libraries through .to_pandas(), to_polars(),to_numpy(),.to_arrow().
+        For numpy, see also 'Dataset.numeric_array()' that returns a numeric matrix omitting the date columns.
+        """
+        return cast(Frame, nw.from_native(self.data))
 
     @no_type_check
     def math(
         self,
-        other: Self | pd.DataFrame | pd.Series | int | float,
+        # other: Self | pd.DataFrame | pd.Series | int | float,
+        other: Self | IntoFrame | IntoSeries | int | float | None,
         func,  # noqa: ANN001
     ) -> Any:
         """Generic helper making math functions work on numeric, non date columns of dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar.
@@ -1035,7 +1215,7 @@ class Dataset:
         Although the purpose was to limit "boilerplate" for core linear algebra functions, it also extend to other operations that follow the same differentiation pattern.
 
         Args:
-            other (dataframe | series | matrix | vector | scalar ): One (or more?) pandas (polars to come) datframe or series, numpy matrix or vector or a scalar value.
+            other (dataframe | series | matrix | vector | scalar ): One (or more?) pandas (polars to come) dataframe or series, numpy matrix or vector or a scalar value.
             func (_type_): The function to be applied as `self.func(**other:Self)` or (in some cases) with infix notation `self f other`. Note that one or more date columns of the self / lefthand side argument are preserved, ie data shifting operations are not supported.
 
         Raises:
@@ -1043,43 +1223,46 @@ class Dataset:
             ValueError: "Incompatible shapes."
 
         Returns:
-            Any:   Depending on the inputs: A new dataset / vector / scalar with the result. For datasets, the name of the new set is derived from inputs and the functions applied.
+            Any:   Depending on the inputs: A new dataset / vector / scalar with the result.
+            For datasets, the name of the new set is derived from inputs and the functions applied.
+            If 'other' is not recognized, the 'NotImplemented' Singleton is returned so that Python can invoke  '__r<method>__' of other class.
         """
+        num_cols = self.numeric_columns()
+        out = self.copy()
+
         if isinstance(other, Dataset):
             ts.logger.debug(
                 f"DATASET {self.name}: .math({self.name}.{func.__name__}(Dataset({other.name}))."
             )
-            ts.logger.debug(
-                f"DATASET {self.name}: .math({self.name},{other.name}) redirect to operating on {other.name}.data."
-            )
-            out_data = self.data.copy()
-            out_data[self.numeric_columns()] = func(
-                self.data[self.numeric_columns()], other.data[other.numeric_columns()]
-            )
             other_name = other.name
-            other_as_of = other.as_of_utc
+            # ValueError: operands could not be broadcast together with shapes (0,0) (4,3)
+            # observed here for 'test_algebra_expression_with_multiple_dataset' -->
+            # print(f"DATASET.math({func.__name__})\n=======\n{str(self)=} \n---\n{str(other)=}\n=======")
+            result = func(self.numeric_array(), other.numeric_array())
+            out[num_cols] = result
+            out.as_of_utc = max(self.as_of_utc, other.as_of_utc)
 
-        elif isinstance(other, pd.DataFrame):
-            # element-wise matrix operation
-            ts.logger.debug(
-                f"DATASET {self.name}: .math({self.name}.{func.__name__}(pd.dataframe)."
-            )
+        elif other is None:
+            ts.logger.debug(f"DATASET {self.name}: .math({self.name}.{func.__name__}).")
+            result = func(self.numeric_array())
+            out[num_cols] = result
+            other_name = ""
 
-            out_data = self.data.copy()
-            num_cols = self.numeric_columns()
-            out_data[num_cols] = func(out_data[num_cols], other[num_cols])
-
+        elif is_df_like(other):
+            other = nw.from_native(other).select(num_cols).to_numpy()
+            out[num_cols] = func(self.numeric_array(), other)
             other_name = "df"
-            other_as_of = None
+
+        # TODO: Add coverage elif isinstance(other, pd.Series):
+        elif isinstance(other, nw.Series):
+            raise NotImplementedError(
+                "Adding support for Dataset data (matrix) operations with datasframe Series (vectors) is on the todo-list! Notify devs to increase priority."
+            )
 
         elif isinstance(other, int | float):
-            out_data = self.data.copy()
-
-            num_cols = self.numeric_columns()
-            out_data[num_cols] = func(out_data[num_cols], other)
-
+            result = func(self.numeric_array(), other)
+            out[num_cols] = result
             other_name = str(other)
-            other_as_of = None
 
         elif isinstance(other, np.ndarray):
             # TODO: this needs more thorough testing!
@@ -1092,107 +1275,246 @@ class Dataset:
                 other.shape[0] == len(self.data)
                 or other.shape[0] == len(self.data.columns)
             ):
-                out_data = self.data.copy()
-
-                out_data[self.numeric_columns()] = func(
-                    out_data[self.numeric_columns()], other
-                )
+                out[num_cols] = func(self.numeric_array(), other)
             else:
                 raise ValueError(
                     f"Incompatible shapes for element-wise {func.__name__}"
                 )
             other_name = "ndarray"
-            other_as_of = None
         else:
-            raise ValueError("Unsupported operand type")
+            # So that __r<op>__ of other object may be called, instead of:
+            # raise ValueError(f"Unsupported operand type: {type(other)}.") -->
+            return NotImplemented
 
-        if other_as_of:
-            out_as_of = max(self.as_of_utc, other_as_of)
-        else:
-            out_as_of = self.as_of_utc
+        new_name = (f"({self.name}.{func.__name__}.{other_name})",)
+        out.rename(new_name)
+        out.lineage = new_name
 
-        out = self.__class__(
-            name=f"({self.name}.{func.__name__}.{other_name})",
-            data_type=self.data_type,
-            as_of_tz=out_as_of,
-            data=out_data,
-        )
-        # TODO: Should also update series names and set/series tags.
-        ts.logger.debug(
-            f"DATASET.math({func.__name__}, {self.name}, {other_name}) --> {out.name}\n\t{out.data}."
-        )
+        ts.logger.debug(f"DATASET.math: {new_name}\n\t{out.data.shape}")
+        # print( f"DATASET.math: {new_name}\n\t{out.data.shape=}")
+        # TODO: Should also update series names and set/series tags?
         return out
 
     def __add__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Add two datasets or a dataset and a dataframe, numpy array or scalar."""
+        """Add two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.add.
+        """
         return self.math(other, np.add)
 
     def __radd__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Right add two datasets or a dataset and a dataframe, numpy array or scalar."""
-        return self.math(other, np.add)
+        """Right add handles cases where a Dataset is added to a non-dataset object.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.add.
+        """
+        return self.__add__(other)
 
     def __sub__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Subtract two datasets or a dataset and a dataframe, numpy array or scalar."""
+        """Subtract two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.sub.
+        """
         return self.math(other, np.subtract)
 
     def __rsub__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Right subtract two datasets or a dataset and a dataframe, numpy array or scalar."""
-        return self.math(other, np.subtract)
+        """Right subtract handles cases where a Dataset is subtrd from a non-Dataset.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.sub.
+        """
+        negative_self = self.__mul__(-1)
+        return negative_self.__add__(other)
 
     def __mul__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Multiply two datasets or a dataset and a dataframe, numpy array or scalar."""
+        """Multiply two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.muliply.
+        """
         return self.math(other, np.multiply)
 
     def __rmul__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Right multiply two datasets or a dataset and a dataframe, numpy array or scalar."""
-        return self.math(other, np.multiply)
+        """Right multiply two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.muliply.
+        """
+        return self.__mul__(other)
+
+    def __matmul__(self, other: Self | pd.DataFrame | pd.Series) -> Any:
+        """Matrix multiply two datasets or a dataset and a dataframe, numpy array.
+
+        The matmul function implements the semantics of the @ operator defined in PEP 465.
+        The operation inherits behavioural characteristicsa from Numpy. See np.matmul for details.
+
+        Raises:
+            ValueError
+                If the last dimension of x1 is not the same size as the second-to-last dimension of x2.
+                If a scalar value is passed in.
+        """
+        return self.math(other, np.matmul)
+
+    def __rmatmul__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+        """Right matrix multiply two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.matmul.
+        """
+        return self.__mul__(other)
 
     def __truediv__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Divide two datasets or a dataset and a dataframe, numpy array or scalar."""
+        """Divide two datasets, or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.divide.
+        """
         return self.math(other, np.divide)
 
     def __rtruediv__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Right divide two datasets or a dataset and a dataframe, numpy array or scalar."""
-        return self.math(other, np.divide)
+        """Right true divide handles cases when non-dataset objects are divided by datasets.
+
+        Division is performed elementwise using Numpy broadcast rules. See np.divide.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.divide.
+        """
+        inverse = self.__truediv__(other)
+        # TODO: verify that the above always returns floats.
+        # If not, we will get weird results when inverting with np.repiprocal.
+        # (Also, check behaviour with decimal datatype.)
+        return inverse.math(None, np.reciprocal)
 
     def __floordiv__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Floor divide two datasets or a dataset and a dataframe, numpy array or scalar."""
+        """Floor divide two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.floordivide.
+        """
         return self.math(other, np.floor_divide)
 
-    def __rfloordiv__(
-        self, other: Self | pd.DataFrame | pd.Series | int | float
-    ) -> Any:
-        """Right floor divide two datasets or a dataset and a dataframe, numpy array or scalar."""
-        return self.math(other, np.floor_divide)
+    def __rfloordiv__(self, other: pd.DataFrame | pd.Series | int | float) -> Any:
+        """Right floor divide handles cases when a dataframe, numpy array or scalar is divded by a dataset.
+
+        Done element wise w. broadcast.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.floordivide.
+        """
+        inverse = self.__floordiv__(other)
+        return inverse.math(None, np.reciprocal)
 
     def __pow__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Power of two datasets or a dataset and a dataframe, numpy array or scalar."""
+        """Power of two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.power.
+        """
         return self.math(other, np.power)
 
-    def __rpow__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Right power of two datasets or a dataset and a dataframe, numpy array or scalar."""
-        return self.math(other, np.power)
+    def __rpow__(self, other: pd.DataFrame | pd.Series | int | float) -> Any:
+        """Right power of two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.power.
+        """
+        # raise NotImplementedError("Coming soon!")
+        # self = x, other = a
+        # y = a ** x (elementwise for x)
+        # y = (e ** x) ** ln(a) ==>
+        exp_self = self.math(None, np.exp)  # .math with None needs more testing
+        ln_a = np.log(other)  # may handling of input type variations?
+        return exp_self.__pow__(ln_a)
 
     def __mod__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Modulo of two datasets or a dataset and a dataframe, numpy array or scalar."""
+        """Modulo of two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.mod.
+        """
         return self.math(other, np.mod)
 
     def __rmod__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Right modulo of two datasets or a dataset and a dataframe, numpy array or scalar."""
-        return self.math(other, np.mod)
+        """Right modulo of two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.mod.
+        """
+        return NotImplemented  # self.__mod__(other)
+
+    def __neg__(self) -> Any:
+        """Negative values for dataset.
+
+        The operation returns a new dataset object. See np.negative.
+        """
+        return self.math(None, np.negative)
+
+    def __pos__(self) -> Any:
+        """Positive values for dataset.
+
+        The operation returns a new dataset object. See np.positive.
+        """
+        return self.math(None, np.positive)
+
+    def __abs__(self) -> Any:
+        """Absolute values for dataset.
+
+        The operation returns a new dataset object. See np.absolute.
+        """
+        return self.math(None, np.absolute)
+
+    def __invert__(self) -> Any:
+        """Invert the sign of values in the dataset.
+
+        The operation is performed elementwise. See np.negative.
+        """
+        return self.math(-1, np.multiply)
 
     @no_type_check
-    def __eq__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Check equality of two datasets or a dataset and a dataframe, numpy array or scalar."""
+    def __eq__(
+        self, other: object
+    ) -> Any:  # Self | pd.DataFrame | pd.Series | int | float) -> Any:
+        """Check equality of two datasets or one dataset and a dataframe, numpy array or scalar.
+
+        Note that this is a pure value comparison, and thus different from comparing dataset identity as reflected in the metadata of two dataset instances.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.equal.
+        """
         return self.math(other, np.equal)
 
+    def __ne__(
+        self, other: Any
+    ) -> Any:  # Self | pd.DataFrame | pd.Series | int | float) -> Any:
+        # def __ne__(self, other:Self | pd.DataFrame | pd.Series | int | float) -> Any:
+        """Check inequality of two datasets or one dataset and a dataframe, numpy array or scalar.
+
+        Note that this is a pure value comparison, and thus different from comparing dataset identity as reflected in the metadata of two dataset instances.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.not_equal.
+        """
+        return self.math(other, np.not_equal)
+
     def __gt__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Check greater than for two datasets or a dataset and a dataframe, numpy array or scalar."""
+        """Check greater than for two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.greater.
+        """
         return self.math(other, np.greater)
 
     def __lt__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        """Check less than for two datasets or a dataset and a dataframe, numpy array or scalar."""
+        """Check less than for two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.less.
+        """
         return self.math(other, np.less)
+
+    def __ge__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+        """Check greater than or equal for two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.greater_equal.
+        """
+        return self.math(other, np.greater_equal)
+
+    def __le__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+        """Check less than or equal for two datasets or a dataset and a dataframe, numpy array or scalar.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.less_equal.
+        """
+        return self.math(other, np.less_equal)
+
+    def isclose(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+        """Check if two datasets or a dataset and a dataframe, numpy array or scalar are nearlly equal.
+
+        The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.isclose.
+        """
+        return self.math(other, np.isclose)
 
     def __repr__(self) -> str:
         """Returns a machine readable string representation of Dataset, ideally sufficient to recreate object."""
@@ -1206,7 +1528,7 @@ class Dataset:
                 "data_type": str(self.data_type),
                 "as_of_utc": self.as_of_utc,
                 "series": str(self.series),
-                "data": self.data.size,
+                "data": self.data.shape,
             }
         )
 
@@ -1270,7 +1592,7 @@ class Dataset:
                 obj = meta.Taxonomy(klass_id=t)
             elif isinstance(t, dict):
                 obj = meta.Taxonomy(data=t)
-            elif isinstance(t, PathStr):
+            elif isinstance(t, (str | Path)):
                 obj = meta.Taxonomy(path=t)
             else:
                 raise TypeError(
@@ -1278,23 +1600,39 @@ class Dataset:
                 )
             taxonomy_dict[name] = obj
 
-        df = self.data.copy().drop(columns=self.numeric_columns())
-        for p in meta.permutations(taxonomy_dict, "parents"):
+        df = nw.from_native(self.data).drop(self.numeric_columns()).to_pandas()
+        new_series_tags = {}
+        permutations = meta.permutations(taxonomy_dict, "parents")
+        for p in permutations:
             criteria = {}
             for attr, value in p.items():
                 criteria[attr] = taxonomy_dict[attr].leaf_nodes(value)
-            output_series_name = sep.join(p.values())
+            output_series_name = sep.join(p.values())  # move into func loop?
             leaf_node_subset = self.filter(tags=criteria, output="df")
             for func in functions:
                 if isinstance(func, str):
                     new_col_name = f"{func}({output_series_name})"
+                    func_name = func
                 elif isinstance(func, list):
-                    new_col_name = f"{func[0]}{func[1]}({output_series_name})"  # type: ignore[unreachable]
+                    new_col_name = f"{func[0]}{func[1]}({output_series_name})"
+                    func_name = f"{func[0]}{func[1]}"
                 else:
                     new_col_name = f"{func.__name__}({output_series_name})"
+                    func_name = func.__name__
                 df[new_col_name] = column_aggregate(leaf_node_subset, func)
+                lineage_info = {
+                    "criteria": criteria,
+                    "input": leaf_node_subset.columns,
+                    "output": new_col_name,
+                    "function": func_name,
+                }
+                new_series_tags[new_col_name] = lineage_info
 
-        return self.copy(f"{self.name}.{functions}", data=df)
+        out = self.copy(f"{self.name}.{functions}", data=df)
+        # TODO: the content of 'calculations' must be properly placed,
+        # but for now it goes here.
+        out.tags["calculations"] = new_series_tags
+        return out
 
     def moving_average(
         self,
@@ -1323,12 +1661,13 @@ class Dataset:
         TO DO: Add parameter to ensure/alter sampling frequency before calculating.
         """
         n = stop - start + 1
-        numbers = self.data[self.numeric_columns()].to_numpy()
+        numbers = self.numeric_array()
         rows, columns = numbers.shape
 
         r = np.array(range(rows))
         r_from = r + start
         r_to = r + stop
+        r_intersect = np.intersect1d(r_from, r_to)
 
         nans = np.ones((n, columns)) * np.nan
         numbers_ext = np.append(numbers, nans, 0)
@@ -1343,24 +1682,22 @@ class Dataset:
 
         averages = diffs / n
         out = self.copy(f"{self.name}.mov_avg({start},{stop})")
-        out.data[out.numeric_columns()] = averages[0:rows, :]
-        r_intersect = np.intersect1d(r_from, r_to)
+        out[self.numeric_columns()] = averages[0:rows, :]
 
         # how to handle nans? choice between multiple strategies;
-        # - just return them (keep all rows) (default)
-        # - remove
-        # - pass  through input
+        # ... + choice whether to distinguish between beginning/end/middle?
+        # - just return them (keep all rows) --> default: 'return'
+        # - remove --> 'remove' 'remove_beginning' 'remove_end'
         # - calculate something
-        # ... distinguish between beginning/end/middle?
         match nan_rows:
             case "remove":
-                out.data = out.data.iloc[r_intersect]
+                result_rows = r_intersect
             case "remove_beginning":
-                out.data = out.data.iloc[min(r_intersect) :, :]
+                result_rows = np.array(range(min(r_intersect), rows))
             case "remove_end":
-                out.data = out.data.iloc[0 : max(r_intersect), :]
+                result_rows = np.array(range(0, max(r_intersect)))
             case "return":
-                out.data = out.data.iloc[0:rows, :]
+                result_rows = r
             case _:
                 raise (
                     ValueError(
@@ -1373,13 +1710,21 @@ class Dataset:
             #   - estimation? henderson or other
             #   - retrieve more values?
 
+        out.data = out.data.take(result_rows)
         # TODO: update the metadata
         return out
 
 
-def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
+def column_aggregate(df: IntoFrameT, method: str | F) -> pd.Series | Any:
     """Helper function to calculate aggregate over dataframe columns."""
     # ts.logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
+    nw_df = nw.from_native(df)
+    # nw_df.implementation
+
+    # the following is not pretty, but is left as is to simplify the transition away from pandas
+    # a better approach: return nw.Expr for methods  --> TODO!
+    df = nw_df.to_pandas()
+
     if isinstance(method, F):  # type: ignore
         out = method(df)  # type: ignore[operator]
     else:
@@ -1397,7 +1742,7 @@ def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
             case "median":
                 out = df.quantile(0.5, axis=1, numeric_only=True)
             case ["quantile", *params] | ["percentile", *params]:
-                if len(params) > 1:  # type: ignore[unreachable]
+                if len(params) > 1:
                     interpolation: str = params[1]
                 else:
                     interpolation = "linear"
@@ -1414,7 +1759,11 @@ def column_aggregate(df: pd.DataFrame, method: str | F) -> pd.Series | Any:
                 raise NotImplementedError(
                     f"Aggregation method '{method}' is not implemented (yet)."
                 )
-    return out
+    return nw.new_series(
+        name=f"{method}({df.columns})",
+        values=out,
+        backend=nw_df.implementation,
+    )
 
 
 def search(
@@ -1422,7 +1771,7 @@ def search(
     as_of_tz: datetime = None,
     repository: str = "",
     require_unique: bool = False,
-) -> list[io.SearchResult] | Dataset | list[None]:
+) -> list[io.SearchResult] | Dataset | None:
     """Search for datasets by name matching pattern.
 
     Returns:
@@ -1449,6 +1798,8 @@ def search(
             data_type=ts.properties.seriestype_from_str(found[0].type_directory),
             as_of_tz=as_of_tz,
         )
+    elif number_of_results == 0:
+        return None
     elif require_unique:
         raise ValueError(
             f"Search for '{pattern}' returned:\n{number_of_results} results when exactly one was expected:\n{found}",
@@ -1457,6 +1808,38 @@ def search(
         return found
 
 
+def _has_auto_tag_information(ds: Dataset, caller_workspace: dict) -> bool:
+    """Checks if a dataset has the information required to run .series_names_to_tags()."""
+    autotag_config_exists = hasattr(ds, "auto_tag_config")
+    attr_var_exists = "attributes" in caller_workspace
+    if attr_var_exists and caller_workspace["attributes"]:
+        return True
+    elif (
+        autotag_config_exists
+        and hasattr(ds["auto_tag_config"], "attributes")
+        and ds["auto_tag_config"]["attributes"]
+    ):
+        return not empty(ds.data)
+        # (no need to check separator or regex)
+    else:
+        return False
+
+
+def _nw_normalize_dtype(t: IntoDType) -> IntoDType:
+    """Normalize datatypes."""
+    match t:
+        case nw.Int8 | nw.Int16 | nw.Int32:
+            out = nw.Int64
+        case nw.Float32:
+            out = nw.Float64
+        case nw.Date:
+            out = nw.Datetime
+        case _:
+            out = t
+    return out
+
+
+# ==============================================================================
 if __name__ == "__main__":
     import doctest
 

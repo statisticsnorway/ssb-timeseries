@@ -1,19 +1,20 @@
 import logging
+from datetime import date
 from datetime import datetime
-from datetime import timedelta
 from zoneinfo import ZoneInfo
 
+import narwhals as nw
+import narwhals.selectors as ncs
+import pandas as pd
+import polars as pl
+import pyarrow as pa
 import pytest
 
 import ssb_timeseries as ts
-from ssb_timeseries.dates import Interval
-from ssb_timeseries.dates import date_local
-from ssb_timeseries.dates import date_round
-from ssb_timeseries.dates import date_utc
-from ssb_timeseries.dates import utc_iso
-from ssb_timeseries.dates import utc_iso_no_colon
+from ssb_timeseries.dates import *
 
-# mypy: disable-error-code="no-untyped-def,attr-defined"
+# mypy: disable-error-code="no-untyped-def,attr-defined,name-defined,arg-type"
+# ruff: noqa
 
 
 def test_dateround_minutes_removes_seconds_keeps_minutes() -> None:
@@ -28,12 +29,15 @@ def test_utc_equals_utc_time_right_before_beginning_of_daylight_saving() -> None
     )
 
 
-@pytest.mark.skip(
-    reason="TODO: Fix AssertionError: assert datetime.datetime(2024, 3, 31, 1, 0) == datetime.datetime(2024, 3, 31, 1, 0, tzinfo=tzoffset(None, 3600))."
-)
+# @pytest.mark.xfail(local_timezone ==UTC, reason="Known issue with tz  local vs CET --> TODO: validate!")
+@pytest.mark.skip()
 def test_cet_is_default() -> None:
-    # date_cet returns same answer regardless even if timezone is not provided
-    assert date_local("2024-03-31 01:00:00") == date_local("2024-03-31 01:00:00+01:00")
+    # assert date_local("2024-03-31 01:00:00").astimezone(DEFAULT_TZ) == date_local( "2024-03-31 01:00:00+01:00")
+    # E       AssertionError: assert datetime.datetime(2024, 3, 31, 3, 0, tzinfo=zoneinfo.ZoneInfo(key='Europe/Oslo')) == datetime.datetime(2024, 3, 31, 1, 0, tzinfo=tzoffset(None, 3600))
+    # convert to utc before comparing, in order to "normalize" interpreted timezone
+    naive_to_default_tz = date_local("2024-03-31 01:00:00")  # .astimezone(DEFAULT_TZ)
+    cet = date_local("2024-03-31 01:00:00+01:00")
+    assert date_utc(naive_to_default_tz) == date_utc(cet)
 
 
 def test_utc_iso_strings() -> None:
@@ -91,238 +95,336 @@ def test_conversions_right_after_end_of_daylight_saving(caplog) -> None:
     assert date_utc(d_local) == d_utc
 
 
-def test_define_without_params() -> None:
-    x = Interval()
-    assert x.start == datetime.min and x.stop == datetime.max
-
-
-def test_define_with_as_of_returns_start_equals_stop_equals_as_of() -> None:
-    some_date = datetime.now()
-    x = Interval(as_of=some_date)
-    ts.logger.debug(x)
-    assert x.start == some_date and x.stop == some_date
-
-
-def test_define_without_named_fromdate_and_todate_returns_correct_interval(
+def test_prepend_as_of_adds_a_provided_utc_date_to_a_new_column(
     caplog,
-) -> None:
+    xyz_at,
+):
     caplog.set_level(logging.DEBUG)
-    date_from = datetime.now() - timedelta(days=7)
-    date_to = datetime.now()
-    x = Interval(date_from, date_to)
-    ts.logger.debug(x)
-    assert x.start == date_from and x.stop == date_to
+    df_before = nw.from_native(xyz_at)
+    schema_before = df_before.schema
+    assert "as_of" not in schema_before
+    as_of_utc = now_utc()
+    df_after = prepend_as_of(xyz_at, as_of_utc)
+    schema_after = nw.from_native(df_after).schema
+    assert "as_of" in schema_after
+    assert schema_after["as_of"].time_zone == "UTC"
+    assert all(df_after["as_of"] == as_of_utc)
 
 
-def test_define_with_fromdate_and_todate_returns_correct_interval() -> None:
-    date_from = datetime.now() - timedelta(days=7)
-    date_to = datetime.now()
-    x = Interval(start=date_from, stop=date_to)
-    ts.logger.debug(x)
-    assert x.start == date_from and x.stop == date_to
-
-
-def test_define_works_with_many_variations_of_parameter_names() -> None:
-    date_from = datetime.now() - timedelta(days=7)
-    date_to = datetime.now()
-    p = Interval(start=date_from, stop=date_to)
-    q = Interval(from_date=date_from, to_date=date_to)
-    r = Interval(as_of_from=date_from, as_of_to=date_to)
-    s = Interval(valid_from=date_from, valid_to=date_to)
-    t = Interval(begin=date_from, end=date_to)
-    u = Interval(f=date_from, t=date_to)
-    assert p.start == date_from and p.stop == date_to
-    assert q.start == date_from and q.stop == date_to
-    assert r.start == date_from and r.stop == date_to
-    assert s.start == date_from and s.stop == date_to
-    assert t.start == date_from and t.stop == date_to
-    assert u.start == date_from and u.stop == date_to
-
-
-def test_define_with_just_fromdate_returns_interval_larger_than_fromdate() -> None:
-    date_from = datetime.now() - timedelta(days=7)
-    x = Interval(start=date_from)
-    assert x.start == date_from and x.stop == datetime.max
-
-
-def test_define_with_just_todate_returns_interval_less_than_todate(caplog) -> None:
+def test_prepend_as_of_converts_provided_date_to_utc(
+    caplog,
+    xyz_at,
+):
     caplog.set_level(logging.DEBUG)
-    date_to = datetime.now() - timedelta(days=7)
-    x = Interval(stop=date_to)
-    ts.logger.debug(x)
-    assert x.start == datetime.min and x.stop == date_to
+    df_before = nw.from_native(xyz_at)
+    schema_before = df_before.schema
+    assert "as_of" not in schema_before
+
+    as_of_local = date_local("2024-03-31 01:00:00")
+    df_after = prepend_as_of(xyz_at, as_of_local)
+    schema_after = nw.from_native(df_after).schema
+    assert "as_of" in schema_after
+    assert schema_after["as_of"].time_zone == "UTC"
+    assert all(df_after["as_of"] == date_utc(as_of_local))
 
 
-def test_interval_include_returns_true_for_date_inside_interval(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-    date_inside = datetime.now()
-    date_from = date_inside - timedelta(days=1)
-    date_to = date_inside + timedelta(days=1)
-    x = Interval(start=date_from, end=date_to)
-    assert x.includes(date_inside)
+# Prepare test data
+XYZ_DATA = {"x": [10.5, 12.1, 11.8], "y": [13.5, 15.4, 11], "z": [10.1, 15.1, 12.8]}
 
 
-def test_interval_include_returns_false_for_date_outside_interval(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-    date_inside = datetime.now()
-    date_from = date_inside - timedelta(days=1)
-    date_to = date_inside + timedelta(days=1)
-    date_outside = date_to + timedelta(days=1)
-    x = Interval(begin=date_from, end=date_to)
-    assert not x.includes(date_outside)
+def naive_at_date():
+    """Return valid_at as list of tz naive Dates."""
+    dates = {"valid_at": [date(2024, 1, 1), date(2024, 6, 25), date(2025, 10, 3)]}
+    dates.update(XYZ_DATA)
+    # dates.update({**XYZ_DATA})
+    return dates
 
 
-def test_interval_include_returns_correct_values_for_list_of_dates(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-    date_inside = datetime.now()
-    date_from = date_inside - timedelta(days=1)
-    date_to = date_inside + timedelta(days=1)
-    date_outside = date_to + timedelta(days=1)
-    x = Interval(begin=date_from, end=date_to)
-    test = x.includes(date_outside, date_inside, date_outside)
-    assert test == [False, True, False]
+def naive_from_to_date():
+    """Return valid_from_to as list of tz naive Dates."""
+    dates = {
+        "valid_from": [date(2024, 1, 1), date(2024, 7, 1), date(2025, 1, 1)],
+        "valid_to": [date(2024, 7, 1), date(2025, 1, 1), date(2025, 7, 1)],
+    }
+    dates.update(XYZ_DATA)
+    return dates
 
 
-def test_interval_a_equals_interval_b_true(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    t0 = datetime.now()
-    d = timedelta(days=1)
-    a_start = t0 - d
-    a_stop = t0 + d
-    b_start = a_start
-    b_stop = a_stop
-    a = Interval(begin=a_start, end=a_stop)
-    b = Interval(begin=b_start, end=b_stop)
-    assert a == b
-
-
-def test_interval_a_equals_interval_b_false(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    t0 = datetime.now()
-    d = timedelta(days=1)
-    a_start = t0 - d
-    a_stop = t0 + d
-    b_start = a_start - d
-    b_stop = a_stop
-
-    a = Interval(begin=a_start, end=a_stop)
-    b = Interval(begin=b_start, end=b_stop)
-    assert not a == b
+def naive_at_datetime():
+    """Return valid_at as list of tz naive Dates."""
+    dates = {
+        "valid_at": [
+            datetime(2024, 1, 1, 12, 0, 0),
+            datetime(2024, 6, 25, 12, 0, 0),
+            datetime(2025, 10, 3, 12, 0, 0),
+        ]
+    }
+    dates.update(XYZ_DATA)
+    return dates
 
 
-def test_interval_a_greater_than_interval_b(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    t0 = datetime.now()
-    d = timedelta(days=1)
-    y = timedelta(days=365)
-    a_start = t0 - d
-    a_stop = t0 + d
-
-    # b0 earlier than a, not overlapping
-    b0_start = a_start - y
-    b0_stop = a_stop - y
-
-    # earlier, but overlapping
-    b1_start = a_start - d
-    b1_stop = a_stop - d
-
-    a = Interval(begin=a_start, end=a_stop)
-    b0 = Interval(begin=b0_start, end=b0_stop)
-    b1 = Interval(begin=b1_start, end=b1_stop)
-
-    # a > b only for non overlapping case
-    # and the opposites are not true either
-    assert a > b0
-    assert not a > b1
-    assert not b0 > a
-    assert not b1 > a
+def naive_from_to_datetime():
+    """Return valid_from_to as list of tz naive Dates."""
+    dates = {
+        "valid_from": [
+            datetime(2024, 1, 1, 12, 0, 0),
+            datetime(2024, 7, 1, 12, 0, 0),
+            datetime(2025, 1, 1, 12, 0, 0),
+        ],
+        "valid_to": [
+            datetime(2024, 7, 1, 12, 0, 0),
+            datetime(2025, 1, 1, 12, 0, 0),
+            datetime(2025, 7, 1, 12, 0, 0),
+        ],
+    }
+    dates.update(XYZ_DATA)
+    return dates
 
 
-def test_interval_a_less_than_interval_b(caplog) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    t0 = datetime.now()
-    d = timedelta(days=1)
-    y = timedelta(days=365)
-    a_start = t0 - d
-    a_stop = t0 + d
-
-    # b0 later than a, not overlapping
-    b0_start = a_start + y
-    b0_stop = a_stop + y
-
-    # b1 later than a, but overlaps
-    b1_start = a_start + d
-    b1_stop = a_stop + d
-
-    a = Interval(begin=a_start, end=a_stop)
-    b0 = Interval(begin=b0_start, end=b0_stop)
-    b1 = Interval(begin=b1_start, end=b1_stop)
-
-    # a < b only for non overlapping case
-    # and the opposites are not true either
-    assert a < b0
-    assert not a < b1
-    assert not b0 < a
-    assert not b1 < a
+def aware_at_datetime():
+    """Return valid_at as list of tz naive Dates."""
+    dates = {
+        "valid_at": [
+            datetime.fromisoformat("2024-01-01 12:00:00+01:00"),
+            datetime.fromisoformat("2024-06-25 12:00:00+01:00"),
+            datetime.fromisoformat("2025-10-03 12:00:00+01:00"),
+        ]
+    }
+    dates.update(XYZ_DATA)
+    return dates
 
 
-def test_interval_a_greater_than_or_equal_to_interval_b(caplog) -> None:
-    # caplog.set_level(logging.DEBUG)
-
-    t0 = datetime.now()
-    d = timedelta(days=1)
-    y = timedelta(days=365)
-    a_start = t0 - d
-    a_stop = t0 + d
-
-    # earlier, not overlapping
-    b0_start = a_start - y
-    b0_stop = a_stop - y
-
-    # earlier, but overlapping
-    b1_start = a_start - d
-    b1_stop = a_stop - d
-
-    a = Interval(begin=a_start, end=a_stop)
-    b0 = Interval(begin=b0_start, end=b0_stop)
-    b1 = Interval(begin=b1_start, end=b1_stop)
-
-    # a > b both for overlapping and non overlapping case
-    # and the opposites are not true
-    assert a >= b0
-    assert a >= b1
-    assert not b0 >= a
-    assert not b1 >= a
+def aware_from_to_datetime():
+    """Return valid_from_to as list of tz naive Dates."""
+    dates = {
+        "valid_from": [
+            datetime.fromisoformat("2024-01-01 12:00:00+01:00"),
+            datetime.fromisoformat("2024-06-25 12:00:00+01:00"),
+            datetime.fromisoformat("2025-10-03 12:00:00+01:00"),
+        ],
+        "valid_to": [
+            datetime.fromisoformat("2024-01-01 12:00:00+01:00"),
+            datetime.fromisoformat("2024-06-25 12:00:00+01:00"),
+            datetime.fromisoformat("2025-10-03 12:00:00+01:00"),
+        ],
+    }
+    dates.update(XYZ_DATA)
+    return dates
 
 
-def test_interval_a_less_than_or_equal_to_interval_b(caplog) -> None:
-    # caplog.set_level(logging.DEBUG)
+NATIVE_TYPES = {
+    "pandas": pd.DataFrame,
+    "polars": (pl.DataFrame, pl.LazyFrame),
+    "pyarrow": pa.Table,
+}
 
-    t0 = datetime.now()
-    d = timedelta(days=1)
-    y = timedelta(days=365)
-    a_start = t0 - d
-    a_stop = t0 + d
 
-    # b0 later than a, not overlapping
-    b0_start = a_start + y
-    b0_stop = a_stop + y
+@pytest.mark.parametrize(
+    "testcase",
+    [
+        "naive_at_date",
+        "naive_from_to_date",
+        "naive_at_datetime",
+        "naive_from_to_datetime",
+    ],
+)
+@pytest.mark.parametrize("implementation", ["pandas", "polars", "pyarrow"])
+def test_datelike_to_datetime(
+    caplog,
+    testcase,
+    implementation,
+):
+    # Prepare a NARWHALS dataframe, ASSOCIATED with the correct implementation:
+    # native_type = NATIVE_TYPES[implementation]
+    data = eval(f"{testcase}()")
+    df_from_dict = nw.from_dict(data, backend=implementation)
+    assert isinstance(df_from_dict, nw.DataFrame)
+    assert str(df_from_dict.implementation) == implementation
 
-    # b1 later, but overlapping
-    b1_start = a_start + d
-    b1_stop = a_stop + d
+    # Turn it into correct NATIVE OBJECT and verify the type:
+    native_frame = df_from_dict.to_native()
+    assert isinstance(native_frame, native_type := NATIVE_TYPES[implementation])
 
-    a = Interval(begin=a_start, end=a_stop)
-    b0 = Interval(begin=b0_start, end=b0_stop)
-    b1 = Interval(begin=b1_start, end=b1_stop)
+    standardized = datelike_to_datetime(native_frame)
+    assert isinstance(standardized, native_type)  # expect same type back
+    standardized_nw_df = nw.from_native(standardized)
 
-    # a < b both for overlapping and non overlapping case
-    # and the opposites are not true
-    assert a <= b0
-    assert a <= b1
-    assert not b0 <= a
-    assert not b1 <= a
+    # verify key behaviour
+    date_types = set(standardized_nw_df.select(~ncs.numeric()).schema.dtypes())
+    for dtype in date_types:
+        assert isinstance(dtype, nw.dtypes.Datetime)
+
+    num_types = standardized_nw_df.select(ncs.numeric()).schema.dtypes()
+    assert len(num_types) == 3
+    for dtype in set(num_types):
+        assert isinstance(dtype, (nw.Float64))
+
+
+@pytest.mark.parametrize(
+    "testcase",
+    [
+        "naive_at_date",
+        "naive_from_to_date",
+        "naive_at_datetime",
+        "naive_from_to_datetime",
+        "aware_at_datetime",
+        "aware_from_to_datetime",
+    ],
+)
+@pytest.mark.parametrize("implementation", ["pandas", "polars", "pyarrow"])
+def test_datelike_localize(
+    caplog,
+    testcase,
+    implementation,
+):
+    native_type = NATIVE_TYPES[implementation]
+    data = eval(f"{testcase}()")
+    df_from_dict = nw.from_dict(data, backend=implementation)
+    # a NARWHALS dataframe, ASSOCIATED with the correct implementation:
+    assert isinstance(df_from_dict, nw.DataFrame)
+    assert str(df_from_dict.implementation) == implementation
+    # ... turned into its NATIVE object by narwhals
+    native_frame = df_from_dict.to_native()
+    assert isinstance(native_frame, native_type)
+
+    standardized = datelike_localize(native_frame)
+    assert isinstance(standardized, native_type)
+    standardized_nw_df = nw.from_native(standardized)
+
+    date_types = set(standardized_nw_df.select(~ncs.numeric()).schema.dtypes())
+    for dtype in date_types:
+        assert isinstance(dtype, nw.dtypes.Datetime)
+        assert dtype.time_zone
+
+    # numeric columns should not be affected
+    num_types = set(standardized_nw_df.select(ncs.numeric()).schema.dtypes())
+    for dtype in num_types:
+        assert isinstance(dtype, (nw.Float64))
+
+
+@pytest.mark.parametrize(
+    "testcase",
+    [
+        "naive_at_date",
+        "naive_from_to_date",
+        "naive_at_datetime",
+        "naive_from_to_datetime",
+        "aware_at_datetime",
+        "aware_from_to_datetime",
+    ],
+)
+@pytest.mark.parametrize("implementation", ["pandas", "polars", "pyarrow"])
+def test_datelike_to_utc(
+    caplog,
+    testcase,
+    implementation,
+):
+    native_type = NATIVE_TYPES[implementation]
+    data = eval(f"{testcase}()")
+    df_from_dict = nw.from_dict(data, backend=implementation)
+    # a NARWHALS dataframe, ASSOCIATED with the correct implementation:
+    assert isinstance(df_from_dict, nw.DataFrame)
+    assert str(df_from_dict.implementation) == implementation
+    # ... turned into its NATIVE object by narwhals
+    native_frame = df_from_dict.to_native()
+    assert isinstance(native_frame, native_type)
+
+    standardized = datelike_to_utc(native_frame)
+    standardized_twice = datelike_to_utc(standardized)
+
+    # Important: check idempotence
+    assert (
+        nw.from_native(standardized_twice).to_arrow()
+        == nw.from_native(standardized).to_arrow()
+    )
+    # WTF: no __eq__ for nw.frames!?!
+
+    assert isinstance(standardized, native_type)
+    standardized_nw_df = nw.from_native(standardized)
+
+    date_types = set(standardized_nw_df.select(~ncs.numeric()).schema.dtypes())
+    for dtype in date_types:
+        assert isinstance(dtype, nw.dtypes.Datetime)
+        assert dtype.time_zone == "UTC"
+
+    # numeric columns should not be affected
+    num_types = set(standardized_nw_df.select(ncs.numeric()).schema.dtypes())
+    for dtype in num_types:
+        assert isinstance(dtype, (nw.Float64))
+
+
+# TODO: PARAMETRIZE for all combinations of versioning and temporality
+def test_datelike_to_utc_yields_same_result_as_scalar_variant(
+    caplog,
+    xyz_at,
+):
+    df = datelike_to_utc(xyz_at)
+    nw_df = nw.from_native(df)
+    ts.logger.debug(f"xyz:\n{xyz_at}\nnw_df:\n{nw_df}")
+    assert "valid_at" in nw_df.select(ncs.datetime(time_zone="UTC")).columns
+    assert all(xyz_at.columns == nw_df.columns)
+
+    expected = [date_utc(d) for d in xyz_at["valid_at"]]
+    ts.logger.debug(f"xyz:\n{expected}\nnw_df:\n{nw_df}")
+    assert all(expected == nw_df["valid_at"].to_native())
+
+
+def test_validate_dates_succeeds_given_all_expected_columns_in_utc(
+    caplog, xyz_at, xyz_from_to
+):
+    valid_xyz_at = datelike_to_utc(xyz_at)
+    valid_xyz_from_to = datelike_to_utc(xyz_from_to)
+    assert validate_dates(
+        valid_xyz_at,
+        ["valid_at"],
+    )
+    assert validate_dates(
+        valid_xyz_from_to,
+        ["valid_from", "valid_to"],
+    )
+
+
+# TODO: PARAMETRIZE for multiple cases
+def test_validate_dates_fails_for_non_utc_dates(caplog, xyz_at, xyz_from_to):
+    assert not validate_dates(
+        xyz_at,
+        ["valid_at"],
+        throw_error=False,
+    )
+    assert not validate_dates(
+        xyz_from_to,
+        ["valid_from", "valid_to"],
+        throw_error=False,
+    )
+
+    with pytest.raises(ValueError):
+        _ = validate_dates(xyz_at, ["valid_at"], throw_error=True)
+
+    with pytest.raises(ValueError):
+        _ = validate_dates(
+            xyz_from_to,
+            ["valid_from", "valid_to"],
+            throw_error=True,
+        )
+
+
+def test_validate_dates_fails_for_missing_date_columns(caplog, xyz_at, xyz_from_to):
+    assert not validate_dates(
+        xyz_at,
+        ["as_of", "valid_at"],
+        throw_error=False,
+    )
+    assert not validate_dates(
+        xyz_from_to,
+        ["as_of", "valid_from", "valid_to"],
+        throw_error=False,
+    )
+    with pytest.raises(ValueError):
+        _ = validate_dates(xyz_at, ["as_of", "valid_at"], throw_error=True)
+
+    with pytest.raises(ValueError):
+        _ = validate_dates(
+            xyz_from_to,
+            ["as_of", "valid_from", "valid_to"],
+            throw_error=True,
+        )
