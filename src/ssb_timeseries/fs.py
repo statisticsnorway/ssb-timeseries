@@ -74,6 +74,7 @@ def exists(path: PathStr) -> bool:
     # The above error then occurs when metadata maintenance functions check if files exist.
     # Hence the need toi control for filenames
     p = Path(path)
+    MAX_FILENAME_LENGTH = 254
     if len(p.name) > MAX_FILENAME_LENGTH:
         path = p.parent / p.name[:MAX_FILENAME_LENGTH]
 
