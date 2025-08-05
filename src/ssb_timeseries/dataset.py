@@ -1162,7 +1162,7 @@ class Dataset:
 
     def any(self) -> bool:
         """Check if any values in series columns evaluate to true."""
-        return bool(np.all(self.numeric_array()))
+        return bool(np.any(self.numeric_array()))
 
     def boolean_columns(self) -> list[str]:
         """Get names of all numeric series columns (ie columns that are not datetime)."""
