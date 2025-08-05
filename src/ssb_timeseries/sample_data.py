@@ -30,8 +30,7 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
     separator = kwargs.get("separator", "_")
 
     if isinstance(args, dict):
-        # TODO: fix mypy error: Statement is unreachable  [unreachable]
-        return [value for value in args.values()]
+        return args.values()
 
     final_args = []
 
