@@ -2,10 +2,59 @@ import logging
 
 import ssb_timeseries as ts
 from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.sample_data import series_names
 from ssb_timeseries.sample_data import xyz_at
 from ssb_timeseries.sample_data import xyz_from_to
 
 # mypy: ignore-errors
+
+
+def test_series_names_from_string_args_joins_with_separator_and_returns_list_of_single_string(
+    caplog,
+):
+    names = series_names("a", "b", "c")
+    assert names == ["a_b_c"]
+
+
+def test_series_names_from_string_and_none_args_joins_with_separator_and_returns_list_of_single_string(
+    caplog,
+):
+    names = series_names("a", "b", None, "c")
+    assert names == ["a_b__c"]
+
+
+def test_series_names_from_one_list_of_strings_returns_same_list(caplog):
+    names = series_names(["a", "b", "c"])
+    assert names == ["a", "b", "c"]
+
+
+def test_series_names_from_one_tuple_of_strings_returns_list_of_same_strings(caplog):
+    names = series_names(("a", "b", "c"))
+    assert names == ["a", "b", "c"]
+
+
+def test_series_names_from_two_lists_of_strings_returns_list_of_permutations(caplog):
+    names = series_names(["a", "b", "c"], ["1", "2"])
+    assert sorted(names) == ["a_1", "a_2", "b_1", "b_2", "c_1", "c_2"]
+
+
+def test_series_names_from_two_tuples_of_strings_returns_list_of_permutations(caplog):
+    names = series_names(("a", "b", "c"), ("1", "2"))
+    assert sorted(names) == ["a_1", "a_2", "b_1", "b_2", "c_1", "c_2"]
+
+
+def test_series_names_from_list_and_tuple_and_string_returns_list_of_permutations(
+    caplog,
+):
+    names = series_names(["a", "b", "c"], ("1", "2"), "xyz")
+    assert sorted(names) == [
+        "a_1_xyz",
+        "a_2_xyz",
+        "b_1_xyz",
+        "b_2_xyz",
+        "c_1_xyz",
+        "c_2_xyz",
+    ]
 
 
 def test_create_sample_from_single_string() -> None:
