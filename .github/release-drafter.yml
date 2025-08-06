@@ -9,22 +9,29 @@ categories:
     label: "bug"
   - title: ":racehorse: Performance"
     label: "performance"
-  - title: ":rotating_light: Testing"
-    label: "testing"
-  - title: ":construction_worker: Continuous Integration"
-    label: "ci"
   - title: ":books: Documentation"
     label: "documentation"
-  - title: ":hammer: Refactoring"
-    label: "refactoring"
-  - title: ":lipstick: Style"
-    label: "style"
-  - title: ":package: Dependencies"
+  - title: ":hammer: Internals"
     labels:
+      - "refactoring"
+      - "style"
+      - "ci"
+      - "testing"
       - "dependencies"
+
 exclude-labels:
   - "skip-changelog"
+
+change-template: "- $TITLE (#$NUMBER) by @$AUTHOR"
+
 template: |
   ## Changes
 
   $CHANGES
+
+  ---
+
+  ## New contributors
+  $NEW_CONTRIBUTORS
+
+   **Full Changelog**: $PREVIOUS_TAG...$RESOLVED_VERSION
