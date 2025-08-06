@@ -188,9 +188,7 @@ class Taxonomy:
         ts.logger.debug("other: %s", other)
         if isinstance(other, bigtree.Node):
             remove = self.subtree(other.name).asc  # noqa: F841
-            # self.structure.show()
-            # remove.show()
-            raise NotImplementedError("... not yet!")
+            return NotImplemented
 
     def __getitem__(self, key: str) -> bigtree.Node:  # type: ignore[name-defined]
         """Get tree node by name (KLASS code)."""
@@ -217,7 +215,7 @@ class Taxonomy:
 
     def all_nodes(self) -> list[bigtree.node]:
         """Return all nodes in the taxonomy."""
-        return [n for n in self.structure.root.descendants]
+        return list(self.structure.root.descendants)
 
     def leaf_nodes(self, name: bigtree.Node | str = "") -> list[bigtree.node]:  # type: ignore[name-defined]
         """Return all leaf nodes in the taxonomy."""
@@ -267,7 +265,7 @@ class Taxonomy:
 
 def add_root_node(df: pd.DataFrame, root_node: dict[str, str | None]) -> pd.DataFrame:
     """Prepend root node row to taxonomy dataframe."""
-    new_row = {c: None for c in df.columns}
+    new_row = dict.fromkeys(df.columns, None)
     for k in root_node:
         new_row[k] = root_node[k]
     df.rename(columns={"name": "fullName"})
@@ -328,7 +326,7 @@ def search_by_tags(
     Returns:
         dict[str, dict[str, any]]: A dictionary of tags that match the criteria.
     """
-    return [k for k in filter_tags(tags, criteria).keys()]
+    return list(filter_tags(tags, criteria).keys())
 
 
 def inherit_set_tags(
@@ -627,7 +625,7 @@ def permutations(
 
         node_lists.append([node.name for node in nodes])
 
-    combinations = [combination for combination in itertools.product(*node_lists)]
+    combinations = itertools.product(*node_lists)
     for c in combinations:
         d = {}
         for k, v in zip(taxonomies.keys(), c, strict=False):
