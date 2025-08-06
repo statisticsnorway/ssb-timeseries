@@ -18,6 +18,25 @@ def eager(df: IntoFrameT) -> nw.DataFrame:
     return nw.from_native(df).lazy(backend="polars").collect()
 
 
+def empty_frame(*, columns: list | None = None, implementation: str = "") -> Any:
+    """Return a dataframe or Arrow table with no data."""
+    import pandas
+
+    # ... Pandas dependency is not wanted, but how to create empty df with Narwhals?
+    if columns:
+        df = nw.from_native(pandas.DataFrame(columns=columns))
+    else:
+        df = nw.from_native(pandas.DataFrame())
+
+    match implementation.lower():
+        case "arrow" | "":
+            return df.to_arrow()
+        case "pandas" | "pd":
+            return df.to_pandas()
+        case "polars" | "pd":
+            return df.to_polars()
+
+
 def empty(df: IntoFrame) -> bool:
     """Check if dataframe is empty."""
     # nox/mypy vs 1.10.1 --> [redundant-cast] | pre-commit --> [no-any-return]
@@ -34,8 +53,7 @@ def is_df_like(obj: Any) -> bool:
     """Checks if an object is "dataframe-like" for Narwhals compatibility.
 
     This is a robust, duck-typing alternative to `isinstance(obj, IntoFrameT)`,
-    which is not possible. It checks for attributes that are common to all
-    supported dataframe libraries (pandas, polars, pyarrow).
+    which is not possible.
 
     Args:
         obj: The object to check.
