@@ -37,7 +37,7 @@ def empty_frame(*, columns: list | None = None, implementation: str = "") -> Any
             return df.to_polars()
 
 
-def empty(df: IntoFrame) -> bool:
+def is_empty(df: IntoFrame) -> bool:
     """Check if dataframe is empty."""
     # nox/mypy vs 1.10.1 --> [redundant-cast] | pre-commit --> [no-any-return]
     # (but cast was introduced because of other error with other mypy env)

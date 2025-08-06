@@ -35,6 +35,7 @@ from ssb_timeseries import properties
 from ssb_timeseries.config import Config
 from ssb_timeseries.config import FileBasedRepository
 from ssb_timeseries.dataframes import empty_frame
+from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import datelike_to_utc
 from ssb_timeseries.dates import prepend_as_of
@@ -242,7 +243,7 @@ class FileSystem:
             df = prepend_as_of(new, self.as_of_utc)
         else:
             old = self.read_data(self.set_name)
-            if ts.dataset.empty(old):
+            if is_empty(old):
                 df = datelike_to_utc(new)
             else:
                 df = merge_data(
@@ -323,7 +324,7 @@ class FileSystem:
                 self.set_name,
             )
         data = nw.from_native(data)
-        if not ts.dataset.empty(data):
+        if not is_empty(data):
             self.write_data(
                 data,
                 tags=meta,
