@@ -286,6 +286,7 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
         ts.logger.debug(f"diff: {diff}")
         # --> assert should pass
 
+    assert isinstance(klass157, Taxonomy) and isinstance(file157, Taxonomy)
     assert klass157 == file157
 
 

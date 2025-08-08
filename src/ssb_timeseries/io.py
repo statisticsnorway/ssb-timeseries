@@ -24,7 +24,6 @@ from typing import NamedTuple
 from typing import cast
 
 import narwhals as nw
-import pandas
 import pyarrow
 import pyarrow.compute
 from narwhals.typing import FrameT
@@ -35,6 +34,8 @@ from ssb_timeseries import fs
 from ssb_timeseries import properties
 from ssb_timeseries.config import Config
 from ssb_timeseries.config import FileBasedRepository
+from ssb_timeseries.dataframes import empty_frame
+from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import datelike_to_utc
 from ssb_timeseries.dates import prepend_as_of
@@ -191,8 +192,7 @@ class FileSystem:
     def read_data(
         self,
         interval: str = "",  # TODO: Implement use av interval = Interval.all,
-        # implementation: str = "pandas",
-    ) -> pyarrow.Table:  # nw.LazyFrame | nw.DataFrame:
+    ) -> pyarrow.Table:
         """Read data from the filesystem. Return empty dataframe if not found."""
         ts.logger.debug(interval)
         if fs.exists(self.data_fullpath):
@@ -211,10 +211,10 @@ class FileSystem:
                     self.set_name,
                     self.data_fullpath,
                 )
-                df = nw.from_native(pandas.DataFrame()).to_arrow()
+                df = empty_frame()
 
         else:
-            df = nw.from_native(pandas.DataFrame()).to_arrow()
+            df = empty_frame()
             ts.logger.debug(
                 f"No file {self.data_fullpath} - return empty frame instead."
             )
@@ -243,7 +243,7 @@ class FileSystem:
             df = prepend_as_of(new, self.as_of_utc)
         else:
             old = self.read_data(self.set_name)
-            if ts.dataset.empty(old):
+            if is_empty(old):
                 df = datelike_to_utc(new)
             else:
                 df = merge_data(
@@ -301,7 +301,7 @@ class FileSystem:
     # ) -> pyarrow.Schema | None:
     #     """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
     #     return parquet_schema(self.data_type, meta)
-    # def parquet_schema_from_df(self, df: pandas.DataFrame) -> pyarrow.Schema | None:
+    # def parquet_schema_from_df(self, df) -> pyarrow.Schema | None:
     #     """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
     #     schema = pyarrow.schema(df.columns, metadata=df.dtypes.to_dict())
     #     return schema
@@ -324,7 +324,7 @@ class FileSystem:
                 self.set_name,
             )
         data = nw.from_native(data)
-        if not ts.dataset.empty(data):
+        if not is_empty(data):
             self.write_data(
                 data,
                 tags=meta,

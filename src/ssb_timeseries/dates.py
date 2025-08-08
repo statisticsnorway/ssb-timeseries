@@ -13,9 +13,10 @@ from zoneinfo import ZoneInfo
 from multipledispatch import dispatch
 
 from dateutil import parser
-from narwhals.typing import IntoFrameT, FrameT
+from narwhals.typing import IntoFrameT, FrameT, IntoSeriesT
 import narwhals as nw
 import narwhals.selectors as ncs
+from pandas import PeriodIndex
 
 import ssb_timeseries as ts
 
@@ -412,3 +413,9 @@ def standardize_dates(
 
     as_utc = datelike_to_utc(df)
     return datetime_time_unit(as_utc, time_unit)
+
+
+def period_index(col: IntoSeriesT, freq: str) -> PeriodIndex:
+    """Returns a period index for a date or datetime series."""
+    dates = nw.from_native(col, series_only=True).to_pandas()
+    return PeriodIndex(dates, freq=freq)

@@ -199,6 +199,8 @@ autodoc_type_aliases = {
     'LazyFrame': 'narwhals.LazyFrame',
     'Frame': 'narwhals.typing.Frame',
     'FrameT': 'narwhals.typing.FrameT',
+    'IntoSeries': 'narwhals.typing.IntoDataFrame',
+    'IntoSeriesT': 'narwhals.typing.IntoDataFrame',
     'IntoDataFrame': 'narwhals.typing.IntoDataFrame',
     'IntoDataFrameT': 'narwhals.typing.IntoDataFrameT',
     'IntoLazyFrame': 'narwhals.typing.IntoLazyFrame',
