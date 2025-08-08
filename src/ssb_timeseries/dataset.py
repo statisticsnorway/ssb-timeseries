@@ -60,9 +60,6 @@ from ssb_timeseries.dates import utc_iso
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
 
-# if TYPE_CHECKING:
-#     import pandas as pd
-
 # mypy: disable-error-code="assignment,attr-defined,union-attr,arg-type,call-overload,no-untyped-call,dict-item"
 # ruff: noqa: RUF013
 

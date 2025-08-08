@@ -49,6 +49,18 @@ def is_empty(df: IntoFrame) -> bool:
     return df_is_empty
 
 
+def are_equal(*frames: IntoFrame) -> bool:
+    """Check if dataframes are equal."""
+    first_df = nw.from_native(frames[0]).to_pandas()
+    for df in frames[1:]:
+        df = nw.from_native(df).to_pandas()
+        if df.shape != first_df.shape:
+            return False
+        if not all(df == first_df):
+            return False
+    return True
+
+
 def is_df_like(obj: Any) -> bool:
     """Checks if an object is "dataframe-like" for Narwhals compatibility.
 
