@@ -18,22 +18,42 @@ def eager(df: IntoFrameT) -> nw.DataFrame:
     return nw.from_native(df).lazy(backend="polars").collect()
 
 
-def empty_frame(*, columns: list | None = None, implementation: str = "") -> Any:
+def empty_frame(
+    *,
+    columns: list[str] | None = None,
+    schema: pyarrow.Schema | None = None,
+    implementation: str = "arrow",
+) -> Any:
     """Return a dataframe or Arrow table with no data."""
-    import pandas
+    if schema:
+        pa_tbl = pyarrow.Table.from_pylist([], schema=schema)
+        df = nw.from_native(pa_tbl)
+    elif columns:
+        # Pandas dependency to be removed,
+        # but Pyarrow implementsation below does not create columns :(
+        import pandas
 
-    # ... Pandas dependency is not wanted, but how to create empty df with Narwhals?
-    if columns:
-        df = nw.from_native(pandas.DataFrame(columns=columns))
+        pd_df = pandas.DataFrame(columns=columns)
+        df = nw.from_native(pd_df)  # type: ignore
+    elif columns and False:
+        pa_schema = pyarrow.schema([])
+        for c in columns:
+            if c in ["as_of", "valid_at", "valid_from", "valid_to"]:
+                pa_schema.append(pyarrow.field(c, pyarrow.date64()))
+            else:
+                pa_schema.append(pyarrow.field(c, pyarrow.float64()))
+        print(pa_schema)
+        pa_tbl = pyarrow.Table.from_pylist([], schema=pa_schema)
+        df = nw.from_native(pa_tbl)
     else:
-        df = nw.from_native(pandas.DataFrame())
+        df = nw.from_native(pyarrow.Table.from_pylist([]))
 
     match implementation.lower():
-        case "arrow" | "":
+        case "arrow" | "pyarrow" | "pa":
             return df.to_arrow()
         case "pandas" | "pd":
             return df.to_pandas()
-        case "polars" | "pd":
+        case "polars" | "pl":
             return df.to_polars()
 
 
