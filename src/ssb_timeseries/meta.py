@@ -107,8 +107,7 @@ def klass_classification(klass_id: int) -> KlassTaxonomy:
     for k in klass_data:
         if not k["parentCode"]:
             k["parentCode"] = root_node["code"]
-    # list_of_items = [root_node] + klass_data
-    list_of_items = [dict(o) for o in [root_node, *klass_data]]
+    list_of_items = [dict(record) for record in [root_node, *klass_data]]
     return list_of_items
 
 
