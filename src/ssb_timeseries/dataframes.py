@@ -42,7 +42,6 @@ def empty_frame(
                 pa_schema.append(pyarrow.field(c, pyarrow.date64()))
             else:
                 pa_schema.append(pyarrow.field(c, pyarrow.float64()))
-        print(pa_schema)
         pa_tbl = pyarrow.Table.from_pylist([], schema=pa_schema)
         df = nw.from_native(pa_tbl)
     else:
@@ -71,12 +70,16 @@ def is_empty(df: IntoFrame) -> bool:
 
 def are_equal(*frames: IntoFrame) -> bool:
     """Check if dataframes are equal."""
-    first_df = nw.from_native(frames[0]).to_pandas()
+    first_df = nw.from_native(frames[0]).to_polars()
     for df in frames[1:]:
-        df = nw.from_native(df).to_pandas()
+        df = nw.from_native(df).to_polars()
         if df.shape != first_df.shape:
             return False
-        if not all(df == first_df):
+        elif set(df.columns) != set(first_df.columns):
+            return False
+        elif not df.select(sorted(df.columns)).equals(
+            first_df.select(sorted(first_df.columns))
+        ):
             return False
     return True
 
