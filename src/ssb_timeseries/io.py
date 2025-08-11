@@ -384,9 +384,9 @@ class FileSystem:
                 case properties.Versioning.AS_OF:
                     return sorted([date_utc(as_of) for as_of in vs_strings])
                 case properties.Versioning.NAMES:
-                    return sorted(list(vs_strings))
+                    return sorted(vs_strings)
                 case properties.Versioning.NONE:
-                    return list(vs_strings)
+                    return vs_strings
                 case _:
                     raise ValueError(f"pattern '{pattern}' not recognized.")
         else:
