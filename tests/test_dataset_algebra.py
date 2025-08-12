@@ -5,6 +5,7 @@ import narwhals as nw
 import numpy as np
 import pytest
 
+from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import is_df_like
 from ssb_timeseries.dates import date_utc
@@ -378,7 +379,7 @@ def test_dataset_vectors(caplog):
         as_of_tz=date_utc("2022-01-01"),
         # series_tags={},
     )
-    assert xyz.data.empty
+    assert is_empty(xyz.data)
     xyz.data = df_a
     xyz.vectors()
     # logging.debug(f"matrix:\n{eval('x') == xyz['x']}")
@@ -406,7 +407,7 @@ def test_dataset_vectors_with_filter(caplog):
         as_of_tz=date_utc("2022-01-01"),
         series_tags={},
     )
-    assert xyz.data.empty
+    assert is_empty(xyz.data)
     tag_values = [["px", "qx", "r"]]
     xyz.data = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-10-03", freq="MS"

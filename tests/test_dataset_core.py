@@ -5,6 +5,7 @@ from datetime import timedelta
 import pytest
 from pytest import LogCaptureFixture
 
+from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import search
 from ssb_timeseries.dataset import select_repository
@@ -303,7 +304,7 @@ def test_load_existing_set_without_loading_data(
         load_data=False,
         as_of_tz=date_utc("2022-01-01"),
     )
-    assert x.data.empty
+    assert is_empty(x.data)
     tag_values = [value for value in tags.values()]
     x.data = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-10-03", freq="MS"

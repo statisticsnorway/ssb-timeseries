@@ -19,6 +19,8 @@ That in turn has practical implications for how the series can be interacted wit
     The :py:mod:`ssb_timeseries.catalog` module for tools for searching for datasets or series by names or metadata.
 """
 
+from __future__ import annotations
+
 import re
 import warnings
 from collections.abc import Iterable
@@ -27,34 +29,33 @@ from pathlib import Path
 from typing import Any
 from typing import Protocol
 from typing import cast
+from typing import no_type_check
 
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self  # noqa: UP035 #backport to 3.10
-from typing import no_type_check
 
 import matplotlib.pyplot as plt  # noqa: F401
 import narwhals as nw
 import narwhals.selectors as ncs
 import numpy as np
-import pandas as pd
 from narwhals.typing import Frame
 from narwhals.typing import IntoDType
 from narwhals.typing import IntoFrame
 from narwhals.typing import IntoFrameT
 from narwhals.typing import IntoSeries
-
-# if TYPE_CHECKING:
 from numpy.typing import NDArray
 
 import ssb_timeseries as ts
 from ssb_timeseries import io
 from ssb_timeseries import meta
-from ssb_timeseries.dataframes import empty
+from ssb_timeseries.dataframes import empty_frame
 from ssb_timeseries.dataframes import is_df_like
+from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_utc
+from ssb_timeseries.dates import period_index
 from ssb_timeseries.dates import utc_iso
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
@@ -232,18 +233,13 @@ class Dataset:
             as_of_utc=self.as_of_utc,
         )
 
-        # If data is provided by kwarg, use it.
-        # Otherwise, load it ... unless explicitly told not to.
-        # kwarg_data: IntoFrameT = kwargs.get("data", pd.DataFrame())
-        # kwarg_data = kwargs.get("data", pd.DataFrame())
-        # if not empty(kwarg_data):
         kwarg_data = kwargs.get("data", None)
-        if is_df_like(kwarg_data) and not empty(kwarg_data):
+        if is_df_like(kwarg_data) and not is_empty(kwarg_data):
             self.data = kwarg_data
         elif load_data:  # and self.data_type.versioning == properties.Versioning.AS_OF:
             self.data = self.io.read_data(self.as_of_utc)  # .to_native()
         else:
-            self.data = pd.DataFrame()
+            self.data = empty_frame()
 
         self.tags = self.default_tags()
         self.tags.update(self.io.read_metadata())
@@ -262,7 +258,7 @@ class Dataset:
             "separator": separator,
             "regex": regex,
         }
-        if not empty(self.data):
+        if not is_empty(self.data):
             self.tag_series(tags=apply_to_all)
             if ready_to_auto_tag:
                 self.series_names_to_tags()
@@ -363,7 +359,7 @@ class Dataset:
             self.tags.update(self.io.read_metadata())
 
             # autotag:
-            if not empty(self.data):
+            if not is_empty(self.data):
                 self.series_names_to_tags()
                 ts.logger.debug(
                     "DATASET %s: attempt to save empty tags = %s.", self.name, self.tags
@@ -971,6 +967,8 @@ class Dataset:
 
         Convenience wrapper around Dataframe.plot() with sensible defaults.
         """
+        import pandas
+
         df = nw.from_native(self.data).to_pandas()
 
         if self.data_type.temporality == ts.properties.Temporality.FROM_TO:
@@ -980,7 +978,7 @@ class Dataset:
                     from_data = df
                     to_data = df
                     from_data["valid_to"] = from_data["valid_from"]
-                    df = pd.concat(
+                    df = pandas.concat(
                         [from_data, to_data],
                         axis=0,
                         ignore_index=True,
@@ -1051,8 +1049,8 @@ class Dataset:
 
         # works for datetime_columns = "valid_at", untested for others
         # TODO: add support for ["valid_from", "valid_to"]
-        period_index = pd.PeriodIndex(self.data[datetime_columns[0]], freq=freq)
-        ts.logger.debug("DATASET %s: period index\n%s.", self.name, period_index)
+        period_idx = period_index(self.data[datetime_columns[0]], freq=freq)
+        ts.logger.debug("DATASET %s: period index\n%s.", self.name, period_idx)
 
         # Fix for case when **kwargs contains numeric_only
         if "numeric_only" in kwargs:
@@ -1061,11 +1059,11 @@ class Dataset:
 
         match func:
             case "mean":
-                out = self.data.groupby(period_index).mean(
+                out = self.data.groupby(period_idx).mean(
                     *args, numeric_only=numeric_only_value, **kwargs
                 )
             case "sum":
-                out = self.data.groupby(period_index).sum(
+                out = self.data.groupby(period_idx).sum(
                     *args, numeric_only=numeric_only_value, **kwargs
                 )
             case "auto":
@@ -1073,13 +1071,13 @@ class Dataset:
                 # in particular, how to check meta data and blend d1 and df2 values as appropriate
                 # (this implementation is just to show how it can be done)
                 # QUESTION: do we need a default for "other" series / what should it be?
-                df1 = self.data.groupby(period_index).mean(
+                df1 = self.data.groupby(period_idx).mean(
                     *args, numeric_only=numeric_only_value, **kwargs
                 )
                 ts.logger.debug(f"groupby\n{df1}.")
 
                 df2 = (
-                    self.data.groupby(period_index)
+                    self.data.groupby(period_idx)
                     .sum(*args, numeric_only=numeric_only_value, **kwargs)
                     .filter(regex="mendgde|volum|vekt")
                 )
@@ -1180,7 +1178,6 @@ class Dataset:
     def numeric_columns(self) -> list[str]:
         """Get names of all numeric series columns (ie columns that are not datetime)."""
         return sorted(nw.from_native(self.data).select(ncs.numeric()).columns)
-        # replaces: return [c for c in self.data.columns if c not in self.datetime_columns()]
 
     def numeric_array(self, series: str | list[str] = "") -> NDArray:
         """Get the data of numeric series columns in matrix format as a Numpy NDArray.
@@ -1206,7 +1203,6 @@ class Dataset:
     @no_type_check
     def math(
         self,
-        # other: Self | pd.DataFrame | pd.Series | int | float,
         other: Self | IntoFrame | IntoSeries | int | float | None,
         func,  # noqa: ANN001
     ) -> Any:
@@ -1292,31 +1288,31 @@ class Dataset:
 
         ts.logger.debug(f"DATASET.math: {new_name}\n\t{out.data.shape}")
         # print( f"DATASET.math: {new_name}\n\t{out.data.shape=}")
-        # TODO: Should also update series names and set/series tags?
+        # TODO: Should also update series names and set/series tags
         return out
 
-    def __add__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __add__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Add two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.add.
         """
         return self.math(other, np.add)
 
-    def __radd__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __radd__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Right add handles cases where a Dataset is added to a non-dataset object.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.add.
         """
         return self.__add__(other)
 
-    def __sub__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __sub__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Subtract two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.sub.
         """
         return self.math(other, np.subtract)
 
-    def __rsub__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __rsub__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Right subtract handles cases where a Dataset is subtrd from a non-Dataset.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.sub.
@@ -1324,21 +1320,21 @@ class Dataset:
         negative_self = self.__mul__(-1)
         return negative_self.__add__(other)
 
-    def __mul__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __mul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Multiply two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.muliply.
         """
         return self.math(other, np.multiply)
 
-    def __rmul__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __rmul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Right multiply two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.muliply.
         """
         return self.__mul__(other)
 
-    def __matmul__(self, other: Self | pd.DataFrame | pd.Series) -> Any:
+    def __matmul__(self, other: Self | IntoFrame | IntoSeries) -> Any:
         """Matrix multiply two datasets or a dataset and a dataframe, numpy array.
 
         The matmul function implements the semantics of the @ operator defined in PEP 465.
@@ -1351,21 +1347,21 @@ class Dataset:
         """
         return self.math(other, np.matmul)
 
-    def __rmatmul__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __rmatmul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Right matrix multiply two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.matmul.
         """
         return self.__mul__(other)
 
-    def __truediv__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __truediv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Divide two datasets, or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.divide.
         """
         return self.math(other, np.divide)
 
-    def __rtruediv__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __rtruediv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Right true divide handles cases when non-dataset objects are divided by datasets.
 
         Division is performed elementwise using Numpy broadcast rules. See np.divide.
@@ -1378,14 +1374,14 @@ class Dataset:
         # (Also, check behaviour with decimal datatype.)
         return inverse.math(None, np.reciprocal)
 
-    def __floordiv__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __floordiv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Floor divide two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.floordivide.
         """
         return self.math(other, np.floor_divide)
 
-    def __rfloordiv__(self, other: pd.DataFrame | pd.Series | int | float) -> Any:
+    def __rfloordiv__(self, other: IntoFrame | IntoSeries | int | float) -> Any:
         """Right floor divide handles cases when a dataframe, numpy array or scalar is divded by a dataset.
 
         Done element wise w. broadcast.
@@ -1395,14 +1391,14 @@ class Dataset:
         inverse = self.__floordiv__(other)
         return inverse.math(None, np.reciprocal)
 
-    def __pow__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __pow__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Power of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.power.
         """
         return self.math(other, np.power)
 
-    def __rpow__(self, other: pd.DataFrame | pd.Series | int | float) -> Any:
+    def __rpow__(self, other: IntoFrame | IntoSeries | int | float) -> Any:
         """Right power of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.power.
@@ -1415,14 +1411,14 @@ class Dataset:
         ln_a = np.log(other)  # may handling of input type variations?
         return exp_self.__pow__(ln_a)
 
-    def __mod__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __mod__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Modulo of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.mod.
         """
         return self.math(other, np.mod)
 
-    def __rmod__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __rmod__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Right modulo of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.mod.
@@ -1460,7 +1456,7 @@ class Dataset:
     @no_type_check
     def __eq__(
         self, other: object
-    ) -> Any:  # Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    ) -> Any:  # Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check equality of two datasets or one dataset and a dataframe, numpy array or scalar.
 
         Note that this is a pure value comparison, and thus different from comparing dataset identity as reflected in the metadata of two dataset instances.
@@ -1471,8 +1467,8 @@ class Dataset:
 
     def __ne__(
         self, other: Any
-    ) -> Any:  # Self | pd.DataFrame | pd.Series | int | float) -> Any:
-        # def __ne__(self, other:Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    ) -> Any:  # Self | IntoFrame | IntoSeries | int | float) -> Any:
+        # def __ne__(self, other:Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check inequality of two datasets or one dataset and a dataframe, numpy array or scalar.
 
         Note that this is a pure value comparison, and thus different from comparing dataset identity as reflected in the metadata of two dataset instances.
@@ -1481,35 +1477,35 @@ class Dataset:
         """
         return self.math(other, np.not_equal)
 
-    def __gt__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __gt__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check greater than for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.greater.
         """
         return self.math(other, np.greater)
 
-    def __lt__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __lt__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check less than for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.less.
         """
         return self.math(other, np.less)
 
-    def __ge__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __ge__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check greater than or equal for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.greater_equal.
         """
         return self.math(other, np.greater_equal)
 
-    def __le__(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def __le__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check less than or equal for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.less_equal.
         """
         return self.math(other, np.less_equal)
 
-    def isclose(self, other: Self | pd.DataFrame | pd.Series | int | float) -> Any:
+    def isclose(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check if two datasets or a dataset and a dataframe, numpy array or scalar are nearlly equal.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.isclose.
@@ -1715,7 +1711,7 @@ class Dataset:
         return out
 
 
-def column_aggregate(df: IntoFrameT, method: str | F) -> pd.Series | Any:
+def column_aggregate(df: IntoFrameT, method: str | F) -> Any:
     """Helper function to calculate aggregate over dataframe columns."""
     # ts.logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
     nw_df = nw.from_native(df)
@@ -1723,24 +1719,24 @@ def column_aggregate(df: IntoFrameT, method: str | F) -> pd.Series | Any:
 
     # the following is not pretty, but is left as is to simplify the transition away from pandas
     # a better approach: return nw.Expr for methods  --> TODO!
-    df = nw_df.to_pandas()
+    pd_df = nw_df.to_pandas()
 
     if isinstance(method, F):  # type: ignore
-        out = method(df)  # type: ignore[operator]
+        out = method(pd_df)  # type: ignore[operator]
     else:
         match method:
             case "mean" | "average":
-                out = df.mean(axis=1, numeric_only=True)
+                out = pd_df.mean(axis=1, numeric_only=True)
             case "min" | "minimum":
-                out = df.min(axis=1, numeric_only=True)
+                out = pd_df.min(axis=1, numeric_only=True)
             case "max" | "maximum":
-                out = df.max(axis=1, numeric_only=True)
+                out = pd_df.max(axis=1, numeric_only=True)
             case "count":
-                out = df.count(axis=1, numeric_only=True)
+                out = pd_df.count(axis=1, numeric_only=True)
             case "sum":
-                out = df.sum(axis=1, numeric_only=True)
+                out = pd_df.sum(axis=1, numeric_only=True)
             case "median":
-                out = df.quantile(0.5, axis=1, numeric_only=True)
+                out = pd_df.quantile(0.5, axis=1, numeric_only=True)
             case ["quantile", *params] | ["percentile", *params]:
                 if len(params) > 1:
                     interpolation: str = params[1]
@@ -1749,7 +1745,7 @@ def column_aggregate(df: IntoFrameT, method: str | F) -> pd.Series | Any:
                 quantile = float(params[0])
                 if quantile > 1:
                     quantile /= 100
-                out = df.quantile(
+                out = pd_df.quantile(
                     quantile,
                     axis=1,
                     numeric_only=True,
@@ -1760,7 +1756,7 @@ def column_aggregate(df: IntoFrameT, method: str | F) -> pd.Series | Any:
                     f"Aggregation method '{method}' is not implemented (yet)."
                 )
     return nw.new_series(
-        name=f"{method}({df.columns})",
+        name=f"{method}({pd_df.columns})",
         values=out,
         backend=nw_df.implementation,
     )
@@ -1819,7 +1815,7 @@ def _has_auto_tag_information(ds: Dataset, caller_workspace: dict) -> bool:
         and hasattr(ds["auto_tag_config"], "attributes")
         and ds["auto_tag_config"]["attributes"]
     ):
-        return not empty(ds.data)
+        return not is_empty(ds.data)
         # (no need to check separator or regex)
     else:
         return False

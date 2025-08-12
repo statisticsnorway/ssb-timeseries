@@ -115,9 +115,6 @@ def path(*args: PathStr) -> str:
     """Join args to form path. Make sure that gcs paths are begins with double slash: gs://..."""
     p = Path(args[0]).joinpath(*args[1:])
     return p
-    # .replace("gs:/", "gs://")
-    # Feels dirty. Could instead do something like:
-    # str(Path(args[0]).joinpath(*args[1:])).replace("gs:/{[a-z]}", "gs://{1}")
 
 
 def mkdir(path: PathStr) -> None:

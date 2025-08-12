@@ -5,30 +5,34 @@ Dataset and series tags are handled by Python dictionaries and stored in JSON fi
 It also consumes taxonomies. That is functionality that should live in the ssb-python-klass or other meta data libraries. Likely subject to refactoring later.
 """
 
-import io
 import itertools
 from copy import deepcopy
-from datetime import datetime
+from functools import cache
 from typing import Any
 
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self  # noqa: UP035 #backport to 3.10
+import re
+from collections.abc import Hashable
 from typing import TypeAlias
-from typing import TypedDict
 from typing import no_type_check
 
 import bigtree
 import bigtree.node
 import bigtree.tree
-import pandas as pd
+import narwhals as nw
+import pyarrow as pa
 from bigtree import get_tree_diff
 from bigtree import print_tree
 from klass import get_classification
+from narwhals.typing import IntoFrameT
 
 import ssb_timeseries as ts
 from ssb_timeseries import fs
+from ssb_timeseries.dataframes import are_equal
+from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.types import PathStr
 
 # mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-untyped-call,operator,valid-type,no-any-return"
@@ -39,11 +43,22 @@ SeriesTagDict: TypeAlias = dict[str, TagDict]
 DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict]
 
 
-def _df_info_as_string(df: pd.DataFrame) -> str:
-    """Returns the content of df.info() as a string."""
-    with io.StringIO() as buffer:
-        df.info(buf=buffer)
-        return buffer.getvalue()
+def camel_to_snake(name: str) -> str:
+    """Convert CamelCase to snake_case, handling acronyms.
+
+    Example:
+        'HTTPConnection' -> 'http_connection'
+    """
+    # Insert underscore before uppercase letter preceded by lowercase letter or digit.
+    #    e.g., 'CamelCase' -> 'Camel_Case', 'MyValue1' -> 'My_Value1'
+    name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", name)
+
+    # Insert an underscore before any uppercase letter that is followed
+    #    by a lowercase letter, but only if it's preceded by another
+    #    uppercase letter.
+    #    e.g., 'HTTPConnection' -> 'HTTP_Connection'
+    name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
+    return name.lower()
 
 
 class MissingAttributeError(Exception):
@@ -52,42 +67,74 @@ class MissingAttributeError(Exception):
     ...
 
 
-class KlassItem(TypedDict):
-    """The structure of taxonomy items as returned by the API (JSON) and :py:mod:`klass` (Pandas DataFrame)."""
+KLASS_ITEM_SCHEMA = pa.schema(
+    [
+        pa.field("code", "string", nullable=False),
+        pa.field("parentCode", "string", nullable=True),
+        pa.field("name", "string", nullable=False),
+        pa.field("level", "string", nullable=True),
+        pa.field("shortName", "string", nullable=True),
+        pa.field("presentationName", "string", nullable=True),
+        pa.field("validFrom", "string", nullable=True),
+        pa.field("validTo", "string", nullable=True),
+        pa.field("notes", "string", nullable=True),
+    ]
+)
 
-    # Included for docstring use only (but could be useful for working around the Pandas DataFrame representation?).
-    code: str
-    """A unique entity identifier within the taxonomy.
-    It may very well consist of numeric values, but will be represented as a string.
+DEFAULT_ROOT_NODE = {
+    "name": "<no name>",
+    "code": "0",
+    "parentCode": None,
+    "level": "0",
+    "shortName": "",
+    "presentationName": "",
+    "validFrom": "",
+    "validTo": "",
+    "notes": "",
+}
+
+KlassTaxonomy: TypeAlias = list[dict[Hashable, Any] | dict[str, str | None]]
+
+
+@cache
+def klass_classification(klass_id: int) -> KlassTaxonomy:
+    """Get KLASS classification identified by ID as a list of dicts."""
+    root_node = DEFAULT_ROOT_NODE
+    root_node["name"] = f"KLASS-{klass_id}"
+
+    classification = get_classification(str(klass_id)).get_codes()
+    klass_data = classification.data.to_dict("records")
+    for k in klass_data:
+        if not k["parentCode"]:
+            k["parentCode"] = root_node["code"]
+    list_of_items = [dict(record) for record in [root_node, *klass_data]]
+    return list_of_items
+
+
+def records_to_arrow(records: list[dict[str, Any]]) -> pa.Table:
+    """Creates a PyArrow Table from a list of dictionaries (row/records).
+
+    Args:
+        records: A list where each element is a dictionary representing a row.
+
+    Returns:
+        A pyarrow.Table representing the data.
     """
-    parentCode: str
-    """The code for the parent entity."""
-
-    name: str
-    """A unique human readable name. Not nullable."""
-
-    shortName: str
-    """A short version / mnemonic for name, if applicable."""
-
-    presentationName: str
-    """A "self explanatory" unique name, if applicable."""
-
-    validFrom: datetime | str
-    """Date or ISO string representing the start of the entity lifespan."""
-
-    validTo: datetime | str
-    """Date or ISO string representing the end of the entity lifespan."""
+    if not records:
+        return pa.Table.from_pylist([], schema=KLASS_ITEM_SCHEMA)
+    else:
+        return pa.Table.from_pylist(records, schema=KLASS_ITEM_SCHEMA)
 
 
 class Taxonomy:
     """Wraps taxonomies defined in KLASS or json files in a object structure.
 
     Attributes:
-        definition (str): Descriptions of the taxonomy.
-        name:
+        name  (str):
         structure_type:     enum:   list | tree | graph
         levels: number of levels not counting the root node
-        entities (pd.Dataframe): Entity definitions, represented as a dataframe with columns as defined by ::py:class:`KlassItem`.
+        entities (pa.Table): Entity definitions, represented as a dataframe with columns as defined by ::py:class:`KlassItem`.
+        structure (bigtree.tree):
 
     Notes:
         structure:
@@ -104,84 +151,64 @@ class Taxonomy:
         self,
         *,
         klass_id: int = 0,
-        data: list[dict[str, str]] | None = None,
+        data: list[dict[str, str]] | IntoFrameT | None = None,
         path: PathStr = "",
-        root_name: str = "Taxonomy",
+        name: str = "Taxonomy",
         sep: str = ".",
         **kwargs: Any,
     ) -> None:
-        """Create a Taxonomy object from either a `klass_id`, a `data` dictionary or a `path` to a JSON file.
+        """Create a Taxonomy object from either a `klass_id`, a `data` dictionary or dataframe or a `path` to a JSON file.
 
         Taxonomy items are listed in .entities and hierarchical relationships mapped in .structure.
         Optional keyword arguments: substitutions (dict): Code values to be replaced: `{'substitute_this': 'with_this', 'and_this': 'as well'}`
         """
-        self.definition = {"name": root_name}
-        root_node = {"code": "0", "parentCode": None, "name": root_name}
+        self.name = name
         if klass_id:
             # TO DO: handle versions of KLASS
-            klass_data_df = get_classification(str(klass_id)).get_codes().data
-            self.entities = add_root_node(klass_data_df, root_node)
-            # TO DO: change to dict implementation:
-            # list_of_items = klass_data_df.to_dict('records')
-            # ... also, while at it: parentCode --> parent, validFrom --> valid_from, etc
-            # ... then:
-            # klass_data_dict = {item['code']: item for item in list_of_items}
-            # klass_data_dict["0"] = {"code": "0", "parentCode": None, "name": root_name}
-            # self.entities = klass_data_dict.values()
-            # (then, if insisting on pandas) df = pandas.DataFrame(self.entities)
-        elif data:
-            # data.append(root_node)
-            df = pd.DataFrame(data)
-            self.entities = add_root_node(df, root_node)
+            list_of_items = klass_classification(klass_id)
+            tbl = records_to_arrow(list_of_items)
+        elif data and isinstance(data, list):
+            tbl = records_to_arrow(data)
+        elif data and not isinstance(data, list) and is_df_like(data):
+            tbl = nw.from_native(data).to_arrow()  # ignore: [type-var]
         elif path:
             dict_from_file = fs.read_json(str(path))
-            self.entities = pd.DataFrame(dict_from_file)
+            tbl = records_to_arrow(dict_from_file)
         else:
             raise MissingAttributeError(
-                "Either klass_id (int), data (dict), or path (str) must be provided to identify or construct a taxonomy."
+                "Either klass_id (int), data (dict|df), or path (str) must be provided."
             )
 
-        self.substitute(kwargs.get("substitutions"))
+        # TODO: add proper validation - check tbl for root node + duplicates + fill missing
+        self.entities = tbl
 
+        self.substitute(kwargs.get("substitutions", {}))
+
+        pandas_df = nw.from_native(self.entities).to_pandas()
         self.structure: bigtree.tree = bigtree.dataframe_to_tree_by_relation(
-            data=self.entities,
+            data=pandas_df,
             child_col="code",
             parent_col="parentCode",
-            attribute_cols=[
-                "name",
-                "shortName",
-                "presentationName",
-                "validFrom",
-                "validTo",
-                "notes",
-            ],
         )
 
     def __eq__(self, other: Self) -> bool:
         """Checks for equality. Taxonomies are considered equal if their codes and hierarchical relations are the same."""
         tree_diff = get_tree_diff(self.structure, other.structure)
         if tree_diff:
-            trees_equal = False
-        else:
-            trees_equal = True
+            return False
 
+        # the implementation of are_equal() allows comparing parentCode fields
+        # (which have value null for root nodes)
+        # fields_to_compare = ["code", "parentCode",]
         fields_to_compare = ["code", "parentCode", "name"]
-        s_entities = self.entities[fields_to_compare].reset_index(drop=True)
-        o_entities = other.entities[fields_to_compare].reset_index(drop=True)
 
-        ts.logger.debug(
-            "comparing:\n%s\n...and:\n%s",
-            s_entities.to_string(),
-            o_entities.to_string(),
+        self_tbl = self.entities.select(fields_to_compare).sort_by(
+            [(f, "ascending") for f in fields_to_compare]
         )
-        ts.logger.debug(
-            ".info:\n%s\n...and:\n%s",
-            _df_info_as_string(s_entities),
-            _df_info_as_string(o_entities),
+        othr_tbl = other.entities.select(fields_to_compare).sort_by(
+            [(f, "ascending") for f in fields_to_compare]
         )
-        entities_equal = all(s_entities == o_entities)
-
-        return trees_equal and entities_equal
+        return are_equal(self_tbl, othr_tbl)
 
     def __sub__(self, other: bigtree.Node) -> bigtree.Node:  # type: ignore[name-defined]
         """Return the tree difference between the two taxonomy (tree) structures."""
@@ -217,7 +244,7 @@ class Taxonomy:
         """Return all nodes in the taxonomy."""
         return list(self.structure.root.descendants)
 
-    def leaf_nodes(self, name: bigtree.Node | str = "") -> list[bigtree.node]:  # type: ignore[name-defined]
+    def leaf_nodes(self, name: bigtree.Node | str = "") -> list[bigtree.Node]:  # type: ignore[name-defined]
         """Return all leaf nodes in the taxonomy."""
         if name:
             if isinstance(name, bigtree.Node):
@@ -249,31 +276,24 @@ class Taxonomy:
 
         The file can be read using Taxonomy(<path to file>).
         """
-        # fs.write_json(path, self.entities.to_dict())
-        fs.write_json(path, self.entities.to_dict("records"))
+        pandas_df = nw.from_native(
+            self.entities
+        ).to_pandas()  # TO DO: reactor not to use pandas
+        fs.write_json(path, pandas_df.to_dict("records"))
 
     def substitute(self, substitutions: dict) -> None:
         """Substitute 'code' and 'parent' values with items in subsitution dictionary."""
         if substitutions:
-            # accept an empty dict, so that __init__ can pass kwargs.get(...,{})
+            df = nw.from_native(self.entities)
             for key, value in substitutions.items():
-                self.entities["code"] = self.entities["code"].str.replace(key, value)
-                self.entities["parentCode"] = self.entities["parentCode"].str.replace(
-                    key, value
+                df = df.with_columns(
+                    nw.col("code").str.replace_all(key, value, literal=True)
+                )
+                df = df.with_columns(
+                    nw.col("parentCode").str.replace_all(key, value, literal=True)
                 )
 
-
-def add_root_node(df: pd.DataFrame, root_node: dict[str, str | None]) -> pd.DataFrame:
-    """Prepend root node row to taxonomy dataframe."""
-    new_row = dict.fromkeys(df.columns, None)
-    for k in root_node:
-        new_row[k] = root_node[k]
-    df.rename(columns={"name": "fullName"})
-    df["parentCode"] = df["parentCode"].fillna(value=root_node["code"])
-    root_df = pd.DataFrame(root_node, index=[0])
-    df = pd.concat([root_df, df], ignore_index=True)
-    df.sort_index(inplace=True)
-    return df
+            self.entities = df.to_arrow()
 
 
 def matches_criteria(tag: dict[str, Any], criteria: dict[str, str | list[str]]) -> bool:
@@ -653,119 +673,3 @@ def permutations(
 #     tags = (pa.Table.from_pydict(filter_tags),)
 #     out = duckdb_query(query, objects=objects, tags=tags)
 #     return objects
-
-
-# A different approach for tagging sets and series was considered.
-# DatasetTags and SeriesTags classes are currently not used, but kept as the decision may be revisited.
-
-# define class Condition?
-
-
-# NO SONAR
-# @dataclass
-# class TaggedObject:
-#     """Tags for an object. Methods for manipulating tags."""
-
-#     name: str
-#     """The name of the object."""
-
-#     tags: dict[str | list[str]]
-#     """The tags of the object."""
-
-#     def __get_item__(self, identifiers: str | list[str]) -> Self:
-#         """Get specifed tags object."""
-#         ...
-#         return self.tags[identifiers]
-
-#     def add(
-#         self,
-#         tags: dict[str, str | list[str]] | None = None,
-#         condition: dict | None = None,
-#         **kwargs: str | list[str],
-#     ) -> None:
-#         """Add tags if they are not already present.
-
-#         Tags may be specified as kwargs or as a tags dict.
-#         """
-#         ...
-#         # -- if value not in self[attribute]:
-#         #    self[attribute].append(value)
-
-#     def remove(
-#         self,
-#         tags: dict[str, str | list[str]] | None = None,
-#         condition: dict | None = None,
-#         **kwargs: str | list[str],
-#     ) -> None:
-#         """Remove tags if they are present.
-
-#         Tags may be specified as kwargs or as a tags dict.
-#         """
-#         ...
-#         # -- if value  in self[attribute]:
-#         #    self[attribute].remove(value)
-
-#     def replace(
-#         self,
-#         tags: dict[str, str | list[str]] | None = None,
-#         **kwargs: str | list[str],
-#     ) -> None:
-#         """Remove tags if they are present.
-
-#         Tags may be specified as kwargs or as a tags dict.
-#         """
-#         ...
-#         # -- if value1  in self[attribute]:
-#         #    self[attribute].remove(value1)
-#         #    self[attribute].add(value2)
-
-#     def propagate(
-#         self,
-#         operation: str = "add",
-#         fields: str | list[str] = "",
-#         **kwargs: str | list[str],
-#     ) -> None:
-#         """Propagate tagging operation to <field>.
-
-#         Series may be identified by series names or index, a list of series names or list of series indexes, or a dict of tags.
-#         Tags may be specified as kwargs or as a tags dict.
-#         Operation (optional: 'add' (default) | 'replace' | 'remove') specifies the action to perform on the identified series.
-#         """
-#         for f in fields:
-#             for k, v in kwargs.items():
-#                 match operation:
-#                     case "add":
-#                         self.__getattribute__(f)[k].add(v)
-#                     case "replace":
-#                         self.__getattribute__(f)[k].replace(v)
-#                     case "remove":
-#                         self.__getattribute__(f)[k].remove(v)
-#                     case _:
-#                         raise ValueError(f"Invalid operation: {operation}.")
-
-
-# NO SONAR
-# @dataclass
-# class SeriesTags(TaggedObject):
-#     """Series Tags: key value pairs with series metadata."""
-
-#     dataset: str
-#     name: str
-#     index: int
-#     tags: dict[str, str | list[str]]
-
-#     def __get_item__(self, identifiers: str | list[str]) -> str | list[str]:
-#         """Get tags for one or more series of the dataset tag object."""
-#         ...
-#         return self.tags[identifiers]
-
-
-# NO SONAR
-# # @dataclass
-# class DatasetTags(TaggedObject):
-#     """Dataset Tags: key value pairs with dataset metadata. Methods for manipulating tags."""
-
-#     name: str
-#     versioning: str
-#     temporality: str
-#     series: dict[str, SeriesTags]

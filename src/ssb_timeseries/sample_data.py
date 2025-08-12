@@ -3,12 +3,23 @@
 import itertools
 from datetime import datetime
 from datetime import timedelta
+from functools import partial
+from typing import Any
 
+import narwhals as nw
 import numpy as np
-import pandas as pd
+from dateutil.relativedelta import relativedelta
+from dateutil.rrule import DAILY
+from dateutil.rrule import HOURLY
+from dateutil.rrule import MINUTELY
+from dateutil.rrule import MONTHLY
+from dateutil.rrule import SECONDLY
+from dateutil.rrule import WEEKLY
+from dateutil.rrule import YEARLY
+from dateutil.rrule import rrule
 
 from ssb_timeseries.dates import date_round
-from ssb_timeseries.dates import date_utc
+from ssb_timeseries.dates import ensure_datetime
 
 # mypy: disable-error-code="arg-type, type-arg, import-untyped, unreachable, attr-defined"
 
@@ -64,7 +75,8 @@ def create_df(
     variance: int | float = 10,
     temporality: str = "AT",
     decimals: int = 0,
-) -> pd.DataFrame:
+    implementation: str = "pandas",
+) -> Any:
     """Generate sample data for specified date range and permutations over lists.
 
     Args:
@@ -83,15 +95,16 @@ def create_df(
             'S' for secondly,
             etc.
             Optional, default is 'D'.
-        interval (int): The interval between dates. ; optionalDefault is 1.
-        separator (str): The separator used to join combinations. Optional, default is '_'.
-        midpoint (float): The midpoint value for generating random data. Optional, default is 100.
-        variance (float): The variance value for generating random data. Optional, default is 10.
-        temporality (str): The temporality of the data. Default is 'AT'.
-        decimals (int): The number of decimal places to round to. Optional, default is 0.
+        interval: The interval between dates. ; optionalDefault is 1.
+        separator: The separator used to join combinations. Optional, default is '_'.
+        midpoint: The midpoint value for generating random data. Optional, default is 100.
+        variance: The variance value for generating random data. Optional, default is 10.
+        temporality: The temporality of the data. Default is 'AT'.
+        decimals: The number of decimal places to round to. Optional, default is 0.
+        implementation: Narwhals supported dataframe library or object type.
 
     Returns:
-        DataFrame: A DataFrame containing sample data.
+        A DataFrame or similar object (Numpy array, Arrow table, dict) containing sample data.
 
     Example:
     ```
@@ -104,61 +117,96 @@ def create_df(
     if not end_date:
         end_date = date_round(datetime.now())
 
-    freq_lookup = {
-        "Y": "years",
-        "YS": "years",
-        "M": "months",
-        "ME": "months",
-        "MS": "months",
-        "D": "days",
-        "H": "hours",
-        "T": "minutes",
-        "S": "seconds",
-    }
-    offset = pd.DateOffset(**{freq_lookup[freq]: interval})
-    valid_at = pd.date_range(start=start_date, end=end_date, freq=f"{interval}{freq}")
-    valid_from = valid_at
-    valid_to = pd.date_range(
-        start=date_utc(start_date) + offset,
-        end=date_utc(end_date) + offset,
-        freq=f"{interval}{freq}",
-    )
-    # ... valid_to = valid_from + pd.DateOffset(**{freq_lookup[freq]: interval})  # type: ignore
-
-    # BUGFIX: If *lists receives strings, permutations will be over chars by chars
-    # Kombiner listene til en enkelt liste av lister
-    # list = list(lists)
-
-    # name_parts = series_names(*lists)
-    # Generer alle mulige kombinasjoner av listene med separator
-    # series = [
-    #     separator.join(combination) for combination in itertools.product(*name_parts)
-    # ]
     series = series_names(*lists, separator=separator)
+    dates = date_ranges(
+        start_date=ensure_datetime(start_date),
+        end_date=ensure_datetime(end_date),
+        freq=freq,
+        interval=interval,
+        temporality=temporality,
+    )
 
-    # Opprett DataFrame med tilfeldige tall
-    rows = len(valid_at)
+    rows = len(dates.get("valid_at", dates.get("valid_from")))
     cols = len(series)
-    some_numbers = random_numbers(
+    numbers = random_numbers(
         rows, cols, midpoint=midpoint, variance=variance, decimals=decimals
     )
-    df = pd.DataFrame(
-        # (midpoint + variance * np.random.randn(rows, cols)).round(decimals),
-        some_numbers,
-        columns=series,
-        dtype="float32[pyarrow]",
+    data_dict = {**dates, **{name: numbers[:, i] for i, name in enumerate(series)}}
+
+    if implementation == "dict":
+        return data_dict
+    else:
+        nw_df = nw.from_dict(data_dict, backend=implementation)
+        match implementation.lower():
+            case "pyarrow" | "arrow" | "pa":
+                return nw_df.to_arrow()
+            case "numpy" | "np":
+                return nw_df.to_numpy()
+            case "polars" | "pl":
+                return nw_df.to_polars()
+            case "narwhals" | "nw":
+                return nw_df
+            case "pandas" | "pd" | _:
+                return nw_df.to_pandas()
+
+
+def date_ranges(
+    start_date: datetime,
+    end_date: datetime,
+    freq: str,
+    interval: int = 1,
+    temporality: str = "AT",
+) -> dict[str, list[datetime]]:
+    """Generate a list of dates with a specified frequency."""
+    freq_map = {
+        "Y": YEARLY,
+        "YS": YEARLY,
+        "YE": YEARLY,
+        "M": MONTHLY,
+        "MS": MONTHLY,
+        "ME": MONTHLY,
+        "W": WEEKLY,
+        "D": DAILY,
+        "H": HOURLY,
+        "T": MINUTELY,
+        "S": SECONDLY,
+    }
+    if freq[0] == "Q":
+        interval *= 3
+        freq = freq.replace("Q", "M")
+
+    if freq[0] == "Y":
+        bymonth = 1
+        bymonthday = 1
+        if freq[-1] == ("E"):
+            bymonthday = -1
+    elif freq in ("M", "MS"):
+        bymonth = None
+        bymonthday = 1
+    elif freq in ("ME"):
+        bymonth = None
+        bymonthday = -1
+    else:
+        bymonth = None
+        bymonthday = None
+
+    r = partial(
+        rrule,
+        freq=freq_map[freq.upper()],
+        interval=interval,
+        bymonth=bymonth,
+        bymonthday=bymonthday,
     )
-
-    match temporality:
-        case "AT":
-            df.insert(0, "valid_at", valid_at)
-            df.set_index("valid_at")
-        case "FROM_TO":
-            df.insert(0, "valid_to", valid_to)
-            df.insert(0, "valid_from", valid_from)
-            df.set_index(["valid_from", "valid_to"])
-
-    return df
+    d = r(
+        dtstart=start_date,
+        until=end_date,
+    )
+    if temporality == "AT":
+        return {"valid_at": list(d)}
+    else:
+        delta = relativedelta(d[0], d[1])
+        d_to = r(dtstart=start_date + delta, until=end_date + delta)
+        return {"valid_from": list(d), "valid_to": list(d_to)}
 
 
 def random_numbers(
@@ -174,7 +222,7 @@ def random_numbers(
     return midpoint + variance * random_matrix.round(decimals)
 
 
-def xyz_at() -> pd.DataFrame:
+def xyz_at(implementation: str = "pandas") -> Any:
     """Return a :py:class:`Temporality.AT` compliant dataframe with a year of monthly data for series 'x', 'y' and 'z'."""
     df = create_df(
         ["x", "y", "z"],
@@ -182,11 +230,12 @@ def xyz_at() -> pd.DataFrame:
         end_date="2022-12-31",
         freq="MS",
         temporality="AT",
+        implementation=implementation,
     )
     return df
 
 
-def xyz_from_to() -> pd.DataFrame:
+def xyz_from_to(implementation: str = "pandas") -> Any:
     """Return a :py:class:`Temporality.FROM_TO` compliant dataframe with a year of monthly data for series 'x', 'y' and 'z'."""
     df = create_df(
         ["x", "y", "z"],
@@ -194,5 +243,6 @@ def xyz_from_to() -> pd.DataFrame:
         end_date="2022-12-31",
         freq="MS",
         temporality="FROM_TO",
+        implementation=implementation,
     )
     return df

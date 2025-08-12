@@ -24,7 +24,6 @@ from typing import NamedTuple
 from typing import cast
 
 import narwhals as nw
-import pandas
 import pyarrow
 import pyarrow.compute
 from narwhals.typing import FrameT
@@ -35,6 +34,8 @@ from ssb_timeseries import fs
 from ssb_timeseries import properties
 from ssb_timeseries.config import Config
 from ssb_timeseries.config import FileBasedRepository
+from ssb_timeseries.dataframes import empty_frame
+from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import datelike_to_utc
 from ssb_timeseries.dates import prepend_as_of
@@ -179,7 +180,8 @@ class FileSystem:
     def metadata_dir(self) -> str:
         """The location of the metadata file for the dataset.
 
-        In the inital implementation with data and metadata in separate files it made sense for this to be the same as the data directory. However, Most likely, in a future version we will change this apporach and store metadata as header information in the data file, and the same information in a central meta data directory.
+        In the inital implementation with data and metadata in separate files this was the same as the data directory.
+        Now metadata is included in the data file, but also 'registered' in a central meta data directory.
         """
         return self.repository["catalog"]
 
@@ -191,8 +193,7 @@ class FileSystem:
     def read_data(
         self,
         interval: str = "",  # TODO: Implement use av interval = Interval.all,
-        # implementation: str = "pandas",
-    ) -> pyarrow.Table:  # nw.LazyFrame | nw.DataFrame:
+    ) -> pyarrow.Table:
         """Read data from the filesystem. Return empty dataframe if not found."""
         ts.logger.debug(interval)
         if fs.exists(self.data_fullpath):
@@ -202,8 +203,7 @@ class FileSystem:
                 self.data_fullpath,
             )
             try:
-                # df = fs.read_parquet(self.data_fullpath, implementation=implementation)
-                df = nw.from_native(fs.read_parquet(self.data_fullpath)).to_arrow()
+                df = fs.read_parquet(self.data_fullpath, implementation="pyarrow")
                 ts.logger.info("DATASET.read.success %s: Read data.", self.set_name)
             except FileNotFoundError:
                 ts.logger.exception(
@@ -211,10 +211,10 @@ class FileSystem:
                     self.set_name,
                     self.data_fullpath,
                 )
-                df = nw.from_native(pandas.DataFrame()).to_arrow()
+                df = empty_frame()
 
         else:
-            df = nw.from_native(pandas.DataFrame()).to_arrow()
+            df = empty_frame()
             ts.logger.debug(
                 f"No file {self.data_fullpath} - return empty frame instead."
             )
@@ -236,14 +236,18 @@ class FileSystem:
         return meta
 
     def write_data(self, data: FrameT, tags: dict | None = None) -> None:
-        """Write data to the filesystem. If versioning is AS_OF, write to new file. If versioning is NONE, write to existing file."""
+        """Writes data to the filesystem.
+
+        If versioning is AS_OF, writes to new file.
+        If versioning is NONE, writes to existing file.
+        """
         new = nw.from_native(data)
         if self.data_type.versioning == properties.Versioning.AS_OF:
             # consider a merge option for versioned writing?
             df = prepend_as_of(new, self.as_of_utc)
         else:
             old = self.read_data(self.set_name)
-            if ts.dataset.empty(old):
+            if is_empty(old):
                 df = datelike_to_utc(new)
             else:
                 df = merge_data(
@@ -262,7 +266,6 @@ class FileSystem:
                 data=df,
                 path=self.data_fullpath,
                 schema=parquet_schema(self.data_type, tags),
-                # existing_data_behavior="overwrite_or_ignore",
             )
         except Exception as e:
             ts.logger.exception(
@@ -301,7 +304,7 @@ class FileSystem:
     # ) -> pyarrow.Schema | None:
     #     """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
     #     return parquet_schema(self.data_type, meta)
-    # def parquet_schema_from_df(self, df: pandas.DataFrame) -> pyarrow.Schema | None:
+    # def parquet_schema_from_df(self, df) -> pyarrow.Schema | None:
     #     """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
     #     schema = pyarrow.schema(df.columns, metadata=df.dtypes.to_dict())
     #     return schema
@@ -324,7 +327,7 @@ class FileSystem:
                 self.set_name,
             )
         data = nw.from_native(data)
-        if not ts.dataset.empty(data):
+        if not is_empty(data):
             self.write_data(
                 data,
                 tags=meta,
@@ -381,9 +384,9 @@ class FileSystem:
                 case properties.Versioning.AS_OF:
                     return sorted([date_utc(as_of) for as_of in vs_strings])
                 case properties.Versioning.NAMES:
-                    return sorted([name for name in vs_strings])
+                    return sorted(vs_strings)
                 case properties.Versioning.NONE:
-                    return [late for late in vs_strings]
+                    return vs_strings
                 case _:
                     raise ValueError(f"pattern '{pattern}' not recognized.")
         else:
@@ -528,7 +531,7 @@ class FileSystem:
 
 
 def find_datasets(
-    pattern: str | PathStr = "",  # as_of: datetime | None = None
+    pattern: str | PathStr = "",
     exclude: str = "metadata",
     repository: list[PathStr] | PathStr = "",
 ) -> list[SearchResult]:
@@ -564,13 +567,7 @@ def find_datasets(
     for search_dir, repo in zip(search_directories, repo_names, strict=False):
         ts.logger.debug("%s | %s", search_dir, repo)
         search_results.extend(
-            [
-                # d.replace(active_config().timeseries_root, "root").split(os.path.sep)
-                # d.replace(search_dir, "root").split(os.path.sep)
-                # VERIFY that identifying multiple repos by name works?
-                d.replace(search_dir, repo).split(os.path.sep)
-                for d in dirs
-            ]
+            [d.replace(search_dir, repo).split(os.path.sep) for d in dirs]
         )
     ts.logger.debug("search results: %s", search_results)
     return [SearchResult(f[2], f[1]) for f in search_results]
@@ -579,7 +576,7 @@ def find_datasets(
 def find_metadata_files(
     repository: list[PathStr] | PathStr | None = None,
     pattern: str = "",
-    contains: str = "",  # as_of: datetime | None = None
+    contains: str = "",
     equals: str = "",
 ) -> list[str]:
     """Search for metadata json files in the 'catalog' directory.
@@ -634,9 +631,7 @@ def find_metadata_files(
     return result
 
 
-def list_datasets(
-    # pattern: str | PathStr = "",  # as_of: datetime | None = None
-) -> list[SearchResult]:
+def list_datasets() -> list[SearchResult]:
     """List all datasets under timeseries root."""
     return find_datasets(pattern="")
 
@@ -648,7 +643,7 @@ class DatasetIoException(Exception):
 
 
 def for_all_datasets_move_metadata_files(
-    pattern: str | PathStr = "",  # as_of: datetime | None = None
+    pattern: str | PathStr = "",
 ) -> list[SearchResult]:
     """Search for files in under timeseries root."""
     if pattern:
@@ -673,7 +668,7 @@ def normalize_numeric(
     nw_df = nw.from_native(df).lazy(backend="polars")
     expressions = []
     expressions.append(nw.selectors.by_dtype(nw.Float32).cast(nw.Float64))
-    return nw_df.with_columns(expressions).collect()  # .to_native()
+    return nw_df.with_columns(expressions).collect()
 
 
 def merge_data(
@@ -780,5 +775,4 @@ def tags_from_json_file(
         return result
     else:
         t = fs.read_json(file_or_files)
-        # t = json.loads(j)
         return DatasetTagDict(t)
