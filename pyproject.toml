@@ -5,15 +5,20 @@ description = "SSB Timeseries"
 authors = ["Bernhard Ryeng <bernhard.ryeng@ssb.no>"]
 license = "MIT"
 readme = "README.md"
+
+[project.urls]
 homepage = "https://github.com/statisticsnorway/ssb-timeseries"
 repository = "https://github.com/statisticsnorway/ssb-timeseries"
 documentation = "https://statisticsnorway.github.io/ssb-timeseries"
 classifiers = ["Development Status :: 4 - Beta"]
-
-[tool.poetry.urls]
 Changelog = "https://github.com/statisticsnorway/ssb-timeseries/releases"
 
+[project.scripts]
+ssb-timeseries = "ssb_timeseries.__main__:main"
+timeseries-config = "ssb_timeseries.config:main"
+
 [tool.poetry.dependencies]
+click = ">=8.0.1"
 python = ">=3.10,<4.0"
 dapla-toolbelt = ">=1.3.2"
 pandas = ">=2.1.1"
@@ -53,23 +58,16 @@ sphinx-click = ">=3.0.2"
 typeguard = ">=2.13.3"
 xdoctest = { extras = ["colors"], version = ">=0.15.10" }
 myst-parser = { version = ">=0.16.1" }
-deptry = ">=0.16.1"
 click = ">=8.1.7"
 pytest-mypy = "^1.0.1"
+deptry = ">=0.23.0"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-#addopts = [ "--import-mode=importlib", ] # RYE: not needed? (added in a wild goose chase)
 filterwarnings = [
     "error",
     "error", "ignore::pytest.PytestUnraisableExceptionWarning",
-    #"ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*", # Introduced with Pillow 13; await pandas update.
 ]
-# log_cli = true # does NOT fix issues with configuring loggers for testing
-
-[tool.poetry.scripts]
-ssb-timeseries = "ssb_timeseries.__main__:main"
-timeseries-config = "ssb_timeseries.config:main"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
