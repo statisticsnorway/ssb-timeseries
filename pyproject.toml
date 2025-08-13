@@ -10,7 +10,16 @@ readme = "README.md"
 homepage = "https://github.com/statisticsnorway/ssb-timeseries"
 repository = "https://github.com/statisticsnorway/ssb-timeseries"
 documentation = "https://statisticsnorway.github.io/ssb-timeseries"
-classifiers = ["Development Status :: 4 - Beta"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "License :: OSI Approved :: MIT License",
+  "Development Status :: 4 - Beta",
+  "Typing :: Typed",
+]
 Changelog = "https://github.com/statisticsnorway/ssb-timeseries/releases"
 
 [project.scripts]
