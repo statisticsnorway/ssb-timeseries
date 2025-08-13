@@ -5,22 +5,22 @@ description = "SSB Timeseries"
 authors = ["Bernhard Ryeng <bernhard.ryeng@ssb.no>"]
 license = "MIT"
 readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Typing :: Typed"
+]
 
 [project.urls]
 homepage = "https://github.com/statisticsnorway/ssb-timeseries"
 repository = "https://github.com/statisticsnorway/ssb-timeseries"
-documentation = "https://statisticsnorway.github.io/ssb-timeseries"
-classifiers = [
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "License :: OSI Approved :: MIT License",
-  "Development Status :: 4 - Beta",
-  "Typing :: Typed",
-]
 Changelog = "https://github.com/statisticsnorway/ssb-timeseries/releases"
+documentation = "https://statisticsnorway.github.io/ssb-timeseries"
 
 [project.scripts]
 ssb-timeseries = "ssb_timeseries.__main__:main"
