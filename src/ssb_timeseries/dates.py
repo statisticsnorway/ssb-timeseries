@@ -267,9 +267,9 @@ def datetime_localize(df: IntoFrameT, target_tz: TimeZone = "") -> IntoFrameT:
         >>> df = pd.DataFrame({'time': [
         ...     '2022-01-01 11:30',
         ...     '2022-01-01 12:00',
-        ...     '2022-01-01 12:30,
+        ...     '2022-01-01 12:30',
         ...     '2022-01-01 13:00'
-        ]})
+        ... ]})
         >>> datetime_localize(datelike_to_datetime(df))
     """
     nw_df = nw.from_native(df)
