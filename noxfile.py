@@ -27,7 +27,7 @@ python_versions = ["3.11", "3.12", "3.13"]
 python_versions_for_test = python_versions + ["3.10"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
-    "pre-commit",
+    "lint",
     "mypy",
     "tests",
     "typeguard",
@@ -251,7 +251,7 @@ def xdoctest(session: Session) -> None:
         args = [package, *session.posargs]
     else:
         args = [f"--modname={package}", "--command=all"]
-        args.append("--style=google") # RYE: enable  directives +SETUP and +REQUIRES
+        args.append("--style=google") # RYE: enable directives +SETUP and +REQUIRES
         if "FORCE_COLOR" in os.environ:
             args.append("--colored=1")
 
