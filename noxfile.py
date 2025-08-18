@@ -163,7 +163,7 @@ def setup_windows_tzdata(session: Session) -> None:
 
 @nox.session(python=python_versions[0])
 def lint(session: Session) -> None:
-    """Lint using ruff."""
+    """Ruff format check."""
     # We install ruff directly.
     session.install("ruff")
     session.run("ruff", "check", ".")
