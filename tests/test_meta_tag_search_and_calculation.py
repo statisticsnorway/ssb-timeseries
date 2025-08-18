@@ -22,7 +22,7 @@ from ssb_timeseries.sample_data import create_df
 def test_find_data_using_single_metadata_attribute(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Filter series in set by series tag: {'A': 'a'}."""
+    """Select series in set by series tag: {'A': 'a'}."""
     caplog.set_level(logging.DEBUG)
 
     set_name = f"test-datetimecols-{uuid.uuid4().hex}"
@@ -44,18 +44,18 @@ def test_find_data_using_single_metadata_attribute(
         attributes=["A", "B", "C"],
     )
 
-    x_filtered_on_attribute_a = x.filter(tags={"A": "a"})
+    x_selected_on_attribute_a = x.select(tags={"A": "a"})
     expected_matches = ["a_p_z", "a_q_z", "a_r_z"]
 
     ts.logger.debug(
-        f"x_filtered_on_attribute_a: \n\t{x_filtered_on_attribute_a.series}\n vs expected:\n\t{expected_matches}"
+        f"x_selected_on_attribute_a: \n\t{x_selected_on_attribute_a.series}\n vs expected:\n\t{expected_matches}"
     )
-    assert isinstance(x_filtered_on_attribute_a, Dataset)
-    assert sorted(x_filtered_on_attribute_a.numeric_columns()) == sorted(
+    assert isinstance(x_selected_on_attribute_a, Dataset)
+    assert sorted(x_selected_on_attribute_a.numeric_columns()) == sorted(
         expected_matches
     )
 
-    returned_series_tags = x_filtered_on_attribute_a.tags["series"]
+    returned_series_tags = x_selected_on_attribute_a.tags["series"]
     for key in returned_series_tags.keys():
         assert returned_series_tags[key]["dataset"] != set_name
         assert returned_series_tags[key]["name"] == key
@@ -65,7 +65,7 @@ def test_find_data_using_single_metadata_attribute(
 def test_find_data_using_multiple_metadata_attributes(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Filter series in set by series tags: {'A': 'a', 'B': 'q'}.
+    """Select series in set by series tags: {'A': 'a', 'B': 'q'}.
 
     Returned series should satisfy {'A': 'a'} AND {'B': 'q'}
     """
@@ -90,18 +90,18 @@ def test_find_data_using_multiple_metadata_attributes(
         attributes=["A", "B", "C"],
     )
 
-    x_filtered_on_attribute_a_and_b = x.filter(tags={"A": "a", "B": "q"})
+    x_selected_on_attribute_a_and_b = x.select(tags={"A": "a", "B": "q"})
     expected_matches = ["a_q_z"]
 
     ts.logger.debug(
-        f"x_filtered_on_attribute_a: \n\t{x_filtered_on_attribute_a_and_b.series}\n vs expected:\n\t{expected_matches}"
+        f"x_selected_on_attribute_a: \n\t{x_selected_on_attribute_a_and_b.series}\n vs expected:\n\t{expected_matches}"
     )
-    assert isinstance(x_filtered_on_attribute_a_and_b, Dataset)
-    assert sorted(x_filtered_on_attribute_a_and_b.numeric_columns()) == sorted(
+    assert isinstance(x_selected_on_attribute_a_and_b, Dataset)
+    assert sorted(x_selected_on_attribute_a_and_b.numeric_columns()) == sorted(
         expected_matches
     )
 
-    returned_series_tags = x_filtered_on_attribute_a_and_b.tags["series"]
+    returned_series_tags = x_selected_on_attribute_a_and_b.tags["series"]
     for key in returned_series_tags.keys():
         assert returned_series_tags[key]["dataset"] != set_name
         assert returned_series_tags[key]["name"] == key
@@ -112,7 +112,7 @@ def test_find_data_using_multiple_metadata_attributes(
 def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_values(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Filter series in set by series tags: {'A': ['a', 'b']}.
+    """Select series in set by series tags: {'A': ['a', 'b']}.
 
     Returned series should satisfy {'A': 'a'} OR {'A': 'b'}
     """
@@ -137,21 +137,21 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
         attributes=["A", "B", "C"],
     )
 
-    x_filtered_on_attribute_a = x.filter(tags={"A": ["a", "b"]})
+    x_selected_on_attribute_a = x.select(tags={"A": ["a", "b"]})
     expected_matches = ["a_p_z", "a_q_z", "a_r_z", "b_p_z", "b_q_z", "b_r_z"]
 
     ts.logger.debug(
-        f"x_filtered_on_attribute_a: \n\t{x_filtered_on_attribute_a.series}\n vs expected:\n\t{expected_matches}"
+        f"x_selected_on_attribute_a: \n\t{x_selected_on_attribute_a.series}\n vs expected:\n\t{expected_matches}"
     )
-    assert isinstance(x_filtered_on_attribute_a, Dataset)
-    assert sorted(x_filtered_on_attribute_a.numeric_columns()) == sorted(
+    assert isinstance(x_selected_on_attribute_a, Dataset)
+    assert sorted(x_selected_on_attribute_a.numeric_columns()) == sorted(
         expected_matches
     )
     assert (
-        x_filtered_on_attribute_a.name != set_name
-    )  # .filter() returns a new set and changes the name
+        x_selected_on_attribute_a.name != set_name
+    )  # .select() returns a new set and changes the name
 
-    returned_series_tags = x_filtered_on_attribute_a.tags["series"]
+    returned_series_tags = x_selected_on_attribute_a.tags["series"]
     for key in returned_series_tags.keys():
         assert (
             returned_series_tags[key]["dataset"] != set_name
@@ -364,7 +364,7 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
         klass157.parent_nodes() * len(multiple_functions)
     )
     for func in multiple_functions:
-        assert sorted(y.filter(pattern=func).numeric_columns()) == sorted(
+        assert sorted(y.select(pattern=func).numeric_columns()) == sorted(
             [f"{func}({n.name})" for n in klass157.parent_nodes()]
         )
 
@@ -434,7 +434,7 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
     )
 
     for func in multiple_functions:
-        z = y.filter(pattern=func)
+        z = y.select(pattern=func)
         print(z)
         assert sorted(z.numeric_columns()) == sorted(
             [f"{func}({n})" for n in attribute_permutation_names]

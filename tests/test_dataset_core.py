@@ -527,31 +527,31 @@ def test_dataset_getitem_by_tags(
     assert list(y.data.columns) == ["valid_at", "a_q_z1"]
 
 
-def test_filter_dataset_by_regex_return_dataframe(caplog):
+def test_select_dataset_by_regex_return_dataframe(caplog):
     caplog.set_level(logging.DEBUG)
 
-    x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
+    x = Dataset(name="test-select", data_type=SeriesType.simple(), load_data=False)
     tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
     x.data = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
-    y = x.filter(regex="^x", output="dataframe")
-    test_logger.debug(f"y = x.filter(regex='^x')\n{y}")
+    y = x.select(regex="^x", output="dataframe")
+    test_logger.debug(f"y = x.select(regex='^x')\n{y}")
 
     assert list(y.columns) == ["valid_at", "xd", "xe"]
     assert list(x.data.columns) == ["valid_at", "a_x", "b_x", "c", "xd", "xe"]
 
 
-def test_filter_dataset_by_regex_return_dataset(caplog):
+def test_select_dataset_by_regex_return_dataset(caplog):
     caplog.set_level(logging.DEBUG)
 
-    x = Dataset(name="test-filter", data_type=SeriesType.simple(), load_data=False)
+    x = Dataset(name="test-select", data_type=SeriesType.simple(), load_data=False)
     tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
     x.data = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
     )
-    y = x.filter(regex="^x")
-    test_logger.debug(f"y = x.filter(regex='^x')\n{y}")
+    y = x.select(regex="^x")
+    test_logger.debug(f"y = x.select(regex='^x')\n{y}")
 
     assert isinstance(y, Dataset)
     assert list(y.data.columns) == ["valid_at", "xd", "xe"]
@@ -637,10 +637,6 @@ def test_versioning_as_of_init_without_version_selects_latest(
     assert y.as_of_utc == max(as_of)
 
 
-# @pytest.mark.filterwarnings("ignore")
-# warning occuring here is not expected --> indicates an issue with .save()?
-# unrelated to intent of test, so ignore her
-# TODO: investigate
 def test_versioning_none_appends_to_existing_file(
     caplog: LogCaptureFixture,
 ) -> None:
