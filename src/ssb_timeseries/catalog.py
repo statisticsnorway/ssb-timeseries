@@ -39,7 +39,7 @@ SEARCH_OPTIONS = """
 Search options:
     equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
     contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
-    tags (dict | list(dict) | None): Filter the sets or series in the result set by a specified tags. Default None retiurns all.
+    tags (dict | list(dict) | None): Filter the sets or series in the result set by a specified tags. Default None returns all.
         Defaults to None. All criteria attributes in a dict must be satisfied (tags are combined by AND).
         If a list of values is provided for a criteria attribute, the criteria is satisfied if the tag value matches either of them (OR).
         Alternative sets (dicts) can be provided in a list.
@@ -107,7 +107,7 @@ class CatalogItem:
         if self.object_type == "dataset":
             return Dataset(self.object_name)
         elif self.object_type == "series":
-            return Dataset(self.parent.object_name).filter(
+            return Dataset(self.parent.object_name).select(
                 pattern=self.object_name
             )  # ---type: ignore[no-any-return]
         else:

@@ -301,7 +301,7 @@ class Dataset:
                 ...  # data = data
 
         # Observed here: OSError: [Errno 36] File name too long
-        # New names from .filter() or column aggregations easily become too long.
+        # New names from .select() or column aggregations easily become too long.
         # A workaround was applied in fs.exists()
         # out = deepcopy(self)
         # out.rename(new_name)
@@ -777,7 +777,7 @@ class Dataset:
             self.tags = meta.replace_dataset_tags(self.tags, old, new, recursive=True)
 
     @no_type_check
-    def filter(
+    def select(
         self,
         *names: str | list[str],
         pattern: str = "",
@@ -787,7 +787,7 @@ class Dataset:
         new_name: str = "",
         **kwargs: Any,
     ) -> IntoFrameT | Self:
-        """Filter dataset.data by textual pattern, regex or metadata tag dictionary.
+        """Select series (columns) of Dataset.data by textual pattern, regex or metadata tag dictionary.
 
         Or a combination.
 
@@ -810,7 +810,7 @@ class Dataset:
             TODO: Explore shallow copy / nocopy options.
         """
         if not any([names, pattern, regex, tags]):
-            error_message = f"DATASET.filter() was called without valid criteria:\n{names=}, {pattern=}, {regex=}, {tags=}"
+            error_message = f"DATASET.select() was called without valid criteria:\n{names=}, {pattern=}, {regex=}, {tags=}"
             raise ValueError(error_message)
 
         expressions = [nw.col(self.datetime_columns())]
@@ -828,14 +828,14 @@ class Dataset:
                 matching_series = meta.search_by_tags(self.tags["series"], *tags)
             else:
                 matching_series = meta.search_by_tags(self.tags["series"], tags)
-            ts.logger.debug("DATASET.filter(tags) found:\n%s ", matching_series)
+            ts.logger.debug("DATASET.select(tags) found:\n%s ", matching_series)
             expressions.append(nw.col(matching_series))
 
         df = nw.from_native(self.data).select(expressions).to_native()
         interval = kwargs.get("interval")
         if interval:
             ts.logger.warning(
-                f"DATASET.__filter__: Attempted call with argument 'interval' = {interval} is not supported. --> TO DO!"
+                f"DATASET.select: Attempted call with argument 'interval' = {interval} is not supported. --> TO DO!"
             )
 
         match output:
@@ -843,7 +843,7 @@ class Dataset:
                 out = df
             case "dataset" | "ds":
                 if not new_name:
-                    new_name = f"COPY of({self.name} FILTERED by names {names}, pattern: {pattern}, regex: {regex} tags: {tags})"
+                    new_name = f"COPY of({self.name} SELECTED by names {names}, pattern: {pattern}, regex: {regex} tags: {tags})"
                 out = self.copy(new_name, data=df, **kwargs)
                 matching_series_tags = {
                     k: v
@@ -860,7 +860,7 @@ class Dataset:
         self,
         names_or_tags: str | meta.TagDict | Iterable[str | meta.TagDict] = "",
     ) -> Self | None:
-        """Access Dataset.data.columns via Dataset.filter on list[column_names | tags ] | pattern | regex.
+        """Access Dataset.data.columns via Dataset.select on list[column_names | tags ] | pattern | regex.
 
         Arguments:
             names_or_tags:  Either a string pattern, name, list of names or a dict of tags.
@@ -869,20 +869,20 @@ class Dataset:
             Self | None
 
         Raises:
-            TypeError: If filter() returns another type than Dataset.
+            TypeError: If select() returns another type than Dataset.
         """
         if names_or_tags and isinstance(names_or_tags, str) and "*" in names_or_tags:
-            result = self.filter(regex=names_or_tags)
+            result = self.select(regex=names_or_tags)
             # TODO: s is uncharted territory. Explore behaviour / add test cases!
         elif names_or_tags and isinstance(names_or_tags, str):
-            result = self.filter(names_or_tags)
+            result = self.select(names_or_tags)
         elif names_or_tags and isinstance(names_or_tags, dict):
             t = [names_or_tags]
-            result = self.filter(tags=t)
+            result = self.select(tags=t)
         elif names_or_tags and isinstance(names_or_tags, Iterable):
             n = [s for s in names_or_tags if isinstance(s, str)]
             t = [d for d in names_or_tags if isinstance(d, dict)]
-            result = self.filter(n, tags=t)
+            result = self.select(n, tags=t)
             # TODO: ensure test cases cover all permutations (a,b) that can be drawn from [{a},{},'a',''] and [{b},{},'b',''] (expect errors raised for combinations with only empty items).
         elif names_or_tags:
             raise TypeError(
@@ -895,7 +895,7 @@ class Dataset:
             return result
         else:
             raise TypeError(
-                "DATASET.__getitem__ call to .filter() did not return a Dataset type."
+                "DATASET.__getitem__ call to .select() did not return a Dataset type."
             )
 
     def __setitem__(
@@ -1013,7 +1013,7 @@ class Dataset:
         """Get vectors with names equal to column names from Dataset.data.
 
         Args:
-            pattern (str): Optional pattern for simple filtering of column names containing pattern. Defaults to ''.
+            pattern (str): Optional pattern for simple selecting of column names containing pattern. Defaults to ''.
 
         .. warning:: Caution!
             This (re)assigns variables in the scope of the calling function by way of stack inspection and hence risks of reassigning objects, functions, or variables if they happen to have the same name.
@@ -1079,7 +1079,7 @@ class Dataset:
                 df2 = (
                     self.data.groupby(period_idx)
                     .sum(*args, numeric_only=numeric_only_value, **kwargs)
-                    .filter(regex="mendgde|volum|vekt")
+                    .select(regex="mendgde|volum|vekt")
                 )
                 ts.logger.debug(f"groupby\n{df2}.")
 
@@ -1604,7 +1604,7 @@ class Dataset:
             for attr, value in p.items():
                 criteria[attr] = taxonomy_dict[attr].leaf_nodes(value)
             output_series_name = sep.join(p.values())  # move into func loop?
-            leaf_node_subset = self.filter(tags=criteria, output="df")
+            leaf_node_subset = self.select(tags=criteria, output="df")
             for func in functions:
                 if isinstance(func, str):
                     new_col_name = f"{func}({output_series_name})"

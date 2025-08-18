@@ -366,16 +366,16 @@ def test_retag_dataset(
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
-    x = existing_small_set.filter(tags={"A": "a1"})
+    x = existing_small_set.select(tags={"A": "a1"})
     test_logger.debug(f"Series:\t{x.tags}")
     assert x.series == ["a1_b_c"]
 
     existing_small_set.replace_tags(({"A": "a1"}, {"A1": "a11", "A2": "a21"}))
     test_logger.debug(f"Series:\t{existing_small_set['a1_b_c'].tags}")
 
-    assert existing_small_set.filter(tags={"A": "a1"}).series == []
-    assert existing_small_set.filter(tags={"A1": "a11"}).series == ["a1_b_c"]
-    assert existing_small_set.filter(tags={"A2": "a21"}).series == ["a1_b_c"]
+    assert existing_small_set.select(tags={"A": "a1"}).series == []
+    assert existing_small_set.select(tags={"A1": "a11"}).series == ["a1_b_c"]
+    assert existing_small_set.select(tags={"A2": "a21"}).series == ["a1_b_c"]
 
 
 def test_series_names_to_tags_works_the_same_in_init_and_explicit_call() -> None:
