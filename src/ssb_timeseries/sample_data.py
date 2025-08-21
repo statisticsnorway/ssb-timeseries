@@ -38,6 +38,7 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
         ValueError: If an argument of an invalid type is passed.
 
     """
+    # The real dataseries uses the sign . as separator, but we use _ here to avoid confusion with the date format.
     separator = kwargs.get("separator", "_")
 
     if isinstance(args, dict):
