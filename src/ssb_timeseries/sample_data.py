@@ -30,6 +30,9 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
     Args:
         *args (str | list | tuple | dict): Each arg in args should be a collection of names to be combined with the other.
         **kwargs (str): One option: 'separator' defines a character sequence inserted between name elements. Defaults to '_'.
+        The reason we use '_' is concerns a kin to functionality of Dataset.vectors(),
+        where series names are used to create Python variable names.
+        The default separator is chosen so that it does not complicate such usage.
 
     Returns:
         list[str]: List of names to be used as series names.
@@ -38,6 +41,8 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
         ValueError: If an argument of an invalid type is passed.
 
     """
+    # The real dataseries uses the sign . as separator
+    # "Real dataseries" = "The most used naming convention for series in the legacy FAME databases of Statistics Norway"
     separator = kwargs.get("separator", "_")
 
     if isinstance(args, dict):
