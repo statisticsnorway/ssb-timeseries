@@ -1,6 +1,6 @@
 [project]
 name = "ssb-timeseries"
-version = "0.5.2"
+version = "0.6.0"
 description = "SSB Timeseries"
 authors = [{ name = "Bernhard Ryeng", email = "bernhard.ryeng@ssb.no" }]
 license = "MIT"
