@@ -29,10 +29,11 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
 
     Args:
         *args (str | list | tuple | dict): Each arg in args should be a collection of names to be combined with the other.
+
         **kwargs (str): One option: 'separator' defines a character sequence inserted between name elements. Defaults to '_'.
-        The reason we use '_' is concerns a kin to functionality of Dataset.vectors(),
-        where series names are used to create Python variable names.
-        The default separator is chosen so that it does not complicate such usage.
+
+    The choice of '_' as default separator is not arbitrary: Some functionality,notably Dataset.vectors(), use series names to create Python variables.
+    A default separator that is valid in a variable name simnplifies that.
 
     Returns:
         list[str]: List of names to be used as series names.
