@@ -4,15 +4,15 @@ from math import log
 
 import pytest
 
-# from ssb_timeseries.catalog import CatalogItem
+import ssb_timeseries as ts
 from ssb_timeseries.catalog import Catalog
 from ssb_timeseries.catalog import Repository
-import ssb_timeseries as ts
 
-# from ssb_timeseries.meta import Taxonomy
 
 # mypy: ignore-errors
 # ruff: noqa
+
+test_logger = logging.getLogger()
 
 
 @pytest.fixture()
@@ -58,6 +58,26 @@ def catalog_with_two_repos(
     yield catalog
 
 
+# ================================ tests =================================
+
+
+def test_ts_catalog_returns_a_catalog_object() -> None:
+    catalog = ts.get_catalog()
+    assert isinstance(catalog, Catalog)
+
+
+def test_ts_catalog_w_existing_sets_returns_a_catalog_over_sets_and_series(
+    existing_sets,
+) -> None:
+    catalog = ts.get_catalog()
+    number_of_sets = len(catalog.datasets())
+    number_of_series = len(catalog.series())
+    number_of_items = len(catalog.items())
+    assert number_of_sets >= 3
+    assert number_of_series >= 57
+    assert number_of_sets + number_of_series == number_of_items
+
+
 def test_init_repo_1_and_repo_2(
     repo_1: Repository,
     repo_2: Repository,
@@ -80,7 +100,7 @@ def test_repository_datasets_called_with_no_params_lists_all_datasets_in_a_singl
     expected = {ds.name for ds in existing_sets}
 
     all_sets_in_test_repo_1 = {ds.object_name for ds in repo_1.datasets()}
-    ts.logger.debug(f"{all_sets_in_test_repo_1=}")
+    test_logger.debug(f"{all_sets_in_test_repo_1=}")
     assert repo_1.count(object_type="dataset") >= 3
     assert all_sets_in_test_repo_1 >= expected
 
@@ -152,7 +172,7 @@ def test_init_catalog_with_repo_like_objects(
             tuple_repo,
         ]
     )
-    ts.logger.warning(f"{catalog.repositories=}")
+    test_logger.warning(f"{catalog.repositories=}")
     assert isinstance(catalog, Catalog)
     assert len(catalog.repositories) == 3
     assert catalog.count(object_type="dataset") > 0
@@ -276,7 +296,7 @@ def test_catalog_search_by_tag_dict(
 
     def log_items(cc):
         for c in catalog.items(tags=cc):
-            ts.logger.debug(
+            test_logger.debug(
                 f"\t{c.repository_name} {c.object_type} {c.parent}.{c.object_name} {c.has_tags(criteria)}"
             )
 
@@ -310,7 +330,7 @@ def test_catalog_search_by_tag_dict_multiple_criteria(
     # The tag: D=d gives a match only in dataset 'test-exising-small-dataset'
     criteria = {"B": "b", "D": "d"}
     for result in catalog.items(tags=criteria):
-        ts.logger.debug(
+        test_logger.debug(
             f"\t{result.repository_name}\t{result.object_type}\t{result.parent}.{result.object_name}\t{result.has_tags(criteria)}"
         )
     assert len(catalog.datasets(tags=criteria)) == 0 * num_repos
@@ -329,7 +349,7 @@ def test_catalog_search_by_list_of_tag_dicts(
     criteria_2 = {"dataset": "test-existing-small-dataset", "A": "a2"}
 
     for result in catalog.items(tags=[criteria_1, criteria_2]):
-        ts.logger.debug(
+        test_logger.debug(
             f"\t{result.repository_name}\t{result.object_type}\t{result.parent}.{result.object_name}"
         )
 
@@ -339,7 +359,7 @@ def test_catalog_search_by_list_of_tag_dicts(
 
 
 # --------------------------------------------
-# Work in progress: parameterize tests
+# Work in progress: parametrize tests
 # --------------------------------------------
 
 # The test cases above cover key features with the most obvious parameters.

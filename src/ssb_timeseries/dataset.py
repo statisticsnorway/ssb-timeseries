@@ -73,7 +73,7 @@ def select_repository(name: str = "") -> Any:
     If no item is identified by name or marking as default, the last item is returned.
     (This behaviour is questionable - it may be turned into an error.)
     """
-    repos = ts.active_config().repositories
+    repos = ts.get_configuration().repositories
     for k, v in repos.items():
         if len(repos) == 1:
             return v
