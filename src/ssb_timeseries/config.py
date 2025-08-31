@@ -552,66 +552,6 @@ def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
         return {}
 
 
-## No longer needed?
-# def migrate_to_new_config_location(file_to_copy: PathStr = "") -> str:
-#     """Copy existing configuration files to the new default location $HOME/.config/ssb_timeseries/.
-#
-#     The first file copied will be set to active.
-#
-#     Args:
-#         file_to_copy (PathStr): Optional. Path to a existing configuration file. If not provided, the function will look in the most common location for SSBs old JupyterLab and DaplaLab.
-#     """
-#     DEFAULTS["configuration_file"]
-#
-#     if file_to_copy:
-#         fs.cp(file_to_copy, DEFAULTS["configuration_file"])
-#         return str(file_to_copy)
-#     else:
-#         copy_these = [
-#             {
-#                 "replace": "_active",
-#                 "source": active_file(),
-#             },
-#             {
-#                 "replace": "_home",
-#                 "source": path_str(HOME, CONFIGFILE),
-#             },
-#             {
-#                 "replace": "_daplalab",
-#                 "source": path_str(DAPLALAB_WORK, CONFIGFILE),
-#             },
-#         ]
-#         copied = []
-#         not_found = []
-#
-#         for c in copy_these:
-#             if fs.exists(c["source"]):
-#                 # copy all to .config, but let filename signal where it was copied from
-#                 target = DEFAULTS["configuration_file"].replace(
-#                     ".json", f"{c['replace']}.json"
-#                 )
-#                 fs.cp(c["source"], target)
-#                 copied.append(target)
-#             else:
-#                 not_found.append(c["source"])
-#         else:
-#             _config_logger.warning(f"Configuration files were not found: {not_found}.")
-#
-#     if copied:
-#         # copy the first file = make it the active one
-#         fs.cp(copied[0], DEFAULTS["configuration_file"])
-#         active_file(copied[0])
-#         _config_logger.info(
-#             f"Configuration files were copied: {copied}.\nActive: {copied[0]}."
-#         )
-#         return str(copied[0])
-#     else:
-#         # no files were found --> create one from defaults?
-#         # new = Config(preset="default")
-#         # ew.save()
-#         return ""
-
-
 def configuration_schema(version: str = "0.3.1") -> dict:
     """Return the JSON schema for the configuration file."""
     match version:
@@ -722,7 +662,6 @@ else:
             _config_logger.warning(
                 f"No configuration file was found at {active_file()}.\nOther locations may be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied once more to {DEFAULTS['configuration_file']}"
             )
-            # CONFIGFILE = migrate_to_new_config_location()
             if not fs.exists(CONFIGFILE):
                 raise FileNotFoundError(
                     f"No configuration file was found at {active_file()}."

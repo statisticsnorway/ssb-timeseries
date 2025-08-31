@@ -28,7 +28,7 @@ For users in Statistics Norway:
 The configuration file should be in JSON format.
 A minimal working example suitable for testing can look like this:
 
-```json configuration.json
+```json
 {
     "bucket": "/home/onyxia/work/timeseries/",
     "configuration_file": "/home/onyxia/work/timeseries/configuration/minimal.json",
@@ -43,6 +43,15 @@ A minimal working example suitable for testing can look like this:
     }
 }
 ```
+
+The easiest way to set the environment variable within a Dapla Lab session is with a cell magic. Assuming our configuration file is `/home/onyxia/work/timeseries/configuration/minimal.json`:
+
+```
+%env TIMESERIES_CONFIG=/home/onyxia/work/timeseries/configuration/minimal.json
+```
+
+Note that set this way, `TIMESERIES_CONFIG` will not be persisted between sessions, so the procedure need to be repeated every time.
+Refer to the Dapla documentation for *permanently* setting environment variables.
 
 With the environment variable set consistent with the location of a configuration file you should be ready to go.
 
