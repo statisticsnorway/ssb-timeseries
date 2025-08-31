@@ -44,16 +44,18 @@ A minimal working example suitable for testing can look like this:
 }
 ```
 
-The easiest way to set the environment variable within a Dapla Lab session is with a cell magic. Assuming our configuration file is `/home/onyxia/work/timeseries/configuration/minimal.json`:
+The easiest way to set the environment variable within a Dapla Lab session is with a cell magic.
+Assuming the configuration file is `/home/onyxia/work/timeseries/configuration/minimal.json`:
 
 ```
 %env TIMESERIES_CONFIG=/home/onyxia/work/timeseries/configuration/minimal.json
 ```
 
-Note that set this way, `TIMESERIES_CONFIG` will not be persisted between sessions, so the procedure need to be repeated every time.
-Refer to the Dapla documentation for *permanently* setting environment variables.
+Note that managed this way, `TIMESERIES_CONFIG` will not be persisted between subshells.
+The procedure need to be repeated for every new session or kernel restart.
+Refer to the Dapla documentation for setting the variable at the project level or in a startup script.
 
-With the environment variable set consistent with the location of a configuration file you should be ready to go.
+With the environment variable pointing to the configuration file you should be ready to go.
 
 See the [API reference] or tutorials section (coming soon) for more.
 
@@ -63,8 +65,6 @@ The library exposes some configuration management features in a helper CLI.
 
 
 The command `poetry run timeseries-config <OPTION>` can be run from a terminal in order to shift between defaults.
-
-
 
 ## Disclaimer
 
