@@ -27,22 +27,30 @@
 
 > ![](docs/_build/_static/SSB_logo_black.svg)**Statistics Norway** is the national statistical agency of Norway and the main producer of official statistics. We collect, produce and communicate statistics related to the economy, population and society at national, regional and local levels and conducts extensive research and analysis activities.
 
-**Time series** play a key role in the statistics production process.
+**Time series** are an integral part of statistics production.
 
-The `ssb-timeseries` library was created as a PoC to demonstrate how required functionality could be provided subject to core architecture decisions and process model requirements.
-It takes the shape of a glue abstraction between storage and automation layers and the statistics production code, while also providing functionality in the following key areas:
+ The requirements for a complete time series *system* are diverse:
 
 - At the core is storage with performant read and write, search and filtering of time series data
-- Descriptive metadata is key to findability
-- A wide selection of math and statistics libraries for calculations and models
-- Visualisation for ad hoc and routine inspection and quality control
-- Workflow integration with automation and process monitoring for consistent quality
-- Data lineage and process metadata for quality control
+- A wide selection of math and statistics methods and libraries for calculations and models
+- Versioning is essential in tracking development of estimates and previously published data
+- Descriptive metadata is key to findability and understanding
+- Workflow integration with automation and process monitoring makes life easier, but also ensures consistency and quality
+- Visualisations is important not only to present the final results, but also for routine and ad hoc inspection and quality control
+- Data lineage and process metadata are instrumental for quality control, but also provides the transparency required for building trust
 
+Very purposely, `ssb-timeseries` is not a complete solution.
+It is a *code library*, designed to connect functionality from other platform components in these key areas.
+As such, it acts as a glue or abstraction layer between the overall data platform and the statistics production code.
+Its main responsibility is to interface with other systems and components in a way that enforces consistency with core process and information models,
+while leverageing several best of breed technologies for data analysis.
 
-## Feature summary
+It provides some functionality of its own, but mainly useful abstractions and convenience methods that reduce boilerplate.
 
-The library is `Dataset` centric:
+Openness is a goal in itself, both in terms of transparency and licensing, and in the provide compatibility with relevant frameworks and standards.
+
+The workflow of Stastistics Norway is mostly batch oriented.
+Consequently, the `ssb-timeseries` library is `Dataset` centric:
 
  * One or more series form a set.
  * All series in a set must be of the same type.
@@ -72,6 +80,8 @@ Quality and reliability is by far more important than latency.
 Our mission comes with strict requirements for transparency and data quality.
 Some are [mandated by law](https://www.ssb.no/en/omssb/ssbs-virksomhet/styringsdokumenter), others stem from commitment to international standards and best practices.
 This shifts the focus towards process and data control.
+
+<!-- github-only -->
 
 ## Documentation
 
@@ -111,7 +121,6 @@ This project was generated from [Statistics Norway]'s [SSB PyPI Template].
 [file an issue]: https://github.com/statisticsnorway/ssb-timeseries/issues
 [pip]: https://pip.pypa.io/
 
-<!-- github-only -->
 
 [license]: https://github.com/statisticsnorway/ssb-timeseries/blob/main/LICENSE
 [contributor guide]: https://github.com/statisticsnorway/ssb-timeseries/blob/main/CONTRIBUTING.md
