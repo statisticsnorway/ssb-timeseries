@@ -212,7 +212,7 @@ def date_ranges(
     if temporality == "AT":
         return {"valid_at": list(d)}
     else:
-        delta = relativedelta(d[0], d[1])
+        delta = relativedelta(d[1], d[0])
         d_to = r(dtstart=dt_start + delta, until=dt_end + delta)
         return {"valid_from": list(d), "valid_to": list(d_to)}
 
