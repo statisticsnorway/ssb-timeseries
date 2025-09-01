@@ -4,11 +4,16 @@ includehidden: True
 hidden: True
 maxdepth: 3
 ---
+TUTORIALS:
 Quickstart guide <quickstart>
+
 API reference <reference/index>
+
+BACKGROUND:
 structure
 Information model <info-model.md>
 workflow
+
 Contributor guide <contributing>
 Code of conduct <codeofconduct>
 License <license>

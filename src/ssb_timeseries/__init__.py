@@ -31,20 +31,36 @@ Some notable exceptions are taxonomy and hierarchy features of :py:mod:`ssb_time
 The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether data and metada are stored in files or databases and :py:mod:`ssb_timeseries.fs` is an abstraction for local vs GCS file systems.
 """
 
-from ssb_timeseries.config import CONFIG as configuration
+from ssb_timeseries.catalog import Catalog
+from ssb_timeseries.catalog import Repository
+from ssb_timeseries.config import CONFIG
 from ssb_timeseries.config import Config
 from ssb_timeseries.logging import set_up_logging_according_to_config
 
-logger = set_up_logging_according_to_config(__name__, configuration.logging)
+get_configuration = Config.active
+"""Return the active configuration."""
 
-active_config = Config.active
+_current_config = get_configuration()
+logger = set_up_logging_according_to_config(__name__, _current_config.logging)
+
+
+def get_catalog() -> Catalog:
+    """Return the catalog corresponding to the active configuration."""
+    config_repos = get_configuration().repositories
+    print(config_repos)
+    repo_list = [
+        Repository(name=k, catalog=v["catalog"])
+        for k, v in config_repos.items()  # type: ignore[attr-defined]
+    ]
+    return Catalog(repo_list)
+
 
 __all__ = [
-    "active_config",
-    "configuration",
     "dataset",
     "dates",
     "fs",
+    "get_catalog",
+    "get_configuration",
     "io",
     "logger",
     "properties",

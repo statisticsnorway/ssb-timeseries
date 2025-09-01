@@ -157,8 +157,8 @@ def create_df(
 
 
 def date_ranges(
-    start_date: datetime,
-    end_date: datetime,
+    start_date: datetime | str,
+    end_date: datetime | str,
     freq: str,
     interval: int = 1,
     temporality: str = "AT",
@@ -203,15 +203,17 @@ def date_ranges(
         bymonth=bymonth,
         bymonthday=bymonthday,
     )
+    dt_start = ensure_datetime(start_date)
+    dt_end = ensure_datetime(end_date)
     d = r(
-        dtstart=start_date,
-        until=end_date,
+        dtstart=dt_start,
+        until=dt_end,
     )
     if temporality == "AT":
         return {"valid_at": list(d)}
     else:
-        delta = relativedelta(d[0], d[1])
-        d_to = r(dtstart=start_date + delta, until=end_date + delta)
+        delta = relativedelta(d[1], d[0])
+        d_to = r(dtstart=dt_start + delta, until=dt_end + delta)
         return {"valid_from": list(d), "valid_to": list(d_to)}
 
 

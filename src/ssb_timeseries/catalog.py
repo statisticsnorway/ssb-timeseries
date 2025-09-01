@@ -6,15 +6,15 @@ Searches can list or count sets, series or items (both). The search criteria can
 
 A returned py:class:`CatalogItem` instance is identified by name and descriptive metadate, plus the repository, object type and relationships to parent and child objects are provided. Other information, like lineage and data quality metrics may be added later.
 
->>> # doctest: +SKIP
->>> from ssb_timeseries.catalog import Catalog
->>> everything = Catalog().items()
->>> # doctest: -SKIP
+>>> import ssb_timeseries as ts
+>>> current_catalog = ts.catalog()
+>>> everything = current_catalog.items()
 
 -----
 """
 
 import importlib.resources as pkg_resources  # noqa: F401
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -107,9 +107,7 @@ class CatalogItem:
         if self.object_type == "dataset":
             return Dataset(self.object_name)
         elif self.object_type == "series":
-            return Dataset(self.parent.object_name).select(
-                pattern=self.object_name
-            )  # ---type: ignore[no-any-return]
+            return Dataset(self.parent.object_name).select(pattern=self.object_name)  # type: ignore[no-untyped-call]
         else:
             raise TypeError(f"Can not retrieve object of type '{self.object_type}'.")
 
@@ -253,7 +251,10 @@ class RepositoryProtocol(Protocol):
 class Catalog(_CatalogProtocol):
     """A data catalog collects metadata from one or more physical data repositories and performs searches across them."""
 
-    def __init__(self, config: list[RepositoryProtocol | FileBasedRepository]) -> None:
+    def __init__(
+        self,
+        config: Sequence[RepositoryProtocol | FileBasedRepository | dict[str, str]],
+    ) -> None:
         """Add all repositories in the configuration to catalog object.
 
         Repositories are essentially just named locations.

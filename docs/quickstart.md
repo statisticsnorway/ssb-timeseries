@@ -1,26 +1,70 @@
 # How to get started?
 
-## Install
+## Installation
 
-Install from PyPi with pip, poetry or your favourite dependency management tool:
+Clone from [GitHub](https://github.com/statisticsnorway/ssb-timeseries/),
+or use your favourite dependency management tool to install from [PyPi](https://pypi.org/project/ssb-timeseries/).
+Despite the increasing traction of `uv`, the standard in Statistics Norway is still `Poetry`:
 
-````python
-poetry add ssb_timeseries
-````
+```bash
+poetry add ssb-timeseries
+```
 
-Or clone from https://github.com/statisticsnorway/ssb-timeseries/.
 
-The library should work out of the box with default settings.
+If you are lucky, the library works out of the box with default or predefined settings.
 
 Note that the defaults are for local testing, ie not be suitable for the production setting.
 
 ## Configuration
 
-To apply custom settings: The environment variable TIMESERIES_CONFIG should point to a JSON file with configurations.
-- The command `poetry run timeseries-config <...>` can be run from a terminal in order to shift between defauls.
-- Run `poetry run timeseries-config home` to create the environment variable and a file with default configurations in the home directory, ie `/home/jovyan` in the SSB Jupyter environment (or the equivalent running elsewhere).
-- The similar `poetry run timeseries-config gcs` will put configurations and logs in the home directory and time series data in a shared GCS bucket `gs://ssb-prod-dapla-felles-data-delt/poc-tidsserier`. Take appropriate steps to make sure you have access. The library does not attempt to facilitate that.
-- With the environment variable set and the configuration in place you should be all set. See the reference https://statisticsnorway.github.io/ssb-timeseries/reference.html
+The library expects an environment variable TIMESERIES_CONFIG to provide the path to a valid configuration file. The name or location of the file does not really matter, but some environments may require specific locations.
+
+For users in Statistics Norway:
+
+- `/home/onyxia/work/` for your own testing and development in **Dapla Lab**.
+- `/home/onyxia/buckets/<bucket-name>` for working with sharp data.
+- `gs://<team>/<timeseries-config-path>` for GCP service configuration.
+
+The configuration file should be in JSON format.
+A minimal working example suitable for testing can look like this:
+
+```json
+{
+    "bucket": "/home/onyxia/work/timeseries/",
+    "configuration_file": "/home/onyxia/work/timeseries/configuration/minimal.json",
+    "logging": {},
+    "repositories": {
+        "my_repo": {
+            "name": "my-repo",
+            "catalog": "/home/onyxia/work/timeseries/my_repo/metadata",
+            "directory": "/home/onyxia/work/timeseries/my_repo/data",
+            "default": true
+        }
+    }
+}
+```
+
+The easiest way to set the environment variable within a Dapla Lab session is with a cell magic.
+Assuming the configuration file is `/home/onyxia/work/timeseries/configuration/minimal.json`:
+
+```
+%env TIMESERIES_CONFIG=/home/onyxia/work/timeseries/configuration/minimal.json
+```
+
+Note that managed this way, `TIMESERIES_CONFIG` will not be persisted between subshells.
+The procedure need to be repeated for every new session or kernel restart.
+Refer to the Dapla documentation for setting the variable at the project level or in a startup script.
+
+With the environment variable pointing to the configuration file you should be ready to go.
+
+See the [API reference] or tutorials section (coming soon) for more.
+
+## Helper CLI
+
+The library exposes some configuration management features in a helper CLI.
+
+
+The command `poetry run timeseries-config <OPTION>` can be run from a terminal in order to shift between defaults.
 
 ## Disclaimer
 
