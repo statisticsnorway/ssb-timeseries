@@ -108,6 +108,11 @@ def is_df_like(obj: Any) -> bool:
     )
 
 
+def rename_columns(df: IntoFrameT, mapping: dict[str, str]) -> IntoFrameT:
+    """Rename columns of dataframe."""
+    return nw.from_native(df).rename(mapping).to_native()
+
+
 def to_arrow(
     df: IntoFrame,
     schema: pyarrow.Schema | None = None,

@@ -53,6 +53,7 @@ from ssb_timeseries import meta
 from ssb_timeseries.dataframes import empty_frame
 from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.dataframes import is_empty
+from ssb_timeseries.dataframes import rename_columns
 from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import period_index
@@ -330,16 +331,31 @@ class Dataset:
         out.tags["series"] = copied_series_tags
         return out
 
-    def rename(self, new_name: str) -> None:
+    def rename(
+        self,
+        /,
+        new_set_name: str = "",
+        *series_name_substitutions: tuple[str, str],
+    ) -> None:
         """Rename the Dataset.
 
         For use by .copy, and on very rare other occasions. Does not move or rename any previously stored data.
         """
-        self.name = new_name
+        if new_set_name:
+            self.name = new_set_name
 
-        self.tags["name"] = new_name
-        for _, v in self.tags["series"].items():
-            v["dataset"] = new_name  # type: ignore
+            self.tags["name"] = new_set_name
+            for _, v in self.tags["series"].items():
+                v["dataset"] = new_set_name  # type: ignore
+
+        for subst in series_name_substitutions:
+            new_series_tags = {}
+            for old_name, tags in self.tags["series"].items():
+                new_name = old_name.replace(subst[0], subst[1])
+                tags["name"] = new_name  # type: ignore[index]
+                new_series_tags[new_name] = tags
+            self.tags["series"] = new_series_tags
+            self.data = rename_columns(self.data, {subst[0]: subst[1]})
 
     def save(self, as_of_tz: datetime = None) -> None:
         """Persist the Dataset.
