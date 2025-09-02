@@ -172,7 +172,7 @@ def seriestype_from_str(dir_name: str) -> SeriesType:
             return SeriesType.none_at()
         case "simple":
             return SeriesType.simple()
-        case "from_to":
+        case "none_from_to":
             return SeriesType.from_to()
         case "as_of_at":
             return SeriesType.as_of_at()

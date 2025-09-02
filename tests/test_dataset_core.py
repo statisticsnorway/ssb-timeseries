@@ -158,6 +158,65 @@ def test_datafile_exists_after_create_dataset_and_save(
     assert check
 
 
+def test_dataset_rename_changes_name_of_original_set(
+    caplog,
+    xyz_at,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    original = Dataset(
+        name="test-renaming-original-set-name",
+        data_type=SeriesType.simple(),
+        data=xyz_at,
+    )
+    new_set_name = "test-renaming-new-set-name"
+    original.rename(new_set_name)
+
+    assert original.name == new_set_name
+    assert original.tags["name"] == new_set_name
+    for s in original.series:
+        assert original.tags["series"][s]["dataset"] == new_set_name
+
+
+def test_dataset_rename_changes_name_of_original_set_and_series_matching_substitutions(
+    caplog,
+    xyz_at,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    original = Dataset(
+        name="test-renaming-original-set-name",
+        data_type=SeriesType.simple(),
+        data=xyz_at,
+    )
+    new_set_name = "test-renaming-new-set-name"
+    original.rename(new_set_name, ("x", "xx"), ("y", "yy"))
+
+    assert original.name == new_set_name
+    assert original.tags["name"] == new_set_name
+    for s in original.series:
+        assert original.tags["series"][s]["dataset"] == new_set_name
+    assert set(original.series) == set(["xx", "yy", "z"])
+
+
+def test_dataset_rename_with_emty_set_name_only_applies_series_name_substitutions(
+    caplog,
+    xyz_at,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    old_set_name = ("test-renaming-original-set-name",)
+    original = Dataset(name=old_set_name, data_type=SeriesType.simple(), data=xyz_at)
+    new_set_name = ""
+    original.rename(new_set_name, ("x", "xx"), ("y", "yy"))
+
+    assert original.name == old_set_name
+    assert original.tags["name"] == old_set_name
+    for s in original.series:
+        assert original.tags["series"][s]["dataset"] == old_set_name
+    assert set(original.series) == set(["xx", "yy", "z"])
+
+
 def test_metafile_exists_after_create_dataset_and_save(
     caplog: LogCaptureFixture,
     xyz_at,

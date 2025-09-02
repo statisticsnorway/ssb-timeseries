@@ -25,7 +25,7 @@
 [black]: https://github.com/psf/black
 [poetry]: https://python-poetry.org/
 
-> ![](docs/_build/_static/SSB_logo_black.svg)**Statistics Norway** is the national statistical agency of Norway and the main producer of official statistics. We collect, produce and communicate statistics related to the economy, population and society at national, regional and local levels and conducts extensive research and analysis activities.
+> **Statistics Norway is the national statistical agency of Norway. We collect, produce and communicate official statistics related to the economy, population and society at national, regional and local levels and conduct extensive research and analysis activities.**
 
 **Time series** are an integral part of statistics production.
 
@@ -40,12 +40,10 @@
 - Data lineage and process metadata are instrumental for quality control, but also provides the transparency required for building trust
 
 Very purposely, `ssb-timeseries` is not a complete solution.
-It is a *code library*, designed to connect functionality from other platform components in these key areas.
-As such, it acts as a glue or abstraction layer between the overall data platform and the statistics production code.
-Its main responsibility is to interface with other systems and components in a way that enforces consistency with core process and information models,
-while leverageing several best of breed technologies for data analysis.
+It is as a glue layer that sits between the overall data platform and the statistics production code.
+Its main responsibility is to interface with other systems and components and enforce consistency with our process and information models.
 
-It provides some functionality of its own, but mainly useful abstractions and convenience methods that reduce boilerplate.
+It provides some functionality of its own, but mainly useful abstractions and convenience methods that reduce boilerplate and brings several best of breed technologies for data analysis together in a single package.
 
 Openness is a goal in itself, both in terms of transparency and licensing, and in the provide compatibility with relevant frameworks and standards.
 
