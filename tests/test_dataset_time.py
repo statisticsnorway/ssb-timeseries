@@ -24,8 +24,8 @@ def test_correct_datetime_columns_valid_at(caplog) -> None:
             ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
     )
-    ts.logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
-    assert a.datetime_columns() == ["valid_at"]
+    ts.logger.debug(f"test_datetime_columns: {a.datetime_columns}")
+    assert a.datetime_columns == ["valid_at"]
 
 
 @log_start_stop
@@ -44,8 +44,8 @@ def test_correct_datetime_columns_valid_from_to(caplog) -> None:
             temporality="FROM_TO",
         ),
     )
-    ts.logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
-    assert a.datetime_columns().sort() == ["valid_from", "valid_to"].sort()
+    ts.logger.debug(f"test_datetime_columns: {a.datetime_columns}")
+    assert a.datetime_columns.sort() == ["valid_from", "valid_to"].sort()
 
 
 @log_start_stop

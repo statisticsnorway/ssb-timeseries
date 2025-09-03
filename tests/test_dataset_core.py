@@ -629,9 +629,9 @@ def test_correct_datetime_columns_valid_at(
             ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
     )
-    test_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
-    assert a.datetime_columns() == ["valid_at"]
-    assert a.numeric_columns() == ["x", "y", "z"]
+    test_logger.debug(f"test_datetime_columns: {a.datetime_columns}")
+    assert a.datetime_columns == ["valid_at"]
+    assert a.numeric_columns == ["x", "y", "z"]
 
 
 def test_correct_datetime_columns_valid_from_to(
@@ -651,9 +651,9 @@ def test_correct_datetime_columns_valid_from_to(
             temporality="FROM_TO",
         ),
     )
-    test_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
-    assert a.datetime_columns() == ["valid_from", "valid_to"]
-    assert a.numeric_columns() == ["x", "y", "z"]
+    test_logger.debug(f"test_datetime_columns: {a.datetime_columns}")
+    assert a.datetime_columns == ["valid_from", "valid_to"]
+    assert a.numeric_columns == ["x", "y", "z"]
 
 
 def test_versioning_as_of_creates_new_file(

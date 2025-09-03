@@ -31,7 +31,7 @@ def xyz_w_ones_seq_quad(
         data_type=SeriesType.simple(),
         data=xyz_at,
     )
-    rows, cols = ds.data[ds.numeric_columns()].shape
+    rows, cols = ds.data[ds.numeric_columns].shape
     ds.data["x"] = 1
     ds.data["y"] = np.array(range(rows)) + 1
     ds.data["z"] = ds.data["y"] ** 2
@@ -325,7 +325,7 @@ def test_dataset_add_dataframe(caplog) -> None:
     print(c.nw)
     assert isinstance(b, Dataset) and isinstance(c, Dataset)
     assert is_df_like(b.data) and is_df_like(c.data)
-    assert a.datetime_columns() == b.datetime_columns()
+    assert a.datetime_columns == b.datetime_columns
     assert b.nw.to_arrow() == c.nw.to_arrow()
 
 
