@@ -449,8 +449,8 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
     yy_calc = yy_sum / yy_count
     assert isinstance(yy_mean, Dataset) and is_df_like(yy_mean.data)
     assert isinstance(yy_calc, Dataset) and is_df_like(yy_calc.data)
-    print(yy_mean.nw())
-    print(yy_calc.nw())
+    print(yy_mean.nw)
+    print(yy_calc.nw)
     # assert (yy_mean == yy_calc).all()
     assert yy_calc.isclose(yy_mean)  # we observe decimal differences
 

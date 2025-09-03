@@ -441,13 +441,13 @@ class Dataset:
 
     @property
     def series(self) -> list[str]:
-        """Get (sorted) series names.
+        """Get (sorted) series names, ie. all columns that are not time related.
 
-        This is the same as the numeric columns of the data field.
+        As of version 0.6 this implies numeric, with a notable exception for booleans. While booleans occur naturally inside calculations and some logical functions have been added, the support for booleans is not complete.
         """
         num_cols = self.numeric_columns()
         # dt_expr = ~ncs.by_dtype(nw.Datetime,nw.Date)
-        # non_datetime_cols = self.nw().select(dt_expr).columns
+        # non_datetime_cols = self.nw.select(dt_expr).columns
         ## does not necessarily exist:
         ## tag_keys = self.series_tags.keys()
         # if num_cols != non_datetime_cols:
@@ -926,7 +926,7 @@ class Dataset:
             raise TypeError(
                 "DATASET.__setitem__ columns should be specified as string or iterable, not {type(columns).__name__}."
             )
-        nw_self = nw.from_native(self.nw().to_arrow())
+        nw_self = nw.from_native(self.nw.to_arrow())
 
         # if False:
         if isinstance(data, np.ndarray):
@@ -1207,6 +1207,7 @@ class Dataset:
         np_array = nw.from_native(self.data).select(expr).to_numpy()
         return cast("NDArray", np_array)
 
+    @property
     def nw(self) -> Frame:
         """Returns data as a (new) Narwhals frame.
 

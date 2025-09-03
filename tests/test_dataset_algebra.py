@@ -127,7 +127,7 @@ def test_dataset_equals(caplog, var_type, var, expected) -> None:
     res = a == var
     assert isinstance(res, Dataset)
     assert res.data.shape == a.data.shape
-    print(f"{res.nw()=}\n{res.numeric_array()=}")
+    print(f"{res.nw=}\n{res.numeric_array()=}")
     print(f"now ok:\n\t {res.all()=}")
 
     # tautology - this is essentially the internal representation
@@ -320,13 +320,13 @@ def test_dataset_add_dataframe(caplog) -> None:
     # -> not perfect, but let us just move on
     b = a + df_a
     c = a * 2
-    print("a\n", a.nw())
-    print(b.nw())
-    print(c.nw())
+    print("a\n", a.nw)
+    print(b.nw)
+    print(c.nw)
     assert isinstance(b, Dataset) and isinstance(c, Dataset)
     assert is_df_like(b.data) and is_df_like(c.data)
     assert a.datetime_columns() == b.datetime_columns()
-    assert b.nw().to_arrow() == c.nw().to_arrow()
+    assert b.nw.to_arrow() == c.nw.to_arrow()
 
 
 def test_dataset_subtract_dataset(caplog) -> None:
@@ -334,9 +334,9 @@ def test_dataset_subtract_dataset(caplog) -> None:
 
     c = a - b
     d = a - a
-    print(c.nw())
+    print(c.nw)
     print(c.numeric_array().shape)
-    print(c.nw().schema)
+    print(c.nw.schema)
     e = c - a
 
     # assert all(c == 0)
