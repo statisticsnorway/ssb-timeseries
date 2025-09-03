@@ -444,15 +444,29 @@ class Dataset:
         """Get (sorted) series names, ie. all columns that are not time related.
 
         As of version 0.6 this implies numeric, with a notable exception for booleans. While booleans occur naturally inside calculations and some logical functions have been added, the support for booleans is not complete.
+
+        Other datatypes are under consideration, but even if support becomes extended beyond numeric and boolean values, it is likely to remain a requirement that datasets remain a single type. Ie that `series` yields the same result as one of the specialized functions `numeric_columns` or `boolean_columns`.
+
+        `data.columns`
+        |-- `datetime_columns`
+        |    |- as_of
+        |    |-- valid_at
+        |    |-- valid_from
+        |    |-- valid_to
+        |-- `series`
+             |-- `numeric_columns`
+             |-- `boolean_columns`
         """
-        num_cols = self.numeric_columns()
-        # dt_expr = ~ncs.by_dtype(nw.Datetime,nw.Date)
-        # non_datetime_cols = self.nw.select(dt_expr).columns
+        # num_cols = self.numeric_columns()
+        # return sorted(num_cols)
+        dt_expr = ~ncs.by_dtype(nw.Datetime, nw.Date)
+        non_datetime_cols = self.nw.select(dt_expr).columns
+
+        return sorted(non_datetime_cols)
         ## does not necessarily exist:
         ## tag_keys = self.series_tags.keys()
         # if num_cols != non_datetime_cols:
         #    raise ValueError("WFT - something fishy with series names or data types.")
-        return sorted(num_cols)
 
         # first implementation was more complicated
         # if (
@@ -1209,10 +1223,10 @@ class Dataset:
 
     @property
     def nw(self) -> Frame:
-        """Returns data as a (new) Narwhals frame.
+        """Returns Dataset.data as a (new) Narwhals frame.
 
         This allows making use not only of the functionality of Narwhals https://narwhals-dev.github.io/narwhals/api-reference/,
-        but also that of other supported dataframe libraries through .to_pandas(), to_polars(),to_numpy(),.to_arrow().
+        but also that of other supported libraries through .to_pandas(), to_polars(),to_numpy(),.to_arrow().
         For numpy, see also 'Dataset.numeric_array()' that returns a numeric matrix omitting the date columns.
         """
         return cast(Frame, nw.from_native(self.data))
