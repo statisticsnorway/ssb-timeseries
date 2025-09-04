@@ -355,7 +355,10 @@ class Dataset:
                 tags["name"] = new_name  # type: ignore[index]
                 new_series_tags[new_name] = tags
             self.tags["series"] = new_series_tags
-            self.data = rename_columns(self.data, {subst[0]: subst[1]})
+            self.data = rename_columns(
+                self.data,
+                {subst[0]: subst[1]},
+            )
 
     def save(self, as_of_tz: datetime = None) -> None:
         """Persist the Dataset.
