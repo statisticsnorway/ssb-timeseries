@@ -199,6 +199,37 @@ def test_dataset_rename_changes_name_of_original_set_and_series_matching_substit
     assert set(original.series) == set(["xx", "yy", "z"])
 
 
+def test_dataset_rename_changes_name_of_original_set_and_part_of_series_name_matching_substitutions(
+    caplog,
+    xyz_at,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    original = Dataset(
+        name="test-renaming-original-set-name",
+        data_type=SeriesType.simple(),
+        data=xyz_at,
+    )
+    new_set_name = "test-renaming-new-set-name"
+    original.rename(
+        new_set_name,
+        ("x", "p_x_usd"),
+        ("y", "p_y_euro"),
+        ("z", "p_z_yen"),
+    )
+
+    original.rename(
+        new_set_name,
+        ("_x_", "_xx_"),
+        ("_y_", "_yy_"),
+        ("_z_", "_zz_"),
+    )
+    assert original.name == new_set_name
+    assert original.tags["name"] == new_set_name
+    test_logger.debug(original.series)
+    assert set(original.series) == set(["p_xx_usd", "p_yy_euro", "p_zz_yen"])
+
+
 def test_dataset_rename_with_emty_set_name_only_applies_series_name_substitutions(
     caplog,
     xyz_at,
@@ -629,9 +660,9 @@ def test_correct_datetime_columns_valid_at(
             ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
     )
-    test_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
-    assert a.datetime_columns() == ["valid_at"]
-    assert a.numeric_columns() == ["x", "y", "z"]
+    test_logger.debug(f"test_datetime_columns: {a.datetime_columns}")
+    assert a.datetime_columns == ["valid_at"]
+    assert a.numeric_columns == ["x", "y", "z"]
 
 
 def test_correct_datetime_columns_valid_from_to(
@@ -651,9 +682,9 @@ def test_correct_datetime_columns_valid_from_to(
             temporality="FROM_TO",
         ),
     )
-    test_logger.debug(f"test_datetime_columns: {a.datetime_columns()}")
-    assert a.datetime_columns() == ["valid_from", "valid_to"]
-    assert a.numeric_columns() == ["x", "y", "z"]
+    test_logger.debug(f"test_datetime_columns: {a.datetime_columns}")
+    assert a.datetime_columns == ["valid_from", "valid_to"]
+    assert a.numeric_columns == ["x", "y", "z"]
 
 
 def test_versioning_as_of_creates_new_file(

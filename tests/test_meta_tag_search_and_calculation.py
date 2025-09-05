@@ -51,9 +51,7 @@ def test_find_data_using_single_metadata_attribute(
         f"x_selected_on_attribute_a: \n\t{x_selected_on_attribute_a.series}\n vs expected:\n\t{expected_matches}"
     )
     assert isinstance(x_selected_on_attribute_a, Dataset)
-    assert sorted(x_selected_on_attribute_a.numeric_columns()) == sorted(
-        expected_matches
-    )
+    assert sorted(x_selected_on_attribute_a.numeric_columns) == sorted(expected_matches)
 
     returned_series_tags = x_selected_on_attribute_a.tags["series"]
     for key in returned_series_tags.keys():
@@ -97,7 +95,7 @@ def test_find_data_using_multiple_metadata_attributes(
         f"x_selected_on_attribute_a: \n\t{x_selected_on_attribute_a_and_b.series}\n vs expected:\n\t{expected_matches}"
     )
     assert isinstance(x_selected_on_attribute_a_and_b, Dataset)
-    assert sorted(x_selected_on_attribute_a_and_b.numeric_columns()) == sorted(
+    assert sorted(x_selected_on_attribute_a_and_b.numeric_columns) == sorted(
         expected_matches
     )
 
@@ -144,9 +142,7 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
         f"x_selected_on_attribute_a: \n\t{x_selected_on_attribute_a.series}\n vs expected:\n\t{expected_matches}"
     )
     assert isinstance(x_selected_on_attribute_a, Dataset)
-    assert sorted(x_selected_on_attribute_a.numeric_columns()) == sorted(
-        expected_matches
-    )
+    assert sorted(x_selected_on_attribute_a.numeric_columns) == sorted(expected_matches)
     assert (
         x_selected_on_attribute_a.name != set_name
     )  # .select() returns a new set and changes the name
@@ -190,13 +186,13 @@ def test_aggregate_sum_for_flat_list_taxonomy(
         attributes=["A", "B", "C"],
     )
 
-    assert len(x.numeric_columns()) == len(klass48_leaves)
+    assert len(x.numeric_columns) == len(klass48_leaves)
     ts.logger.debug(f"{set_name}:\n{x.data}")
 
     y = x.aggregate(attributes=["A"], taxonomies=[klass48], functions=["sum"])
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns()) == len(klass48.parent_nodes())
-    assert sorted(y.numeric_columns()) == sorted(
+    assert len(y.numeric_columns) == len(klass48.parent_nodes())
+    assert sorted(y.numeric_columns) == sorted(
         [f"sum({n.name})" for n in klass48.parent_nodes()]
     )
     assert not np.isnan(y.numeric_array()).any()
@@ -229,7 +225,7 @@ def test_aggregate_multiple_functions_for_flat_list_taxonomy(
         attributes=["A", "B", "C"],
     )
 
-    assert len(x.numeric_columns()) == len(klass48_leaves)
+    assert len(x.numeric_columns) == len(klass48_leaves)
 
     def custom_func_perc10(x):
         return x.quantile(0.1, axis=1, numeric_only=True)
@@ -240,10 +236,10 @@ def test_aggregate_multiple_functions_for_flat_list_taxonomy(
         attributes=["A"], taxonomies=[klass48], functions=aggregate_functions
     )
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns()) == len(klass48.parent_nodes()) * len(
+    assert len(y.numeric_columns) == len(klass48.parent_nodes()) * len(
         aggregate_functions
     )
-    assert sorted(y.numeric_columns()) == sorted(
+    assert sorted(y.numeric_columns) == sorted(
         ["custom_func_perc10(0)", "median(0)", "quantile0.9(0)"]
     )
     assert not np.isnan(y.numeric_array()).any()
@@ -276,12 +272,12 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
         attributes=["A", "B", "C"],
     )
 
-    assert len(x.numeric_columns()) == len(klass157_leaves)
+    assert len(x.numeric_columns) == len(klass157_leaves)
 
     y = x.aggregate(["A"], [klass157], {"sum"})
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns()) == len(klass157.parent_nodes())
-    assert sorted(y.numeric_columns()) == sorted(
+    assert len(y.numeric_columns) == len(klass157.parent_nodes())
+    assert sorted(y.numeric_columns) == sorted(
         [f"sum({n.name})" for n in klass157.parent_nodes()]
     )
     assert not np.isnan(y.numeric_array()).any()
@@ -314,12 +310,12 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
         attributes=["A", "B", "C"],
     )
 
-    assert len(x.numeric_columns()) == len(klass157_leaves)
+    assert len(x.numeric_columns) == len(klass157_leaves)
 
     y = x.aggregate(["A"], [klass157], {"mean"})
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns()) == len(klass157.parent_nodes())
-    assert sorted(y.numeric_columns()) == sorted(
+    assert len(y.numeric_columns) == len(klass157.parent_nodes())
+    assert sorted(y.numeric_columns) == sorted(
         [f"mean({n.name})" for n in klass157.parent_nodes()]
     )
     assert not np.isnan(y.numeric_array()).any()
@@ -352,7 +348,7 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
         attributes=["A", "B", "C"],
     )
 
-    assert len(x.numeric_columns()) == len(klass157_leaves)
+    assert len(x.numeric_columns) == len(klass157_leaves)
     multiple_functions = ["count", "sum", "mean"]
     y = x.aggregate(
         attributes=["A"],
@@ -360,11 +356,11 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
         functions=multiple_functions,
     )
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns()) == len(
+    assert len(y.numeric_columns) == len(
         klass157.parent_nodes() * len(multiple_functions)
     )
     for func in multiple_functions:
-        assert sorted(y.select(pattern=func).numeric_columns()) == sorted(
+        assert sorted(y.select(pattern=func).numeric_columns) == sorted(
             [f"{func}({n.name})" for n in klass157.parent_nodes()]
         )
 
@@ -407,9 +403,9 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
         attributes=["bal", "com", "geo"],
     )
 
-    assert len(x.numeric_columns()) == len(balance_leaves) * len(
-        commodity_leaves
-    ) * len(geography_leaves)
+    assert len(x.numeric_columns) == len(balance_leaves) * len(commodity_leaves) * len(
+        geography_leaves
+    )
 
     multiple_functions = ["count", "sum", "mean"]
     y = x.aggregate(
@@ -429,14 +425,14 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
 
     ts.logger.debug(f"{attribute_permutations}")
     attribute_permutation_names = ["_".join(p[:]) for p in attribute_permutations]
-    assert len(y.numeric_columns()) == len(attribute_permutations) * len(
+    assert len(y.numeric_columns) == len(attribute_permutations) * len(
         multiple_functions
     )
 
     for func in multiple_functions:
         z = y.select(pattern=func)
         print(z)
-        assert sorted(z.numeric_columns()) == sorted(
+        assert sorted(z.numeric_columns) == sorted(
             [f"{func}({n})" for n in attribute_permutation_names]
         )
 
@@ -449,8 +445,8 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
     yy_calc = yy_sum / yy_count
     assert isinstance(yy_mean, Dataset) and is_df_like(yy_mean.data)
     assert isinstance(yy_calc, Dataset) and is_df_like(yy_calc.data)
-    print(yy_mean.nw())
-    print(yy_calc.nw())
+    print(yy_mean.nw)
+    print(yy_calc.nw)
     # assert (yy_mean == yy_calc).all()
     assert yy_calc.isclose(yy_mean)  # we observe decimal differences
 
@@ -477,7 +473,7 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
         attributes=["A", "B", "C"],
     )
 
-    assert len(x.numeric_columns()) == len(klass157_leaves)
+    assert len(x.numeric_columns) == len(klass157_leaves)
     multiple_functions = [
         ["quantile", 10],
         ["percentile", 50, "nearest"],
@@ -486,13 +482,13 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
 
     y = x.aggregate(["A"], [klass157], multiple_functions)
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns()) == 3 * len(klass157.parent_nodes())
+    assert len(y.numeric_columns) == 3 * len(klass157.parent_nodes())
     expected_names = [
         f"{f[0]}{f[1]}({n.name})"
         for n in klass157.parent_nodes()
         for f in multiple_functions
     ]
-    assert sorted(y.numeric_columns()) == sorted(expected_names)
+    assert sorted(y.numeric_columns) == sorted(expected_names)
     assert not np.isnan(y.numeric_array()).any()
     assert (y.numeric_array() > 0).all()
 
@@ -523,7 +519,7 @@ def test_aggregate_callable_for_hierarchical_taxonomy(
         attributes=["A", "B", "C"],
     )
 
-    assert len(x.numeric_columns()) == len(klass157_leaves)
+    assert len(x.numeric_columns) == len(klass157_leaves)
 
     def perc10(x):
         return x.quantile(0.1, axis=1, numeric_only=True)
@@ -533,12 +529,12 @@ def test_aggregate_callable_for_hierarchical_taxonomy(
 
     y = x.aggregate(["A"], [klass157], [perc10, perc90])
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns()) == 2 * len(klass157.parent_nodes())
+    assert len(y.numeric_columns) == 2 * len(klass157.parent_nodes())
     expected_names = [
         f"{f.__name__}({n.name})"
         for n in klass157.parent_nodes()
         for f in [perc10, perc90]
     ]
-    assert sorted(y.numeric_columns()) == sorted(expected_names)
+    assert sorted(y.numeric_columns) == sorted(expected_names)
     assert not np.isnan(y.numeric_array()).any()
     assert (y.numeric_array() > 0).all()
