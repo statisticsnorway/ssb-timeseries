@@ -355,7 +355,10 @@ class Dataset:
                 tags["name"] = new_name  # type: ignore[index]
                 new_series_tags[new_name] = tags
             self.tags["series"] = new_series_tags
-            self.data = rename_columns(self.data, {subst[0]: subst[1]})
+            self.data = rename_columns(
+                self.data,
+                {subst[0]: subst[1]},
+            )
 
     def save(self, as_of_tz: datetime = None) -> None:
         """Persist the Dataset.
@@ -389,8 +392,8 @@ class Dataset:
         Args:
             as_of_tz (datetime): Optional. Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of_utc (utc dates under the hood).
         """
-        date_from = self.data[self.datetime_columns()].min().min()
-        date_to = self.data[self.datetime_columns()].max().max()
+        date_from = self.data[self.datetime_columns].min().min()
+        date_to = self.data[self.datetime_columns].max().max()
         ts.logger.debug(
             "DATASET %s: Data %s - %s:\n%s\n...\n%s",
             self.name,
@@ -441,27 +444,36 @@ class Dataset:
 
     @property
     def series(self) -> list[str]:
-        """Get (sorted) series names.
+        """Get (sorted) series names, ie. all columns that are not time related.
 
-        This is the same as the numeric columns of the data field.
+        As of version 0.6 this implies numeric, with a notable exception for booleans. While booleans occur naturally inside calculations and some logical functions have been added, the support for booleans is not complete.
+
+        Other datatypes are under consideration, but even if support becomes extended beyond numeric and boolean values, it is likely to remain a requirement that datasets remain a single type. Ie that `series` yields the same result as one of the specialized functions `numeric_columns` or `boolean_columns`.
+
+        `data.columns`
+        |-- `datetime_columns`
+        |    |- as_of
+        |    |-- valid_at
+        |    |-- valid_from
+        |    |-- valid_to
+        |-- `series`
+             |-- `numeric_columns`
+             |-- `boolean_columns`
         """
-        num_cols = self.numeric_columns()
-        # dt_expr = ~ncs.by_dtype(nw.Datetime,nw.Date)
-        # non_datetime_cols = self.nw().select(dt_expr).columns
-        ## does not necessarily exist:
-        ## tag_keys = self.series_tags.keys()
-        # if num_cols != non_datetime_cols:
-        #    raise ValueError("WFT - something fishy with series names or data types.")
-        return sorted(num_cols)
+        dt_expr = ~ncs.by_dtype(nw.Datetime, nw.Date)
+        non_datetime_cols = self.nw.select(dt_expr).columns
+        return sorted(non_datetime_cols)
+        # could fail if called before .data is assigned?
+        # ... but in that case, whatever function would try to use `series` would likely fail later anyway?
 
-        # first implementation was more complicated
+        # an earlier implementation was more complicated
         # if (
         #    self.__getattribute__("data") is None
         #    and self.__getattribute__("tags") is None
         # ):
         #    return sorted(self.series_tags.keys())
         # else:
-        #    return sorted(self.numeric_columns())
+        #    return sorted(self.numeric_columns)
 
     @property
     def series_tags(self) -> meta.SeriesTagDict:
@@ -829,7 +841,7 @@ class Dataset:
             error_message = f"DATASET.select() was called without valid criteria:\n{names=}, {pattern=}, {regex=}, {tags=}"
             raise ValueError(error_message)
 
-        expressions = [nw.col(self.datetime_columns())]
+        expressions = [nw.col(self.datetime_columns)]
         if names:
             expressions.append(nw.col(*names))
 
@@ -864,7 +876,7 @@ class Dataset:
                 matching_series_tags = {
                     k: v
                     for k, v in out.tags["series"].items()
-                    if k in out.numeric_columns()
+                    if k in out.numeric_columns
                 }
                 out.tags["series"] = matching_series_tags
             case _:
@@ -926,7 +938,7 @@ class Dataset:
             raise TypeError(
                 "DATASET.__setitem__ columns should be specified as string or iterable, not {type(columns).__name__}."
             )
-        nw_self = nw.from_native(self.nw().to_arrow())
+        nw_self = nw.from_native(self.nw.to_arrow())
 
         # if False:
         if isinstance(data, np.ndarray):
@@ -1003,7 +1015,7 @@ class Dataset:
                     xlabels = "valid_from"
                 case "midpoint":
                     xlabels = "midpoint"
-                    df["midpoint"] = df[self.datetime_columns()].median(axis=1)
+                    df["midpoint"] = df[self.datetime_columns].median(axis=1)
                     df.drop(columns=["valid_from", "valid_to"], inplace=True)
 
                 case _:
@@ -1011,7 +1023,7 @@ class Dataset:
                         "Invalid option for interval_handling. Must be 'from', 'to', 'interval' or 'midpoint'."
                     )
         else:
-            xlabels = self.datetime_columns()[0]
+            xlabels = self.datetime_columns[0]
 
         ts.logger.debug("DATASET.plot(): x labels = %s", xlabels)
         ts.logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
@@ -1123,8 +1135,8 @@ class Dataset:
     ) -> Self:
         """Alter frequency of dataset data."""
         # TODO: have a closer look at dates returned for last period when upsampling
-        # df = self.data.set_index(self.datetime_columns())
-        df = self.data.set_index(self.datetime_columns()).copy()
+        # df = self.data.set_index(self.datetime_columns)
+        df = self.data.set_index(self.datetime_columns).copy()
         match func:
             case "min":
                 out = df.resample(freq).min()
@@ -1178,12 +1190,13 @@ class Dataset:
         """Check if any values in series columns evaluate to true."""
         return bool(np.any(self.numeric_array()))
 
+    @property
     def boolean_columns(self) -> list[str]:
         """Get names of all numeric series columns (ie columns that are not datetime)."""
         return list(nw.from_native(self.data).select(ncs.boolean()).columns)
-        # replaces: return [c for c in self.data.columns if c not in self.datetime_columns()]
+        # replaces: return [c for c in self.data.columns if c not in self.datetime_columns]
 
-    # def datetime_columns(self, *comparisons: Self | pd.DataFrame) -> list[str]:
+    @property
     def datetime_columns(self) -> list[str]:
         """Get names of applicable datetime columns (as_of, valid_at, valid_from, valid_to)."""
         return list(nw.from_native(self.data).select(ncs.datetime()).columns)
@@ -1191,6 +1204,7 @@ class Dataset:
         # intersect = set(nw.from_native(self.data).columns) & {"valid_at", "valid_from", "valid_to"}
         # return sorted(list(intersect))
 
+    @property
     def numeric_columns(self) -> list[str]:
         """Get names of all numeric series columns (ie columns that are not datetime)."""
         return sorted(nw.from_native(self.data).select(ncs.numeric()).columns)
@@ -1207,11 +1221,12 @@ class Dataset:
         np_array = nw.from_native(self.data).select(expr).to_numpy()
         return cast("NDArray", np_array)
 
+    @property
     def nw(self) -> Frame:
-        """Returns data as a (new) Narwhals frame.
+        """Returns Dataset.data as a (new) Narwhals frame.
 
         This allows making use not only of the functionality of Narwhals https://narwhals-dev.github.io/narwhals/api-reference/,
-        but also that of other supported dataframe libraries through .to_pandas(), to_polars(),to_numpy(),.to_arrow().
+        but also that of other supported libraries through .to_pandas(), to_polars(),to_numpy(),.to_arrow().
         For numpy, see also 'Dataset.numeric_array()' that returns a numeric matrix omitting the date columns.
         """
         return cast(Frame, nw.from_native(self.data))
@@ -1239,7 +1254,7 @@ class Dataset:
             For datasets, the name of the new set is derived from inputs and the functions applied.
             If 'other' is not recognized, the 'NotImplemented' Singleton is returned so that Python can invoke  '__r<method>__' of other class.
         """
-        num_cols = self.numeric_columns()
+        num_cols = self.numeric_columns
         out = self.copy()
 
         if isinstance(other, Dataset):
@@ -1612,7 +1627,7 @@ class Dataset:
                 )
             taxonomy_dict[name] = obj
 
-        df = nw.from_native(self.data).drop(self.numeric_columns()).to_pandas()
+        df = nw.from_native(self.data).drop(self.numeric_columns).to_pandas()
         new_series_tags = {}
         permutations = meta.permutations(taxonomy_dict, "parents")
         for p in permutations:
@@ -1694,7 +1709,7 @@ class Dataset:
 
         averages = diffs / n
         out = self.copy(f"{self.name}.mov_avg({start},{stop})")
-        out[self.numeric_columns()] = averages[0:rows, :]
+        out[self.numeric_columns] = averages[0:rows, :]
 
         # how to handle nans? choice between multiple strategies;
         # ... + choice whether to distinguish between beginning/end/middle?

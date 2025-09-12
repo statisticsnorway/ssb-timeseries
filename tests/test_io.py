@@ -62,7 +62,7 @@ def test_io_parquet_schema_as_of_at(
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_none_at
     schema = io.parquet_schema(dataset.data_type, dataset.tags)
-    assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
+    assert set(schema.names) == set(dataset.series + dataset.datetime_columns)
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
         tags = io.tags_from_json(schema.field(key).metadata)
@@ -80,7 +80,7 @@ def test_io_parquet_schema_none_from_to(
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_none_from_to
     schema = io.parquet_schema(dataset.data_type, dataset.tags)
-    assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
+    assert set(schema.names) == set(dataset.series + dataset.datetime_columns)
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
         tags = io.tags_from_json(schema.field(key).metadata)
@@ -98,7 +98,7 @@ def test_io_parquet_schema_none_at(
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_as_of_at
     schema = io.parquet_schema(dataset.data_type, dataset.tags)
-    assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
+    assert set(schema.names) == set(dataset.series + dataset.datetime_columns)
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
         tags = io.tags_from_json(schema.field(key).metadata)
@@ -116,7 +116,7 @@ def test_io_parquet_schema_as_of_from_to(
     caplog.set_level(logging.DEBUG)
     dataset = new_dataset_as_of_from_to
     schema = io.parquet_schema(dataset.data_type, dataset.tags)
-    assert set(schema.names) == set(dataset.series + dataset.datetime_columns())
+    assert set(schema.names) == set(dataset.series + dataset.datetime_columns)
     for key in dataset.series:
         # tags = json.loads(schema.field(key).metadata[b'json'].decode())
         tags = io.tags_from_json(schema.field(key).metadata)

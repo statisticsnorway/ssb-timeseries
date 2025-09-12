@@ -108,9 +108,21 @@ def is_df_like(obj: Any) -> bool:
     )
 
 
-def rename_columns(df: IntoFrameT, mapping: dict[str, str]) -> IntoFrameT:
+def rename_columns(
+    df: IntoFrameT,
+    substitutions: dict[str, str],
+) -> IntoFrameT:
     """Rename columns of dataframe."""
-    return nw.from_native(df).rename(mapping).to_native()
+    nw_df = nw.from_native(df)
+    names = nw_df.schema.names()
+
+    mapping = {}
+    for n in names:
+        for r, w in substitutions.items():
+            if r in n:
+                mapping[n] = n.replace(r, w)
+
+    return nw_df.rename(mapping).to_native()
 
 
 def to_arrow(

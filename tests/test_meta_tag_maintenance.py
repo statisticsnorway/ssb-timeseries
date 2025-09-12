@@ -119,7 +119,7 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
 
     # each numeric column should be a key in x.tags["series"]
     d = x.tags["series"]
-    assert [key for key in d.keys()].sort() == x.numeric_columns().sort()
+    assert [key for key in d.keys()].sort() == x.numeric_columns.sort()
 
     for key in d.keys():
         test_logger.debug(f" ... {d[key]}")
