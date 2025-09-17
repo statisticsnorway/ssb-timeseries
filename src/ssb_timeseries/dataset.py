@@ -453,19 +453,13 @@ class Dataset:
     def series(self) -> list[str]:
         """Get (sorted) series names, ie. all columns that are not time related.
 
-        As of version 0.6 this implies numeric, with a notable exception for booleans. While booleans occur naturally inside calculations and some logical functions have been added, the support for booleans is not complete.
+        As of version 0.6 this implies numeric, with a notable exception for booleans.
+        While booleans occur naturally inside calculations and some logical functions have been added,
+        the support for booleans is not complete.
 
-        Other datatypes are under consideration, but even if support becomes extended beyond numeric and boolean values, it is likely to remain a requirement that datasets remain a single type. Ie that `series` yields the same result as one of the specialized functions `numeric_columns` or `boolean_columns`.
-
-        `data.columns`
-        |-- `datetime_columns`
-        |    |- as_of
-        |    |-- valid_at
-        |    |-- valid_from
-        |    |-- valid_to
-        |-- `series`
-             |-- `numeric_columns`
-             |-- `boolean_columns`
+        Other datatypes are under consideration, but even beyond numeric and boolean values,
+        it is likely to remain a requirement that datasets remain a single type.
+        Ie that `series` yields the same result as one of the specialized functions `numeric_columns` or `boolean_columns`.
         """
         dt_expr = ~ncs.by_dtype(nw.Datetime, nw.Date)
         non_datetime_cols = self.nw.select(dt_expr).columns
