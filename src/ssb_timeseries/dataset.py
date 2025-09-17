@@ -26,6 +26,7 @@ import warnings
 from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Protocol
 from typing import cast
@@ -40,11 +41,13 @@ import matplotlib.pyplot as plt  # noqa: F401
 import narwhals as nw
 import narwhals.selectors as ncs
 import numpy as np
+import pyarrow as pa
 from narwhals.typing import Frame
 from narwhals.typing import IntoDType
 from narwhals.typing import IntoFrame
 from narwhals.typing import IntoFrameT
 from narwhals.typing import IntoSeries
+from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
 import ssb_timeseries as ts
@@ -60,6 +63,10 @@ from ssb_timeseries.dates import period_index
 from ssb_timeseries.dates import utc_iso
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
+
+if TYPE_CHECKING:
+    import pandas as pd
+    import polars as pl
 
 # mypy: disable-error-code="assignment,attr-defined,union-attr,arg-type,call-overload,no-untyped-call,dict-item"
 # ruff: noqa: RUF013
@@ -1222,6 +1229,19 @@ class Dataset:
         return cast("NDArray", np_array)
 
     @property
+    def np(self) -> NDArray:
+        """Returns Dataset.data as a (new) Numpy NDArray.
+
+        This is a shorthand for `Dataset.nw.to_numpy()`.
+        It is different from the `numeric_array` in that it includes date columns.
+        similar shorhands are `pd` for `.to_pandas()`, `pl` for `to_polars(), `pa`for `.to_arrow()`.
+        See also 'Dataset.numeric_array()' that returns a numeric matrix omitting the date columns.
+        """
+        return self.nw.to_numpy()
+        # ... returns output ddtype = object, but this is a Narwhals oversight
+        # return self.__array__()
+
+    @property
     def nw(self) -> Frame:
         """Returns Dataset.data as a (new) Narwhals frame.
 
@@ -1230,6 +1250,33 @@ class Dataset:
         For numpy, see also 'Dataset.numeric_array()' that returns a numeric matrix omitting the date columns.
         """
         return cast(Frame, nw.from_native(self.data))
+
+    @property
+    def pa(self) -> pa.Table:
+        """Returns Dataset.data as a (new) Pyarrow Table.
+
+        This is a shorthand for `Dataset.nw.to_arrow()`.
+        Similar shorhands are `np` for `.to_numpy()`, `pl` for `to_polars(), `pa`for `.to_arrow()`.
+        """
+        return self.nw.to_arrow()
+
+    @property
+    def pd(self) -> pd.DataFrame:
+        """Returns Dataset.data as a (new) Pandas dataframe.
+
+        This is a shorthand for `Dataset.nw.to_pandas()`.
+        Similar shorhands are `np` for `.to_numpy()`, `pl` for `to_polars(), `pa`for `.to_arrow()`.
+        """
+        return self.nw.to_pandas()
+
+    @property
+    def pl(self) -> pl.DataFrame:
+        """Returns Dataset.data as a (new) Polars dataframe.
+
+        This is a shorthand for `Dataset.nw.to_polars()`.
+        Similar shorhands are `np` for `.to_numpy()`, `pd` for `to_pandas(), `pa`for `.to_arrow()`.
+        """
+        return self.nw.to_polars()
 
     @no_type_check
     def math(
@@ -1557,6 +1604,41 @@ class Dataset:
                 "series": str(self.series),
                 "data": self.data.shape,
             }
+        )
+
+    def __array__(
+        self,
+        dtype: type | DTypeLike | None = None,
+        copy: bool = True,
+    ) -> NDArray:
+        """Returns the series in the Dataset as a Numpy array, adhering to the protocol.
+
+        See Dataset.np to include datetime columns.
+        """
+        (_, _) = (dtype, copy)
+        return self.numeric_array()
+        # ... OR:
+        # return self.nw.__array__(dtype=dtype, copy=copy)
+
+    def __arrow_c_stream__(
+        self,
+        requested_schema: Any = None,  # mypy fails for pa.Schema
+    ) -> Any:  # mypy fails for pa.RecordBatchReader
+        """Implements the Arrow C Data Interface.
+
+        This allows PyArrow and other Arrow compatible libraries or even other programming languages to collect data from a Dataset object.
+        """
+        return self.nw.__arrow_c_stream__(requested_schema=requested_schema)
+
+    def __dataframe__(
+        self,
+        nan_as_null: bool = False,
+        allow_copy: bool = True,
+    ) -> Any:
+        """Implements the Dataframe Interchange Protocol."""
+        return self.pa.__dataframe__(
+            nan_as_null=nan_as_null,
+            allow_copy=allow_copy,
         )
 
     def aggregate(
