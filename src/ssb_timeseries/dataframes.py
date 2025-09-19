@@ -1,21 +1,29 @@
 """A collection of helper functions to work with dataframes."""
 
 from typing import Any
+from typing import Literal
+from typing import cast
 
 import narwhals as nw
 import pyarrow
+from narwhals.typing import Frame
+from narwhals.typing import FrameT
 from narwhals.typing import IntoFrame
-from narwhals.typing import IntoFrameT
+from numpy.typing import DTypeLike
+from numpy.typing import NDArray
+
+# mypy: disable-error-code="union-attr"
 
 
-def copy(df: IntoFrameT) -> IntoFrameT:
-    """Check if dataframe is empty."""
-    return nw.from_native(df).clone().to_native()
+def copy(df: FrameT) -> Any:
+    """Return an (eager) copy of the dataframe."""
+    # return nw.from_native(df).clone().to_native()
+    return eager(df).clone().to_native()
 
 
-def eager(df: IntoFrameT) -> nw.DataFrame:
+def eager(df: Frame) -> Any:
     """Collect or compute for lazy implementations."""
-    return nw.from_native(df).lazy(backend="polars").collect()
+    return nw.from_native(df).lazy().collect()
 
 
 def empty_frame(
@@ -65,7 +73,7 @@ def is_empty(df: IntoFrame) -> bool:
     # ... fix(?):
     nw_df = nw.from_native(df)
     df_is_empty = eager(nw_df).is_empty()
-    return df_is_empty
+    return cast(bool, df_is_empty)
 
 
 def are_equal(*frames: IntoFrame) -> bool:
@@ -109,9 +117,9 @@ def is_df_like(obj: Any) -> bool:
 
 
 def rename_columns(
-    df: IntoFrameT,
+    df: Any,
     substitutions: dict[str, str],
-) -> IntoFrameT:
+) -> Any:
     """Rename columns of dataframe."""
     nw_df = nw.from_native(df)
     names = nw_df.schema.names()
@@ -135,3 +143,37 @@ def to_arrow(
         return table.select(schema.names).cast(schema)
     else:
         return table
+
+
+def to_numpy(
+    df: Frame,
+    dtype: DTypeLike | None = None,
+    *,
+    output_type: Literal["homogeneous", "structured"] = "homogeneous",
+) -> NDArray:
+    """Converts a dataframe to a NumPy ndarray.
+
+    Parameters
+    ----------
+    dtype : type | DTypeLike | None
+        The desired dtype for the resulting array. If None and output_type is
+        'homogeneous', will upcast to 'object' if columns have mixed types.
+        dtype is ignored when output_type='structured' as column dtypes are preserved.
+    output_type : "homogeneous" | "structured"
+        'homogeneous': Returns a 2D array, possibly with dtype='object' for mixed types.
+        'structured': Returns a 1D structured array, preserving individual column dtypes.
+
+    Returns:
+    -------
+    numpy.ndarray
+        A NumPy array representation of the data.
+    """
+    nw_df = nw.from_native(df)
+    if output_type == "homogeneous":
+        return cast(NDArray, nw_df.to_arrow().to_numpy(dtype=dtype, copy=True))
+    elif output_type == "structured":
+        return nw_df.to_pandas().to_records(index=False)
+    else:
+        raise ValueError(
+            f"Invalid output_type: {output_type}. Must be 'homogeneous' or 'structured'."
+        )

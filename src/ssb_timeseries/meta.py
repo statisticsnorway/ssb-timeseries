@@ -170,7 +170,7 @@ class Taxonomy:
         elif data and isinstance(data, list):
             tbl = records_to_arrow(data)
         elif data and not isinstance(data, list) and is_df_like(data):
-            tbl = nw.from_native(data).to_arrow()  # ignore: [type-var]
+            tbl = nw.from_native(data).to_arrow()  # type: ignore [type-var]
         elif path:
             dict_from_file = fs.read_json(str(path))
             tbl = records_to_arrow(dict_from_file)

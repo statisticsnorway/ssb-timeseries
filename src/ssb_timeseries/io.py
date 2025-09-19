@@ -661,24 +661,16 @@ def for_all_datasets_move_metadata_files(
     return [SearchResult(f[2], f[1]) for f in search_results]
 
 
-def normalize_numeric(
-    df: IntoFrameT,
-) -> IntoFrameT:
-    """Normalize datatypes for numeric columns of dataframe."""
-    nw_df = nw.from_native(df).lazy(backend="polars")
-    expressions = []
-    expressions.append(nw.selectors.by_dtype(nw.Float32).cast(nw.Float64))
-    return nw_df.with_columns(expressions).collect()
-
-
 def merge_data(
     old: IntoFrameT, new: IntoFrameT, date_cols: Iterable[str]
 ) -> pyarrow.Table:
     """Merge new data into old data."""
     new = standardize_dates(new)
     old = standardize_dates(old)
-    new = normalize_numeric(new)
-    old = normalize_numeric(old)
+
+    expressions = [nw.selectors.by_dtype(nw.Float32).cast(nw.Float64)]
+    new = nw.from_native(new).lazy(backend="polars").with_columns(expressions).collect()  # type: ignore[call-arg]
+    old = nw.from_native(old).lazy(backend="polars").with_columns(expressions).collect()  # type: ignore[call-arg]
 
     ts.logger.debug("merge_data schemas \n%s\n%s", old.schema, new.schema)
     merged = nw.concat(

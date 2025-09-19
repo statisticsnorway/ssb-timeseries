@@ -43,6 +43,7 @@ import narwhals.selectors as ncs
 import numpy as np
 import pyarrow as pa
 from narwhals.typing import Frame
+from narwhals.typing import FrameT
 from narwhals.typing import IntoDType
 from narwhals.typing import IntoFrame
 from narwhals.typing import IntoFrameT
@@ -1610,14 +1611,16 @@ class Dataset:
         See Dataset.np to include datetime columns.
         """
         (_, _) = (dtype, copy)
+        # Existential choice: return only numeric or numeric + dates? Ie:
         return self.numeric_array()
         # ... OR:
         # return self.nw.__array__(dtype=dtype, copy=copy)
+        # Numeric only is better fit for purpose of using Numpy mainly for mathematics.
 
     def __arrow_c_stream__(
         self,
-        requested_schema: Any = None,  # mypy fails for pa.Schema
-    ) -> Any:  # mypy fails for pa.RecordBatchReader
+        requested_schema: Any = None,  # WTF? mypy fails for pa.Schema
+    ) -> Any:  # WTF? mypy fails for pa.RecordBatchReader
         """Implements the Arrow C Data Interface.
 
         This allows PyArrow and other Arrow compatible libraries or even other programming languages to collect data from a Dataset object.
@@ -1818,7 +1821,7 @@ class Dataset:
         return out
 
 
-def column_aggregate(df: IntoFrameT, method: str | F) -> Any:
+def column_aggregate(df: FrameT, method: str | F) -> Any:
     """Helper function to calculate aggregate over dataframe columns."""
     # ts.logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
     nw_df = nw.from_native(df)
