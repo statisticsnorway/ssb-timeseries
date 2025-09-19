@@ -5,8 +5,8 @@ import pandas
 import polars
 import pyarrow
 
-from ssb_timeseries import io
 from ssb_timeseries.dates import datelike_to_utc
+from ssb_timeseries.io import simple as io
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 

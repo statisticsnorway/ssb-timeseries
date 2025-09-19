@@ -52,7 +52,6 @@ from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
 import ssb_timeseries as ts
-from ssb_timeseries import io
 from ssb_timeseries import meta
 from ssb_timeseries.dataframes import empty_frame
 from ssb_timeseries.dataframes import is_df_like
@@ -62,6 +61,7 @@ from ssb_timeseries.dates import date_local
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import period_index
 from ssb_timeseries.dates import utc_iso
+from ssb_timeseries.io import simple as io
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
 

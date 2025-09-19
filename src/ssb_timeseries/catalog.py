@@ -25,8 +25,8 @@ from typing import runtime_checkable
 import duckdb
 
 from ssb_timeseries.config import FileBasedRepository
-from ssb_timeseries.io import find_metadata_files
-from ssb_timeseries.io import tags_from_json_file
+from ssb_timeseries.io.json_metadata import find_metadata_files
+from ssb_timeseries.io.json_metadata import tags_from_json_file
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.meta import TagValue
 from ssb_timeseries.meta import matches_criteria

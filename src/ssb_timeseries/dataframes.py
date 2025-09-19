@@ -153,20 +153,18 @@ def to_numpy(
 ) -> NDArray:
     """Converts a dataframe to a NumPy ndarray.
 
-    Parameters
-    ----------
-    dtype : type | DTypeLike | None
-        The desired dtype for the resulting array. If None and output_type is
-        'homogeneous', will upcast to 'object' if columns have mixed types.
-        dtype is ignored when output_type='structured' as column dtypes are preserved.
-    output_type : "homogeneous" | "structured"
-        'homogeneous': Returns a 2D array, possibly with dtype='object' for mixed types.
-        'structured': Returns a 1D structured array, preserving individual column dtypes.
+    Parameters:
+        dtype : type | DTypeLike | None
+            The desired dtype for the resulting array. If None and output_type is
+            'homogeneous', will upcast to 'object' if columns have mixed types.
+            dtype is ignored when output_type='structured' as column dtypes are preserved.
+        output_type : "homogeneous" | "structured"
+            'homogeneous': Returns a 2D array, possibly with dtype='object' for mixed types.
+            'structured': Returns a 1D structured array, preserving individual column dtypes.
 
     Returns:
-    -------
-    numpy.ndarray
-        A NumPy array representation of the data.
+        numpy.ndarray
+            A NumPy array representation of the data.
     """
     nw_df = nw.from_native(df)
     if output_type == "homogeneous":

@@ -41,12 +41,13 @@ from ssb_timeseries.dates import datelike_to_utc
 from ssb_timeseries.dates import prepend_as_of
 from ssb_timeseries.dates import standardize_dates
 from ssb_timeseries.dates import utc_iso_no_colon
+from ssb_timeseries.io.json_metadata import MetaIO
 from ssb_timeseries.meta import DatasetTagDict
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.types import PathStr
 
 if TYPE_CHECKING:
-    from pathlib import Path
+    pass
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 # ruff: noqa: D202
@@ -119,6 +120,11 @@ class FileSystem:
 
         self.set_name = set_name
         self.data_type = set_type
+
+        self.meta_io = MetaIO(
+            repository=self.repository,
+            set_name=self.set_name,
+        )
         self.process_stage = process_stage
         self.sharing = sharing
 
@@ -148,7 +154,8 @@ class FileSystem:
     @property
     def metadata_file(self) -> str:
         """The name of the metadata file for the dataset."""
-        return f"{self.set_name}-metadata.json"
+        # return f"{self.set_name}-metadata.json"
+        return self.meta_io.metadata_file
 
     @property
     def data_file(self) -> str:
@@ -183,12 +190,14 @@ class FileSystem:
         In the inital implementation with data and metadata in separate files this was the same as the data directory.
         Now metadata is included in the data file, but also 'registered' in a central meta data directory.
         """
-        return self.repository["catalog"]
+        # return self.repository["catalog"]
+        return self.meta_io.metadata_dir
 
     @property
     def metadata_fullpath(self) -> str:
         """The full path to the metadata file."""
-        return os.path.join(self.metadata_dir, self.metadata_file)
+        # return os.path.join(self.metadata_dir, self.metadata_file)
+        return self.meta_io.metadata_fullpath
 
     def read_data(
         self,
@@ -223,17 +232,18 @@ class FileSystem:
 
     def read_metadata(self) -> dict:
         """Read tags from the metadata file."""
-        meta: dict = {"name": self.set_name}
-        if fs.exists(self.metadata_fullpath):
-            ts.logger.info(
-                "DATASET.read.success %s: reading metadata from file %s\nended.",
-                self.set_name,
-                self.metadata_fullpath,
-            )
-            meta = fs.read_json(self.metadata_fullpath)
-        else:
-            ts.logger.debug("Metadata file %s was not found.", self.metadata_fullpath)
-        return meta
+        return self.meta_io.read_metadata()
+        # meta: dict = {"name": self.set_name}
+        # if fs.exists(self.metadata_fullpath):
+        #    ts.logger.info(
+        #        "DATASET.read.success %s: reading metadata from file %s\nended.",
+        #        self.set_name,
+        #        self.metadata_fullpath,
+        #    )
+        #    meta = fs.read_json(self.metadata_fullpath)
+        # else:
+        #    ts.logger.debug("Metadata file %s was not found.", self.metadata_fullpath)
+        # return meta
 
     def write_data(self, data: FrameT, tags: dict | None = None) -> None:
         """Writes data to the filesystem.
@@ -282,20 +292,21 @@ class FileSystem:
 
     def write_metadata(self, meta: dict) -> None:
         """Write tags to the metadata file."""
-        try:
-            fs.write_json(self.metadata_fullpath, meta)
-            ts.logger.info(
-                "DATASET %s: Writing metadata to file %s.",
-                self.set_name,
-                self.metadata_fullpath,
-            )
-        except Exception as e:
-            ts.logger.exception(
-                "DATASET %s: Writing metadata to file %s returned exception %s.",
-                self.set_name,
-                self.metadata_fullpath,
-                e,
-            )
+        self.meta_io.write_metadata(meta)
+        # try:
+        #     fs.write_json(self.metadata_fullpath, meta)
+        #     ts.logger.info(
+        #         "DATASET %s: Writing metadata to file %s.",
+        #         self.set_name,
+        #         self.metadata_fullpath,
+        #     )
+        # except Exception as e:
+        #     ts.logger.exception(
+        #         "DATASET %s: Writing metadata to file %s returned exception %s.",
+        #         self.set_name,
+        #         self.metadata_fullpath,
+        #         e,
+        #     )
 
     # we may need to reintroduce these?
     # def parquet_schema(
@@ -573,62 +584,62 @@ def find_datasets(
     return [SearchResult(f[2], f[1]) for f in search_results]
 
 
-def find_metadata_files(
-    repository: list[PathStr] | PathStr | None = None,
-    pattern: str = "",
-    contains: str = "",
-    equals: str = "",
-) -> list[str]:
-    """Search for metadata json files in the 'catalog' directory.
-
-    Only one of the arguments 'contains' or 'equals' can be provided at the same time. If none is provided, all files are returned.
-    """
-    ts.logger.debug("find_metadata_files in repo(s) %s.", repository)
-    if contains:
-        pattern = f"*{contains}*"
-    elif equals:
-        pattern = equals
-    elif not pattern:
-        pattern = "*"
-
-    def find_in_repo(repo: str) -> list[str]:
-        return fs.find(
-            search_path=repo,
-            pattern=pattern,
-            full_path=True,
-            search_sub_dirs=False,
-        )
-
-    if not repository:
-        ts.logger.debug(
-            "find_metadata_files in default repo:\n%s.",
-            repository,
-        )
-        result = find_in_repo(active_config())
-    elif isinstance(repository, str):
-        ts.logger.debug(
-            "find_metadata_files in repo by str:\n%s.",
-            repository,
-        )
-        result = find_in_repo(repository)
-    elif isinstance(repository, Path):
-        ts.logger.debug(
-            "find_metadata_files in repo by Path:\n%s.",
-            repository,
-        )
-        result = find_in_repo(repository)
-    elif isinstance(repository, list):
-        ts.logger.debug(
-            "find_metadata_files in multiple repos:\n%s",
-            repository,
-        )
-        result = []
-        for r in repository:
-            result.append(find_in_repo(r))
-    else:
-        raise TypeError("Invalid repository type.")
-
-    return result
+# def find_metadata_files(
+#     repository: list[PathStr] | PathStr | None = None,
+#     pattern: str = "",
+#     contains: str = "",
+#     equals: str = "",
+# ) -> list[str]:
+#     """Search for metadata json files in the 'catalog' directory.
+#
+#     Only one of the arguments 'contains' or 'equals' can be provided at the same time. If none is provided, all files are returned.
+#     """
+#     ts.logger.debug("find_metadata_files in repo(s) %s.", repository)
+#     if contains:
+#         pattern = f"*{contains}*"
+#     elif equals:
+#         pattern = equals
+#     elif not pattern:
+#         pattern = "*"
+#
+#     def find_in_repo(repo: str) -> list[str]:
+#         return fs.find(
+#             search_path=repo,
+#             pattern=pattern,
+#             full_path=True,
+#             search_sub_dirs=False,
+#         )
+#
+#     if not repository:
+#         ts.logger.debug(
+#             "find_metadata_files in default repo:\n%s.",
+#             repository,
+#         )
+#         result = find_in_repo(active_config())
+#     elif isinstance(repository, str):
+#         ts.logger.debug(
+#             "find_metadata_files in repo by str:\n%s.",
+#             repository,
+#         )
+#         result = find_in_repo(repository)
+#     elif isinstance(repository, Path):
+#         ts.logger.debug(
+#             "find_metadata_files in repo by Path:\n%s.",
+#             repository,
+#         )
+#         result = find_in_repo(repository)
+#     elif isinstance(repository, list):
+#         ts.logger.debug(
+#             "find_metadata_files in multiple repos:\n%s",
+#             repository,
+#         )
+#         result = []
+#         for r in repository:
+#             result.append(find_in_repo(r))
+#     else:
+#         raise TypeError("Invalid repository type.")
+#
+#     return result
 
 
 def list_datasets() -> list[SearchResult]:
@@ -642,23 +653,23 @@ class DatasetIoException(Exception):
     pass
 
 
-def for_all_datasets_move_metadata_files(
-    pattern: str | PathStr = "",
-) -> list[SearchResult]:
-    """Search for files in under timeseries root."""
-    if pattern:
-        pattern = f"*{pattern}*"
-    else:
-        pattern = "*"
-
-    dirs = fs.find(active_config().timeseries_root, pattern, full_path=True)
-    search_results = [
-        d.replace(active_config().timeseries_root, "root").split(os.path.sep)
-        for d in dirs
-    ]
-    ts.logger.debug("DATASET.IO.SEARCH: results: %s", search_results)
-
-    return [SearchResult(f[2], f[1]) for f in search_results]
+# def for_all_datasets_move_metadata_files(
+#    pattern: str | PathStr = "",
+# ) -> list[SearchResult]:
+#    """Search for files in under timeseries root."""
+#    if pattern:
+#        pattern = f"*{pattern}*"
+#    else:
+#        pattern = "*"
+#
+#    dirs = fs.find(active_config().timeseries_root, pattern, full_path=True)
+#    search_results = [
+#        d.replace(active_config().timeseries_root, "root").split(os.path.sep)
+#        for d in dirs
+#    ]
+#    ts.logger.debug("DATASET.IO.SEARCH: results: %s", search_results)
+#
+#    return [SearchResult(f[2], f[1]) for f in search_results]
 
 
 def merge_data(
