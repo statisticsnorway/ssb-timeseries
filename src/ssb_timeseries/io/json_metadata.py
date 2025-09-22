@@ -14,7 +14,7 @@ See `config` module docs for details.
 
 import json
 import os
-from typing import TYPE_CHECKING
+from pathlib import Path
 from typing import NamedTuple
 
 import ssb_timeseries as ts
@@ -24,9 +24,6 @@ from ssb_timeseries.config import FileBasedRepository
 from ssb_timeseries.meta import DatasetTagDict
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.types import PathStr
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 # ruff: noqa: D202
@@ -76,7 +73,7 @@ class MetaIO:
         In the inital implementation with data and metadata in separate files this was the same as the data directory.
         Now metadata is included in the data file, but also 'registered' in a central meta data directory.
         """
-        return self.repository["catalog"]
+        return self.repository["catalog"]["path"]
 
     @property
     def metadata_fullpath(self) -> str:
@@ -119,51 +116,9 @@ class MetaIO:
         return fs.exists(self.metadata_fullpath)
 
 
-def find_datasets(
-    pattern: str | PathStr = "",
-    exclude: str = "metadata",
-    repository: list[PathStr] | PathStr = "",
-) -> list[SearchResult]:
-    """Search for files in data directories of all configured repositories."""
-    if pattern:
-        pattern = f"*{pattern}*"
-    else:
-        pattern = "*"
-
-    if repository:
-        search_directories = [repository]
-        repo_names = ["root"]
-        ts.logger.debug("IO.find_dataset pattern %s in repo %s", pattern, repository)
-    else:
-        search_directories = [
-            v["directory"] for k, v in active_config().repositories.items()
-        ]
-        repo_names = [k for k in active_config().repositories.keys()]
-
-    data_dirs = []
-    for search_dir in search_directories:
-        data_dirs.extend(fs.find(search_dir, pattern, full_path=True))
-
-    ts.logger.debug("%s %s", pattern, data_dirs)
-    if exclude:
-        dirs = [d for d in data_dirs if exclude not in d]
-        ts.logger.debug(
-            "DATASET.IO.find_datasets: exclude '%s' eliminated:\n%s",
-            exclude,
-            [d for d in dirs if exclude in d],
-        )
-    search_results = []
-    for search_dir, repo in zip(search_directories, repo_names, strict=False):
-        ts.logger.debug("%s | %s", search_dir, repo)
-        search_results.extend(
-            [d.replace(search_dir, repo).split(os.path.sep) for d in dirs]
-        )
-    ts.logger.debug("search results: %s", search_results)
-    return [SearchResult(f[2], f[1]) for f in search_results]
-
-
 def find_metadata_files(
-    repository: list[PathStr] | PathStr | None = None,
+    repository: PathStr | None = None,
+    # repository: list[PathStr] | PathStr | None = None,
     pattern: str = "",
     contains: str = "",
     equals: str = "",
@@ -180,7 +135,7 @@ def find_metadata_files(
     elif not pattern:
         pattern = "*"
 
-    def find_in_repo(repo: str) -> list[str]:
+    def find_in_repo(repo: str | Path) -> list[str]:
         return fs.find(
             search_path=repo,
             pattern=pattern,
@@ -194,60 +149,25 @@ def find_metadata_files(
             repository,
         )
         result = find_in_repo(active_config())
-    elif isinstance(repository, str):
+    elif isinstance(repository, Path | str):
         ts.logger.debug(
-            "find_metadata_files in repo by str:\n%s.",
+            "find_metadata_files in repo by str/Path:\n%s.",
             repository,
         )
         result = find_in_repo(repository)
-    elif isinstance(repository, Path):
+    elif isinstance(repository, dict):
         ts.logger.debug(
-            "find_metadata_files in repo by Path:\n%s.",
+            "find_metadata_files in repo specified as {'path': ..., 'handler': ...}:\n%s",
             repository,
         )
-        result = find_in_repo(repository)
-    elif isinstance(repository, list):
-        ts.logger.debug(
-            "find_metadata_files in multiple repos:\n%s",
-            repository,
-        )
-        result = []
-        for r in repository:
-            result.append(find_in_repo(r))
+        result = find_in_repo(repository["path"])
+        # result = []
+        # for r in repository:
+        #    result.append(find_in_repo(r))
     else:
         raise TypeError("Invalid repository type.")
 
     return result
-
-
-def list_datasets() -> list[SearchResult]:
-    """List all datasets under timeseries root."""
-    return find_datasets(pattern="")
-
-
-class DatasetIoException(Exception):
-    """Exception for dataset io errors."""
-
-    pass
-
-
-# def for_all_datasets_move_metadata_files(
-#     pattern: str | PathStr = "",
-# ) -> list[SearchResult]:
-#     """Search for files in under timeseries root."""
-#     if pattern:
-#         pattern = f"*{pattern}*"
-#     else:
-#         pattern = "*"
-#
-#     dirs = fs.find(active_config().timeseries_root, pattern, full_path=True)
-#     search_results = [
-#         d.replace(active_config().timeseries_root, "root").split(os.path.sep)
-#         for d in dirs
-#     ]
-#     ts.logger.debug("DATASET.IO.SEARCH: results: %s", search_results)
-#
-#     return [SearchResult(f[2], f[1]) for f in search_results]
 
 
 def tags_to_json(x: TagDict) -> dict[str, str]:

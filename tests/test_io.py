@@ -49,7 +49,7 @@ def test_io_metadir_path_is_equal_to_configured_metadata_catalog(
     )
     # expected: str = Path(test_io.data_dir) / test_io.type_path / test_name
     # expected: str = Path(test_io.root) / "metadata"
-    expected = conftest.repo["catalog"]
+    expected = conftest.repo["catalog"]["path"]
     assert str(test_io.metadata_dir) == str(expected)
     assert str(test_io.metadata_dir) != ""
 

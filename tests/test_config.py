@@ -43,6 +43,17 @@ from tests.conftest import Helpers
 test_logger = logging.getLogger(__name__)
 REPO = "test_1"
 
+IO_HANDLERS = {
+    "parquet": {
+        "handler": "ssb_timeseries.io.simple.FileHandler",
+        "options": {"compression": "snappy"},
+    },
+    "json": {
+        "handler": "ssb_timeseries.io.json_metadata.MetaIO",
+        "options": {},
+    },
+}
+
 
 @pytest.fixture(scope="function", autouse=True)
 def reset_config_after(buildup_and_teardown: config.Config):
@@ -91,7 +102,6 @@ def unset_env_var_before_running(reset_env_var_after):
     yield {
         "unset_env_var": env_var,
     }
-    # taken care of by resetn_env_var_after: config.active_file(env_var)
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -192,13 +202,14 @@ def test_config_init_for_no_params_returns_same_as_preset_defaults(
     cfg_2 = config.Config()
     test_logger.debug(f"compare:\n{cfg_0=}\n{cfg_1=}\n{cfg_2=}")
     assert id(cfg_0) != id(cfg_1) != id(cfg_2)
-    assert cfg_0.__dict__() == cfg_1.__dict__() == cfg_2
-    r = "<teamname>"
-    r = REPO
+    assert cfg_0.__dict__ == cfg_1.__dict__ == cfg_2
+    # WTF: different results when running only this testfile and all tests!
+    # r = "<teamname>" # works running pytest for this file  only
+    r = REPO  # works running pytest all tests
     assert (
-        cfg_0.repositories[r]["directory"]
-        == cfg_1.repositories[r]["directory"]
-        == cfg_2.repositories[r]["directory"]
+        cfg_0.repositories[r]["directory"]["path"]
+        == cfg_1.repositories[r]["directory"]["path"]
+        == cfg_2.repositories[r]["directory"]["path"]
     )
 
 
@@ -219,7 +230,7 @@ def test_config_change_persists_after_save(
 
     new = config.Config(configuration_file=config_file)
     test_logger.debug(f"Created configuration: {new}")
-    # we should have both a new object (a new id) and a new path for repositories[0]['directory']
+
     assert id(new) != id(cfg)
     assert new.repositories[REPO]["directory"] == new_value
     assert new.repositories[REPO]["directory"] != old_value
@@ -242,7 +253,6 @@ def test_init_of_not_already_existing_config_file_and_incomplete_config_params_r
     conftest: Helpers,
 ) -> None:
     caplog.set_level("DEBUG")
-    # setup: point to a config that does not exist (this should create the .json file):
     test_dir = reset_config_after.bucket
     tmp_config = fs.path(test_dir, f"timeseries_temp_config_{uuid.uuid4()}.json")
     with pytest.raises(FileNotFoundError):
@@ -259,14 +269,13 @@ def test_init_of_not_already_existing_config_file_with_complete_params_creates_n
     conftest: Helpers,
 ) -> None:
     caplog.set_level("DEBUG")
-    # setup: point to a config that does not exist (this should create the .json file):
     test_dir = reset_config_after.bucket
     tmp_config = fs.path(test_dir, f"timeseries_temp_config_{uuid.uuid4()}.json")
 
     configuration = config.Config(
         configuration_file=tmp_config,
         log_file=test_dir,
-        # bucket=test_dir,
+        io_handlers=IO_HANDLERS,
         repositories=[
             {"name": "test-repo", "directory": test_dir, "catalog": test_dir}
         ],
@@ -277,7 +286,6 @@ def test_init_of_not_already_existing_config_file_with_complete_params_creates_n
         f"Using testdir: {test_dir}. Created configuration: {tmp_config}\n{configuration}"
     )
     assert isinstance(configuration, config.Config)
-    # assert configuration.bucket == test_dir
     assert configuration.repositories[0]["directory"]
 
 

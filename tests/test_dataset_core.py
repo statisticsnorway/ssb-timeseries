@@ -420,7 +420,7 @@ def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
     search_pattern = set_name
     datasets_found = search(
         # specify repo to ensure only one match; necessary because same repo is used twice
-        repository=conftest.repo["directory"],
+        repository=conftest.repo["directory"]["path"],
         pattern=search_pattern,
     )
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
@@ -447,7 +447,7 @@ def test_search_for_dataset_by_part_of_name_with_one_match_returns_the_set(
     search_pattern = set_name[-17:-1]
     datasets_found = search(
         # specify repo to ensure only one match; necessary because same repo is used twice
-        repository=conftest.repo["directory"],
+        repository=conftest.repo["directory"]["path"],
         pattern=search_pattern,
     )
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
@@ -480,7 +480,7 @@ def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
     search_pattern = base_name
     datasets_found = search(
         pattern=search_pattern,
-        repository=conftest.repo["directory"],
+        repository=conftest.repo["directory"]["path"],
     )
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
 

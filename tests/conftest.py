@@ -103,17 +103,39 @@ def buildup_and_teardown(
     temp_configuration = config.Config(
         configuration_file=str(config_file_for_testing),
         log_file=str(log_file_for_testing),
+        io_handlers={
+            "parquet": {
+                "handler": "ssb_timeseries.io.simple.FileHandler",
+                "options": {},
+            },
+            "json": {
+                "handler": "ssb_timeseries.io.json_metadata.MetaIO",
+                "options": {},
+            },
+        },
         repositories={
             "test_1": {
                 "name": "test_1",
-                "directory": str(tmp_path_factory.mktemp("series_test_1")),
-                "catalog": str(tmp_path_factory.mktemp("metadata_test_1")),
+                "directory": {
+                    "path": str(tmp_path_factory.mktemp("series_test_1")),
+                    "handler": "parquet",
+                },
+                "catalog": {
+                    "path": str(tmp_path_factory.mktemp("metadata_test_1")),
+                    "handler": "json",
+                },
                 "default": True,
             },
             "test_2": {
                 "name": "test_2",
-                "directory": str(tmp_path_factory.mktemp("series_test_2")),
-                "catalog": str(tmp_path_factory.mktemp("metadata_test_2")),
+                "directory": {
+                    "path": str(tmp_path_factory.mktemp("series_test_2")),
+                    "handler": "parquet",
+                },
+                "catalog": {
+                    "path": str(tmp_path_factory.mktemp("metadata_test_2")),
+                    "handler": "json",
+                },
             },
         },
         bucket=str(tmp_path_factory.mktemp("bucket")),

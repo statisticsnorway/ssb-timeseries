@@ -204,7 +204,7 @@ class Dataset:
             self.data_type = data_type
         else:
             look_for_it = search(
-                repository=self.repository["directory"],
+                repository=self.repository["directory"]["path"],
                 pattern=name,
                 require_unique=True,
             )

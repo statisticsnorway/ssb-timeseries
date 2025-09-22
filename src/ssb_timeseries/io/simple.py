@@ -138,7 +138,7 @@ class FileSystem:
     @property
     def root(self) -> str:
         """The root path is the basis for all other paths."""
-        ts_root = self.repository["directory"]
+        ts_root = self.repository["directory"]["path"]
         return ts_root
 
     @property
@@ -558,7 +558,7 @@ def find_datasets(
         ts.logger.debug("IO.find_dataset pattern %s in repo %s", pattern, repository)
     else:
         search_directories = [
-            v["directory"] for k, v in active_config().repositories.items()
+            v["directory"]["path"] for k, v in active_config().repositories.items()
         ]
         repo_names = [k for k in active_config().repositories.keys()]
 

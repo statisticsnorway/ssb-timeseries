@@ -23,7 +23,7 @@ def repo_1(
     config = buildup_and_teardown
     r = config.repositories
     # cheat an use the same repo twice:
-    repo = Repository(name="test_1", catalog=r["test_1"]["catalog"])
+    repo = Repository(name="test_1", catalog=r["test_1"]["catalog"]["path"])
     yield repo
 
 
@@ -35,7 +35,7 @@ def repo_2(
     config = buildup_and_teardown
     r = config.repositories
     # cheat an use the same repo twice:
-    repo = Repository(name="test_2", catalog=r["test_2"]["catalog"])
+    repo = Repository(name="test_2", catalog=r["test_2"]["catalog"]["path"])
     yield repo
 
 
@@ -163,7 +163,7 @@ def test_init_catalog_with_repo_like_objects(
     # any object with .name and .catalog should work(?)
     # we will try namedtuple:
     ConfigTuple = namedtuple("ConfigTuple", ["name", "catalog"])
-    repo_1_catalog = buildup_and_teardown.repositories["test_1"]["catalog"]
+    repo_1_catalog = buildup_and_teardown.repositories["test_1"]["catalog"]["path"]
     tuple_repo = ConfigTuple("test_named_tuple", repo_1_catalog)
     catalog = Catalog(
         config=[
