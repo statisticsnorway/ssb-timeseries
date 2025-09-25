@@ -31,6 +31,8 @@ Some notable exceptions are taxonomy and hierarchy features of :py:mod:`ssb_time
 The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether data and metada are stored in files or databases and :py:mod:`ssb_timeseries.fs` is an abstraction for local vs GCS file systems.
 """
 
+from __future__ import annotations
+
 from ssb_timeseries.catalog import Catalog
 from ssb_timeseries.catalog import Repository
 from ssb_timeseries.config import CONFIG
@@ -51,6 +53,7 @@ def get_catalog() -> Catalog:
     repo_list = [
         Repository(name=k, catalog=v["catalog"])
         for k, v in config_repos.items()  # type: ignore[attr-defined]
+        if "catalog" in v
     ]
     return Catalog(repo_list)
 
