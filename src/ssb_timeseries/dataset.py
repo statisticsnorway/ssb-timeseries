@@ -24,11 +24,11 @@ from __future__ import annotations
 import re
 import warnings
 from collections.abc import Iterable
+from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Protocol
 from typing import cast
 from typing import no_type_check
 
@@ -52,79 +52,114 @@ from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
 import ssb_timeseries as ts
-from ssb_timeseries import meta
-from ssb_timeseries.dataframes import empty_frame
-from ssb_timeseries.dataframes import is_df_like
-from ssb_timeseries.dataframes import is_empty
-from ssb_timeseries.dataframes import rename_columns
-from ssb_timeseries.dates import date_local
-from ssb_timeseries.dates import date_utc
-from ssb_timeseries.dates import period_index
-from ssb_timeseries.dates import utc_iso
-from ssb_timeseries.io import simple as io
-from ssb_timeseries.types import F
-from ssb_timeseries.types import PathStr
+
+from . import io
+from . import meta
+from .dataframes import empty_frame
+from .dataframes import is_df_like
+from .dataframes import is_empty
+from .dataframes import rename_columns
+from .dates import date_local
+from .dates import date_utc
+from .dates import period_index
+from .dates import utc_iso
+from .io import simple as old_io  # TODO: REFACTOR
+from .properties import SeriesType
+from .types import F
+from .types import PathStr
 
 if TYPE_CHECKING:
     import pandas as pd
     import polars as pl
 
-# mypy: disable-error-code="assignment,attr-defined,union-attr,arg-type,call-overload,no-untyped-call,dict-item"
+# mypy: disable-error-code="assignment,attr-defined,union-attr,arg-type,call-overload,no-untyped-call,dict-item,no-untyped-def,no-any-return"
 # ruff: noqa: RUF013
 
 
-def select_repository(name: str = "") -> Any:
-    """Select a named or default repository from the configuration.
-
-    If there is only one repo, the choice is easy and criteria does not matter.
-    Otherwise, if a ``name`` is provided, only that is checked.
-    If no name is provided, the first item marked with `'default': True` is picked.
-    If no item is identified by name or marking as default, the last item is returned.
-    (This behaviour is questionable - it may be turned into an error.)
-    """
+def default_repository() -> str:
+    """Check the configuration and get the name of the default repository."""
     repos = ts.get_configuration().repositories
-    for k, v in repos.items():
-        if len(repos) == 1:
-            return v
-        if k == name:
-            return v
-        elif not name and v.get("default", False):
-            return v
-    else:
+    candidates = []
+    for name, cfg in repos.items():
+        if cfg.get("default", False):
+            return str(name)
+        elif cfg.get("directory") and cfg.get("catalog"):
+            candidates.append(str(name))
+
+    if len(candidates) == 0:
+        raise LookupError("Default repository could not be identified.")
+    elif len(candidates) > 1:
         warnings.warn(
-            f"Repository with name '{name}' could not be picked among {len(repos)}. The last one ({v['name']}) is used.",
+            f"Repositories {candidates} all specify data and metadata handling, but none of them is marked as default. The first on the list is used.",
             stacklevel=2,
         )
-        return v
+    return candidates[0]
 
 
-class IO(Protocol):
-    """Interface for IO operations."""
+def _identify_data_type(**kwargs: Any) -> SeriesType | None:
+    """Analyse kwargs to determine if data type is supplied or can be inferred."""
+    data_type = kwargs.get("data_type", "")
+    versioning = kwargs.get("versioning", "")
+    temporality = kwargs.get("temporality", "")
+    data = kwargs.get("data")
+    as_of = kwargs.get("as_of_tz")
+    existing_tags = kwargs.get("existing", {})
 
-    def save(self) -> None:
-        """Save the dataset."""
-        ...
+    if existing_tags:
+        existing = SeriesType(
+            existing_tags.get("versioning"), existing_tags.get("temporality")
+        )
+    else:
+        existing = None
 
-    def snapshot(self) -> None:
-        """Save a snapshot of the dataset."""
-        ...
+    if data_type and isinstance(data_type, SeriesType):
+        provided = data_type
+    elif data_type:
+        provided = SeriesType(data_type)
+    elif versioning and temporality:
+        provided = SeriesType(versioning, temporality)
+    elif data is not None:
+        temporality = "from_to" if "valid_from" in data.columns else "at"
+        versioning = "as_of" if isinstance(as_of, datetime) else "none"
+        provided = SeriesType(versioning, temporality)
+    else:
+        provided = None
+
+    valid_provided = isinstance(provided, SeriesType)
+    valid_existing = isinstance(existing, SeriesType)
+    if valid_provided and valid_existing and provided == existing:
+        return provided
+    elif valid_provided and valid_existing and provided != existing:
+        raise ValueError(
+            f"The data type provided in or inferred from parameters ({provided}) does not match that found for an existing dataset ({existing}). To (re-)create the set with a new type, use `find_existing=False`. Note that dataset names are expected to be unique, so verify parameters and configuration and proceed with caution."
+        )
+    elif valid_provided and not valid_existing:
+        return provided
+    elif valid_existing and not valid_provided:
+        return existing
+    else:
+        raise ValueError("Datatype could not be identitfied.")
 
 
 class Dataset:
-    """Datasets are containers for series of the same :py:class:`~ssb_timeseries.properties.SeriesType` with origin from the same process.
+    """Datasets contain one or more series of the same :py:class:`~ssb_timeseries.properties.SeriesType`.
 
-    That generally implies some common denominator in terms of descriptive metadata,
-    but more important, it allows the Dataset to become a core unit of analysis for workflow.
-    It becomes a natural chunk of data for reads and writes, and calculation.
+    The grouping of series in a set usually reflect some common denominator in terms of descriptive metadata.
+    In a well defined set, all the series in the set come from the same process,
+    so that the set comprises a natural chunk of data for reads and writes in a batch oriented workflow.
 
-    For all the series in a dataset to be of the same :py:class:`~ssb_timeseries.properties.SeriesType` means they share dimensionality characteristics :py:class:`~ssb_timeseries.properties.Versioning` and :py:class:`~ssb_timeseries.properties.Temporality` and any other schema information that have tecnical implications for how the data is handled.
+    For all the series in a dataset to be of the same :py:class:`~ssb_timeseries.properties.SeriesType` means they share dimensionality characteristics :py:class:`~ssb_timeseries.properties.Versioning` and :py:class:`~ssb_timeseries.properties.Temporality` and any other schema information that have technical implications.
     See the :doc:`../info-model` documentation for more about that.
 
-    The descriptive commonality is not enforced, but some aspects have technical implications.
-    In particular, it is strongly encouraged to make sure that the resolutions of the series in datasets are the same, and to minimize the number of gaps in the series.
-    Sparse data is a strong indication that a dataset is not well defined and that series in the set have different origins.
-    'Gaps' in this context is any representation of undefined values: None, null, NAN or "not a number" values, as opposed to the number zero.
-    The number zero is a gray area - it can be perfectly valid, but can also be an indication that not all the series should be part of the same set.
+    Descriptive commonality is beneficial,
+    especially for attributes that reflect technical properties,
+    although not technically enforced.
+    A notable example is time resolution.
+    Sparse data is a strong indication that a dataset is not well defined.
+    Uniform resolution help minimize the number of gaps in the series.
+    'Gaps' in this context is any representation of undefined values:
+    None, null, NAN or "not a number" values, as opposed to the number zero.
+    (The number zero is a gray area - it can be perfectly valid, but can also be an indication that not all the series should be part of the same set.)
 
     :var str name: The name of the set.
     :var SeriesType data_type: The type of the contents of the set.
@@ -139,22 +174,50 @@ class Dataset:
 
     """
 
+    # def __new__(
+    #     cls,
+    #     name,
+    #     as_of_tz=None,
+    #     data_type=None,
+    #     repository="",
+    #     *args,
+    #     **kwargs,
+    # ) -> Self:
+    #     """Find named Dataset."""
+    #     data_type = _identify_data_type(
+    #         **{**kwargs, "data_type": data_type, "as_of_tz": as_of_tz}
+    #     )
+    #     found = io.find(name, repository, **kwargs)
+    #     if isinstance(found, cls):
+    #         return found
+    #     else:
+    #         repo_name = getattr(str, repository, default_repository())
+    #         return super().__new__(
+    #             cls,
+    #             name=name,
+    #             data_type=data_type,
+    #             repository=repo_name,
+    #             **kwargs,
+    #         )
+
     def __init__(
         self,
         name: str,
-        data_type: ts.properties.SeriesType = None,
-        as_of_tz: datetime = None,
+        as_of_tz: datetime | None = None,
+        *,
+        data_type: SeriesType | Sequence[str] | None = None,
         repository: str = "",
-        load_data: bool = True,
+        find_existing: bool = True,
         **kwargs: Any,
     ) -> None:
-        """Initialising a dataset object either retrieves an existing set or prepares a new one.
+        """Retrieve an existing dataset or create a new one.
 
-        When preparing a new set, data_type must be specified.
-        If data_type versioning is specified as AS_OF, a datetime with timezone should be provided.
+        To create a new set, data_type must be specified,
+        and if data_type versioning is as AS_OF, also a datetime.
         Providing an AS_OF date has no effect if versioning is NONE.
         If not, but data is passed, :py:meth:`as_of_tz` defaults to current time.
-        For all dates, if no timezone is provided, CET is assumed.
+        All dates should be timezone aware.
+        If no timezone is provided, a default is assumed (CET).
 
         The `data` parameter accepts a dataframe with one or more date columns and one column per series.
         Initially only Pandas was supported, but this dependency is about to be relaxed to include other implementations of the samedata structure.
@@ -164,7 +227,7 @@ class Dataset:
         The data is stored in parquet files, with JSON formatted metadata in the header.
 
         Metadata will always be read if the set exists.
-        When loading existing sets, load_data = False will suppress reading large amounts of data.
+        When loading existing sets, find_existing = False will suppress reading large amounts of data.
         For data_types with AS_OF versioning, not providing the AS_OF date will have the same effect.
 
         If series names can be mapped to metadata, the keyword arguments ``attributes``, ``separator`` and ``regex`` will, if provided, be passed through to :py:class:`~Dataset.series_names_to_tags`.
@@ -188,7 +251,7 @@ class Dataset:
 
             x = ts.dataset.Dataset(
                 name='mydataset',
-                data_type=ts.properties.SeriesType.simple(),
+                data_type=SeriesType.simple(),
                 data=df
             )
 
@@ -198,23 +261,67 @@ class Dataset:
             34
 
         """
-        self.repository = select_repository(repository)
-        self.name: str = name
-        if data_type:
-            self.data_type = data_type
-        else:
-            look_for_it = search(
-                repository=self.repository["directory"]["path"],
-                pattern=name,
-                require_unique=True,
+        if find_existing:
+            tags_for_existing = io.find(
+                set_name=name,
+                repository=repository,
             )
-            if isinstance(look_for_it, Dataset):
-                self.data_type = look_for_it.data_type
+            if tags_for_existing is None:
+                tags_for_existing = {}
+            elif isinstance(tags_for_existing, dict):
+                type_of_existing = SeriesType(
+                    versioning=tags_for_existing.get("versioning"),
+                    temporality=tags_for_existing.get("temporality"),
+                )
+            elif isinstance(tags_for_existing, list):
+                raise LookupError(
+                    f"Found more th#an one existing dataset with {name=}:\n{tags_for_existing}."
+                )
+        else:
+            tags_for_existing = {}
+
+        kwarg_data = kwargs.get("da#ta")
+        data_type = _identify_data_type(
+            **{
+                **kwargs,
+                "data_type": data_type,
+                "as_of_tz": as_of_tz,
+                "existing": tags_for_existing,
+            }
+        )
+        ts.logger.debug(
+            "DATASET.debug found existing dataset: %s of type %s in repository %s",
+            tags_for_existing.get("name"),
+            (tags_for_existing.get("versioning"), tags_for_existing.get("temporality")),
+            tags_for_existing.get("repository"),
+        )
+
+        self.name = name
+        self.data_type = data_type
+
+        if tags_for_existing:
+            self.tags = tags_for_existing
+            self.repository = tags_for_existing.get(
+                "repository"
+            )  # ,default_repository())
+        else:
+            if repository:
+                self.repository = repository
+            else:
+                self.repository = default_repository()
+
+            if data_type:
+                self.data_type = data_type
+
+        if as_of_tz is not None:
+            self.as_of_utc = date_utc(as_of_tz)
+        else:
+            self.as_of_utc = None
 
         identify_latest: bool = (
             self.data_type.versioning == ts.properties.Versioning.AS_OF
             and not as_of_tz
-            and load_data
+            and find_existing
         )
         if identify_latest:
             ts.logger.debug(
@@ -222,36 +329,29 @@ class Dataset:
                 self.data_type,
                 self.name,
             )
-            self.io = io.FileSystem(
-                repository=self.repository,
-                set_name=self.name,
-                set_type=self.data_type,
-                as_of_utc=None,
-            )
             lookup_as_of = self.versions()[-1]
             if isinstance(lookup_as_of, datetime):
                 as_of_tz = lookup_as_of
             self.as_of_utc = date_utc(as_of_tz)
-        else:
+        elif as_of_tz:
             self.as_of_utc = date_utc(as_of_tz)
-
-        self.io: IO = io.FileSystem(  # type: ignore[no-redef]
-            repository=self.repository,
-            set_name=self.name,
-            set_type=self.data_type,
-            as_of_utc=self.as_of_utc,
-        )
+        else:
+            self.as_of_utc = None
 
         kwarg_data = kwargs.get("data", None)
         if is_df_like(kwarg_data) and not is_empty(kwarg_data):
             self.data = kwarg_data
-        elif load_data:  # and self.data_type.versioning == properties.Versioning.AS_OF:
-            self.data = self.io.read_data(self.as_of_utc)  # .to_native()
+        elif (
+            find_existing
+        ):  # and self.data_type.versioning == properties.Versioning.AS_OF:
+            self.data = io.DataIO(self).dh.read()  # .to_native()
+            # self.data = io.read_data()  # .to_native()
         else:
             self.data = empty_frame()
 
+        stored_tags = io.MetaIO(self).dh.read()
         self.tags = self.default_tags()
-        self.tags.update(self.io.read_metadata())
+        self.tags.update(stored_tags)
         self.tag_dataset(tags=kwargs.get("dataset_tags", {}))
 
         # all of the following should be turned into set level tags - or find another way into the parquet files?
@@ -276,6 +376,27 @@ class Dataset:
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
         self.sharing: dict[str, str] = kwargs.get("sharing", {})
+
+    # @classmethod
+    # def find(
+    #    cls,
+    #    set_name: str,
+    #    repository: str = "",
+    #    **kwargs,
+    # ) -> Self | list[Self]:
+    #    """Find named Dataset."""
+    #    found = io.find(set_name, repository, **kwargs)
+    #    if isinstance(found, cls):
+    #        cls.__init__(found, **kwargs)
+    #        return found
+    #    else:
+    #        repo_name = getattr(str, repository, default_repository())
+    #        return cls.__new__(
+    #            cls,
+    #            name=set_name,
+    #            repository=repo_name,
+    #            **kwargs,
+    #        )
 
     def copy(
         self,
@@ -319,7 +440,7 @@ class Dataset:
             name=new_name,
             data_type=kwargs.pop("data_type", self.data_type),
             data=data,
-            load_data=False,  # kwargs.pop('load_data', False),
+            find_existing=False,
             attributes=autotag_attr,
             **kwargs,
         )
@@ -354,13 +475,13 @@ class Dataset:
 
             self.tags["name"] = new_set_name
             for _, v in self.tags["series"].items():
-                v["dataset"] = new_set_name  # type: ignore
+                v["dataset"] = new_set_name
 
         for subst in series_name_substitutions:
             new_series_tags = {}
             for old_name, tags in self.tags["series"].items():
                 new_name = old_name.replace(subst[0], subst[1])
-                tags["name"] = new_name  # type: ignore[index]
+                tags["name"] = new_name
                 new_series_tags[new_name] = tags
             self.tags["series"] = new_series_tags
             self.data = rename_columns(
@@ -377,59 +498,25 @@ class Dataset:
         if as_of_tz is not None:
             self.as_of_utc = date_utc(as_of_tz)
 
-        self.io = io.FileSystem(
-            self.repository, self.name, self.data_type, self.as_of_utc
-        )
-        # ts.logger.debug("DATASET %s: SAVE. Tags:\n\t%s.", self.name, self.tags)
-        if not self.tags:
-            self.tags = self.default_tags()
-            self.tags.update(self.io.read_metadata())
+        io.save(self)
 
-            # autotag:
-            if not is_empty(self.data):
-                self.series_names_to_tags()
-                ts.logger.debug(
-                    "DATASET %s: attempt to save empty tags = %s.", self.name, self.tags
-                )
-
-        self.io.save(meta=self.tags, data=self.data)
-
-    def snapshot(self, as_of_tz: datetime = None) -> None:
+    def snapshot(self) -> None:
         """Copy data snapshot to immutable processing stage bucket and shared buckets.
 
-        Args:
-            as_of_tz (datetime): Optional. Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of_utc (utc dates under the hood).
+        The configuration file must specify an IO handler and required parameters in a 'snapshot' section.
         """
-        date_from = self.data[self.datetime_columns].min().min()
-        date_to = self.data[self.datetime_columns].max().max()
-        ts.logger.debug(
-            "DATASET %s: Data %s - %s:\n%s\n...\n%s",
-            self.name,
-            utc_iso(date_from),
-            utc_iso(date_to),
-            self.data.head(),
-            self.data.tail(),
-        )
-
-        self.save(as_of_tz=self.as_of_utc)
-
-        self.io.snapshot(
-            product=self.product,
-            process_stage=self.process_stage,
-            sharing=self.sharing,
-            period_from=date_from,
-            period_to=date_to,
-        )
+        io.persist(self)
 
     def versions(self, **kwargs: Any) -> list[datetime | str]:
         """Get list of all series version markers (`as_of` dates or version names).
 
         By default `as_of` dates will be returned in local timezone. Provide `return_type = 'utc'` to return in UTC, 'raw' to return as-is.
         """
-        versions = self.io.list_versions(
-            file_pattern="*.parquet",
-            pattern=self.data_type.versioning,
-        )
+        # versions = io.DataIO(self).dh.list_versions(
+        #    file_pattern="*.parquet",
+        #    pattern=self.data_type.versioning,
+        # )
+        versions = io.list_versions(self)
         if not versions:
             return []
         else:
@@ -1309,7 +1396,16 @@ class Dataset:
             # print(f"DATASET.math({func.__name__})\n=======\n{str(self)=} \n---\n{str(other)=}\n=======")
             result = func(self.numeric_array(), other.numeric_array())
             out[num_cols] = result
-            out.as_of_utc = max(self.as_of_utc, other.as_of_utc)
+            if isinstance(self.as_of_utc, datetime) and isinstance(
+                other.as_of_utc, datetime
+            ):
+                out.as_of_utc = max(self.as_of_utc, other.as_of_utc)
+            elif isinstance(self.as_of_utc, datetime):
+                out.as_of_utc = self.as_of_utc
+            elif isinstance(other.as_of_utc, datetime):
+                out.as_of_utc = other.as_of_utc
+            else:
+                out.as_of_utc = None
 
         elif other is None:
             ts.logger.debug(f"DATASET {self.name}: .math({self.name}.{func.__name__}).")
@@ -1480,7 +1576,9 @@ class Dataset:
         # self = x, other = a
         # y = a ** x (elementwise for x)
         # y = (e ** x) ** ln(a) ==>
-        exp_self = self.math(None, np.exp)  # .math with None needs more testing
+        exp_self = self.math(
+            None, np.exp
+        )  # .math with None needs more testing / consider Numpy ufunc implementation
         ln_a = np.log(other)  # may handling of input type variations?
         return exp_self.__pow__(ln_a)
 
@@ -1587,7 +1685,11 @@ class Dataset:
 
     def __repr__(self) -> str:
         """Returns a machine readable string representation of Dataset, ideally sufficient to recreate object."""
-        return f'Dataset(name="{self.name}", data_type={self.data_type!r}, as_of_tz="{self.as_of_utc.isoformat()}")'
+        if isinstance(self.as_of_utc, datetime):
+            as_of = f'"{self.as_of_utc.isoformat()}"'
+        else:
+            as_of = None
+        return f'Dataset(name="{self.name}", repository="{self.repository}", data_type={self.data_type!r}, as_of_tz={as_of})'
 
     def __str__(self) -> str:
         """Returns a human readable string representation of the Dataset."""
@@ -1596,6 +1698,7 @@ class Dataset:
                 "name": self.name,
                 "data_type": str(self.data_type),
                 "as_of_utc": self.as_of_utc,
+                "repository": self.repository,
                 "series": str(self.series),
                 "data": self.data.shape,
             }
@@ -1877,7 +1980,7 @@ def search(
     as_of_tz: datetime = None,
     repository: str = "",
     require_unique: bool = False,
-) -> list[io.SearchResult] | Dataset | None:
+) -> list[old_io.SearchResult] | Dataset | None:
     """Search for datasets by name matching pattern.
 
     Returns:
@@ -1886,7 +1989,8 @@ def search(
     Raises:
         ValueError: If `require_unique = True` and a unique result is not found.
     """
-    found = io.find_datasets(
+    # TODO: REFACTOR
+    found = old_io.find_datasets(
         pattern=pattern,
         repository=repository,
     )

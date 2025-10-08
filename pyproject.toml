@@ -142,6 +142,8 @@ select = [
 #"C4",   # flake8 comprehensions (RYE: add later)
 #"W",    #pycodestyle (warnings) (RYE: add later)
 ignore = [
+    "ANN002", # Don't require return type annotation for *args.
+    "ANN003", # Don't require return type annotation for **kwargs.
     "ANN202", # Don't require return type annotation for private functions.
     "ANN401", # Allow type annotation with type Any.
     "D100",   # Supress undocumented-public-module. Only doc of public api required.

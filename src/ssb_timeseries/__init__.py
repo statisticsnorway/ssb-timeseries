@@ -51,8 +51,8 @@ def get_catalog() -> Catalog:
     config_repos = get_configuration().repositories
     print(config_repos)
     repo_list = [
-        Repository(name=k, catalog=v["catalog"])
-        for k, v in config_repos.items()  # type: ignore[attr-defined]
+        Repository(name=k, catalog=v["catalog"])  # type: ignore[arg-type]
+        for k, v in config_repos.items()
         if "catalog" in v
     ]
     return Catalog(repo_list)

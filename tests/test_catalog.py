@@ -58,6 +58,51 @@ def catalog_with_two_repos(
     yield catalog
 
 
+@pytest.fixture(scope="function")
+def find_this_existing_set(buildup_and_teardown):
+    """Create and save an estimate (as_of_at) dataset with tags that lend themselves to unique matches.
+
+    {"A": "a1-hil" | "a2-lkjsd" | "a3-qwj"} uniquely identifies series in the set
+    {"D": "d-ukji"} identifies all series in this set, but not the set itself
+    {"E": "e-askli", ...} identifies this dataset + all the series in the set
+    """
+
+    tags = {"A": ["a1-hil", "a2-lkjsd", "a3-qwj"], "B": ["b"], "C": ["c"]}
+    tag_values = [value for value in tags.values()]
+    x = ts.dataset.Dataset(
+        name="find_this_existing_set",
+        data_type=ts.properties.SeriesType.estimate(),
+        as_of_tz="2022-01-01",
+        data=ts.sample_data.create_df(
+            *tag_values,
+            start_date="2022-01-01",
+            end_date="2024-01-03",
+            freq="YS",
+        ),
+        attributes=["A", "B", "C"],
+        series_tags={"D": "d-ukji"},
+        dataset_tags={"E": "e-askli", "F": ["f1", "f2"]},
+    )
+    x.save()
+    yield x
+
+
+@pytest.fixture(scope="function")
+def existing_sets(
+    existing_estimate_set,
+    existing_simple_set,
+    existing_small_set,
+    find_this_existing_set,
+):
+    """Return (some) existing (previously saved) example dataset, among them special set above."""
+    yield [
+        existing_estimate_set,
+        existing_simple_set,
+        find_this_existing_set,
+        existing_small_set,
+    ]
+
+
 # ================================ tests =================================
 
 
@@ -269,6 +314,7 @@ def test_repository_search_by_tag_dict_none(
 def test_repository_search_by_tag_dict(
     repo_1: Repository,
     caplog: pytest.LogCaptureFixture,
+    find_this_existing_set,
 ) -> None:
     """Filtering by tags: {<attritbute>: <value>}."""
     caplog.set_level(logging.DEBUG)
@@ -279,7 +325,7 @@ def test_repository_search_by_tag_dict(
 
     # tags = dict() returns all matching items
     # TODO
-    criteria = {"A": "a1"}
+    criteria = {"A": "a1-hil"}
     assert len(repo_1.datasets(tags=criteria)) >= 0  # none expected
     assert len(repo_1.series(tags=criteria)) >= 1
     assert len(repo_1.items(tags=criteria)) >= 1
@@ -288,8 +334,9 @@ def test_repository_search_by_tag_dict(
 def test_catalog_search_by_tag_dict(
     catalog_with_one_repo,
     caplog: pytest.LogCaptureFixture,
+    find_this_existing_set,
 ) -> None:
-    """Simple test case for filtering by tags."""
+    """Filtering by tags chosen so that hits are expected for 'find_this_existing_set' only."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
     num_repos = len(catalog.repositories)
@@ -300,19 +347,19 @@ def test_catalog_search_by_tag_dict(
                 f"\t{c.repository_name} {c.object_type} {c.parent}.{c.object_name} {c.has_tags(criteria)}"
             )
 
-    criteria = {"A": "a"}
+    criteria = {"A": "a1-hil"}
     log_items(criteria)
     assert len(catalog.datasets(tags=criteria)) == 0 * num_repos
-    assert len(catalog.series(tags=criteria)) == 18 * num_repos
-    assert len(catalog.items(tags=criteria)) == 18 * num_repos
+    assert len(catalog.series(tags=criteria)) == 1 * num_repos
+    assert len(catalog.items(tags=criteria)) == 1 * num_repos
 
-    criteria = {"E": "e"}
+    criteria = {"E": "e-askli"}
     log_items(criteria)
     assert len(catalog.datasets(tags=criteria)) == 1 * num_repos
     assert len(catalog.series(tags=criteria)) == 3 * num_repos
     assert len(catalog.items(tags=criteria)) == 4 * num_repos
 
-    criteria = {"A": "a", "E": "e"}
+    criteria = {"A": "a1-nothing-to-be-found", "E": "e-askli"}
     log_items(criteria)
     assert len(catalog.datasets(tags=criteria)) == 0 * num_repos
     assert len(catalog.series(tags=criteria)) == 0 * num_repos
@@ -322,13 +369,14 @@ def test_catalog_search_by_tag_dict(
 def test_catalog_search_by_tag_dict_multiple_criteria(
     catalog_with_one_repo,
     caplog: pytest.LogCaptureFixture,
+    existing_sets,
 ) -> None:
     """Simple test case for filtering by tags."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
     num_repos = len(catalog.repositories)
-    # The tag: D=d gives a match only in dataset 'test-exising-small-dataset'
-    criteria = {"B": "b", "D": "d"}
+    # The tag: D=d-ukji gives a match only in dataset 'find_this_existing_set'
+    criteria = {"B": "b", "D": "d-ukji"}
     for result in catalog.items(tags=criteria):
         test_logger.debug(
             f"\t{result.repository_name}\t{result.object_type}\t{result.parent}.{result.object_name}\t{result.has_tags(criteria)}"
@@ -363,7 +411,7 @@ def test_catalog_search_by_list_of_tag_dicts(
 # --------------------------------------------
 
 # The test cases above cover key features with the most obvious parameters.
-# However, the test cases are not exhaustive. Errors could occur for specific combinations of parameters.
+# However, they are not exhaustive. Errors could occur for specific combinations of parameters.
 #
 # Hence, it makes sense to test permutations over:
 # unit_of_test: repository, catalog_w_repo,  catalog_w_two_repos, catalog_w_repo_like_obj

@@ -45,6 +45,7 @@ except ImportError:
     from typing_extensions import TypedDict
 
 from typing import Any
+from typing import TypeAlias
 
 from ssb_timeseries import fs
 from ssb_timeseries.types import PathStr
@@ -68,7 +69,10 @@ class FileBasedRepository(TypedDict):
 
     name: NotRequired[str]
     directory: Required[FileRepoConfig]
-    catalog: Required[FileRepoConfig]
+    catalog: NotRequired[FileRepoConfig]
+
+
+Repository: TypeAlias = FileBasedRepository
 
 
 class ConfigDict(TypedDict):
@@ -76,7 +80,9 @@ class ConfigDict(TypedDict):
 
     configuration_file: Required[str]
     io_handlers: Required[dict[str, Any]]
-    repositories: Required[dict[str, FileBasedRepository]]
+    repositories: Required[dict[str, Repository]]
+    snapshots: NotRequired[dict[str, Repository]]
+    sharing: NotRequired[dict[str, Repository]]
     log_file: NotRequired[str]
     logging: Required[dict[str, Any]]
 
@@ -86,7 +92,6 @@ def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
     missing_required = ConfigDict.__required_keys__ - set(configuration.keys())
     if missing_required:
         msg = f"Configuration is missing required fields: {list(missing_required)}\n{configuration}"
-        _config_logger.warning(msg)
         return (False, msg)
 
     wrong_type = []
@@ -103,7 +108,6 @@ def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
 
     if wrong_type:
         msg = f"Configuration fields have wrong type: {wrong_type}"
-        _config_logger.warning(msg)
         return (False, msg)
 
     return (True, None)
@@ -215,7 +219,11 @@ BUILT_IN_IO_HANDLERS = {
         "options": {"compression": "snappy"},
     },
     "json": {
-        "handler": "ssb_timeseries.io.json_metadata.MetaIO",
+        "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
+        "options": {},
+    },
+    "snapshots": {
+        "handler": "ssb_timeseries.io.snapshots.FileHandler",
         "options": {},
     },
 }
@@ -324,9 +332,15 @@ class Config:
 
     configuration_file: PathStr
     """The path to the configuRation file."""
-    repositories: list[FileBasedRepository]
-    """A list of time series repositories."""
-    logging: dict
+    repositories: dict[str, Repository]
+    """Defines storage locations for time series data and metadata."""
+    snapshots: dict[str, Repository]
+    """Defines the storage locations for persisting (archiving) data in stable states."""
+    sharing: dict[str, Repository]
+    """Defines the storage locations for shared data."""
+    io_handlers: dict[str, Any]
+    """IO handlers for repository, snapshotts and sharing."""
+    logging: dict[str, Any]
     """Logging configuration as a valid :py:mod:`logging.dictConfig`."""
 
     def __init__(self, **kwargs) -> None:  # noqa: D417, ANN003, RUF100
@@ -596,7 +610,7 @@ def main(*args: str | PathStr) -> None:
     )
 
 
-def path_str(*args) -> str:  # noqa: ANN002
+def path_str(*args) -> str:
     """Concatenate paths as string: str(Path(...))."""
     return str(Path(*args))
 

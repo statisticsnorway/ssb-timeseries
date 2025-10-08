@@ -69,8 +69,12 @@ class Helpers:
         return str(inspect.stack()[1][3])
 
     @staticmethod
-    def function_name_hex() -> str:
-        return f"{inspect.stack()[1][3]!s}_{uuid.uuid4().hex}"
+    def function_name_hex(n: int = 8) -> str:
+        """Return name of calling funcction + *n* random characters.
+
+        The approach (taking the first n characters of of a uuid) is likely, but not *guaranteed* to be unique, but here we prefer shorter.
+        """
+        return f"{inspect.stack()[1][3]!s}_{uuid.uuid4().hex[:n]}"
 
 
 @pytest.fixture(scope="function")
@@ -79,23 +83,28 @@ def conftest(buildup_and_teardown) -> Helpers:
     return h
 
 
+@pytest.fixture(scope="session")
+def root_dir(tmp_path_factory):
+    root = tmp_path_factory.mktemp("tests")
+    yield root
+
+
 @pytest.fixture(
     scope="module",
     autouse=True,
 )
 def buildup_and_teardown(
-    tmp_path_factory,
+    # tmp_path_factory,
+    root_dir,
 ):
     """Reset config and logging between modules."""
     before_tests = config.CONFIG
     config_file_for_testing = str(
-        fs.touch(tmp_path_factory.mktemp("config") / "config_for_tests.json")
+        fs.touch(root_dir / "config" / "config_for_tests.json")
     )
     assert config_file_for_testing != ""
 
-    log_file_for_testing = fs.touch(
-        tmp_path_factory.mktemp("logs") / "log_for_tests.log"
-    )
+    log_file_for_testing = fs.touch(root_dir / "logs" / "log_for_tests.log")
     log_config = TEST_LOG_CONFIG
     log_config["handlers"]["file"]["filename"] = str(log_file_for_testing)
 
@@ -104,12 +113,16 @@ def buildup_and_teardown(
         configuration_file=str(config_file_for_testing),
         log_file=str(log_file_for_testing),
         io_handlers={
-            "parquet": {
-                "handler": "ssb_timeseries.io.simple.FileHandler",
+            "simple-parquet-handler": {
+                "handler": "ssb_timeseries.io.simple.FileSystem",
                 "options": {},
             },
             "json": {
-                "handler": "ssb_timeseries.io.json_metadata.MetaIO",
+                "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
+                "options": {},
+            },
+            "snapshot_handler": {
+                "handler": "ssb_timeseries.io.snapshots.FileSystem",
                 "options": {},
             },
         },
@@ -117,11 +130,11 @@ def buildup_and_teardown(
             "test_1": {
                 "name": "test_1",
                 "directory": {
-                    "path": str(tmp_path_factory.mktemp("series_test_1")),
-                    "handler": "parquet",
+                    "path": str(root_dir / "series_test_1"),
+                    "handler": "simple-parquet-handler",
                 },
                 "catalog": {
-                    "path": str(tmp_path_factory.mktemp("metadata_test_1")),
+                    "path": str(root_dir / "metadata_test_1"),
                     "handler": "json",
                 },
                 "default": True,
@@ -129,16 +142,44 @@ def buildup_and_teardown(
             "test_2": {
                 "name": "test_2",
                 "directory": {
-                    "path": str(tmp_path_factory.mktemp("series_test_2")),
-                    "handler": "parquet",
+                    "path": str(root_dir / "series_test_2"),
+                    "handler": "simple-parquet-handler",
                 },
                 "catalog": {
-                    "path": str(tmp_path_factory.mktemp("metadata_test_2")),
+                    "path": str(root_dir / "metadata_test_2"),
                     "handler": "json",
                 },
             },
         },
-        bucket=str(tmp_path_factory.mktemp("bucket")),
+        snapshots={
+            "default": {
+                "directory": {
+                    "path": str(root_dir / "snapshots"),
+                    "handler": "snapshot_handler",
+                }
+            },
+        },
+        sharing={
+            "default": {
+                "directory": {
+                    "path": str(root_dir / "shared" / "default"),
+                    "handler": "snapshot_handler",
+                }
+            },
+            "s123": {
+                "directory": {
+                    "path": str(root_dir / "shared" / "s123"),
+                    "handler": "snapshot_handler",
+                }
+            },
+            "s234": {
+                "directory": {
+                    "path": str(root_dir / "shared" / "s234"),
+                    "handler": "snapshot_handler",
+                }
+            },
+        },
+        bucket=str(root_dir / "bucket"),
         logging=log_config,
         ignore_file=True,
     )
@@ -151,7 +192,7 @@ def buildup_and_teardown(
     yield temp_configuration
     logging.getLogger(TEST_LOGGER).removeFilter(LogWarningFilter())
 
-    if before_tests.configuration_file:  # and isinstance(before_tests, config.Config):
+    if before_tests.configuration_file:
         before_tests.save()
     else:
         config.unset_env_var()
@@ -219,77 +260,75 @@ def xyz_from_to():
 
 @pytest.fixture(scope="function")
 def new_dataset_none_at(abc_at, buildup_and_teardown):
-    """A fixture to create simple dataset before running the test."""
+    """A fixture to create a new simple (non-versioned point in time) dataset before running the test."""
     x = Dataset(
-        name="test-new-dataset-none-at",
+        name=Helpers.function_name_hex(8),
         data_type=SeriesType.simple(),
-        series_tags={"D": "d"},
+        # series_tags={"D": "d"},
         data=abc_at,
         attributes=["A", "B", "C"],
-        dataset_tags={"E": "Eee"},
+        # dataset_tags={"E": "e"},
     )
     yield x
 
 
 @pytest.fixture(scope="function")
 def new_dataset_as_of_at(abc_at, buildup_and_teardown):
-    """A fixture to create simple dataset before running the test."""
+    """A fixture to create a new versioned point in time dataset before running the test."""
     x = Dataset(
-        name="test-new-dataset-as-of-at",
+        name=Helpers.function_name_hex(8),
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
-        series_tags={"D": "d"},
+        # series_tags={"D": "d"},
         data=abc_at,
         attributes=["A", "B", "C"],
-        dataset_tags={"E": "Eee"},
+        # dataset_tags={"E": "Eee"},
     )
     yield x
 
 
 @pytest.fixture(scope="function")
 def new_dataset_none_from_to(abc_from_to, buildup_and_teardown):
-    """A fixture to create simple dataset before running the test."""
+    """A fixture to create a new non-versioned period dataset before running the test."""
     x = Dataset(
-        name="test-new-dataset-none-from-to",
+        name=Helpers.function_name_hex(8),
         data_type=SeriesType.from_to(),
-        series_tags={"D": "d"},
+        # series_tags={"D": "d"},
         data=abc_from_to,
         attributes=["A", "B", "C"],
-        dataset_tags={"E": "Eee"},
+        # dataset_tags={"E": "Eee"},
     )
     yield x
 
 
 @pytest.fixture(scope="function")
 def new_dataset_as_of_from_to(abc_from_to, buildup_and_teardown):
-    """A fixture to create simple dataset before running the test."""
+    """A fixture to create a new versioned period dataset before running the test."""
     x = Dataset(
-        name="test-new-as-of-from-to",
+        name=Helpers.function_name_hex(8),
         data_type=SeriesType.as_of_from_to(),
         as_of_tz=date_utc("2022-01-01"),
-        series_tags={"D": "d"},
+        # series_tags={"D": "d"},
         data=abc_from_to,
         attributes=["A", "B", "C"],
-        dataset_tags={"E": "Eee"},
+        # dataset_tags={"E": "Eee"},
     )
 
     yield x
 
 
-@pytest.fixture(scope="function")
-def one_new_set_for_each_data_type(
-    new_dataset_none_at,
-    new_dataset_none_from_to,
-    new_dataset_as_of_at,
-    new_dataset_as_of_from_to,
-):
+@pytest.fixture(
+    params=[
+        "new_dataset_none_at",
+        "new_dataset_none_from_to",
+        "new_dataset_as_of_at",
+        "new_dataset_as_of_from_to",
+    ],
+    scope="function",
+)
+def one_new_set_for_each_data_type(request):
     """A fixture returning one example dataset for each data type in a list."""
-    yield [
-        new_dataset_none_at,
-        new_dataset_none_from_to,
-        new_dataset_as_of_at,
-        new_dataset_as_of_from_to,
-    ]
+    yield request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="module")
@@ -356,13 +395,3 @@ def existing_small_set(buildup_and_teardown):
     )
     x.save()
     yield x
-
-
-@pytest.fixture(scope="function")
-def existing_sets(existing_estimate_set, existing_simple_set, existing_small_set):
-    """A fixture returning one existing (previously saved) example dataset for each data type."""
-    yield [
-        existing_estimate_set,
-        existing_simple_set,
-        existing_small_set,
-    ]

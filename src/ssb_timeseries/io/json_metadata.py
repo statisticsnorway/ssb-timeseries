@@ -13,7 +13,6 @@ See `config` module docs for details.
 """
 
 import json
-import os
 from pathlib import Path
 from typing import NamedTuple
 
@@ -39,14 +38,13 @@ class SearchResult(NamedTuple):
     type_directory: str
 
 
-class MetaIO:
+class JsonMetaIO:
     """A filesystem abstraction for Dataset IO."""
 
     def __init__(
         self,
         repository: str | FileBasedRepository,
         set_name: str,
-        # set_type: properties.SeriesType,
     ) -> None:
         """Initialise filesystem abstraction for dataset.
 
@@ -57,63 +55,72 @@ class MetaIO:
         else:
             cfg = Config.active()
             self.repository = cfg.repositories.get(repository)
-
+        ts.logger.debug("JsonMetaIO uses repository %s", self.repository)
         self.set_name = set_name
-        # self.data_type = set_type
 
     @property
-    def metadata_file(self) -> str:
+    def file(self) -> str:
         """The name of the metadata file for the dataset."""
         return f"{self.set_name}-metadata.json"
 
     @property
-    def metadata_dir(self) -> str:
+    def dir(self) -> str:
         """The location of the metadata file for the dataset.
 
-        In the inital implementation with data and metadata in separate files this was the same as the data directory.
-        Now metadata is included in the data file, but also 'registered' in a central meta data directory.
+        For parquet based data storage, the metadata is included in the data file, but is also 'registered' in a central metadata directory (`repository.catalog.path`).
         """
         return self.repository["catalog"]["path"]
 
     @property
-    def metadata_fullpath(self) -> str:
+    def fullpath(self) -> str:
         """The full path to the metadata file."""
-        return os.path.join(self.metadata_dir, self.metadata_file)
+        return str(Path(self.dir) / self.file)
 
-    def read_metadata(self) -> dict:
+    def read(self) -> dict:
         """Read tags from the metadata file."""
         meta: dict = {"name": self.set_name}
-        if fs.exists(self.metadata_fullpath):
+        ts.logger.info(
+            "JsonMetaIO.read.start %s: reading metadata from file %s\n",
+            self.set_name,
+            self.fullpath,
+        )
+        if fs.exists(self.fullpath):
             ts.logger.info(
-                "DATASET.read.success %s: reading metadata from file %s\nended.",
+                "JsonMetaIO.read.success %s: reading metadata from file %s\nended.",
                 self.set_name,
-                self.metadata_fullpath,
+                self.fullpath,
             )
-            meta = fs.read_json(self.metadata_fullpath)
+            meta = fs.read_json(self.fullpath)
         else:
-            ts.logger.debug("Metadata file %s was not found.", self.metadata_fullpath)
+            ts.logger.debug("Metadata file %s was not found.", self.fullpath)
         return meta
 
-    def write_metadata(self, meta: dict) -> None:
+    def write(self, meta: dict) -> None:
         """Write tags to the metadata file."""
         try:
-            fs.write_json(self.metadata_fullpath, meta)
             ts.logger.info(
-                "DATASET %s: Writing metadata to file %s.",
+                "JsonMetaIO.write.start %s: writing metadata to file\n\t%s\nstarted.",
                 self.set_name,
-                self.metadata_fullpath,
+                self.fullpath,
+            )
+            fs.write_json(self.fullpath, meta)
+            ts.logger.info(
+                "JsonMetaIO %s: Writing metadata to file %s.",
+                self.set_name,
+                self.fullpath,
             )
         except Exception as e:
             ts.logger.exception(
-                "DATASET %s: Writing metadata to file %s returned exception %s.",
+                "JsonMetaIO %s: Writing metadata to file %s returned exception %s.",
                 self.set_name,
-                self.metadata_fullpath,
+                self.fullpath,
                 e,
             )
 
-    def file_exists(self) -> bool:
+    @property
+    def exists(self) -> bool:
         """Check if the metadata file exists."""
-        return fs.exists(self.metadata_fullpath)
+        return fs.exists(self.fullpath)
 
 
 def find_metadata_files(
@@ -125,7 +132,7 @@ def find_metadata_files(
 ) -> list[str]:
     """Search for metadata json files in the 'catalog' directory.
 
-    Only one of the arguments 'contains' or 'equals' can be provided at the same time. If none is provided, all files are returned.
+    Only one of the arguments 'pattern', 'contains' or 'equals' can be provided at the same time. If none is provided, all files are returned.
     """
     ts.logger.debug("find_metadata_files in repo(s) %s.", repository)
     if contains:

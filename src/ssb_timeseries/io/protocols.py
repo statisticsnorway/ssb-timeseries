@@ -13,66 +13,84 @@ this protocol, such as ssb_timeseries.io.abc.AbstractIOHandler.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from datetime import datetime
+from typing import Any
 from typing import Protocol
 from typing import runtime_checkable
 
-if TYPE_CHECKING:
-    from ..dataset import Dataset
+# mypy: disable-error-code="no-untyped-def"
+# ,no-any-return"
 
 
 @runtime_checkable
-class IOHandler(Protocol):
-    """A protocol that defines the contract for a generic I/O handler.
+class DataHandler(Protocol):
+    """Defines the contract (protocol) for data IO."""
 
-    An I/O handler is a class responsible for the logic of persisting and
-    loading a Dataset to and from a specific storage backend (e.g., a local
-    filesystem, a cloud bucket, or a database).
-
-    Attributes:
-        root_path (str): The base path or connection string for the storage
-                         location this handler is responsible for.
-    """
-
-    def __init__(self, root_path: str, **options: str) -> None:
-        """Initializes the handler for a specific storage location.
+    def __init__(
+        self,
+        repository: str | dict,  # TODO: streamline - update to use dict config only
+        set_name: str,  # TODO: remove -> turn into method parameter
+        set_type: str,  # TODO: remove -> turn into method parameter
+        as_of_utc: datetime | None = None,  # TODO: remove -> turn into method parameter
+        **kwargs,
+    ) -> None:
+        """Initializes the IO handler with configuration for a specific data storage.
 
         This constructor is called by the io dispatcher. It configures the
         handler instance to operate within a specific base context.
 
         Args:
-            root_path (str): The base path, URI, or connection string for the
-                             storage backend (e.g., '/data/stable/',
-                             's3://my-bucket/snapshots/').
-            **options (str): A dict of handler-specific options, as defined
-                             in the 'io_handlers' section of the config.
+            repository: The data repository name or configuration.
+            set_name: The dataset name.
+            set_type: The data type for the dataset.
+            as_of_utc: The version marker (should be timezone aware).
+            **kwargs (str): Any parameters defined for the handler or data storage in the configuration.
         """
         ...
 
-    def write(self, name: str, ds: Dataset) -> None:
-        """Writes a Dataset to the storage backend.
-
-        The handler is responsible for its own internal logic, such as creating
-        versioned subdirectories or writing to a specific table.
-
-        Args:
-            name (str): The logical name of the dataset. The handler will use
-                        this to construct the final destination path within its
-                        configured `root_path`.
-            ds (Dataset): The Dataset object to persist.
-        """
+    @property
+    def exists(self) -> bool:
+        """Check if data exists in the configured storage."""
         ...
 
-    def read(self, name: str, version: str | None = None) -> Dataset:
-        """Reads a Dataset from the storage backend.
+    def write(self, data: Any, tags: dict | None = None) -> None:
+        """Writes data to the configured storage."""
+        ...
 
-        Args:
-            name (str): The logical name of the dataset to read.
-            version (str | None): The specific version of the dataset to load.
-                                  If None, the handler should attempt to load the
-                                  latest available version.
+    def read(self, *args, **kwargs) -> Any:
+        """Reads from the configured storage."""
+        ...
 
-        Returns:
-            The loaded Dataset object.
-        """
+    def list_versions(self, *args, **kwargs) -> list[datetime | str]:
+        """Reatrieves available versions from the configured storage."""
+        ...
+
+
+@runtime_checkable
+class MetadataHandler(Protocol):
+    """Defines the contract (protocol) for metadata IO."""
+
+    def __init__(
+        self,
+        repository: str | dict,  # TODO: streamline - update to use dict config only
+        set_name: str,  # TODO: remove -> turn into method parameter
+        **kwargs,
+    ) -> None:
+        """Initializes the IO handler with configuration for a specific metadata storage."""
+        ...
+
+    def exists(self) -> bool:
+        """Check if metadata exists in configured storage."""
+        ...
+
+    def find(self, **kwargs) -> bool:
+        """Find datasets in configured storage."""
+        ...
+
+    def write(self, **kwargs) -> None:
+        """Writes metadata to configured storage."""
+        ...
+
+    def read(self, **kwargs) -> dict[str, Any]:
+        """Reads metadata from configured storage."""
         ...

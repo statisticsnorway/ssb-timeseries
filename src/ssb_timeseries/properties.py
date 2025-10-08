@@ -177,9 +177,12 @@ class SeriesType:
         """Helper, returns code with required parameters to initialise given SeriesType."""
         return f"SeriesType({self.versioning!r},{self.temporality!r})"
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: Self | None) -> bool:
         """Equality test."""
-        return repr(self) == repr(other)
+        if other is None:
+            return False
+        else:
+            return repr(self) == repr(other)
 
 
 def estimate_types() -> list[str]:
