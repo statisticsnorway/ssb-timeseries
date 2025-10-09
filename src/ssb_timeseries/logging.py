@@ -49,7 +49,6 @@ except ImportError:
 # import ssb_timeseries as ts
 
 # mypy: disable-error-code="operator, no-untyped-def, return-value, import-untyped, arg-type"
-# ruff: noqa: ANN002, ANN003
 
 _STRING_FORMAT: str = "%(name)s | %(levelname)s | %(asctime)s | %(message)s \n"
 _JSON_FORMAT: str = '{"name": "%(name)s"; "level": %(levelname)s; "timestamp": %(asctime)s; "message": "%(message)s" }'

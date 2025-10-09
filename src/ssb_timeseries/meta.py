@@ -226,7 +226,7 @@ class Taxonomy:
         the_node = bigtree.find_name(self.structure, key)
         return bigtree.get_subtree(the_node)
 
-    def print_tree(self, *args, **kwargs) -> str:  # noqa: ANN002, ANN003
+    def print_tree(self, *args, **kwargs) -> str:
         """Return a string with the tree structure.
 
         Implementation is ugly! It would be preferable not to print the tree to std out.

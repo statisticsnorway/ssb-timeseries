@@ -17,7 +17,6 @@ except ImportError:
 import ssb_timeseries as ts
 
 # mypy: disable-error-code="no-untyped-def,return-value,no-any-return,attr-defined,operator"
-# ruff: noqa: ANN003
 
 
 class Interval:

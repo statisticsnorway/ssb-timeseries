@@ -21,7 +21,6 @@ from ssb_timeseries.dataframes import to_arrow
 from ssb_timeseries.types import F
 from ssb_timeseries.types import PathStr
 
-# ruff: noqa: ANN002, ANN003
 # mypy: disable-error-code="arg-type, type-arg, no-any-return, no-untyped-def, import-untyped, attr-defined, type-var, index, return-value"
 
 
