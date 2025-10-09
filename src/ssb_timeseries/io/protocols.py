@@ -61,7 +61,7 @@ class DataHandler(Protocol):
         """Reads from the configured storage."""
         ...
 
-    def list_versions(self, *args, **kwargs) -> list[datetime | str]:
+    def versions(self, *args, **kwargs) -> list[datetime | str]:
         """Reatrieves available versions from the configured storage."""
         ...
 

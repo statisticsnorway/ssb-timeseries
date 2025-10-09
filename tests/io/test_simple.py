@@ -73,12 +73,12 @@ def test_versioning_as_of_creates_new_file(
 
     x = existing_estimate_set
     y = x * 1.1
-    files_before = file_count(DataIO(x).dh.data_dir)
+    files_before = file_count(DataIO(x).dh.directory)
     x.as_of_utc = now_utc()
     x.data = y.data
     x.save()
     sleep(2)
-    files_after = file_count(DataIO(x).dh.data_dir)
+    files_after = file_count(DataIO(x).dh.directory)
     assert files_after == files_before + 1
 
 
@@ -130,7 +130,7 @@ def test_io_dirs(conftest) -> None:
     assert isinstance(dirs, io.FileSystem)
 
 
-def test_io_datadir_path_as_expected(
+def test_io_data_directory_path_as_expected(
     conftest,
     caplog,
 ) -> None:
@@ -143,7 +143,7 @@ def test_io_datadir_path_as_expected(
     )
     repo_base_dir = Path(conftest.repo["directory"]["path"])
     expected: str = repo_base_dir / "NONE_AT" / test_name
-    assert str(test_io.data_dir) == str(expected)
+    assert str(test_io.directory) == str(expected)
 
 
 def test_io_parquet_schema_as_of_at(

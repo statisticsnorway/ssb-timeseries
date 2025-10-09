@@ -666,11 +666,11 @@ def test_versioning_as_of_creates_new_file(
 
     x = existing_estimate_set
     y = x * 1.1
-    files_before = file_count(DataIO(x).dh.data_dir)
+    files_before = file_count(DataIO(x).dh.directory)
     x.as_of_utc = now_utc()
     x.data = y.data
     x.save()
-    files_after = file_count(DataIO(x).dh.data_dir)
+    files_after = file_count(DataIO(x).dh.directory)
     assert files_after == files_before + 1
 
 

@@ -63,7 +63,6 @@ from .dates import date_local
 from .dates import date_utc
 from .dates import period_index
 from .dates import utc_iso
-from .io import simple as old_io  # TODO: REFACTOR
 from .properties import SeriesType
 from .types import F
 from .types import PathStr
@@ -174,31 +173,13 @@ class Dataset:
 
     """
 
-    # def __new__(
-    #     cls,
-    #     name,
-    #     as_of_tz=None,
-    #     data_type=None,
-    #     repository="",
-    #     *args,
-    #     **kwargs,
-    # ) -> Self:
-    #     """Find named Dataset."""
-    #     data_type = _identify_data_type(
-    #         **{**kwargs, "data_type": data_type, "as_of_tz": as_of_tz}
-    #     )
-    #     found = io.find(name, repository, **kwargs)
-    #     if isinstance(found, cls):
-    #         return found
-    #     else:
-    #         repo_name = getattr(str, repository, default_repository())
-    #         return super().__new__(
-    #             cls,
-    #             name=name,
-    #             data_type=data_type,
-    #             repository=repo_name,
-    #             **kwargs,
-    #         )
+    name: str
+    as_of_utc: datetime | None
+    data_type: SeriesType
+    data: Any
+    tags: dict
+    sharing: dict | None
+    lineage: str | None
 
     def __init__(
         self,
@@ -512,11 +493,7 @@ class Dataset:
 
         By default `as_of` dates will be returned in local timezone. Provide `return_type = 'utc'` to return in UTC, 'raw' to return as-is.
         """
-        # versions = io.DataIO(self).dh.list_versions(
-        #    file_pattern="*.parquet",
-        #    pattern=self.data_type.versioning,
-        # )
-        versions = io.list_versions(self)
+        versions = io.versions(self)
         if not versions:
             return []
         else:
@@ -553,8 +530,7 @@ class Dataset:
         non_datetime_cols = self.nw.select(dt_expr).columns
         return sorted(non_datetime_cols)
         # could fail if called before .data is assigned?
-        # ... but in that case, whatever function would try to use `series` would likely fail later anyway?
-
+        # ... but in that case, we are just 'failing fast'?
         # an earlier implementation was more complicated
         # if (
         #    self.__getattribute__("data") is None
@@ -1709,16 +1685,17 @@ class Dataset:
         dtype: type | DTypeLike | None = None,
         copy: bool = True,
     ) -> NDArray:
-        """Returns the series in the Dataset as a Numpy array, adhering to the protocol.
+        """Returns the series in the Dataset as a Numpy array, adhering to the array protocol.
 
-        See Dataset.np to include datetime columns.
+        The function returns `numeric_array` unless `dtype` is specified.
+        Then it follows the Narwhals implementation.
+        See also Dataset.np for including datetime columns.
         """
-        (_, _) = (dtype, copy)
-        # Existential choice: return only numeric or numeric + dates? Ie:
-        return self.numeric_array()
-        # ... OR:
-        # return self.nw.__array__(dtype=dtype, copy=copy)
-        # Numeric only is better fit for purpose of using Numpy mainly for mathematics.
+        if dtype is None:
+            # Numeric only is better fit for the most likely purpose: Numpy for mathematic.
+            return self.numeric_array()
+        else:
+            return self.nw.__array__(dtype=dtype, copy=copy)
 
     def __arrow_c_stream__(
         self,
@@ -1980,7 +1957,8 @@ def search(
     as_of_tz: datetime = None,
     repository: str = "",
     require_unique: bool = False,
-) -> list[old_io.SearchResult] | Dataset | None:
+    # ) -> list[old_io.SearchResult] | Dataset | None:
+) -> list | Dataset | None:
     """Search for datasets by name matching pattern.
 
     Returns:
@@ -1989,7 +1967,9 @@ def search(
     Raises:
         ValueError: If `require_unique = True` and a unique result is not found.
     """
-    # TODO: REFACTOR
+    # TODO: REFACTOR (using catalog?)
+    from .io import simple as old_io
+
     found = old_io.find_datasets(
         pattern=pattern,
         repository=repository,
@@ -2047,10 +2027,3 @@ def _nw_normalize_dtype(t: IntoDType) -> IntoDType:
         case _:
             out = t
     return out
-
-
-# ==============================================================================
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

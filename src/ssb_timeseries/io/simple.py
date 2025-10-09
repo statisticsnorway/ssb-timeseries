@@ -6,13 +6,14 @@ Repository/Datatype/Dataset/[Version|latest].parquet
 (Hard coded directory structure: as opposed to Hive partitioning.)
 """
 
+from __future__ import annotations
+
 import json
 import os
 import re
 from collections.abc import Iterable
 from copy import deepcopy
 from datetime import datetime
-from typing import TYPE_CHECKING
 from typing import Any
 from typing import NamedTuple
 from typing import cast
@@ -24,24 +25,20 @@ from narwhals.typing import FrameT
 from narwhals.typing import IntoFrameT
 
 import ssb_timeseries as ts
-from ssb_timeseries import fs
-from ssb_timeseries import properties
-from ssb_timeseries.config import Config
-from ssb_timeseries.config import FileBasedRepository
-from ssb_timeseries.dataframes import empty_frame
-from ssb_timeseries.dataframes import is_empty
-from ssb_timeseries.dates import date_utc
-from ssb_timeseries.dates import datelike_to_utc
-from ssb_timeseries.dates import prepend_as_of
-from ssb_timeseries.dates import standardize_dates
-from ssb_timeseries.dates import utc_iso_no_colon
 
-# from ssb_timeseries.io.json_metadata import JsonMetaIO
-from ssb_timeseries.meta import TagDict
-from ssb_timeseries.types import PathStr
-
-if TYPE_CHECKING:
-    pass
+from .. import fs
+from .. import properties
+from ..config import Config
+from ..config import FileBasedRepository
+from ..dataframes import empty_frame
+from ..dataframes import is_empty
+from ..dates import date_utc
+from ..dates import datelike_to_utc
+from ..dates import prepend_as_of
+from ..dates import standardize_dates
+from ..dates import utc_iso_no_colon
+from ..meta import TagDict
+from ..types import PathStr
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 # ruff: noqa: D202
@@ -49,11 +46,19 @@ if TYPE_CHECKING:
 
 active_config = Config.active
 
+# TODO: get this from config / dataset metadata:
+PA_TIMESTAMP_UNIT = "ns"
+PA_TIMESTAMP_TZ = "UTC"
+PA_NUMERIC = "float64"
 
-def version_from_file_name(
+
+def _version_from_file_name(
     file_name: str, pattern: str | properties.Versioning = "as_of", group: int = 2
 ) -> str:
-    """For known name patterns, extract version marker."""
+    """For known name patterns, extract version marker.
+
+    For persisted data, a number; for regular versioned series an 'as of' datetime.
+    """
     if isinstance(pattern, properties.Versioning):
         pattern = str(pattern)
 
@@ -80,6 +85,30 @@ def version_from_file_name(
         vs,
     )
     return vs
+
+
+def last_version_number_by_regex(directory: str, pattern: str = "*") -> str:
+    """Check directory and get max version number from files matching regex pattern."""
+    files = fs.ls(directory, pattern=pattern)
+    number_of_files = len(files)
+
+    vs = sorted([int(_version_from_file_name(fname, "persisted")) for fname in files])
+    if vs:
+        read_from_filenames = max(vs)
+        out = read_from_filenames
+    else:
+        read_from_filenames = 0
+        out = number_of_files
+
+    ts.logger.debug(
+        "io/simple.last_version_number_by_regex() search in directory: \n\t%s\n\tfor '%s' found %s files, regex identified version %s --> vs %s.",
+        directory,
+        pattern,
+        f"{number_of_files!s}",
+        f"{read_from_filenames!s}",
+        f"{out!s}",
+    )
+    return out
 
 
 class SearchResult(NamedTuple):
@@ -131,18 +160,8 @@ class FileSystem:
         ts_root = self.repository["directory"]["path"]
         return ts_root
 
-    # @property
-    # def set_type_dir(self) -> str:
-    #    """Under the time series root there is a directory for each data type. Names concatenate the contituents of the type: temporality and versioning."""
-    #    return f"{self.data_type.versioning}_{self.data_type.temporality}"
-
-    # @property
-    # def type_path(self) -> str:
-    #    """All sets of the same data type are stored in the same sub directory under the timeseries root."""
-    #    return os.path.join(self.root, self.set_type_dir)
-
     @property
-    def data_file(self) -> str:
+    def filename(self) -> str:
         """The name of the data file for the dataset."""
         match str(self.data_type.versioning):
             case "AS_OF":
@@ -158,7 +177,7 @@ class FileSystem:
         return file_name
 
     @property
-    def data_dir(self) -> str:
+    def directory(self) -> str:
         """The data directory for the dataset. This is a subdirectory under the type path."""
         return os.path.join(
             self.root,
@@ -167,9 +186,9 @@ class FileSystem:
         )
 
     @property
-    def data_fullpath(self) -> str:
+    def fullpath(self) -> str:
         """The full path to the data file."""
-        return os.path.join(self.data_dir, self.data_file)
+        return os.path.join(self.directory, self.filename)
 
     def read(
         self,
@@ -177,28 +196,26 @@ class FileSystem:
     ) -> pyarrow.Table:
         """Read data from the filesystem. Return empty dataframe if not found."""
         ts.logger.debug(interval)
-        if fs.exists(self.data_fullpath):
+        if fs.exists(self.fullpath):
             ts.logger.info(
                 "DATASET.read.start %s: Reading data from file %s",
                 self.set_name,
-                self.data_fullpath,
+                self.fullpath,
             )
             try:
-                df = fs.read_parquet(self.data_fullpath, implementation="pyarrow")
+                df = fs.read_parquet(self.fullpath, implementation="pyarrow")
                 ts.logger.info("DATASET.read.success %s: Read data.", self.set_name)
             except FileNotFoundError:
                 ts.logger.exception(
                     "DATASET.read.error %s: Read data failed. File not found: %s",
                     self.set_name,
-                    self.data_fullpath,
+                    self.fullpath,
                 )
                 df = empty_frame()
 
         else:
             df = empty_frame()
-            ts.logger.debug(
-                f"No file {self.data_fullpath} - return empty frame instead."
-            )
+            ts.logger.debug(f"No file {self.fullpath} - return empty frame instead.")
         pa_table = datelike_to_utc(df)
         return cast(pyarrow.Table, pa_table)
 
@@ -226,73 +243,41 @@ class FileSystem:
         ts.logger.info(
             "DATASET.write.start %s: writing data to file\n\t%s\nstarted.",
             self.set_name,
-            self.data_fullpath,
+            self.fullpath,
         )
         try:
             fs.write_parquet(
                 data=df,
-                path=self.data_fullpath,
+                path=self.fullpath,
                 schema=parquet_schema(self.data_type, tags),
             )
         except Exception as e:
             ts.logger.exception(
                 "DATASET.write.error %s: writing data to file\n\t%s\nreturned exception: %s.",
                 self.set_name,
-                self.data_fullpath,
+                self.fullpath,
                 e,
             )
         ts.logger.info(
             "DATASET.write.success %s: writing data to file\n\t%s\nended.",
             self.set_name,
-            self.data_fullpath,
+            self.fullpath,
         )
 
     @property
     def exists(self) -> bool:
         """Check if the data file exists."""
-        return fs.exists(self.data_fullpath)
+        return fs.exists(self.fullpath)
 
-    def last_version_number_by_regex(self, directory: str, pattern: str = "*") -> str:
-        """Check directory and get max version number from files matching regex pattern."""
-        files = fs.ls(directory, pattern=pattern)
-        number_of_files = len(files)
-
-        vs = sorted(
-            [int(version_from_file_name(fname, "persisted")) for fname in files]
-        )
-        ts.logger.debug(
-            "DATASET %s: io.last_version regex identified versions %s in %s.",
-            self.set_name,
-            vs,
-            directory,
-        )
-        if vs:
-            read_from_filenames = max(vs)
-            out = read_from_filenames
-        else:
-            read_from_filenames = 0
-            out = number_of_files
-
-        ts.logger.debug(
-            "DATASET %s: io.last_version searched directory: \n\t%s\n\tfor '%s' found %s files, regex identified version %s --> vs %s.",
-            self.set_name,
-            directory,
-            pattern,
-            f"{number_of_files!s}",
-            f"{read_from_filenames!s}",
-            f"{out!s}",
-        )
-        return out
-
-    def list_versions(
+    def versions(
         self, file_pattern: str = "*", pattern: str | properties.Versioning = "as_of"
     ) -> list[datetime | str]:
         """Check data directory and list version marker ('as-of' or 'name') of data files."""
-        files = fs.ls(self.data_dir, pattern=file_pattern)
+        files = fs.ls(self.directory, pattern=file_pattern)
         versions: list[str | datetime] = []
         if files:
             vs_strings = [
-                version_from_file_name(str(fname), pattern, group=2) for fname in files
+                _version_from_file_name(str(fname), pattern, group=2) for fname in files
             ]
             match properties.Versioning(pattern):
                 case properties.Versioning.AS_OF:
@@ -327,13 +312,13 @@ def find_datasets(
         ]
         repo_names = [k for k in active_config().repositories.keys()]
 
-    data_dirs = []
+    directories = []
     for search_dir in search_directories:
-        data_dirs.extend(fs.find(search_dir, pattern, full_path=True))
+        directories.extend(fs.find(search_dir, pattern, full_path=True))
 
-    ts.logger.debug("%s %s", pattern, data_dirs)
+    ts.logger.debug("%s %s", pattern, directories)
     if exclude:
-        dirs = [d for d in data_dirs if exclude not in d]
+        dirs = [d for d in directories if exclude not in d]
         ts.logger.debug(
             "DATASET.IO.find_datasets: exclude '%s' eliminated:\n%s",
             exclude,
@@ -347,17 +332,6 @@ def find_datasets(
         )
     ts.logger.debug("search results: %s", search_results)
     return [SearchResult(f[2], f[1]) for f in search_results]
-
-
-def list_datasets() -> list[SearchResult]:
-    """List all datasets under timeseries root."""
-    return find_datasets(pattern="")
-
-
-class DatasetIoException(Exception):
-    """Exception for dataset io errors."""
-
-    pass
 
 
 def merge_data(
@@ -402,9 +376,7 @@ def parquet_schema(
     date_col_fields = [
         pyarrow.field(
             d,
-            pyarrow.timestamp(
-                "ns", tz="UTC"
-            ),  # TODO: get this from config / dataset metadata
+            pyarrow.timestamp(unit=PA_TIMESTAMP_UNIT, tz=PA_TIMESTAMP_TZ),  # type: ignore[call-overload]
             nullable=False,
         )
         for d in data_type.temporality.date_columns
@@ -413,7 +385,7 @@ def parquet_schema(
     num_col_fields = [
         pyarrow.field(
             series_key,
-            "float64",  # TODO: get this from config / dataset metadata
+            PA_NUMERIC,
             nullable=True,
             metadata=tags_to_json(series_tags),
         )

@@ -43,13 +43,13 @@ def test_read_existing_simple_data(
     x = Dataset(name=set_name, data_type=SeriesType.simple())
     test_logger.debug(f"DATASET {x.name}: \n{x.data}")
     if DataIO(x).dh.exists:
-        test_logger.debug(DataIO(x).dh.data_fullpath)
+        test_logger.debug(DataIO(x).dh.fullpath)
         test_logger.debug(f"{x.data=}")
         test_logger.debug(f"{x.data['valid_at'].unique()=}")
         assert x.data.shape == (12, 28)
     else:
         test_logger.debug(
-            f"DATASET {x.name}: Data not found at {DataIO(x).dh.data_fullpath}. Writing."
+            f"DATASET {x.name}: Data not found at {DataIO(x).dh.fullpath}. Writing."
         )
         raise AssertionError
 

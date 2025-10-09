@@ -236,16 +236,16 @@ def find(
     return out
 
 
-def list_versions(
+def versions(
     ds: Dataset,
     repository: str | dict = "",
     **kwargs,
 ) -> list[datetime | str]:
     """Get list of all series version markers (`as_of` dates or version names)."""
     data_io = DataIO(ds)
-    versions = data_io.dh.list_versions(
+    versions = data_io.dh.versions(
         file_pattern="*.parquet",
-        pattern=ds.data_type.versioning,  # type: ignore[union-attr]
+        pattern=ds.data_type.versioning,
     )
     return versions
 
@@ -282,6 +282,6 @@ def persist(
         as_of_tz=ds.as_of_utc,
         period_from=date_from,
         period_to=date_to,
-        data_path=DataIO(ds).dh.data_fullpath,  # type: ignore[attr-defined]
+        data_path=DataIO(ds).dh.fullpath,  # type: ignore[attr-defined]
         # meta_path=MetaIO(ds).dh.fullpath,
     )
