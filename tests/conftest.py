@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import inspect
 import logging
 import uuid
@@ -26,6 +28,18 @@ TEST_LOG_CONFIG = deepcopy(config.LOGGING_PRESETS["console+file"])
 TEST_LOG_CONFIG["loggers"][TEST_LOGGER] = TEST_LOG_CONFIG["loggers"].pop(
     config.PACKAGE_NAME
 )
+
+
+def pytest_configure(config):
+    """Pytest hook to configure plugins."""
+    try:
+        from typeguard import config as typeguard_config
+
+        # Policy can be 'warn' (default), 'error', or 'ignore'
+        # 'ignore' will suppress the warning and let the tests pass.
+        typeguard_config.forward_ref_policy = "ignore"  # resolves typeguard.TypeHintWarning: Cannot resolve forward reference 'DataFrame[Any]'
+    except ImportError:
+        pass  # typeguard is not installed
 
 
 class LogWarning(UserWarning):
