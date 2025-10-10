@@ -303,7 +303,7 @@ def test_read_existing_simple_data(
         assert x.data.shape == (12, 28)
     else:
         test_logger.debug(
-            f"DATASET {x.name}: Data not found at {DataIO(x).dh.data_fullpath}. Writing."
+            f"DATASET {x.name}: Data not found at {DataIO(x).dh.fullpath}. Writing."
         )
         raise AssertionError
 

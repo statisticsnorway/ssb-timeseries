@@ -29,7 +29,6 @@ import ssb_timeseries as ts
 from .. import fs
 from .. import properties
 from ..config import Config
-from ..config import FileBasedRepository
 from ..dataframes import empty_frame
 from ..dataframes import is_empty
 from ..dates import date_utc
@@ -123,7 +122,7 @@ class FileSystem:
 
     def __init__(
         self,
-        repository: str | FileBasedRepository,
+        repository: Any,  # dict[str,str] | FileBasedRepository,
         set_name: str,
         set_type: properties.SeriesType,
         as_of_utc: datetime | None = None,
@@ -158,7 +157,7 @@ class FileSystem:
     def root(self) -> str:
         """The root path is the basis for all other paths."""
         ts_root = self.repository["directory"]["path"]
-        return ts_root
+        return str(ts_root)
 
     @property
     def filename(self) -> str:
@@ -400,7 +399,7 @@ def parquet_schema(
     return schema
 
 
-def tags_to_json(x: TagDict) -> dict[str, str]:
+def tags_to_json(x: TagDict) -> dict[str, bytes]:
     """Turn tag dict into a dict where keys and values are coercible to bytes.
 
     See: https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
@@ -412,17 +411,18 @@ def tags_to_json(x: TagDict) -> dict[str, str]:
 
 
 def tags_from_json(
-    dict_with_json_string: dict,
+    dict_with_json_string: dict[str | bytes, str | bytes],
     byte_encoded: bool = True,
-) -> dict:
+) -> TagDict:  # dict[str, Any]:
     """Reverse 'tags_to_json()': return tag dict from dict that has been coerced to bytes.
 
     Mutliple dict fields into a single field: {json: <json-string>}. May or may not have been byte encoded.
     """
     if byte_encoded:
-        return json.loads(dict_with_json_string[b"json"].decode())  # type: ignore [no-any-return]
+        d = json.loads(dict_with_json_string[b"json"].decode())
     else:
-        return json.loads(dict_with_json_string["json"])  # type: ignore [no-any-return]
+        d = json.loads(dict_with_json_string["json"])
+    return cast(TagDict, d)
 
 
 # def tags_from_json_file(

@@ -1,7 +1,7 @@
 import logging
+import time
 import uuid
 from pathlib import Path
-from time import sleep
 
 import pandas
 import polars
@@ -30,6 +30,29 @@ test_logger = logging.getLogger(__name__)
 # copied from test_dataset_core --> review  to make sure correct scope
 # here: test io/simple.py behaviours
 # (leave to test_dataset_core to test Dataset behaviours)
+
+# =============================== HELPERS ===============================
+
+
+def check_file_count_change(
+    directory: Path,
+    initial_count: int,
+    expected_increment: int = 1,
+    timeout_seconds: float = 5.0,
+    poll_interval: float = 0.1,
+) -> None:
+    """Polls a directory until the number of files reaches the expected increment or timeout limit is reached."""
+    start_time = time.monotonic()
+    while time.monotonic() - start_time < timeout_seconds:
+        current_count = file_count(directory)
+        if current_count == initial_count + expected_increment:
+            return True  # Success!
+        time.sleep(poll_interval)
+
+    return False
+
+
+# ================================ TESTS ================================
 
 
 @pytest.mark.skip("TO DO: test the right thing")
@@ -77,9 +100,13 @@ def test_versioning_as_of_creates_new_file(
     x.as_of_utc = now_utc()
     x.data = y.data
     x.save()
-    sleep(2)
-    files_after = file_count(DataIO(x).dh.directory)
-    assert files_after == files_before + 1
+    assert check_file_count_change(
+        directory=DataIO(x).dh.directory,
+        initial_count=files_before,
+    )
+    # sleep(4)
+    # files_after = file_count(DataIO(x).dh.directory)
+    # assert files_after == files_before + 1
 
 
 def test_versioning_none_appends_to_existing_file(
