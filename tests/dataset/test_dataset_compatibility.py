@@ -1,5 +1,7 @@
 """Tests conversions of Dataset to other dataframe libraries, an compliance with standards/protocols."""
 
+from __future__ import annotations
+
 import narwhals as nw
 import numpy as np
 import pandas as pd

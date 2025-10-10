@@ -13,6 +13,8 @@ A returned py:class:`CatalogItem` instance is identified by name and descriptive
 -----
 """
 
+from __future__ import annotations
+
 import importlib.resources as pkg_resources  # noqa: F401
 from collections.abc import Sequence
 from dataclasses import dataclass

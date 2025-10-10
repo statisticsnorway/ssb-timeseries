@@ -6,6 +6,8 @@ Repository/Datatype/Dataset/[Version|latest].parquet
 (Hard coded directory structure: as opposed to Hive partitioning.)
 """
 
+from __future__ import annotations
+
 # import os
 import re
 from datetime import datetime

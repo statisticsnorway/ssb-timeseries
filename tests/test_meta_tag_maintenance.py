@@ -1,4 +1,4 @@
-# mypy: ignore-errors = True
+from __future__ import annotations
 
 import logging
 import uuid
@@ -10,6 +10,7 @@ from ssb_timeseries.dates import date_utc
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
+# --- mypy: ignore-errors = True
 # ---mypy: disable-error-code="attr-defined,no-untyped-def,union-attr,index,call-overload"
 
 test_logger = logging.getLogger(__name__)

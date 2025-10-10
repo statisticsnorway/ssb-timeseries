@@ -1,5 +1,7 @@
 """Properties are type definitions used for series and datasets."""
 
+from __future__ import annotations
+
 from enum import Enum
 from itertools import product
 

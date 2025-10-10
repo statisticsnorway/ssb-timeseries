@@ -1,5 +1,7 @@
 """A collection of helper functions to work with dataframes."""
 
+from __future__ import annotations
+
 from typing import Any
 from typing import Literal
 from typing import cast

@@ -6,6 +6,8 @@ Helper module for date and time utility functions.
 Notable examples include converting between UTC and local time, standardised string formats for file names, and (planned for future use) intervals.
 """
 
+from __future__ import annotations
+
 from datetime import datetime, tzinfo
 from typing import Any, Iterable
 from typing import TypeAlias

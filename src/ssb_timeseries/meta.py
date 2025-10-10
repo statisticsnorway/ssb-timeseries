@@ -5,6 +5,8 @@ Dataset and series tags are handled by Python dictionaries and stored in JSON fi
 It also consumes taxonomies. That is functionality that should live in the ssb-python-klass or other meta data libraries. Likely subject to refactoring later.
 """
 
+from __future__ import annotations
+
 import itertools
 from copy import deepcopy
 from functools import cache

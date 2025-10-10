@@ -23,7 +23,6 @@ which is equivalent to::
     python ./config.py <option>
 
 See :py:func:`ssb_timeseries.config.main` for details on the named options.
-
 """
 
 import json

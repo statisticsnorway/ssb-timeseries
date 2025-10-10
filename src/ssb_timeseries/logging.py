@@ -30,10 +30,11 @@ The time series library may be able to get this information (from the scope of t
 Otherwise, it must be passed in as parameters to read/write functions.
 """
 
+from __future__ import annotations
+
 # Consider whether:
 #  - logging could/should(?) have its own Dapla library.
 #  - "everything" could/should be done in ssb_timeseries/__init__.py?
-
 import functools
 import logging
 from collections.abc import Callable

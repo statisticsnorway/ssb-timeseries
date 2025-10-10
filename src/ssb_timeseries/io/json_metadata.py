@@ -12,6 +12,8 @@ Default configs may be created by running
 See `config` module docs for details.
 """
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
 from typing import NamedTuple
