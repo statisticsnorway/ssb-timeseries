@@ -236,7 +236,7 @@ def coverage(session: Session) -> None:
     session.run("coverage", *args)
 
 
-@session(python=python_versions[-1])
+@session(python=python_versions[0])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     session.install("pytest", "typeguard", "pygments", "click",)
