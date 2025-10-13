@@ -246,7 +246,9 @@ class Taxonomy:
         """Return all nodes in the taxonomy."""
         return list(self.structure.root.descendants)
 
-    def leaf_nodes(self, name: bigtree.Node | str = "") -> list[bigtree.Node]:  # type: ignore[name-defined]
+    def leaf_nodes(
+        self, name: bigtree.Node | str = ""
+    ) -> list[bigtree.Node] | list[str]:  # type: ignore[name-defined]
         """Return all leaf nodes in the taxonomy."""
         if name:
             if isinstance(name, bigtree.Node):

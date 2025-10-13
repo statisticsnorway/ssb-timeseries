@@ -14,7 +14,16 @@ from narwhals.typing import IntoFrame
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
+from .properties import SeriesType
+from .properties import Temporality
+from .properties import Versioning
+
 # mypy: disable-error-code="union-attr"
+
+
+def _coalesce(*args):
+    """Return first value that evaluates to True."""
+    return next((bool(arg) for arg in args if arg is not None), None)
 
 
 def copy(df: FrameT) -> Any:
@@ -66,18 +75,6 @@ def empty_frame(
             return df.to_polars()
 
 
-def is_empty(df: IntoFrame) -> bool:
-    """Check if dataframe is empty."""
-    # nox/mypy vs 1.10.1 --> [redundant-cast] | pre-commit --> [no-any-return]
-    # (but cast was introduced because of other error with other mypy env)
-    # return cast(bool, nw.from_native(df).is_empty())  # nox --> [redundant-cast]
-    # return nw.from_native(df).is_empty() # pre-commit --> [no-any-return]
-    # ... fix(?):
-    nw_df = nw.from_native(df)
-    df_is_empty = eager(nw_df).is_empty()
-    return cast(bool, df_is_empty)
-
-
 def are_equal(*frames: IntoFrame) -> bool:
     """Check if dataframes are equal."""
     first_df = nw.from_native(frames[0]).to_polars()
@@ -92,6 +89,45 @@ def are_equal(*frames: IntoFrame) -> bool:
         ):
             return False
     return True
+
+
+def infer_datatype(df: IntoFrame, **kwargs) -> SeriesType:
+    """Checks dataframe columns and kwargs to identify SeriesType.
+
+    Args:
+        df: The dataframe to check.
+        **kwargs: Override values for keys ' versioning', 'temporality'.
+
+    Returns:
+        SeriesType if the dataframe and/or kwargs provides sufficient information to infer Versioning and Temporality.
+
+    `Versioning` is determined by assessing in order of (priority):
+    - the kwarg value for the key 'versioning', if provided.
+    - if dataframe columns contain 'as_of', 'as_of_tz' or 'as_of_utc'.
+    - if keys of kwargs contain 'as_of', 'as_of_tz' or 'as_of_utc'.
+
+    `Temporality` is determined by assessing in order of (priority):
+    - the kwarg value for the key 'temporality', if provided.
+    - if the dataframe columns contain 'valid_from' and 'valid_to'.
+
+    """
+    nw_df = nw.from_native(df)
+    vs_markers = {"as_of", "as_of_tz", "as_of_utc"}
+    from_to = {"valid_from", "valid_to"}
+
+    columns = set(nw_df.columns)
+
+    vs_explicit = kwargs.get("versioning")
+    vs_from_kwargs = Versioning.AS_OF if vs_markers & set(kwargs.keys()) else None
+    vs_from_column = Versioning.AS_OF if vs_markers & columns else None
+    versioning = _coalesce(vs_explicit, vs_from_column, vs_from_kwargs, Versioning.NONE)
+
+    t_from_columns = (
+        Temporality.FROM_TO if from_to & columns == from_to else Temporality.AT
+    )
+    temporality = _coalesce(kwargs.get("temporality"), t_from_columns)
+
+    return SeriesType(versioning, temporality)
 
 
 def is_df_like(obj: Any) -> bool:
@@ -116,6 +152,18 @@ def is_df_like(obj: Any) -> bool:
         and hasattr(obj, "columns")
         and "numpy.ndarray" not in str(type(obj))  # A simple way to exclude numpy
     )
+
+
+def is_empty(df: IntoFrame) -> bool:
+    """Check if dataframe is empty."""
+    # nox/mypy vs 1.10.1 --> [redundant-cast] | pre-commit --> [no-any-return]
+    # (but cast was introduced because of other error with other mypy env)
+    # return cast(bool, nw.from_native(df).is_empty())  # nox --> [redundant-cast]
+    # return nw.from_native(df).is_empty() # pre-commit --> [no-any-return]
+    # ... fix(?):
+    nw_df = nw.from_native(df)
+    df_is_empty = eager(nw_df).is_empty()
+    return cast(bool, df_is_empty)
 
 
 def rename_columns(

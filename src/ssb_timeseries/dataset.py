@@ -13,7 +13,7 @@ Additional type determinants (sparsity, irregular frequencies, non-numeric or no
 The types are crucial because they are reflected in the physical storage structure.
 That in turn has practical implications for how the series can be interacted with, and for methods working on the data.
 
-.. admonition:: See also
+.. admonition:: See also:
     :class: more
 
     The :py:mod:`ssb_timeseries.catalog` module for tools for searching for datasets or series by names or metadata.
@@ -56,6 +56,7 @@ import ssb_timeseries as ts
 from . import io
 from . import meta
 from .dataframes import empty_frame
+from .dataframes import infer_datatype
 from .dataframes import is_df_like
 from .dataframes import is_empty
 from .dataframes import rename_columns
@@ -63,6 +64,7 @@ from .dates import date_local
 from .dates import date_utc
 from .dates import period_index
 from .dates import utc_iso
+from .logging import logger
 from .properties import SeriesType
 from .types import F
 from .types import PathStr
@@ -98,11 +100,8 @@ def default_repository() -> str:
 def _identify_data_type(**kwargs: Any) -> SeriesType | None:
     """Analyse kwargs to determine if data type is supplied or can be inferred."""
     data_type = kwargs.get("data_type", "")
-    versioning = kwargs.get("versioning", "")
-    temporality = kwargs.get("temporality", "")
     data = kwargs.get("data")
-    as_of = kwargs.get("as_of_tz")
-    existing_tags = kwargs.get("existing", {})
+    existing_tags = kwargs.pop("existing", {})
 
     if existing_tags:
         existing = SeriesType(
@@ -115,29 +114,15 @@ def _identify_data_type(**kwargs: Any) -> SeriesType | None:
         provided = data_type
     elif data_type:
         provided = SeriesType(data_type)
-    elif versioning and temporality:
-        provided = SeriesType(versioning, temporality)
     elif data is not None:
-        temporality = "from_to" if "valid_from" in data.columns else "at"
-        versioning = "as_of" if isinstance(as_of, datetime) else "none"
-        provided = SeriesType(versioning, temporality)
+        provided = infer_datatype(data, **kwargs)
     else:
         provided = None
 
-    valid_provided = isinstance(provided, SeriesType)
-    valid_existing = isinstance(existing, SeriesType)
-    if valid_provided and valid_existing and provided == existing:
-        return provided
-    elif valid_provided and valid_existing and provided != existing:
-        raise ValueError(
-            f"The data type provided in or inferred from parameters ({provided}) does not match that found for an existing dataset ({existing}). To (re-)create the set with a new type, use `find_existing=False`. Note that dataset names are expected to be unique, so verify parameters and configuration and proceed with caution."
-        )
-    elif valid_provided and not valid_existing:
-        return provided
-    elif valid_existing and not valid_provided:
-        return existing
-    else:
-        raise ValueError("Datatype could not be identitfied.")
+    def coalesce(*args):
+        return next((arg for arg in args if arg is not None), None)
+
+    return coalesce(provided, existing)
 
 
 class Dataset:
@@ -261,7 +246,7 @@ class Dataset:
         else:
             tags_for_existing = {}
 
-        kwarg_data = kwargs.get("da#ta")
+        kwarg_data = kwargs.get("data")
         data_type = _identify_data_type(
             **{
                 **kwargs,
@@ -270,7 +255,7 @@ class Dataset:
                 "existing": tags_for_existing,
             }
         )
-        ts.logger.debug(
+        logger.debug(
             "DATASET.debug found existing dataset: %s of type %s in repository %s",
             tags_for_existing.get("name"),
             (tags_for_existing.get("versioning"), tags_for_existing.get("temporality")),
@@ -305,7 +290,7 @@ class Dataset:
             and find_existing
         )
         if identify_latest:
-            ts.logger.debug(
+            logger.debug(
                 "Init %s '%s' without 'as_of_tz' --> identifying latest.",
                 self.data_type,
                 self.name,
@@ -497,7 +482,7 @@ class Dataset:
         if not versions:
             return []
         else:
-            ts.logger.debug("DATASET %s: versions: %s.", self.name, versions)
+            logger.debug("DATASET %s: versions: %s.", self.name, versions)
 
         if self.data_type.versioning == ts.properties.Versioning.AS_OF:
             return_type = kwargs.get("return_type", "local")
@@ -839,7 +824,7 @@ class Dataset:
                     # not necessary? self.tags["series"][series_key][attribute] = deepcopy(value)
                     self.tags["series"][series_key][attribute] = value
         else:
-            ts.logger.warning(
+            logger.warning(
                 "DATASET.series_names_to_tags() requires attributes to be defined for the Dataset object or to be passed as an argument."
             )
             # raise AttributeError( "Attributes must be defined in Dataset.auto_tag_config or passed as an argument.")
@@ -921,13 +906,13 @@ class Dataset:
                 matching_series = meta.search_by_tags(self.tags["series"], *tags)
             else:
                 matching_series = meta.search_by_tags(self.tags["series"], tags)
-            ts.logger.debug("DATASET.select(tags) found:\n%s ", matching_series)
+            logger.debug("DATASET.select(tags) found:\n%s ", matching_series)
             expressions.append(nw.col(matching_series))
 
         df = nw.from_native(self.data).select(expressions).to_native()
         interval = kwargs.get("interval")
         if interval:
-            ts.logger.warning(
+            logger.warning(
                 f"DATASET.select: Attempted call with argument 'interval' = {interval} is not supported. --> TO DO!"
             )
 
@@ -1090,8 +1075,8 @@ class Dataset:
         else:
             xlabels = self.datetime_columns[0]
 
-        ts.logger.debug("DATASET.plot(): x labels = %s", xlabels)
-        ts.logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
+        logger.debug("DATASET.plot(): x labels = %s", xlabels)
+        logger.debug(f"Dataset.plot({args!r}, {kwargs!r}) x-labels {xlabels}")
 
         return df.plot(
             xlabels,
@@ -1120,7 +1105,7 @@ class Dataset:
         for col in self.data.columns:
             if col.__contains__(pattern):
                 cmd = f"{col} = self.data['{col}']"
-                ts.logger.debug(cmd)
+                logger.debug(cmd)
                 # the original idea was running (in caller scope)
                 # exec(cmd)
                 locals_[col] = self.data[col]
@@ -1143,7 +1128,7 @@ class Dataset:
         # works for datetime_columns = "valid_at", untested for others
         # TODO: add support for ["valid_from", "valid_to"]
         period_idx = period_index(self.data[datetime_columns[0]], freq=freq)
-        ts.logger.debug("DATASET %s: period index\n%s.", self.name, period_idx)
+        logger.debug("DATASET %s: period index\n%s.", self.name, period_idx)
 
         # Fix for case when **kwargs contains numeric_only
         if "numeric_only" in kwargs:
@@ -1167,20 +1152,20 @@ class Dataset:
                 df1 = self.data.groupby(period_idx).mean(
                     *args, numeric_only=numeric_only_value, **kwargs
                 )
-                ts.logger.debug(f"groupby\n{df1}.")
+                logger.debug(f"groupby\n{df1}.")
 
                 df2 = (
                     self.data.groupby(period_idx)
                     .sum(*args, numeric_only=numeric_only_value, **kwargs)
                     .select(regex="mendgde|volum|vekt")
                 )
-                ts.logger.debug(f"groupby\n{df2}.")
+                logger.debug(f"groupby\n{df2}.")
 
                 df1[df2.columns] = df2[df2.columns]
 
                 out = df1
-                ts.logger.debug(f"groupby\n{out}.")
-                ts.logger.debug(f"DATASET {self.name}: groupby\n{out}.")
+                logger.debug(f"groupby\n{out}.")
+                logger.debug(f"DATASET {self.name}: groupby\n{out}.")
 
         new_name = f"({self.name}.groupby({freq},{func})"
 
@@ -1363,7 +1348,7 @@ class Dataset:
         out = self.copy()
 
         if isinstance(other, Dataset):
-            ts.logger.debug(
+            logger.debug(
                 f"DATASET {self.name}: .math({self.name}.{func.__name__}(Dataset({other.name}))."
             )
             other_name = other.name
@@ -1384,7 +1369,7 @@ class Dataset:
                 out.as_of_utc = None
 
         elif other is None:
-            ts.logger.debug(f"DATASET {self.name}: .math({self.name}.{func.__name__}).")
+            logger.debug(f"DATASET {self.name}: .math({self.name}.{func.__name__}).")
             result = func(self.numeric_array())
             out[num_cols] = result
             other_name = ""
@@ -1431,7 +1416,7 @@ class Dataset:
         out.rename(new_name)
         out.lineage = new_name
 
-        ts.logger.debug(f"DATASET.math: {new_name}\n\t{out.data.shape}")
+        logger.debug(f"DATASET.math: {new_name}\n\t{out.data.shape}")
         # print( f"DATASET.math: {new_name}\n\t{out.data.shape=}")
         # TODO: Should also update series names and set/series tags
         return out
@@ -1862,9 +1847,9 @@ class Dataset:
         zeros = np.zeros((1, columns))
         diffs = cumsums[r_to, :] - np.append(zeros, cumsums, 0)[r_from, :]
 
-        # ts_logger.debug("\n%s",numbers)
-        # ts_logger.debug("\n%s",cumsums)
-        # ts_logger.debug("\n%s",diffs)
+        # logger.debug("\n%s",numbers)
+        # logger.debug("\n%s",cumsums)
+        # logger.debug("\n%s",diffs)
 
         averages = diffs / n
         out = self.copy(f"{self.name}.mov_avg({start},{stop})")
@@ -1903,7 +1888,7 @@ class Dataset:
 
 def column_aggregate(df: FrameT, method: str | F) -> Any:
     """Helper function to calculate aggregate over dataframe columns."""
-    # ts.logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
+    # logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
     nw_df = nw.from_native(df)
     # nw_df.implementation
 
@@ -1974,7 +1959,7 @@ def search(
         pattern=pattern,
         repository=repository,
     )
-    ts.logger.debug(
+    logger.debug(
         "DATASET.search for '%s'\nin repositories\n%s\nreturned:\n%s",
         pattern,
         repository,

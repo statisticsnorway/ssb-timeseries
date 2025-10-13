@@ -18,7 +18,7 @@ import sys
 # from tkinter import W
 
 
-sys.path.insert(0, os.path.abspath("../src"))
+sys.path.insert(0, os.path.abspath(".."))
 
 # -- Project information -----------------------------------------------------
 
@@ -193,6 +193,10 @@ rst_prolog = """
 
 # This mapping is used to resolve forward references in type annotations.
 # It maps the string name to the fully qualified object name.
+autodoc_typehint_aliases = {
+    'Dataset': 'ssb_timeseries.dataset.Dataset',
+}
+autodoc_typehints_format_aliases = True
 autodoc_type_aliases = {
     'Any': 'typing.Any',
     'DataFrame': 'narwhals.DataFrame',

@@ -14,12 +14,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import ssb_timeseries as ts
-from ssb_timeseries import fs
-from ssb_timeseries import properties
-
-# from ssb_timeseries.io.json_metadata import MetaIO
-from ssb_timeseries.types import PathStr
+from .. import fs
+from ..logging import logger
+from ..properties import Versioning
+from ..types import PathStr
 
 if TYPE_CHECKING:
     pass
@@ -32,10 +30,10 @@ if TYPE_CHECKING:
 
 
 def version_from_file_name(
-    file_name: str, pattern: str | properties.Versioning = "as_of", group: int = 2
+    file_name: str, pattern: str | Versioning = "as_of", group: int = 2
 ) -> str:
     """For known name patterns, extract version marker."""
-    if isinstance(pattern, properties.Versioning):
+    if isinstance(pattern, Versioning):
         pattern = str(pattern)
 
     match pattern.lower():
@@ -53,7 +51,7 @@ def version_from_file_name(
             regex = pattern
 
     vs = re.search(regex, file_name).group(group)
-    ts.logger.debug(
+    logger.debug(
         "file: %s pattern:%s, regex%s \n--> version: %s ",
         file_name,
         pattern,
@@ -72,8 +70,6 @@ class FileSystem:
         bucket: PathStr,
         process_stage: str = "statistikk",
         product: str = "",
-        # set_type: properties.SeriesType,
-        # as_of_utc: datetime | None = None,
         sharing: dict | None = None,
     ) -> None:
         """Initialise filesystem abstraction for dataset.
@@ -87,9 +83,6 @@ class FileSystem:
         self.set_name = set_name
         self.sharing = sharing
 
-        # self.data_type = set_type
-        # self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
-
     def last_version_number_by_regex(self, directory: str, pattern: str = "*") -> str:
         """Check directory and get max version number from files matching regex pattern."""
         files = fs.ls(directory, pattern=pattern)
@@ -98,7 +91,7 @@ class FileSystem:
         vs = sorted(
             [int(version_from_file_name(fname, "persisted")) for fname in files]
         )
-        ts.logger.debug(
+        logger.debug(
             "DATASET %s: io.last_version regex identified versions %s in %s.",
             self.set_name,
             vs,
@@ -111,7 +104,7 @@ class FileSystem:
             read_from_filenames = 0
             out = number_of_files
 
-        ts.logger.debug(
+        logger.debug(
             "DATASET %s: io.last_version searched directory: \n\t%s\n\tfor '%s' found %s files, regex identified version %s --> vs %s.",
             self.set_name,
             directory,
@@ -132,9 +125,7 @@ class FileSystem:
         directory = (
             Path(self.bucket) / self.process_stage / self.product / self.set_name
         )
-        # "series"/  # to distinguish from other data types
-        # self.set_type_dir/
-        ts.logger.debug(
+        logger.debug(
             "DATASET.IO.SHARING_DIRECTORY: %s",
             directory,
         )
@@ -165,7 +156,7 @@ class FileSystem:
         else:
             out = f"{self.set_name}_p{iso_no_colon(period_from)}_p{iso_no_colon(period_to)}_v{next_vs}"
 
-            ts.logger.debug(
+            logger.debug(
                 "DATASET last version %s from %s to %s.')",
                 next_vs,
                 period_from,
@@ -180,7 +171,7 @@ class FileSystem:
         """
         directory = Path(path) / self.set_name
 
-        ts.logger.debug(
+        logger.debug(
             "DATASET.IO.SHARING_DIRECTORY: %s",
             directory,
         )
@@ -229,9 +220,9 @@ class FileSystem:
             fs.cp(meta_path, meta_publish_path)
 
         if sharing:
-            ts.logger.debug("Sharing configs: %s", sharing)
+            logger.debug("Sharing configs: %s", sharing)
             for s in sharing:
-                ts.logger.debug("Sharing: %s", s)
+                logger.debug("Sharing: %s", s)
                 if "team" not in s.keys():
                     s["team"] = "no team specified"
                 if data_path:
@@ -244,7 +235,7 @@ class FileSystem:
                         meta_publish_path,
                         self.sharing_directory(s["path"]),
                     )
-                ts.logger.debug(
+                logger.debug(
                     "DATASET %s: sharing with %s, snapshot copied to %s.",
                     self.set_name,
                     s["team"],

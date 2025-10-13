@@ -1,15 +1,10 @@
-"""The IO module provides abstractions for READ and WRITE operations so that `Dataset` does not have to care avbout the mechanics.
+"""Simple file based read and write of metadata in JSON format.
 
-TO DO: turn Dataset.io into a Protocol class?
+This 'registers' the JSON formatted metadata in a central 'catalog' for easy search andd lookup:
+`/<repository catalog path>/<dataset name>-metadata.json`
 
-Essential configs:
-    TIMESERIES_CONFIG: str = os.environ.get("TIMESERIES_CONFIG")
-    CONFIG = config.Config(configuration_file=TIMESERIES_CONFIG)
-
-Default configs may be created by running
-    `poetry run timeseries-config {home | jovyan | gcs}`
-
-See `config` module docs for details.
+This will duplicate any metadata stored in Parquet files.
+The catalog location is configurable per metadata repository.
 """
 
 from __future__ import annotations
@@ -18,13 +13,13 @@ import json
 from pathlib import Path
 from typing import NamedTuple
 
-import ssb_timeseries as ts
-from ssb_timeseries import fs
-from ssb_timeseries.config import Config
-from ssb_timeseries.config import FileBasedRepository
-from ssb_timeseries.meta import DatasetTagDict
-from ssb_timeseries.meta import TagDict
-from ssb_timeseries.types import PathStr
+from .. import fs
+from ..config import Config
+from ..config import FileBasedRepository
+from ..logging import logger
+from ..meta import DatasetTagDict
+from ..meta import TagDict
+from ..types import PathStr
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 # ruff: noqa: D202
@@ -57,7 +52,7 @@ class JsonMetaIO:
         else:
             cfg = Config.active()
             self.repository = cfg.repositories.get(repository)
-        ts.logger.debug("JsonMetaIO uses repository %s", self.repository)
+        logger.debug("JsonMetaIO uses repository %s", self.repository)
         self.set_name = set_name
 
     @property
@@ -81,38 +76,38 @@ class JsonMetaIO:
     def read(self) -> dict:
         """Read tags from the metadata file."""
         meta: dict = {"name": self.set_name}
-        ts.logger.info(
+        logger.info(
             "JsonMetaIO.read.start %s: reading metadata from file %s\n",
             self.set_name,
             self.fullpath,
         )
         if fs.exists(self.fullpath):
-            ts.logger.info(
+            logger.info(
                 "JsonMetaIO.read.success %s: reading metadata from file %s\nended.",
                 self.set_name,
                 self.fullpath,
             )
             meta = fs.read_json(self.fullpath)
         else:
-            ts.logger.debug("Metadata file %s was not found.", self.fullpath)
+            logger.debug("Metadata file %s was not found.", self.fullpath)
         return meta
 
     def write(self, meta: dict) -> None:
         """Write tags to the metadata file."""
         try:
-            ts.logger.info(
+            logger.info(
                 "JsonMetaIO.write.start %s: writing metadata to file\n\t%s\nstarted.",
                 self.set_name,
                 self.fullpath,
             )
             fs.write_json(self.fullpath, meta)
-            ts.logger.info(
+            logger.info(
                 "JsonMetaIO %s: Writing metadata to file %s.",
                 self.set_name,
                 self.fullpath,
             )
         except Exception as e:
-            ts.logger.exception(
+            logger.exception(
                 "JsonMetaIO %s: Writing metadata to file %s returned exception %s.",
                 self.set_name,
                 self.fullpath,
@@ -136,7 +131,7 @@ def find_metadata_files(
 
     Only one of the arguments 'pattern', 'contains' or 'equals' can be provided at the same time. If none is provided, all files are returned.
     """
-    ts.logger.debug("find_metadata_files in repo(s) %s.", repository)
+    logger.debug("find_metadata_files in repo(s) %s.", repository)
     if contains:
         pattern = f"*{contains}*"
     elif equals:
@@ -153,19 +148,19 @@ def find_metadata_files(
         )
 
     if not repository:
-        ts.logger.debug(
+        logger.debug(
             "find_metadata_files in default repo:\n%s.",
             repository,
         )
         result = find_in_repo(active_config())
     elif isinstance(repository, Path | str):
-        ts.logger.debug(
+        logger.debug(
             "find_metadata_files in repo by str/Path:\n%s.",
             repository,
         )
         result = find_in_repo(repository)
     elif isinstance(repository, dict):
-        ts.logger.debug(
+        logger.debug(
             "find_metadata_files in repo specified as {'path': ..., 'handler': ...}:\n%s",
             repository,
         )

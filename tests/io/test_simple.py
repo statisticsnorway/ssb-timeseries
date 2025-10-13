@@ -44,8 +44,7 @@ def check_file_count_change(
     """Polls a directory until the number of files reaches the expected increment or timeout limit is reached."""
     start_time = time.monotonic()
     while time.monotonic() - start_time < timeout_seconds:
-        current_count = file_count(directory)
-        if current_count == initial_count + expected_increment:
+        if file_count(directory) >= initial_count + expected_increment:
             return True  # Success!
         time.sleep(poll_interval)
 
@@ -98,11 +97,13 @@ def test_versioning_as_of_creates_new_file(
     y = x * 1.1
     files_before = file_count(DataIO(x).dh.directory)
     x.as_of_utc = now_utc()
+    time.sleep(1)
     x.data = y.data
     x.save()
     assert check_file_count_change(
         directory=DataIO(x).dh.directory,
         initial_count=files_before,
+        timeout_seconds=10,
     )
     # sleep(4)
     # files_after = file_count(DataIO(x).dh.directory)

@@ -1,9 +1,10 @@
-"""Simple file based read and write of dataset data and metadata.
+"""Simple file based read and write of dataset data and metadata in Parquet format.
 
 Stores wide format data in a hard coded directory structure:
 Repository/Datatype/Dataset/[Version|latest].parquet
 
-(Hard coded directory structure: as opposed to Hive partitioning.)
+The hard coded directory structure is as opposed to Hive partitioned alternative, and the IO is managed (eagerly) via Pyarrow.
+(Support for Hive partitioning and lazy reading coming soon.)
 """
 
 from __future__ import annotations
@@ -24,8 +25,6 @@ import pyarrow.compute
 from narwhals.typing import FrameT
 from narwhals.typing import IntoFrameT
 
-import ssb_timeseries as ts
-
 from .. import fs
 from .. import properties
 from ..config import Config
@@ -36,6 +35,7 @@ from ..dates import datelike_to_utc
 from ..dates import prepend_as_of
 from ..dates import standardize_dates
 from ..dates import utc_iso_no_colon
+from ..logging import logger
 from ..meta import TagDict
 from ..types import PathStr
 
@@ -76,7 +76,7 @@ def _version_from_file_name(
             regex = pattern
 
     vs = re.search(regex, file_name).group(group)
-    ts.logger.debug(
+    logger.debug(
         "file: %s pattern:%s, regex%s \n--> version: %s ",
         file_name,
         pattern,
@@ -99,7 +99,7 @@ def last_version_number_by_regex(directory: str, pattern: str = "*") -> str:
         read_from_filenames = 0
         out = number_of_files
 
-    ts.logger.debug(
+    logger.debug(
         "io/simple.last_version_number_by_regex() search in directory: \n\t%s\n\tfor '%s' found %s files, regex identified version %s --> vs %s.",
         directory,
         pattern,
@@ -172,7 +172,7 @@ class FileSystem:
             case _:
                 raise ValueError("Unhandled versioning.")
 
-        ts.logger.debug(file_name)
+        logger.debug(file_name)
         return file_name
 
     @property
@@ -194,18 +194,18 @@ class FileSystem:
         interval: str = "",  # TODO: Implement use av interval = Interval.all,
     ) -> pyarrow.Table:
         """Read data from the filesystem. Return empty dataframe if not found."""
-        ts.logger.debug(interval)
+        logger.debug(interval)
         if fs.exists(self.fullpath):
-            ts.logger.info(
+            logger.info(
                 "DATASET.read.start %s: Reading data from file %s",
                 self.set_name,
                 self.fullpath,
             )
             try:
                 df = fs.read_parquet(self.fullpath, implementation="pyarrow")
-                ts.logger.info("DATASET.read.success %s: Read data.", self.set_name)
+                logger.info("DATASET.read.success %s: Read data.", self.set_name)
             except FileNotFoundError:
-                ts.logger.exception(
+                logger.exception(
                     "DATASET.read.error %s: Read data failed. File not found: %s",
                     self.set_name,
                     self.fullpath,
@@ -214,7 +214,7 @@ class FileSystem:
 
         else:
             df = empty_frame()
-            ts.logger.debug(f"No file {self.fullpath} - return empty frame instead.")
+            logger.debug(f"No file {self.fullpath} - return empty frame instead.")
         pa_table = datelike_to_utc(df)
         return cast(pyarrow.Table, pa_table)
 
@@ -239,7 +239,7 @@ class FileSystem:
                     date_cols=self.data_type.date_columns,
                 )
 
-        ts.logger.info(
+        logger.info(
             "DATASET.write.start %s: writing data to file\n\t%s\nstarted.",
             self.set_name,
             self.fullpath,
@@ -251,13 +251,13 @@ class FileSystem:
                 schema=parquet_schema(self.data_type, tags),
             )
         except Exception as e:
-            ts.logger.exception(
+            logger.exception(
                 "DATASET.write.error %s: writing data to file\n\t%s\nreturned exception: %s.",
                 self.set_name,
                 self.fullpath,
                 e,
             )
-        ts.logger.info(
+        logger.info(
             "DATASET.write.success %s: writing data to file\n\t%s\nended.",
             self.set_name,
             self.fullpath,
@@ -304,7 +304,7 @@ def find_datasets(
     if repository:
         search_directories = [repository]
         repo_names = ["root"]
-        ts.logger.debug("IO.find_dataset pattern %s in repo %s", pattern, repository)
+        logger.debug("IO.find_dataset pattern %s in repo %s", pattern, repository)
     else:
         search_directories = [
             v["directory"]["path"] for k, v in active_config().repositories.items()
@@ -315,21 +315,21 @@ def find_datasets(
     for search_dir in search_directories:
         directories.extend(fs.find(search_dir, pattern, full_path=True))
 
-    ts.logger.debug("%s %s", pattern, directories)
+    logger.debug("%s %s", pattern, directories)
     if exclude:
         dirs = [d for d in directories if exclude not in d]
-        ts.logger.debug(
+        logger.debug(
             "DATASET.IO.find_datasets: exclude '%s' eliminated:\n%s",
             exclude,
             [d for d in dirs if exclude in d],
         )
     search_results = []
     for search_dir, repo in zip(search_directories, repo_names, strict=False):
-        ts.logger.debug("%s | %s", search_dir, repo)
+        logger.debug("%s | %s", search_dir, repo)
         search_results.extend(
             [d.replace(search_dir, repo).split(os.path.sep) for d in dirs]
         )
-    ts.logger.debug("search results: %s", search_results)
+    logger.debug("search results: %s", search_results)
     return [SearchResult(f[2], f[1]) for f in search_results]
 
 
@@ -344,7 +344,7 @@ def merge_data(
     new = nw.from_native(new).lazy(backend="polars").with_columns(expressions).collect()  # type: ignore[call-arg]
     old = nw.from_native(old).lazy(backend="polars").with_columns(expressions).collect()  # type: ignore[call-arg]
 
-    ts.logger.debug("merge_data schemas \n%s\n%s", old.schema, new.schema)
+    logger.debug("merge_data schemas \n%s\n%s", old.schema, new.schema)
     merged = nw.concat(
         [old, new],
         how="diagonal",
