@@ -232,7 +232,6 @@ def find(
 
 def versions(
     ds: Dataset,
-    repository: str | dict = "",
     **kwargs,
 ) -> list[datetime | str]:
     """Get list of all series version markers (`as_of` dates or version names)."""

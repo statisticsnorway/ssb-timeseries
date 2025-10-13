@@ -1822,10 +1822,6 @@ class Dataset:
         zeros = np.zeros((1, columns))
         diffs = cumsums[r_to, :] - np.append(zeros, cumsums, 0)[r_from, :]
 
-        # logger.debug("\n%s",numbers)
-        # logger.debug("\n%s",cumsums)
-        # logger.debug("\n%s",diffs)
-
         averages = diffs / n
         out = self.copy(f"{self.name}.mov_avg({start},{stop})")
         out[self.numeric_columns] = averages[0:rows, :]
@@ -1863,9 +1859,8 @@ class Dataset:
 
 def column_aggregate(df: FrameT, method: str | F) -> Any:
     """Helper function to calculate aggregate over dataframe columns."""
-    # logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
+    logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
     nw_df = nw.from_native(df)
-    # nw_df.implementation
 
     # the following is not pretty, but is left as is to simplify the transition away from pandas
     # a better approach: return nw.Expr for methods  --> TODO!
