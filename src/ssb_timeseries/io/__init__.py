@@ -276,8 +276,8 @@ def persist(
     date_from = ds.data[ds.datetime_columns].min().min()
     date_to = ds.data[ds.datetime_columns].max().max()
     snap_io.write(
-        product=getattr(ds, "product", ""),
-        process_stage=getattr(ds, "process_stage", DEFAULT_PROCESS_STAGE),
+        # product=getattr(ds, "product", ""),
+        # process_stage=getattr(ds, "process_stage", DEFAULT_PROCESS_STAGE),
         sharing=getattr(ds, "sharing", {}),
         as_of_tz=ds.as_of_utc,
         period_from=date_from,

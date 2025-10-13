@@ -1,32 +1,21 @@
-"""Simple file based read and write of dataset data and metadata.
+"""Simple file based persisting of dataset data in stable stages.
 
-Stores wide format data in a hard coded directory structure:
-Repository/Datatype/Dataset/[Version|latest].parquet
-
-(Hard coded directory structure: as opposed to Hive partitioning.)
+Stores data in directory structure with named versioned files adhering to naming standards of Statistics Norway.
 """
 
 from __future__ import annotations
 
-# import os
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from .. import fs
 from ..logging import logger
 from ..properties import Versioning
 from ..types import PathStr
 
-if TYPE_CHECKING:
-    pass
-
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 # ruff: noqa: D202
-
-
-# active_config = Config.active
 
 
 def version_from_file_name(
@@ -180,8 +169,6 @@ class FileSystem:
 
     def write(
         self,
-        product: str = "",
-        process_stage: str = "statistikk",
         sharing: dict | None = None,
         as_of_tz: datetime | None = None,
         period_from: datetime | None = None,
@@ -203,8 +190,6 @@ class FileSystem:
         """
         directory = self.snapshot_directory
         snapshot_name = self.snapshot_filename(
-            # product=product,
-            # process_stage=process_stage,
             as_of_utc=as_of_tz,
             period_from=period_from,
             period_to=period_to,

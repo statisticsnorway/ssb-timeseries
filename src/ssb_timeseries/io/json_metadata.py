@@ -165,9 +165,6 @@ def find_metadata_files(
             repository,
         )
         result = find_in_repo(repository["path"])
-        # result = []
-        # for r in repository:
-        #    result.append(find_in_repo(r))
     else:
         raise TypeError("Invalid repository type.")
 

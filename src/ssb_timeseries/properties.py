@@ -60,8 +60,6 @@ class Versioning(SuperEnum):
     """Versions identified by free text names.
 
     This functionality is under consideration, hence preparepared in the type system, but with not all the way through IO and core modules."""
-    # SEMANTIC = 3
-    # """Consider adding support for: Versions identified by numbers on form X.Y.Z, ie. Major.Minor.Patch."""
 
     @property
     def date_columns(self) -> list[str]:
@@ -96,7 +94,6 @@ class SeriesType:
         *type_def: str,
         versioning: Versioning | None = None,
         temporality: Temporality | None = None,
-        # is_sparse: bool = False,
     ) -> None:
         """SeriesType constructor.
 
@@ -127,7 +124,6 @@ class SeriesType:
             self.temporality = Temporality.AT
         else:
             self.temporality = Temporality.FROM_TO
-        # self.is_sparse = is_sparse
 
     @classmethod
     def none_at(cls) -> Self:

@@ -309,7 +309,7 @@ def find_datasets(
         search_directories = [
             v["directory"]["path"] for k, v in active_config().repositories.items()
         ]
-        repo_names = [k for k in active_config().repositories.keys()]
+        repo_names = list(active_config().repositories.keys())
 
     directories = []
     for search_dir in search_directories:
