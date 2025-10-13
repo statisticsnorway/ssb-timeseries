@@ -35,8 +35,6 @@ from . import snapshot
 
 # mypy: disable-error-code="no-any-return,no-untyped-def,return-value,assignment,attr-defined"
 DEFAULT_PROCESS_STAGE = "Statistikk"  # TODO: control from config?
-
-# TODO: consider: _HANDLER_CACHE = {}
 _ACTIVE_CONFIG = Config.active()
 
 
@@ -49,8 +47,7 @@ def _repo_config(
     A target that is already a dictionary will simply be passed through.
     """
     if isinstance(target, str):
-        config = Config.active()
-        # config = _ACTIVE_CONFIG #TODO: add Config.refresh() first
+        config = Config.active()  #  _ACTIVE_CONFIG #TODO: add Config.refresh() first
         repo = config.repositories[target]
     elif isinstance(target, dict):
         repo = target
@@ -79,8 +76,7 @@ def _io_handler(**kwargs) -> protocols.DataHandler | protocols.MetadataHandler:
 
 def _handler_class(handler_name: str) -> type:
     """Dynamically imports and instantiates a handler from the config."""
-    config = Config.active()
-    # config = _ACTIVE_CONFIG  #TODO: add Config.refresh() first
+    config = Config.active()  #  _ACTIVE_CONFIG  #TODO: add Config.refresh() first
     handler_conf = config.io_handlers[handler_name]
     handler_path = handler_conf["handler"]
 
@@ -144,7 +140,6 @@ def read_metadata(
     set_name: str,
 ) -> dict:
     """Read metadata dict with configured IO Handlers."""
-    # if "catalog" in repo_cfg:
     meta_io = _io_handler(
         handler_type="metadata",
         repository=repository,
@@ -162,7 +157,6 @@ def read_data(
     as_of_tz: datetime | None = None,
 ) -> IntoFrame:
     """Read data into >Arrow Table with configured IO Handlers."""
-    # repo_config = _repo_config(repository)
     tags = read_metadata(repository, set_name)
     if tags:
         set_type = SeriesType(tags["versioning"], tags["temporality"])
