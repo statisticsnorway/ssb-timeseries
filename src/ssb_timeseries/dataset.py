@@ -246,7 +246,6 @@ class Dataset:
         else:
             tags_for_existing = {}
 
-        kwarg_data = kwargs.get("data")
         data_type = _identify_data_type(
             **{
                 **kwargs,
@@ -267,9 +266,7 @@ class Dataset:
 
         if tags_for_existing:
             self.tags = tags_for_existing
-            self.repository = tags_for_existing.get(
-                "repository"
-            )  # ,default_repository())
+            self.repository = tags_for_existing.get("repository")
         else:
             if repository:
                 self.repository = repository
@@ -310,8 +307,7 @@ class Dataset:
         elif (
             find_existing
         ):  # and self.data_type.versioning == properties.Versioning.AS_OF:
-            self.data = io.DataIO(self).dh.read()  # .to_native()
-            # self.data = io.read_data()  # .to_native()
+            self.data = io.DataIO(self).dh.read()
         else:
             self.data = empty_frame()
 
@@ -342,27 +338,6 @@ class Dataset:
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
         self.sharing: dict[str, str] = kwargs.get("sharing", {})
-
-    # @classmethod
-    # def find(
-    #    cls,
-    #    set_name: str,
-    #    repository: str = "",
-    #    **kwargs,
-    # ) -> Self | list[Self]:
-    #    """Find named Dataset."""
-    #    found = io.find(set_name, repository, **kwargs)
-    #    if isinstance(found, cls):
-    #        cls.__init__(found, **kwargs)
-    #        return found
-    #    else:
-    #        repo_name = getattr(str, repository, default_repository())
-    #        return cls.__new__(
-    #            cls,
-    #            name=set_name,
-    #            repository=repo_name,
-    #            **kwargs,
-    #        )
 
     def copy(
         self,

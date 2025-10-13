@@ -28,7 +28,6 @@ def _coalesce(*args):
 
 def copy(df: FrameT) -> Any:
     """Return an (eager) copy of the dataframe."""
-    # return nw.from_native(df).clone().to_native()
     return eager(df).clone().to_native()
 
 
