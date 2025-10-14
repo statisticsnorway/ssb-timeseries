@@ -7,11 +7,13 @@ from pytest import LogCaptureFixture
 
 from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.dataset import default_repository
 from ssb_timeseries.dataset import search
-from ssb_timeseries.dataset import select_repository
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.fs import file_count
+from ssb_timeseries.io import DataIO
+from ssb_timeseries.io import MetaIO
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.properties import Versioning
 from ssb_timeseries.sample_data import create_df
@@ -24,12 +26,9 @@ test_logger = logging.getLogger()
 # test_logger = ts.logger
 
 
-def test_select_repository():
-    default = select_repository()
-    test_1 = select_repository(name="test_1")
-    test_2 = select_repository(name="test_2")
-    assert default == test_1
-    assert test_1 != test_2
+def test_default_repository():
+    # test config specifies test_1 and test_2
+    assert default_repository() == "test_1"
 
 
 def test_dataset_instance_created(
@@ -154,7 +153,7 @@ def test_datafile_exists_after_create_dataset_and_save(
     )
 
     x.save()
-    check = x.io.datafile_exists()
+    check = DataIO(x).dh.exists
     assert check
 
 
@@ -248,24 +247,6 @@ def test_dataset_rename_with_emty_set_name_only_applies_series_name_substitution
     assert set(original.series) == set(["xx", "yy", "z"])
 
 
-def test_metafile_exists_after_create_dataset_and_save(
-    caplog: LogCaptureFixture,
-    xyz_at,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    set_name = f"test-metafile-exists-{uuid.uuid4().hex}"
-    x = Dataset(
-        name=set_name,
-        data_type=SeriesType.estimate(),
-        as_of_tz=now_utc(rounding="Min"),
-    )
-    x.data = xyz_at
-    x.save()
-    test_logger.debug(x.io.metadata_fullpath)
-    assert x.io.metadatafile_exists()
-
-
 def test_same_simple_data_written_multiple_times_does_not_create_duplicates(
     caplog: LogCaptureFixture,
     conftest,
@@ -303,18 +284,8 @@ def test_read_existing_simple_metadata(
 
     set_name = existing_simple_set.name
     x = Dataset(name=set_name, data_type=SeriesType.simple())
-    if x.io.metadatafile_exists():
-        test_logger.debug(x.io.metadata_fullpath)
-        test_logger.debug(x.tags)
-        test_logger.debug(x.tags["name"])
-        assert x.tags["name"] == set_name and x.tags["versioning"] == str(
-            Versioning.NONE
-        )
-    else:
-        test_logger.debug(
-            f"DATASET {x.name}: Metadata not found at {x.io.metadata_fullpath}. Writing."
-        )
-        raise AssertionError
+    assert MetaIO(x).dh.exists
+    assert x.tags["name"] == set_name and x.tags["versioning"] == str(Versioning.NONE)
 
 
 def test_read_existing_simple_data(
@@ -326,14 +297,13 @@ def test_read_existing_simple_data(
     set_name = existing_simple_set.name
     x = Dataset(name=set_name, data_type=SeriesType.simple())
     test_logger.debug(f"DATASET {x.name}: \n{x.data}")
-    if x.io.datafile_exists():
-        test_logger.debug(x.io.data_fullpath)
+    if DataIO(x).dh.exists:
         test_logger.debug(f"{x.data=}")
         test_logger.debug(f"{x.data['valid_at'].unique()=}")
         assert x.data.shape == (12, 28)
     else:
         test_logger.debug(
-            f"DATASET {x.name}: Data not found at {x.io.data_fullpath}. Writing."
+            f"DATASET {x.name}: Data not found at {DataIO(x).dh.fullpath}. Writing."
         )
         raise AssertionError
 
@@ -352,9 +322,7 @@ def test_read_existing_estimate_metadata(
         as_of_tz=as_of,
     )
 
-    assert x.io.metadatafile_exists()
-    test_logger.debug(x.io.metadata_fullpath)
-    test_logger.debug(x.tags)
+    assert MetaIO(x).dh.exists
     assert x.tags["name"] == set_name
     assert x.tags["versioning"] == str(Versioning.AS_OF)
     for _, v in x.series_tags.items():
@@ -375,7 +343,7 @@ def test_read_existing_estimate_data(
         as_of_tz=as_of,
     )
 
-    assert x.io.datafile_exists()
+    assert DataIO(x).dh.exists
     test_logger.debug(x)
     assert x.data.shape == (12, 28)
 
@@ -420,7 +388,7 @@ def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
     search_pattern = set_name
     datasets_found = search(
         # specify repo to ensure only one match; necessary because same repo is used twice
-        repository=conftest.repo["directory"],
+        repository=conftest.repo["directory"]["path"],
         pattern=search_pattern,
     )
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
@@ -447,7 +415,7 @@ def test_search_for_dataset_by_part_of_name_with_one_match_returns_the_set(
     search_pattern = set_name[-17:-1]
     datasets_found = search(
         # specify repo to ensure only one match; necessary because same repo is used twice
-        repository=conftest.repo["directory"],
+        repository=conftest.repo["directory"]["path"],
         pattern=search_pattern,
     )
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
@@ -480,7 +448,7 @@ def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
     search_pattern = base_name
     datasets_found = search(
         pattern=search_pattern,
-        repository=conftest.repo["directory"],
+        repository=conftest.repo["directory"]["path"],
     )
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
 
@@ -523,7 +491,10 @@ def test_list_versions_after_n_writes_returns_n_versions_with_different_data(
             ["a", "b"], start_date="2023-01-01", end_date=d, freq="MS"
         )
         ds = Dataset(
-            new_set_name, new_set.data_type, date_utc(d), data=growing_data
+            new_set_name,
+            data_type=new_set.data_type,
+            as_of_tz=date_utc(d),
+            data=growing_data,
         ).save()
         test_logger.debug("Compare first and last as_of date:\n%s\n", str(ds))
 
@@ -672,7 +643,8 @@ def test_correct_datetime_columns_valid_from_to(
 
     a = Dataset(
         name=f"test-datetimecols-{uuid.uuid4().hex}",
-        data_type=SeriesType.as_of_from_to(),
+        # data_type=SeriesType.as_of_from_to(),
+        data_type=SeriesType("as_of", "from", "to"),
         as_of_tz=now_utc(),
         data=create_df(
             ["x", "y", "z"],
@@ -694,11 +666,11 @@ def test_versioning_as_of_creates_new_file(
 
     x = existing_estimate_set
     y = x * 1.1
-    files_before = file_count(x.io.data_dir)
+    files_before = file_count(DataIO(x).dh.directory)
     x.as_of_utc = now_utc()
     x.data = y.data
     x.save()
-    files_after = file_count(x.io.data_dir)
+    files_after = file_count(DataIO(x).dh.directory)
     assert files_after == files_before + 1
 
 
@@ -707,6 +679,7 @@ def test_versioning_as_of_init_without_version_selects_latest(
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
+    test_logger.debug(f"Existing versioned set: {existing_estimate_set}.")
     x = Dataset(existing_estimate_set.name)
     test_logger.debug(
         f"Init with only name of existing versioned set: {x.name}\n\t... identified {x.as_of_utc} as latest version."

@@ -1,4 +1,4 @@
-# mypy: ignore-errors = True
+from __future__ import annotations
 
 import logging
 import uuid
@@ -10,6 +10,7 @@ from ssb_timeseries.dates import date_utc
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
+# --- mypy: ignore-errors = True
 # ---mypy: disable-error-code="attr-defined,no-untyped-def,union-attr,index,call-overload"
 
 test_logger = logging.getLogger(__name__)
@@ -207,18 +208,19 @@ def test_tagging_with_empty_dict_does_nothing(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
+    set_name = new_dataset_as_of_at.name
     new_dataset_as_of_at.tag_dataset(example_1="string_1", example_2=["a", "b", "c"])
     new_dataset_as_of_at.tag_dataset(tags={})
     new_dataset_as_of_at.tag_dataset()
 
     # check that set tags stay the same
-    assert new_dataset_as_of_at.tags["name"] == "test-new-dataset-as-of-at"
+    assert new_dataset_as_of_at.tags["name"] == set_name
     assert new_dataset_as_of_at.tags["example_1"] == "string_1"
     assert new_dataset_as_of_at.tags["example_2"] == ["a", "b", "c"]
 
     # ... and that this is true also for the series in set
     for series_tags in new_dataset_as_of_at.tags["series"].values():
-        assert series_tags["dataset"] == "test-new-dataset-as-of-at"
+        assert series_tags["dataset"] == set_name
         assert series_tags["example_1"] == "string_1"
         assert series_tags["example_2"] == ["a", "b", "c"]
 
@@ -335,7 +337,10 @@ def test_detag_series_removes_tags_from_series_but_not_from_set(
     caplog.set_level(logging.DEBUG)
 
     # tag the set!
-    existing_small_set.tag_dataset(example_1="string_1", example_2=["a", "b", "c"])
+    existing_small_set.tag_dataset(
+        example_1="string_1",
+        example_2=["a", "b", "c"],
+    )
 
     # check that the tags are applied to the set
     # ... and the series

@@ -239,8 +239,9 @@ def coverage(session: Session) -> None:
 @session(python=python_versions[0])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
-    session.install("pytest", "typeguard", "pygments", "click")
+    session.install("pytest", "typeguard", "pygments", "click",)
     session.install(".")
+    #session.run("pip", "install", "-e", ".") # RYE: editable is better practice? --> apply everywhere?
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
 
 
@@ -269,7 +270,7 @@ def docs_build(session: Session) -> None:
 
     session.install(".")
     session.install(
-        "sphinx", "sphinx-autodoc-typehints", "sphinx-click", "furo", "myst-parser", "sphinx-copybutton", "sphinx-togglebutton"
+        "sphinx", "sphinx-autodoc-typehints", "sphinx-click", "furo", "myst-parser", "sphinx-copybutton", "sphinx-togglebutton",
     )
 
     build_dir = Path("docs", "_build")
@@ -282,7 +283,8 @@ def docs_build(session: Session) -> None:
 @session(python=python_versions[0])
 def docs(session: Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
-    args = session.posargs or ["--open-browser", "docs", "docs/_build"]
+    #args = session.posargs or ["--open-browser", "docs", "docs/_build"]
+    args = session.posargs or ["--open-browser"]
     session.install(".")
     session.install(
         "sphinx",
@@ -290,11 +292,14 @@ def docs(session: Session) -> None:
         "sphinx-autodoc-typehints",
         "sphinx-click",
         "furo",
-        "myst-parser",
+        "myst-parser", "sphinx-copybutton", "sphinx-togglebutton",
     )
 
+    source_dir = "docs"
     build_dir = Path("docs", "_build")
     if build_dir.exists():
         shutil.rmtree(build_dir)
 
-    session.run("sphinx-autobuild", *args)
+    #session.run("sphinx-autobuild", *args)
+    # RYE: Always run sphinx-autobuild with the optional flags AND the mandatory directories
+    session.run("sphinx-autobuild", *args, source_dir, str(build_dir))

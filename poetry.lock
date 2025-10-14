@@ -2512,14 +2512,14 @@ testing-docutils = ["pygments", "pytest (>=8,<9)", "pytest-param-files (>=0.6.0,
 
 [[package]]
 name = "narwhals"
-version = "2.1.1"
+version = "2.5.0"
 description = "Extremely lightweight compatibility layer between dataframe libraries"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "narwhals-2.1.1-py3-none-any.whl", hash = "sha256:dee7d7582d456ef325cb831a65b80783041ef841bbf183180ec445d132a154c6"},
-    {file = "narwhals-2.1.1.tar.gz", hash = "sha256:308ec9d0e40616b66b61cd76ede4083a4232ae04942a3acef7e514d49641cb77"},
+    {file = "narwhals-2.5.0-py3-none-any.whl", hash = "sha256:7e213f9ca7db3f8bf6f7eff35eaee6a1cf80902997e1b78d49b7755775d8f423"},
+    {file = "narwhals-2.5.0.tar.gz", hash = "sha256:8ae0b6f39597f14c0dc52afc98949d6f8be89b5af402d2d98101d2f7d3561418"},
 ]
 
 [package.extras]
@@ -2533,7 +2533,7 @@ polars = ["polars (>=0.20.4)"]
 pyarrow = ["pyarrow (>=13.0.0)"]
 pyspark = ["pyspark (>=3.5.0)"]
 pyspark-connect = ["pyspark[connect] (>=3.5.0)"]
-sqlframe = ["sqlframe (>=3.22.0)"]
+sqlframe = ["sqlframe (>=3.22.0,!=3.39.3)"]
 
 [[package]]
 name = "nodeenv"

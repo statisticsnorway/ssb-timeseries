@@ -13,6 +13,8 @@ A returned py:class:`CatalogItem` instance is identified by name and descriptive
 -----
 """
 
+from __future__ import annotations
+
 import importlib.resources as pkg_resources  # noqa: F401
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -25,14 +27,14 @@ from typing import runtime_checkable
 import duckdb
 
 from ssb_timeseries.config import FileBasedRepository
-from ssb_timeseries.io import find_metadata_files
-from ssb_timeseries.io import tags_from_json_file
+from ssb_timeseries.io.json_metadata import find_metadata_files
+from ssb_timeseries.io.json_metadata import tags_from_json_file
 from ssb_timeseries.meta import TagDict
 from ssb_timeseries.meta import TagValue
 from ssb_timeseries.meta import matches_criteria
 
 # mypy: disable-error-code="no-untyped-def"
-# ruff: noqa: ANN002, ANN003, D102
+# ruff: noqa: D102
 
 
 SEARCH_OPTIONS = """
@@ -262,7 +264,7 @@ class Catalog(_CatalogProtocol):
         Example:
             >>> from ssb_timeseries.config import Config
             >>> my_config = Config(preset='defaults')
-            >>> some_directory = my_config.repositories['<teamname>']['catalog']
+            >>> some_directory = my_config.repositories['<teamname>']['catalog']['path']
 
             >>> repo1 = Repository(name="test_1", catalog=some_directory)
             >>> repo2 = Repository(name="test_2", catalog=some_directory)
@@ -277,7 +279,10 @@ class Catalog(_CatalogProtocol):
                 self.repositories.append(filerepo)
             elif isinstance(filerepo, dict):
                 self.repositories.append(
-                    Repository(name=filerepo["name"], catalog=filerepo["catalog"])
+                    Repository(
+                        name=filerepo["name"],
+                        catalog=str(filerepo["catalog"]),
+                    )
                 )
             else:
                 self.repositories.append(
@@ -383,7 +388,7 @@ class Repository(_CatalogProtocol):
             self.catalog = repo_config.catalog
         elif repo_config and isinstance(repo_config, dict):
             self.name = repo_config["name"]
-            self.catalog = repo_config["catalog"]
+            self.catalog = str(repo_config["catalog"])
         else:
             raise TypeError(
                 "Repository requires name and directory to be provided, either as strings or wrapped in a configuration object."

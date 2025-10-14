@@ -23,7 +23,6 @@ which is equivalent to::
     python ./config.py <option>
 
 See :py:func:`ssb_timeseries.config.main` for details on the named options.
-
 """
 
 import json
@@ -31,7 +30,6 @@ import logging
 import os
 import sys
 import warnings
-from copy import deepcopy
 from pathlib import Path
 
 try:
@@ -46,6 +44,7 @@ except ImportError:
     from typing_extensions import TypedDict
 
 from typing import Any
+from typing import TypeAlias
 
 from ssb_timeseries import fs
 from ssb_timeseries.types import PathStr
@@ -57,62 +56,41 @@ PACKAGE_NAME = "ssb_timeseries"
 ENV_VAR_NAME = "TIMESERIES_CONFIG"
 
 
+class FileRepoConfig(TypedDict):
+    """Links a path and a IO handler for a single file based repository."""
+
+    path: Required[PathStr]
+    handler: Required[str]
+
+
 class FileBasedRepository(TypedDict):
-    """Defines required attributes for file based repositories."""
+    """Defines data and metadata handling for file based time series repositories."""
 
-    name: Required[str]
-    directory: Required[str]
-    """Root directory for data storage; contains one directory per data type and (optionally) logs and metadata."""
-    catalog: str
-    """Directory for meta data files.
+    name: NotRequired[str]
+    directory: Required[FileRepoConfig]
+    catalog: NotRequired[FileRepoConfig]
 
-    Can be equal to the data directory, a subdirectory, or any other location.
-    Multiple repositories can share a single catalog directory.
-    TODO: consider optionality: Set equal to data root directory if not provided.
-    """
+
+Repository: TypeAlias = FileBasedRepository
 
 
 class ConfigDict(TypedDict):
     """Required attributes for configuration."""
 
     configuration_file: Required[str]
-    repositories: Required[dict[str, FileBasedRepository]]
+    io_handlers: Required[dict[str, Any]]
+    repositories: Required[dict[str, Repository]]
+    snapshots: NotRequired[dict[str, Repository]]
+    sharing: NotRequired[dict[str, Repository]]
     log_file: NotRequired[str]
     logging: Required[dict[str, Any]]
 
 
-def convert_schema_v1_to_v2(config: dict) -> dict:
-    """Till we are done."""
-    keys = list(config.keys())
-    cfg = deepcopy(config)
-    if keys == ["configuration_file"]:
-        ...
-    elif "timeseries_root" in keys:
-        data_dir = cfg.pop("timeseries_root", "")
-        meta_dir = cfg.pop("catalog", data_dir)
-        repo_name = "_".join([DAPLA_TEAM, PACKAGE_NAME])
-        cfg["repositories"] = {
-            repo_name: FileBasedRepository(
-                name=repo_name,
-                directory=data_dir,
-                catalog=meta_dir,
-            )
-        }
-
-        _config_logger.debug(f"Configuration converted to v2\n{cfg}")
-    elif cfg.get("repositories", False):
-        _config_logger.debug("Configuration is already v2.")
-    else:
-        _config_logger.warning("Configuration conversion skipped.")
-    return cfg
-
-
-def is_valid_config(configuration: dict) -> tuple[bool, object]:
+def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
     """Check if a dictionary is a valid configuration :py:class:`ConfigDict`."""
     missing_required = ConfigDict.__required_keys__ - set(configuration.keys())
     if missing_required:
         msg = f"Configuration is missing required fields: {list(missing_required)}\n{configuration}"
-        _config_logger.debug(msg)
         return (False, msg)
 
     wrong_type = []
@@ -129,7 +107,6 @@ def is_valid_config(configuration: dict) -> tuple[bool, object]:
 
     if wrong_type:
         msg = f"Configuration fields have wrong type: {wrong_type}"
-        _config_logger.warning(msg)
         return (False, msg)
 
     return (True, None)
@@ -235,15 +212,35 @@ LOGGING_PRESETS = {
     },
 }
 
+BUILT_IN_IO_HANDLERS = {
+    "parquet": {
+        "handler": "ssb_timeseries.io.simple.FileHandler",
+        "options": {"compression": "snappy"},
+    },
+    "json": {
+        "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
+        "options": {},
+    },
+    "snapshots": {
+        "handler": "ssb_timeseries.io.snapshots.FileHandler",
+        "options": {},
+    },
+}
 PRESETS: dict[str, ConfigDict] = {
     "home": {
         "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
-        # "bucket": str(Path(HOME)),
+        "io_handlers": BUILT_IN_IO_HANDLERS,
         "repositories": {
             DAPLA_TEAM: {
                 "name": "home",
-                "directory": str(Path(HOME, ROOT_DIR_NAME)),
-                "catalog": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
+                "directory": {
+                    "path": str(Path(HOME, ROOT_DIR_NAME)),
+                    "handler": "parquet",
+                },
+                "catalog": {
+                    "path": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
+                    "handler": "json",
+                },
             }
         },
         "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
@@ -251,12 +248,18 @@ PRESETS: dict[str, ConfigDict] = {
     },
     "shared-test": {
         "configuration_file": str(Path(HOME, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
-        # "bucket": str(Path(SHARED_TEST)),
+        "io_handlers": BUILT_IN_IO_HANDLERS,
         "repositories": {
             DAPLA_TEAM: {
                 "name": DAPLA_TEAM,
-                "directory": str(Path(SHARED_TEST, SSB_DIR_NAME)),
-                "catalog": str(Path(SHARED_TEST, SSB_DIR_NAME, META_DIR_NAME)),
+                "directory": {
+                    "path": str(Path(SHARED_TEST, SSB_DIR_NAME)),
+                    "handler": "parquet",
+                },
+                "catalog": {
+                    "path": str(Path(SHARED_TEST, SSB_DIR_NAME, META_DIR_NAME)),
+                    "handler": "json",
+                },
             }
         },
         "log_file": str(Path(SHARED_TEST, SSB_LOGDIR, LOGFILE)),
@@ -266,12 +269,18 @@ PRESETS: dict[str, ConfigDict] = {
         "configuration_file": str(
             Path(SHARED_PROD, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
         ),
-        # "bucket": str(Path(SHARED_PROD)),
+        "io_handlers": BUILT_IN_IO_HANDLERS,
         "repositories": {
             DAPLA_TEAM: {
                 "name": DAPLA_TEAM,
-                "directory": str(Path(SHARED_PROD, SSB_DIR_NAME)),
-                "catalog": str(Path(SHARED_PROD, SSB_DIR_NAME, META_DIR_NAME)),
+                "directory": {
+                    "path": str(Path(SHARED_PROD, SSB_DIR_NAME)),
+                    "handler": "parquet",
+                },
+                "catalog": {
+                    "path": str(Path(SHARED_PROD, SSB_DIR_NAME, META_DIR_NAME)),
+                    "handler": "json",
+                },
             }
         },
         "log_file": str(Path(SHARED_PROD, SSB_LOGDIR, LOGFILE)),
@@ -281,12 +290,18 @@ PRESETS: dict[str, ConfigDict] = {
         "configuration_file": str(
             Path(DAPLA_BUCKET, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
         ),
-        # "bucket": str(Path(DAPLALAB_FUSE)),
+        "io_handlers": BUILT_IN_IO_HANDLERS,
         "repositories": {
             DAPLA_TEAM: {
                 "name": DAPLA_TEAM,
-                "directory": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME)),
-                "catalog": str(Path(DAPLALAB_FUSE, SSB_DIR_NAME, META_DIR_NAME)),
+                "directory": {
+                    "path": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME)),
+                    "handler": "parquet",
+                },
+                "catalog": {
+                    "path": str(Path(DAPLALAB_FUSE, SSB_DIR_NAME, META_DIR_NAME)),
+                    "handler": "json",
+                },
             }
         },
         "log_file": str(Path(DAPLALAB_FUSE, SSB_LOGDIR, LOGFILE)),
@@ -316,9 +331,15 @@ class Config:
 
     configuration_file: PathStr
     """The path to the configuRation file."""
-    repositories: list[FileBasedRepository]
-    """A list of time series repositories."""
-    logging: dict
+    repositories: dict[str, Repository]
+    """Defines storage locations for time series data and metadata."""
+    snapshots: dict[str, Repository]
+    """Defines the storage locations for persisting (archiving) data in stable states."""
+    sharing: dict[str, Repository]
+    """Defines the storage locations for shared data."""
+    io_handlers: dict[str, Any]
+    """IO handlers for repository, snapshotts and sharing."""
+    logging: dict[str, Any]
     """Logging configuration as a valid :py:mod:`logging.dictConfig`."""
 
     def __init__(self, **kwargs) -> None:  # noqa: D417, ANN003, RUF100
@@ -328,8 +349,6 @@ class Config:
             preset (str): Optional. Name of a preset configuration. If provided, the preset configuration is loaded, and no other parameters are considered.
             configuration_file (str): Path to the configuration file. If the parameter is not provided, the environment variable TIMESERIES_CONFIG is used. If the environment variable is not set, the default configuration file location is used.
             repositories (list[FileBasedRepository]): New in version 0.5.0. Replaces bucket, timeseries_root and catalog.
-            timeseries_root (str): Path to the root directory for time series data. If one of these identifies a vaild json file, the configuration is loaded from that file and no other parameters are required. If provided, they will override values from the configuration file.
-            catalog (str): Path to the catalog file.
             log_file (str): Path to the log file.
             bucket (str): Name of the GCS bucket.
             ignore_file (bool):
@@ -348,8 +367,8 @@ class Config:
         preset_name = kwargs.pop("preset", "")
         ignore_file = kwargs.pop("ignore_file", False)
         param_specified_config_file = kwargs.get("configuration_file", "")
-        kwargs = convert_schema_v1_to_v2(kwargs)  # remove after short transition
-        kwargs_are_complete_config = is_valid_config(convert_schema_v1_to_v2(kwargs))[0]
+
+        kwargs_are_complete_config = is_valid_config(kwargs)[0]
 
         if preset_name:
             _config_logger.debug(f"Loading preset configuration {preset_name}.")
@@ -364,14 +383,6 @@ class Config:
             _config_logger.info(
                 f"Loading configuration from {param_specified_config_file}"
             )
-            # if "timeseries_root" in kwargs.keys():
-            #     bucket= kwargs.pop("bucket")
-            #     dir = kwargs.pop("timeseries_root", "")
-            #     meta = kwargs.pop("catalog", dir)
-            #     # we do not support both new and old signature
-            #     kwargs["repositories"] = [{"name": DAPLA_TEAM+SSB_DIR_NAME,
-            #             "directory": dir,
-            #             "catalog": meta}]
 
             if set(kwargs.keys()) == {"configuration_file"}:
                 # if config file is the only parameter, it is an error for it not to exist
@@ -391,7 +402,7 @@ class Config:
 
             config_values = PRESETS["default"]
             config_values.update(config_from_file)  # type: ignore [typeddict-item]
-            _config_logger.debug(f"{config_values=}")
+            _config_logger.debug(f"FROM FILE: {config_values=}")
         elif active_file():
             # if the path is specified by the environment variable, not finding it is an error
             _config_logger.debug(f"Loading configuration from {active_file()}")
@@ -412,7 +423,7 @@ class Config:
 
     def apply(self, configuration: dict) -> None:
         """Set configuration values from a dictionary."""
-        configuration = convert_schema_v1_to_v2(configuration)
+        _config_logger.debug(f"APPLIES: {configuration=}")
         log_config = configuration.get("logging", {})
         if not log_config:
             configuration["logging"] = {}
@@ -449,7 +460,7 @@ class Config:
     @property
     def is_valid(self) -> bool:
         """Check if the configuration has all required fields."""
-        result: bool = is_valid_config(self.__dict__())[0]
+        result: bool = is_valid_config(self.__dict__)[0]
         return result
 
     @property
@@ -496,26 +507,13 @@ class Config:
     def __eq__(self, other: Self | dict) -> bool:
         """Equality test."""
         if isinstance(other, dict):
-            return self.__dict__() == other
+            return self.__dict__ == other
         else:
-            return self.__dict__() == other.__dict__()
-
-    def __dict__(self) -> dict:
-        """Return timeseries configurations as JSON string."""
-        fields = [
-            "configuration_file",
-            "repositories",
-            "logging",
-            "bucket",
-        ]
-        out = {}
-        for field in fields:
-            out[field] = self[field]
-        return out
+            return self.__dict__ == other.__dict__
 
     def __str__(self) -> str:
         """Return timeseries configurations as JSON string."""
-        return json.dumps(self.__dict__(), sort_keys=True, indent=2)
+        return json.dumps(self.__dict__, sort_keys=True, indent=2)
 
     @classmethod
     def active(cls) -> Self:
@@ -542,7 +540,7 @@ def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
         if not isinstance(from_json, dict):
             from_json = json.loads(from_json)
 
-        return convert_schema_v1_to_v2(from_json)
+        return from_json
 
     elif error_on_missing:
         raise FileNotFoundError(
@@ -550,33 +548,6 @@ def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
         )
     else:
         return {}
-
-
-def configuration_schema(version: str = "0.3.1") -> dict:
-    """Return the JSON schema for the configuration file."""
-    match version:
-        case "0.3.1" | "0.3.2" | _:
-            cfg_schema = {
-                "$schema": "https://json-schema.org/draft/2020-12/schema",
-                "type": "object",
-                "properties": {
-                    "bucket": {"type": "string"},
-                    "configuration_file": {"type": "string"},
-                    "log_file": {"type": "string"},
-                    "logging": {},
-                    "catalog": {"type": "string"},
-                    "timeseries_root": {"type": "string"},
-                },
-                "required": [
-                    "bucket",
-                    "configuration_file",
-                    "catalog",
-                    # "logging", # fails tests --> need complete spec above?
-                    "timeseries_root",
-                ],
-            }
-    _config_logger.debug(f"Schema {version}:{cfg_schema}")
-    return cfg_schema
 
 
 class DictObject(object):  # noqa
@@ -638,7 +609,7 @@ def main(*args: str | PathStr) -> None:
     )
 
 
-def path_str(*args) -> str:  # noqa: ANN002
+def path_str(*args) -> str:
     """Concatenate paths as string: str(Path(...))."""
     return str(Path(*args))
 

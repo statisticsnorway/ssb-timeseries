@@ -7,6 +7,8 @@ An extended interval specification could specify filters, eg 'if day()==Monday',
 or time steps or windows relative to another date atribute, eg 'valid_at == as_of + 2 months'.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 
 try:
@@ -17,7 +19,6 @@ except ImportError:
 import ssb_timeseries as ts
 
 # mypy: disable-error-code="no-untyped-def,return-value,no-any-return,attr-defined,operator"
-# ruff: noqa: ANN003
 
 
 class Interval:

@@ -1,5 +1,7 @@
 """Properties are type definitions used for series and datasets."""
 
+from __future__ import annotations
+
 from enum import Enum
 from itertools import product
 
@@ -55,9 +57,9 @@ class Versioning(SuperEnum):
     AS_OF = 1
     """Version identified by dates allows date arithemetic ('equals' | 'greater than'  | 'smaller than' | 'between')."""
     NAMES = 2
-    """Consider adding support for: Versions identified by free text names."""
-    SEMANTIC = 3
-    """Consider adding support for: Versions identified by numbers on form X.Y.Z, ie. Major.Minor.Patch."""
+    """Versions identified by free text names.
+
+    This functionality is under consideration, hence preparepared in the type system, but with not all the way through IO and core modules."""
 
     @property
     def date_columns(self) -> list[str]:
@@ -71,9 +73,9 @@ class Temporality(SuperEnum):
     NONE = 0
     """No temporal dimension."""
     AT = 1
-    """Single point in time expressed with 'valid_at' date."""
+    """Single points in time, expressed with (exact) 'valid_at' dates."""
     FROM_TO = 2
-    """Duration from-to expressed with 'valid_from' and 'valid_to' dates."""
+    """Duration periods, expressed with 'valid_from' (inclusive) and 'valid_to' (exclusive) dates."""
 
     @property
     def date_columns(self) -> list[str]:
@@ -89,21 +91,39 @@ class SeriesType:
 
     def __init__(
         self,
-        versioning: Versioning,
-        temporality: Temporality,
-        is_sparse: bool = False,
+        *type_def: str,
+        versioning: Versioning | None = None,
+        temporality: Temporality | None = None,
     ) -> None:
         """SeriesType constructor.
 
         Args:
-            versioning (Versioning): The versioning of the series.
-            temporality (Temporality): The temporality of the series.
-            is_sparse (bool): Whether the series is sparse. Defaults to False.
+            *type_def: Keyword strings identifying versioning and/or temporality.
+            versioning: The versioning of the series.
+            temporality: The temporality of the series.
 
         """
-        self.versioning = versioning
-        self.temporality = temporality
-        self.is_sparse = is_sparse
+        # is_sparse (bool): Whether the series is sparse. Defaults to False.
+        # dtype: numeric
+        #   (without further specification for float/int/decimal)
+        # partial support: bool
+        # consider later: text
+        words = [t.lower() for t in type_def]
+        if versioning:
+            self.versioning = versioning
+        elif {"asof", "as_of", "estimate"} & set(words):
+            self.versioning = Versioning.AS_OF
+        elif {"names"} & set(words):
+            self.versioning = Versioning.NAMES
+        else:
+            self.versioning = Versioning.NONE
+
+        if temporality:
+            self.temporality = temporality
+        elif {"at", "simple"} & set(words):
+            self.temporality = Temporality.AT
+        else:
+            self.temporality = Temporality.FROM_TO
 
     @classmethod
     def none_at(cls) -> Self:
@@ -155,9 +175,12 @@ class SeriesType:
         """Helper, returns code with required parameters to initialise given SeriesType."""
         return f"SeriesType({self.versioning!r},{self.temporality!r})"
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: Self | None) -> bool:
         """Equality test."""
-        return repr(self) == repr(other)
+        if other is None:
+            return False
+        else:
+            return repr(self) == repr(other)
 
 
 def estimate_types() -> list[str]:

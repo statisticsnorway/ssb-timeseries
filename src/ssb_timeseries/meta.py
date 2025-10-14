@@ -5,6 +5,8 @@ Dataset and series tags are handled by Python dictionaries and stored in JSON fi
 It also consumes taxonomies. That is functionality that should live in the ssb-python-klass or other meta data libraries. Likely subject to refactoring later.
 """
 
+from __future__ import annotations
+
 import itertools
 from copy import deepcopy
 from functools import cache
@@ -170,7 +172,7 @@ class Taxonomy:
         elif data and isinstance(data, list):
             tbl = records_to_arrow(data)
         elif data and not isinstance(data, list) and is_df_like(data):
-            tbl = nw.from_native(data).to_arrow()  # ignore: [type-var]
+            tbl = nw.from_native(data).to_arrow()  # type: ignore [type-var]
         elif path:
             dict_from_file = fs.read_json(str(path))
             tbl = records_to_arrow(dict_from_file)
@@ -226,7 +228,7 @@ class Taxonomy:
         the_node = bigtree.find_name(self.structure, key)
         return bigtree.get_subtree(the_node)
 
-    def print_tree(self, *args, **kwargs) -> str:  # noqa: ANN002, ANN003
+    def print_tree(self, *args, **kwargs) -> str:
         """Return a string with the tree structure.
 
         Implementation is ugly! It would be preferable not to print the tree to std out.
@@ -244,7 +246,9 @@ class Taxonomy:
         """Return all nodes in the taxonomy."""
         return list(self.structure.root.descendants)
 
-    def leaf_nodes(self, name: bigtree.Node | str = "") -> list[bigtree.Node]:  # type: ignore[name-defined]
+    def leaf_nodes(
+        self, name: bigtree.Node | str = ""
+    ) -> list[bigtree.Node] | list[str]:  # type: ignore[name-defined]
         """Return all leaf nodes in the taxonomy."""
         if name:
             if isinstance(name, bigtree.Node):
