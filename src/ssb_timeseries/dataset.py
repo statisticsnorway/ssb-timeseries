@@ -444,9 +444,12 @@ class Dataset:
     def snapshot(self) -> None:
         """Copy data snapshot to immutable processing stage bucket and shared buckets.
 
-        The configuration file must specify an IO handler and required parameters in a 'snapshot' section.
+        If :Dataset:`sharing` identifies a configured location,
+        the snapshot files will be copied there.
+
+        See :io:`persist` for more detail.
         """
-        io.persist(self)
+        io.persist(self)  # is 'archive' a better name than 'persist' or 'snapshot'?
 
     def versions(self, **kwargs: Any) -> list[datetime | str]:
         """Get list of all series version markers (`as_of` dates or version names).

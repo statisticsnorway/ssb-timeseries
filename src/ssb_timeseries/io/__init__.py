@@ -246,7 +246,42 @@ def versions(
 def persist(
     ds: Dataset,
 ) -> None:
-    """Hardcoded with snapshot.FileSystem; note dependency on other IO for providing path(s) to write to."""
+    """Hardcoded with snapshot.FileSystem; note dependency on other IO for providing path(s) to write to.
+
+    The configuration file must specify an IO handler
+
+    `"snapshot_handler": {
+        "handler": "ssb_timeseries.io.snapshots.FileSystem",
+        "options": {},
+    },`
+
+    and required parameters in a 'snapshot' section:
+
+    `snapshots={
+        "default": {
+            "directory": {
+                "path": str(root_dir / "snapshots"),
+                "handler": "snapshot_handler",
+            }
+        },
+    },`
+
+    With the configuration paths are treated as root paths, snapshots are stored as
+    <path>/<process_stage>/<product>/<dataset>/*.parquet
+    where `process_stage` and `product` are optional dataset attributes.
+
+    The configuration can also specify sharing locations.
+
+    `sharing={
+        "default": {
+            "directory": {
+                "path": str(root_dir / "shared" / "default"),
+                "handler": "snapshot_handler",
+            }
+        },`
+
+    These are used in concert with `sharing` configurations for the dataset.
+    """
     # TODO: rewrite to use _io_handler to dynamically define IO module from config
     snapshot_config = Config.active().snapshots
     if not snapshot_config:
