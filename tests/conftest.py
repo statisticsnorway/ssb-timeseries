@@ -5,8 +5,8 @@ import logging
 import uuid
 import warnings
 from copy import deepcopy
+from pathlib import Path
 
-# from pathlib import Path
 import pytest
 
 from ssb_timeseries import config
@@ -19,7 +19,6 @@ from ssb_timeseries.sample_data import create_df
 
 # mypy: ignore-errors
 
-ENV_VAR_NAME = "TIMESERIES_CONFIG"
 _ENV_VAR_VALUE_BEFORE_TESTS = config.active_file()
 
 # TEST_LOGGER = "ssb_timeseries"  # should it be ts package logger?
@@ -37,7 +36,8 @@ def pytest_configure(config):
 
         # Policy can be 'warn' (default), 'error', or 'ignore'
         # 'ignore' will suppress the warning and let the tests pass.
-        typeguard_config.forward_ref_policy = "ignore"  # resolves typeguard.TypeHintWarning: Cannot resolve forward reference 'DataFrame[Any]'
+        # fix typeguard.TypeHintWarning: Cannot resolve forward reference 'DataFrame[Any]'
+        typeguard_config.forward_ref_policy = "ignore"
     except ImportError:
         pass  # typeguard is not installed
 
@@ -80,13 +80,16 @@ class Helpers:
 
     @staticmethod
     def function_name() -> str:
+        """Return name of calling function."""
         return str(inspect.stack()[1][3])
 
     @staticmethod
     def function_name_hex(n: int = 8) -> str:
-        """Return name of calling funcction + *n* random characters.
+        """Return name of calling function + *n* random characters.
 
-        The approach (taking the first n characters of of a uuid) is likely, but not *guaranteed* to be unique, but here we prefer shorter.
+        The approach (taking the first n characters of of a uuid) is likely,
+        but not *guaranteed* to be unique.
+        Here we prefer shorter.
         """
         return f"{inspect.stack()[1][3]!s}_{uuid.uuid4().hex[:n]}"
 
@@ -103,12 +106,71 @@ def root_dir(tmp_path_factory):
     yield root
 
 
-@pytest.fixture(
-    scope="module",
-    autouse=True,
-)
+def _repository_test_config(path: Path) -> dict[str, str]:
+    """Configure repositories based on temp dir root path."""
+    return {
+        "test_1": {
+            "directory": {
+                "path": str(path / "series_test_1"),
+                "handler": "simple-parquet",
+            },
+            "catalog": {
+                "path": str(path / "metadata_test_1"),
+                "handler": "json",
+            },
+            "default": True,
+        },
+        "test_2": {
+            "directory": {
+                "path": str(path / "series_test_2"),
+                "handler": "simple-parquet",
+            },
+            "catalog": {
+                "path": str(path / "metadata_test_2"),
+                "handler": "json",
+            },
+        },
+    }
+
+
+def _snapshot_test_config(path: Path) -> dict[str, str]:
+    """Configure snapshots based on temp dir root path."""
+    return {
+        "default": {
+            "directory": {
+                "path": str(path / "snapshots"),
+                "handler": "snapshots",
+            }
+        },
+    }
+
+
+def _sharing_test_config(path: Path) -> dict[str, str]:
+    """Return a sharing test configuration based on temp dir root path."""
+    return {
+        "default": {
+            "directory": {
+                "path": str(path / "shared" / "default"),
+                "handler": "snapshots",
+            }
+        },
+        "s123": {
+            "directory": {
+                "path": str(path / "shared" / "s123"),
+                "handler": "snapshots",
+            }
+        },
+        "s234": {
+            "directory": {
+                "path": str(path / "shared" / "s234"),
+                "handler": "snapshots",
+            }
+        },
+    }
+
+
+@pytest.fixture(scope="module", autouse=True)
 def buildup_and_teardown(
-    # tmp_path_factory,
     root_dir,
 ):
     """Reset config and logging between modules."""
@@ -126,73 +188,10 @@ def buildup_and_teardown(
     temp_configuration = config.Config(
         configuration_file=str(config_file_for_testing),
         log_file=str(log_file_for_testing),
-        io_handlers={
-            "simple-parquet-handler": {
-                "handler": "ssb_timeseries.io.simple.FileSystem",
-                "options": {},
-            },
-            "json": {
-                "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
-                "options": {},
-            },
-            "snapshot_handler": {
-                "handler": "ssb_timeseries.io.snapshots.FileSystem",
-                "options": {},
-            },
-        },
-        repositories={
-            "test_1": {
-                "name": "test_1",
-                "directory": {
-                    "path": str(root_dir / "series_test_1"),
-                    "handler": "simple-parquet-handler",
-                },
-                "catalog": {
-                    "path": str(root_dir / "metadata_test_1"),
-                    "handler": "json",
-                },
-                "default": True,
-            },
-            "test_2": {
-                "name": "test_2",
-                "directory": {
-                    "path": str(root_dir / "series_test_2"),
-                    "handler": "simple-parquet-handler",
-                },
-                "catalog": {
-                    "path": str(root_dir / "metadata_test_2"),
-                    "handler": "json",
-                },
-            },
-        },
-        snapshots={
-            "default": {
-                "directory": {
-                    "path": str(root_dir / "snapshots"),
-                    "handler": "snapshot_handler",
-                }
-            },
-        },
-        sharing={
-            "default": {
-                "directory": {
-                    "path": str(root_dir / "shared" / "default"),
-                    "handler": "snapshot_handler",
-                }
-            },
-            "s123": {
-                "directory": {
-                    "path": str(root_dir / "shared" / "s123"),
-                    "handler": "snapshot_handler",
-                }
-            },
-            "s234": {
-                "directory": {
-                    "path": str(root_dir / "shared" / "s234"),
-                    "handler": "snapshot_handler",
-                }
-            },
-        },
+        io_handlers=config.BUILTIN_IO_HANDLERS,
+        repositories=_repository_test_config(root_dir),
+        snapshots=_snapshot_test_config(root_dir),
+        sharing=_sharing_test_config(root_dir),
         bucket=str(root_dir / "bucket"),
         logging=log_config,
         ignore_file=True,
@@ -278,10 +277,8 @@ def new_dataset_none_at(abc_at, buildup_and_teardown):
     x = Dataset(
         name=Helpers.function_name_hex(8),
         data_type=SeriesType.simple(),
-        # series_tags={"D": "d"},
         data=abc_at,
         attributes=["A", "B", "C"],
-        # dataset_tags={"E": "e"},
     )
     yield x
 
@@ -293,10 +290,8 @@ def new_dataset_as_of_at(abc_at, buildup_and_teardown):
         name=Helpers.function_name_hex(8),
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
-        # series_tags={"D": "d"},
         data=abc_at,
         attributes=["A", "B", "C"],
-        # dataset_tags={"E": "Eee"},
     )
     yield x
 
@@ -307,10 +302,8 @@ def new_dataset_none_from_to(abc_from_to, buildup_and_teardown):
     x = Dataset(
         name=Helpers.function_name_hex(8),
         data_type=SeriesType.from_to(),
-        # series_tags={"D": "d"},
         data=abc_from_to,
         attributes=["A", "B", "C"],
-        # dataset_tags={"E": "Eee"},
     )
     yield x
 
@@ -322,10 +315,8 @@ def new_dataset_as_of_from_to(abc_from_to, buildup_and_teardown):
         name=Helpers.function_name_hex(8),
         data_type=SeriesType.as_of_from_to(),
         as_of_tz=date_utc("2022-01-01"),
-        # series_tags={"D": "d"},
         data=abc_from_to,
         attributes=["A", "B", "C"],
-        # dataset_tags={"E": "Eee"},
     )
 
     yield x

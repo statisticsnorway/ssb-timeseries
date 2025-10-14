@@ -130,9 +130,6 @@ def active_file(path: PathStr = "") -> str:
 
 
 HOME = str(Path.home())
-SHARED_PROD = "gs://ssb-prod-dapla-felles-data-delt/tidsserier"
-SHARED_TEST = "gs://ssb-test-dapla-felles-data-delt/tidsserier"
-GCS = SHARED_PROD
 
 DAPLALAB_WORK = "/home/onyxia/work"
 DAPLALAB_FUSE = "/buckets"
@@ -212,27 +209,27 @@ LOGGING_PRESETS = {
     },
 }
 
-BUILT_IN_IO_HANDLERS = {
-    "parquet": {
-        "handler": "ssb_timeseries.io.simple.FileHandler",
-        "options": {"compression": "snappy"},
+BUILTIN_IO_HANDLERS = {
+    "simple-parquet": {
+        "handler": "ssb_timeseries.io.simple.FileSystem",
+        "options": {},
     },
     "json": {
         "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
         "options": {},
     },
     "snapshots": {
-        "handler": "ssb_timeseries.io.snapshots.FileHandler",
+        "handler": "ssb_timeseries.io.snapshots.FileSystem",
         "options": {},
     },
 }
 PRESETS: dict[str, ConfigDict] = {
     "home": {
         "configuration_file": str(Path(HOME, LINUX_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
-        "io_handlers": BUILT_IN_IO_HANDLERS,
+        "io_handlers": BUILTIN_IO_HANDLERS,
         "repositories": {
             DAPLA_TEAM: {
-                "name": "home",
+                # "name": "home",
                 "directory": {
                     "path": str(Path(HOME, ROOT_DIR_NAME)),
                     "handler": "parquet",
@@ -246,51 +243,11 @@ PRESETS: dict[str, ConfigDict] = {
         "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
         "logging": LOGGING_PRESETS["simple"],
     },
-    "shared-test": {
-        "configuration_file": str(Path(HOME, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)),
-        "io_handlers": BUILT_IN_IO_HANDLERS,
-        "repositories": {
-            DAPLA_TEAM: {
-                "name": DAPLA_TEAM,
-                "directory": {
-                    "path": str(Path(SHARED_TEST, SSB_DIR_NAME)),
-                    "handler": "parquet",
-                },
-                "catalog": {
-                    "path": str(Path(SHARED_TEST, SSB_DIR_NAME, META_DIR_NAME)),
-                    "handler": "json",
-                },
-            }
-        },
-        "log_file": str(Path(SHARED_TEST, SSB_LOGDIR, LOGFILE)),
-        "logging": LOGGING_PRESETS["simple"],
-    },
-    "shared-prod": {
-        "configuration_file": str(
-            Path(SHARED_PROD, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
-        ),
-        "io_handlers": BUILT_IN_IO_HANDLERS,
-        "repositories": {
-            DAPLA_TEAM: {
-                "name": DAPLA_TEAM,
-                "directory": {
-                    "path": str(Path(SHARED_PROD, SSB_DIR_NAME)),
-                    "handler": "parquet",
-                },
-                "catalog": {
-                    "path": str(Path(SHARED_PROD, SSB_DIR_NAME, META_DIR_NAME)),
-                    "handler": "json",
-                },
-            }
-        },
-        "log_file": str(Path(SHARED_PROD, SSB_LOGDIR, LOGFILE)),
-        "logging": LOGGING_PRESETS["simple"],
-    },
     "daplalab": {
         "configuration_file": str(
             Path(DAPLA_BUCKET, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
         ),
-        "io_handlers": BUILT_IN_IO_HANDLERS,
+        "io_handlers": BUILTIN_IO_HANDLERS,
         "repositories": {
             DAPLA_TEAM: {
                 "name": DAPLA_TEAM,
@@ -565,7 +522,7 @@ def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100
     """Set configurations to predefined defaults.
 
     Raises:
-        ValueError: If args is not 'home' | 'gcs' | 'daplalab'.
+        ValueError: If args is not 'home' | 'daplalab'.
     """
     if named_config in PRESETS:
         cfg = PRESETS[named_config]

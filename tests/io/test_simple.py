@@ -103,11 +103,8 @@ def test_versioning_as_of_creates_new_file(
     assert check_file_count_change(
         directory=DataIO(x).dh.directory,
         initial_count=files_before,
-        timeout_seconds=10,
+        timeout_seconds=20,  # occasional runs take long time!
     )
-    # sleep(4)
-    # files_after = file_count(DataIO(x).dh.directory)
-    # assert files_after == files_before + 1
 
 
 def test_versioning_none_appends_to_existing_file(

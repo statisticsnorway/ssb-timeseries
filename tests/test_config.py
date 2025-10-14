@@ -155,8 +155,6 @@ def test_config_validation(
     [
         ("defaults", "", ""),
         ("home", "", ""),
-        ("shared-test", "", ""),
-        ("shared-prod", "", ""),
         ("daplalab", "", ""),
     ],
 )
