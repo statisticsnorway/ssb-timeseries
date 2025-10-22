@@ -83,7 +83,6 @@ def test_read_metadata_for_existing_estimate_set_returns_expected_values(
         assert v["A"] in ["a", "b", "c"]
 
 
-@pytest.mark.xfail(reason="Refactored - change to use dataset.search() to return set")
 def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
     conftest,
     meta_io,
@@ -103,12 +102,12 @@ def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
     datasets_found = meta_io.search(equals=search_pattern)
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
 
-    assert isinstance(datasets_found, dict)
-    assert datasets_found.name == set_name
-    assert datasets_found.data_type == SeriesType.simple()
+    assert isinstance(datasets_found, list)
+    assert len(datasets_found) == 1
+    assert datasets_found[0]["object_name"] == set_name
+    assert datasets_found[0]["object_tags"] == x.tags
 
 
-@pytest.mark.xfail(reason="Refactored - change to use dataset.search() to return set")
 def test_search_for_dataset_by_part_of_name_with_one_match_returns_the_set(
     conftest,
     meta_io,
@@ -125,11 +124,14 @@ def test_search_for_dataset_by_part_of_name_with_one_match_returns_the_set(
     )
     x.save()
     search_pattern = set_name[-17:-1]
-    datasets_found = meta_io.search(pattern=search_pattern, datasets=True, series=False)
+    datasets_found = meta_io.search(
+        contains=search_pattern, datasets=True, series=False
+    )
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
-    assert isinstance(datasets_found, dict)
-    assert datasets_found.name == set_name
-    assert datasets_found.data_type == SeriesType.simple()
+    assert isinstance(datasets_found, list)
+    assert len(datasets_found) == 1
+    assert datasets_found[0]["object_name"] == set_name
+    assert datasets_found[0]["object_tags"] == x.tags
 
 
 def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
