@@ -26,33 +26,37 @@ For users in Statistics Norway:
 - `gs://<team>/<timeseries-config-path>` for GCP service configuration.
 
 The configuration file should be in JSON format.
-A minimal example suitable for testing (version 0.7 and above) look like this:
+A minimal example suitable for testing (version 0.7.0 and above) look like this:
 
 ```json
 {
     "bucket": "/home/onyxia/work/timeseries/",
     "configuration_file": "/home/onyxia/work/timeseries/configuration/minimal.json",
     "logging": {},
-        "io_handlers"={
-            "simple-parquet": {
-                "handler": "ssb_timeseries.io.simple.FileSystem",
-                "options": {}
-            },
-            "json": {
-                "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
-                "options": {}
-            },
+    "io_handlers": {
+        "simple-parquet": {
+            "handler": "ssb_timeseries.io.simple.FileSystem",
+            "options": {}
         },
+        "json": {
+            "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
+            "options": {}
+        }
+    },
     "repositories": {
         "my_repo": {
-            "name": "my-repo",
+            "name": "my_repo",
             "catalog": {
-                "path": "/home/onyxia/work/timeseries/my_repo/metadata",
                 "handler": "json",
+                "options": {
+                    "path": "/home/onyxia/work/timeseries/my_repo/metadata"
+                }
             },
             "directory": {
-                "path": "/home/onyxia/work/timeseries/my_repo/data",
-                "handler": "simple-parquet"
+                "handler": "simple-parquet",
+                "options": {
+                    "path": "/home/onyxia/work/timeseries/my_repo/data"
+                }
             },
             "default": true
         }
