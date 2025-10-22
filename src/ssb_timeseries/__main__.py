@@ -7,17 +7,17 @@ ISSUE: the code is not found when trying to run `python timeseries`
 
 from __future__ import annotations
 
-import os
-
 # from ssb_timeseries import config
+import click
+
+from ssb_timeseries.config import Config
 
 
+@click.command()
 def main() -> None:
-    """Validate setup."""
-    config_file = os.environ["TIMESERIES_CONFIG"]
-    greeting = f"Hello Timeseries!\n... the configuration file is: {config_file}. \nAdditional set up steps may be added later!"
-
-    print(greeting)
+    """Validate and print the active configuration."""
+    active_config = Config.active()
+    print(active_config)
     # perform set up steps:
     # os.environ["TIMESERIES_CONFIG"] = DEFAULT_CONFIG_LOCATION
 
