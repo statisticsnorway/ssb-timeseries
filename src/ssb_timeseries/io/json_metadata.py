@@ -84,6 +84,38 @@ def _sanitize_for_json(d: dict) -> dict:
     return sanitized_dict
 
 
+def _build_dataset_item(tags_from_file: dict, repo_name: str) -> dict:
+    """Construct a dataset catalog item dictionary."""
+    return {
+        "repository_name": repo_name,
+        "object_name": tags_from_file["name"],
+        "object_type": "dataset",
+        "object_tags": tags_from_file,
+        "parent": tags_from_file.get("parent", ""),
+    }
+
+
+def _build_series_items(tags_from_file: dict, repo_name: str) -> list[dict]:
+    set_name = tags_from_file["name"]
+    return [
+        {
+            "repository_name": repo_name,
+            "object_name": series_key,
+            "object_type": "series",
+            "object_tags": series_tags,
+            "parent": set_name,
+        }
+        for series_key, series_tags in tags_from_file.get("series", {}).items()
+    ]
+
+
+def _filter_items(items: list[dict], criteria: dict) -> list[dict]:
+    """Filter a list of catalog item dictionaries based on tag criteria."""
+    if not criteria:
+        return items
+    return [item for item in items if _matches_tags(item["object_tags"], criteria)]
+
+
 class JsonMetaIO:
     """File based metadata storage for time series Datasets.
 
@@ -108,8 +140,6 @@ class JsonMetaIO:
             self.repository = repository
         else:
             raise TypeError("Repository must be a dict.")
-            # cfg = Config.active()
-            # self.repository = cfg.repositories.get(repository)
         logger.debug("JsonMetaIO uses repository %s", self.repository)
         self.repo_name = repository.get("name", "unnamed metadata repository")
         self.set_name = set_name
@@ -182,57 +212,39 @@ class JsonMetaIO:
         return fs.exists(self.fullpath(set_name))
 
     def search(self, **kwargs) -> list[dict]:
-        """Read all tags from the metadata file.
+        """Read all tags from the metadata file and filter them.
 
-        Match dataset name by 'equals', 'contains' OR 'pattern', AND filter by 'tags'.
-        If no filter are provided, all files in path are returned.
+        Match dataset name by 'equals', 'contains', OR 'pattern', AND filter by 'tags'.
+        If no filters are provided, all files in the path are returned.
         """
-        tags = kwargs.get("tags", {})
-        datasets: bool = kwargs.pop("datasets", True)
-        series: bool = kwargs.pop("series", False)
-        jsonfiles = find_metadata_files(path=self.dir, **kwargs)
-        result = []
-        for f in jsonfiles:
-            # for all json files, read the tags / check against criteria in "tags"
+        tags_criteria = kwargs.get("tags", {})
+        do_datasets = kwargs.pop("datasets", True)
+        do_series = kwargs.pop("series", False)
+
+        json_files = find_metadata_files(path=self.dir, **kwargs)
+        all_results = []
+
+        for f in json_files:
             tags_from_file = tags_from_json_file(f)
-            if isinstance(tags_from_file, dict):
-                set_name = tags_from_file["name"]
-                repo = tags_from_file.get("repository")  # , self.repo_name)
-                if isinstance(repo, dict):
-                    logger.debug(
-                        "WTF? Repository TAG read as dict %s, expected string.", repo
-                    )  # TODO: Fix!
-                    repo = repo["name"]
-                if datasets:
-                    dataset_item = {
-                        "repository_name": repo,
-                        "object_name": set_name,  # type: ignore
-                        "object_type": "dataset",
-                        "object_tags": tags_from_file,
-                        "parent": tags_from_file.get("parent", ""),
-                        # children=tags.get("series"),
-                    }
-                    # if _matches_tags(dataset_item, tags):
-                    if _matches_tags(tags_from_file, tags):
-                        result.append(dataset_item)
-                if series:
-                    for series_key, series_tags in tags_from_file["series"].items():
-                        series_item = {
-                            "repository_name": repo,
-                            "object_name": series_key,
-                            "object_type": "series",
-                            "object_tags": series_tags,  # type: ignore
-                            "parent": set_name,
-                        }
-                        # if _matches_tags(series_item, tags):
-                        if _matches_tags(series_tags, tags):
-                            result.append(series_item)
-            else:
+            if not isinstance(tags_from_file, dict):
                 raise TypeError(
-                    f"Expected tags from json file to be returned as a single dictionary. For file {f} we got {type(tags_from_file)}."
+                    f"Metadata file {f} did not contain a valid dictionary."
                 )
 
-        return result
+            repo_name = tags_from_file.get("repository")
+            # TODO: This check is for backward compatibility. Remove when old metadata formats are no longer a concern.
+            if isinstance(repo_name, dict):
+                repo_name = repo_name.get("name")
+
+            if do_datasets:
+                dataset_item = _build_dataset_item(tags_from_file, repo_name)
+                all_results.append(dataset_item)
+
+            if do_series:
+                series_items = _build_series_items(tags_from_file, repo_name)
+                all_results.extend(series_items)
+
+        return _filter_items(all_results, tags_criteria)
 
 
 def find_metadata_files(

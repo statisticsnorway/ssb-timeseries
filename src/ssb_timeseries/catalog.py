@@ -157,6 +157,7 @@ class _CatalogProtocol(Protocol):
         *,
         equals: str = "",
         contains: str = "",
+        pattern: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
         """Search in all repositories for datasets that match the criteria.
@@ -175,6 +176,7 @@ class _CatalogProtocol(Protocol):
         *,
         equals: str = "",
         contains: str = "",
+        pattern: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
         """Search in all datasets in all repositories for series that match the criteria.
@@ -194,6 +196,7 @@ class _CatalogProtocol(Protocol):
         object_type: str = "",
         equals: str = "",
         contains: str = "",
+        pattern: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ) -> int:
         """Count items of specified object type that match the criteria.
@@ -215,6 +218,7 @@ class _CatalogProtocol(Protocol):
         series: bool = True,
         equals: str = "",
         contains: str = "",
+        pattern: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ):
         """Search in all repositories for items (either sets or series) that match the criteria.
