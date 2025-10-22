@@ -7,8 +7,6 @@ import numpy as np
 import pandas as pd
 import polars as pl
 import pyarrow as pa
-import pytest
-from packaging.version import parse as parse_version
 
 
 def test_dataset_np_returns_numpy_nd_array(existing_simple_set) -> None:
@@ -84,10 +82,6 @@ def test_init_pa_returns_pyarrow_table(existing_simple_set) -> None:
     assert pa_table == test_set.pa
 
 
-@pytest.mark.skipif(
-    parse_version(pd.__version__) < parse_version("2.0.0"),
-    reason="Your Pandas is too small",
-)
 def test_init_pd_returns_pandas_df(existing_simple_set) -> None:
     from pandas.api.interchange import from_dataframe
 
