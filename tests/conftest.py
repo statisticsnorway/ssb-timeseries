@@ -110,24 +110,36 @@ def _repository_test_config(path: Path) -> dict[str, str]:
     """Configure repositories based on temp dir root path."""
     return {
         "test_1": {
+            "name": "test_1",
             "directory": {
-                "path": str(path / "series_test_1"),
+                "options": {
+                    "path": str(path / "series_test_1"),
+                },
                 "handler": "simple-parquet",
             },
             "catalog": {
-                "path": str(path / "metadata_test_1"),
                 "handler": "json",
+                "options": {
+                    "path": str(path / "metadata_test_1"),
+                    # "hello": "world",
+                    # superfluous options are ignored by the code, but will raise a typeguard error
+                },
+                # "hallo": "verden",
+                # unexpected attributes are ignored by the code, but will raise a typeguard error
             },
             "default": True,
         },
         "test_2": {
+            "name": "test_2",
             "directory": {
-                "path": str(path / "series_test_2"),
                 "handler": "simple-parquet",
+                "options": {
+                    "path": str(path / "series_test_2"),
+                },
             },
             "catalog": {
-                "path": str(path / "metadata_test_2"),
                 "handler": "json",
+                "options": {"path": str(path / "metadata_test_2")},
             },
         },
     }
@@ -137,10 +149,11 @@ def _snapshot_test_config(path: Path) -> dict[str, str]:
     """Configure snapshots based on temp dir root path."""
     return {
         "default": {
+            "name": "snapshot-archive",
             "directory": {
-                "path": str(path / "snapshots"),
                 "handler": "snapshots",
-            }
+                "options": {"path": str(path / "snapshots")},
+            },
         },
     }
 
@@ -150,20 +163,20 @@ def _sharing_test_config(path: Path) -> dict[str, str]:
     return {
         "default": {
             "directory": {
-                "path": str(path / "shared" / "default"),
                 "handler": "snapshots",
+                "options": {"path": str(path / "shared" / "default")},
             }
         },
         "s123": {
             "directory": {
-                "path": str(path / "shared" / "s123"),
                 "handler": "snapshots",
+                "options": {"path": str(path / "shared" / "s123")},
             }
         },
         "s234": {
             "directory": {
-                "path": str(path / "shared" / "s234"),
                 "handler": "snapshots",
+                "options": {"path": str(path / "shared" / "s234")},
             }
         },
     }
@@ -368,7 +381,7 @@ def existing_from_to_set(abc_from_to, buildup_and_teardown):
     """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     x = Dataset(
         name="test-existing-small-dataset",
-        data_type=SeriesType.estimate(),
+        data_type=SeriesType.from_to(),
         as_of_tz=date_utc("2022-01-01"),
         data=abc_from_to,
         attributes=["A", "B", "C"],

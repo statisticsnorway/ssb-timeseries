@@ -205,9 +205,9 @@ def test_config_init_for_no_params_returns_same_as_preset_defaults(
     # r = "<teamname>" # works running pytest for this file  only
     r = REPO  # works running pytest all tests
     assert (
-        cfg_0.repositories[r]["directory"]["path"]
-        == cfg_1.repositories[r]["directory"]["path"]
-        == cfg_2.repositories[r]["directory"]["path"]
+        cfg_0.repositories[r]["directory"]["options"]["path"]
+        == cfg_1.repositories[r]["directory"]["options"]["path"]
+        == cfg_2.repositories[r]["directory"]["options"]["path"]
     )
 
 

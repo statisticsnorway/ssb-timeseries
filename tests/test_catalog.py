@@ -23,7 +23,7 @@ def repo_1(
     config = buildup_and_teardown
     r = config.repositories
     # cheat an use the same repo twice:
-    repo = Repository(name="test_1", catalog=r["test_1"]["catalog"]["path"])
+    repo = Repository(name="test_1", catalog=r["test_1"]["catalog"]["options"]["path"])
     yield repo
 
 
@@ -35,7 +35,7 @@ def repo_2(
     config = buildup_and_teardown
     r = config.repositories
     # cheat an use the same repo twice:
-    repo = Repository(name="test_2", catalog=r["test_2"]["catalog"]["path"])
+    repo = Repository(name="test_2", catalog=r["test_2"]["catalog"]["options"]["path"])
     yield repo
 
 
@@ -208,8 +208,11 @@ def test_init_catalog_with_repo_like_objects(
     # any object with .name and .catalog should work(?)
     # we will try namedtuple:
     ConfigTuple = namedtuple("ConfigTuple", ["name", "catalog"])
-    repo_1_catalog = buildup_and_teardown.repositories["test_1"]["catalog"]["path"]
-    tuple_repo = ConfigTuple("test_named_tuple", repo_1_catalog)
+    repo_1_catalog = buildup_and_teardown.repositories["test_1"]["catalog"]["options"][
+        "path"
+    ]
+    # tuple_repo = ConfigTuple("test_named_tuple", repo_1_catalog)
+    tuple_repo = ConfigTuple("test_1", repo_1_catalog)
     catalog = Catalog(
         config=[
             repo_2,
@@ -375,10 +378,11 @@ def test_catalog_search_by_tag_dict_multiple_criteria(
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
     num_repos = len(catalog.repositories)
-    # The tag: D=d-ukji gives a match only in dataset 'find_this_existing_set'
     criteria = {"B": "b", "D": "d-ukji"}
+    # D=d-ukji matches 3 series in 'find_this_existing_set', but not the set itself.
+    # B=b is redundant.
     for result in catalog.items(tags=criteria):
-        test_logger.debug(
+        test_logger.warning(
             f"\t{result.repository_name}\t{result.object_type}\t{result.parent}.{result.object_name}\t{result.has_tags(criteria)}"
         )
     assert len(catalog.datasets(tags=criteria)) == 0 * num_repos
@@ -411,9 +415,8 @@ def test_catalog_search_by_list_of_tag_dicts(
 # --------------------------------------------
 
 # The test cases above cover key features with the most obvious parameters.
-# However, they are not exhaustive. Errors could occur for specific combinations of parameters.
-#
-# Hence, it makes sense to test permutations over:
+# However, errors could occur for specific combinations of parameters.
+# It makes sense to test permutations over:
 # unit_of_test: repository, catalog_w_repo,  catalog_w_two_repos, catalog_w_repo_like_obj
 # objects: 'datasets' 'series' 'items'
 # criteria:
@@ -421,38 +424,38 @@ def test_catalog_search_by_list_of_tag_dicts(
 # result_mappings: (valid --> list[CatalogItem], invalid --> None)
 
 
-@pytest.fixture(params=["datasets", "series"])
-def return_type(request):
-    """Iterate over result object types."""
-    return request.param
-
-
-@pytest.fixture(params=[repo_1, catalog_with_one_repo])
-def target_config(request):
-    """Iterate over target configurations: Repo, Catalog with one or more repos, or repo like objects."""
-    return request.param()
-
-
-@pytest.fixture(
-    params=[
-        (None, None, (3, 3 * 57)),
-        ("equals", "test-existing-small-dataset", (1, 57)),
-        ("equals", "test-existing-ssssmall-dataset", (0, 0)),
-        ("contains", "estimate", (1, 57)),
-        ("contains", "esttimate", (0, 0)),
-    ],
-    ids=[
-        "none",
-        "valid_equals",
-        "invalid_equals",
-        "valid_contains",
-        "invalid_contains",
-    ],
-)
-def test_case(request):
-    """Iterate over result object types."""
-    return request.param
-
+# @pytest.fixture(params=["datasets", "series"])
+# def return_type(request):
+#    """Iterate over result object types."""
+#    return request.param
+#
+#
+# @pytest.fixture(params=[repo_1, catalog_with_one_repo])
+# def target_config(request):
+#    """Iterate over target configurations: Repo, Catalog with one or more repos, or repo like objects."""
+#    return request.param()
+#
+#
+# @pytest.fixture(
+#    params=[
+#        (None, None, (3, 3 * 57)),
+#        ("equals", "test-existing-small-dataset", (1, 57)),
+#        ("equals", "test-existing-ssssmall-dataset", (0, 0)),
+#        ("contains", "estimate", (1, 57)),
+#        ("contains", "esttimate", (0, 0)),
+#    ],
+#    ids=[
+#        "none",
+#        "valid_equals",
+#        "invalid_equals",
+#        "valid_contains",
+#        "invalid_contains",
+#    ],
+# )
+# def test_case(request):
+#    """Iterate over result object types."""
+#    return request.param
+#
 
 # def test_criteria(return_type, test_case):
 #     """Iterate over test cases, result object types, and target configurations."""

@@ -235,7 +235,7 @@ def test_dataset_rename_with_emty_set_name_only_applies_series_name_substitution
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
-    old_set_name = ("test-renaming-original-set-name",)
+    old_set_name = "test-renaming-original-set-name"
     original = Dataset(name=old_set_name, data_type=SeriesType.simple(), data=xyz_at)
     new_set_name = ""
     original.rename(new_set_name, ("x", "xx"), ("y", "yy"))
@@ -284,7 +284,8 @@ def test_read_existing_simple_metadata(
 
     set_name = existing_simple_set.name
     x = Dataset(name=set_name, data_type=SeriesType.simple())
-    assert MetaIO(x).dh.exists
+    assert MetaIO(x).read(set_name=x.name) == existing_simple_set.tags
+    # assert MetaIO(x.repository).read(x.name)
     assert x.tags["name"] == set_name and x.tags["versioning"] == str(Versioning.NONE)
 
 
@@ -322,7 +323,7 @@ def test_read_existing_estimate_metadata(
         as_of_tz=as_of,
     )
 
-    assert MetaIO(x).dh.exists
+    assert MetaIO(x).read(set_name=x.name) == existing_estimate_set.tags
     assert x.tags["name"] == set_name
     assert x.tags["versioning"] == str(Versioning.AS_OF)
     for _, v in x.series_tags.items():
@@ -371,7 +372,7 @@ def test_load_existing_set_without_loading_data(
     assert not x.data.empty
 
 
-def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
+def test_search_for_dataset_by_setname_equals_in_single_repo_returns_the_set(
     conftest,
     xyz_at,
     caplog: LogCaptureFixture,
@@ -388,8 +389,9 @@ def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
     search_pattern = set_name
     datasets_found = search(
         # specify repo to ensure only one match; necessary because same repo is used twice
-        repository=conftest.repo["directory"]["path"],
-        pattern=search_pattern,
+        # repository=conftest.repo["directory"]["options"]["path"],
+        repository=conftest.repo["name"],
+        equals=search_pattern,
     )
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
 
@@ -398,7 +400,7 @@ def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
     assert datasets_found.data_type == SeriesType.simple()
 
 
-def test_search_for_dataset_by_part_of_name_with_one_match_returns_the_set(
+def test_search_for_dataset_by_setname_contains_with_one_match_returns_the_set(
     conftest,
     xyz_at,
     caplog: LogCaptureFixture,
@@ -415,10 +417,11 @@ def test_search_for_dataset_by_part_of_name_with_one_match_returns_the_set(
     search_pattern = set_name[-17:-1]
     datasets_found = search(
         # specify repo to ensure only one match; necessary because same repo is used twice
-        repository=conftest.repo["directory"]["path"],
-        pattern=search_pattern,
+        # repository=conftest.repo["directory"]["options"]["path"],
+        repository=conftest.repo["name"],
+        contains=search_pattern,
     )
-    test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
+    test_logger.warning(f"SEARCH  for {search_pattern} returned: {datasets_found!s}")
     assert isinstance(datasets_found, Dataset)
     assert datasets_found.name == set_name
     assert datasets_found.data_type == SeriesType.simple()
@@ -447,8 +450,9 @@ def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
 
     search_pattern = base_name
     datasets_found = search(
-        pattern=search_pattern,
-        repository=conftest.repo["directory"]["path"],
+        contains=search_pattern,
+        # repository=conftest.repo["directory"]["options"]["path"],
+        # repository=conftest.repo["name"],
     )
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
 

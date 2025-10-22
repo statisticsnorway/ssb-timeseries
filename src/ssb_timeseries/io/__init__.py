@@ -29,6 +29,7 @@ from ..config import FileBasedRepository
 from ..dataset import Dataset
 from ..dates import date_utc
 from ..logging import logger
+from ..meta import TagDict
 from ..properties import SeriesType
 from . import protocols
 from . import snapshot
@@ -38,7 +39,11 @@ DEFAULT_PROCESS_STAGE = "Statistikk"  # TODO: control from config?
 _ACTIVE_CONFIG = Config.active()
 
 
-# @cache
+def _all_repos() -> list:
+    """Get a list of all repository names."""
+    return list(Config.active().repositories.keys())
+
+
 def _repo_config(
     target: Any,  # str | dict[str, FileBasedRepository],
 ) -> FileBasedRepository:
@@ -49,16 +54,22 @@ def _repo_config(
     if isinstance(target, str):
         config = Config.active()  #  _ACTIVE_CONFIG #TODO: add Config.refresh() first
         repo = config.repositories[target]
+        repo.setdefault("name", target)
     elif isinstance(target, dict):
         repo = target
     else:
-        raise LookupError(f"Repository '{target}' was not found.")
+        raise TypeError(
+            f"Repository must be provided either by name (str) or as full dict; was {type(target)}:\n{target}"
+        )
+    if isinstance(repo, dict):
+        pass
+
     return repo
 
 
-def _io_handler(**kwargs) -> protocols.DataHandler | protocols.MetadataHandler:
+def _io_handler(**kwargs) -> protocols.DataReadWrite | protocols.MetadataReadWrite:
     """Dynamically import and instantiate an IO handler for reading and writing data."""
-    repo_cfg = _repo_config(kwargs.get("repository"))
+    repo_cfg = _repo_config(kwargs.pop("repository"))
     handler_type = kwargs.pop("handler_type")
     match handler_type.lower():
         case "data":
@@ -70,7 +81,11 @@ def _io_handler(**kwargs) -> protocols.DataHandler | protocols.MetadataHandler:
         case _:
             raise ValueError("Unhandlked handler type.")
     handler = _handler_class(handler_config["handler"])
-    instance = handler(**kwargs)
+    handler_options = handler_config.get("options", {})
+    if kwargs:
+        handler_options.update(kwargs)
+        logger.warning("_IO_HANDLER() ... kwargs: %s", kwargs)
+    instance = handler(repository=repo_cfg, **kwargs)
     return instance
 
 
@@ -98,7 +113,7 @@ class DataIO:
         self.ds = ds
 
     @property
-    def dh(self) -> protocols.DataHandler:
+    def dh(self) -> protocols.DataReadWrite:
         """Expose the IO handler."""
         return _io_handler(
             handler_type="data",
@@ -114,64 +129,131 @@ class MetaIO:
 
     def __init__(
         self,
-        ds: Dataset,
+        ds: Dataset | None = None,
+        repository: str = "",
     ) -> None:
-        """Retrieve configuration and initiate metadata IO handler for Dataset."""
-        self.ds = ds
+        """Retrieve configuration and initiate metadata IO handler."""
+        # dirty: either for Dataset or for repo --> target is repo only
+        if isinstance(ds, Dataset):
+            self.ds = ds
+            self.repository = ds.repository
+        elif repository:
+            if isinstance(repository, dict):
+                raise TypeError("WTF repo should be dict!")
+
+            self.ds = None
+            self.repository = repository
+        else:
+            raise ValueError("Either a dataset or a repository must be provided.")
 
     @property
-    def dh(self) -> protocols.MetadataHandler:
+    def dh(self) -> protocols.MetadataReadWrite:
         """Expose the IO handler."""
         return _io_handler(
             handler_type="metadata",
-            repository=self.ds.repository,
-            set_name=self.ds.name,
+            repository=self.repository,
+            # set_name=getattr(self.ds, "name", ""),
+        )
+
+    def search(
+        self,
+        **kwargs,
+    ) -> list[dict]:
+        """Search for datasets in single repo."""
+        kwargs.setdefault("datasets", True)
+        kwargs.setdefault("series", False)
+        return self.dh.search(**kwargs)
+
+    def read(self, set_name: str = "") -> dict:
+        """Read metadata for a given dataset."""
+        if not set_name:
+            set_name = self.ds.name
+        return self.dh.read(set_name=set_name)
+
+    def write(self, set_name: str = "", tags: TagDict | None = None) -> None:
+        """Write metadata for a given dataset."""
+        if not tags:
+            tags = self.ds.tags
+        else:
+            raise ValueError(
+                "MetaIO.write requires tags to be provided, eiher through dataset at init, or passed as 'tags' parameter."
+            )
+        self.dh.write(
+            set_name=set_name,
+            tags=self.ds.tags,
         )
 
 
 def save(ds: Dataset) -> None:
     """Write data and metadata using configured IO handlers."""
     DataIO(ds).dh.write(data=ds.data, tags=ds.tags)
-    MetaIO(ds).dh.write(meta=ds.tags)
+    MetaIO(ds).dh.write(set_name=ds.name, tags=ds.tags)
 
 
-def read_metadata(
-    repository: str | dict,
-    set_name: str,
-) -> dict:
-    """Read metadata dict with configured IO Handlers."""
-    meta_io = _io_handler(
-        handler_type="metadata",
-        repository=repository,
-        set_name=set_name,
-    )
-    if meta_io:
-        return meta_io.read()
+def search(
+    **kwargs,
+) -> list[dict]:
+    """Search for datasets and/or series matching criteria in one or more 'repositories'.
+
+    Match by dataset name 'equals', 'contains' OR 'pattern' AND filter by 'tags'.
+    Set return options 'datasets' (default=True), 'series' (default=False).
+    """
+    repositories = kwargs.pop("repositories", _all_repos())
+    if isinstance(repositories, str):
+        repos_to_check = [repositories]
+    elif isinstance(repositories, dict):
+        repos_to_check = list(repositories.keys())
     else:
-        return {}
-
-
-def read_data(
-    repository: str | dict,
-    set_name: str,
-    as_of_tz: datetime | None = None,
-) -> IntoFrame:
-    """Read data into >Arrow Table with configured IO Handlers."""
-    tags = read_metadata(repository, set_name)
-    if tags:
-        set_type = SeriesType(tags["versioning"], tags["temporality"])
-        data_io = _io_handler(
-            handler_type="data",
-            repository=repository,
-            set_name=set_name,
-            set_type=set_type,
-            as_of_utc=date_utc(as_of_tz),
+        repos_to_check = repositories
+    result = []
+    for r in repos_to_check:
+        meta_io = MetaIO(repository=r)
+        found = meta_io.search(
+            **kwargs,
         )
-        data = data_io.read(repository=repository, set_name=set_name)
-    else:
-        raise LookupError(f"Could not find Dataset('{set_name}') in {repository=}.")
+        for f in found:
+            result.append(f)
 
-    return data
+    return result
+
+
+# def read_metadata(
+#    repository: str | dict,
+#    set_name: str,
+# ) -> dict:
+#    """Read metadata dict with configured IO Handlers."""
+#    meta_io = _io_handler(
+#        handler_type="metadata",
+#        repository=repository,
+#        set_name=set_name,
+#    )
+#    if meta_io:
+#        return meta_io.read()
+#    else:
+#        return {}
+#
+#
+# def read_data(
+#    repository: str | dict,
+#    set_name: str,
+#    as_of_tz: datetime | None = None,
+# ) -> IntoFrame:
+#    """Read data into >Arrow Table with configured IO Handlers."""
+#    tags = read_metadata(repository, set_name)
+#    if tags:
+#        set_type = SeriesType(tags["versioning"], tags["temporality"])
+#        data_io = _io_handler(
+#            handler_type="data",
+#            repository=repository,
+#            set_name=set_name,
+#            set_type=set_type,
+#            as_of_utc=date_utc(as_of_tz),
+#        )
+#        data = data_io.read(repository=repository, set_name=set_name)
+#    else:
+#        raise LookupError(f"Could not find Dataset('{set_name}') in {repository=}.")
+#
+#    return data
 
 
 def find(
@@ -204,8 +286,7 @@ def find(
             set_name=set_name,
         )
         if meta_io.exists:
-            tags = meta_io.read()
-            tags["repository"] = repo
+            tags = meta_io.read(set_name=set_name)
             result.append(dict(tags))
 
     match (len(result), require_one, require_unique):
@@ -293,7 +374,7 @@ def persist(
 
     if not config_item:
         return
-    path = config_item["directory"]["path"]
+    path = config_item["directory"]["options"]["path"]
     snap_io = snapshot.FileSystem(
         bucket=path,
         process_stage=process_stage,

@@ -23,7 +23,7 @@ from typing import runtime_checkable
 
 
 @runtime_checkable
-class DataHandler(Protocol):
+class DataReadWrite(Protocol):
     """Defines the contract (protocol) for data IO."""
 
     def __init__(
@@ -67,7 +67,7 @@ class DataHandler(Protocol):
 
 
 @runtime_checkable
-class MetadataHandler(Protocol):
+class MetadataReadWrite(Protocol):
     """Defines the contract (protocol) for metadata IO."""
 
     def __init__(
@@ -79,7 +79,7 @@ class MetadataHandler(Protocol):
         """Initializes the IO handler with configuration for a specific metadata storage."""
         ...
 
-    def exists(self) -> bool:
+    def exists(self, name: str) -> bool:
         """Check if metadata exists in configured storage."""
         ...
 
@@ -93,4 +93,9 @@ class MetadataHandler(Protocol):
 
     def read(self, **kwargs) -> dict[str, Any]:
         """Reads metadata from configured storage."""
+        ...
+
+    @classmethod
+    def search(cls, **kwargs) -> dict[str, Any]:
+        """Searches and retrieves metadata for all sets of a repository from configured storage."""
         ...

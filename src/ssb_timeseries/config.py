@@ -59,19 +59,20 @@ ENV_VAR_NAME = "TIMESERIES_CONFIG"
 class FileRepoConfig(TypedDict):
     """Links a path and a IO handler for a single file based repository."""
 
-    path: Required[PathStr]
     handler: Required[str]
+    options: Required[dict[str, Any]]
 
 
-class FileBasedRepository(TypedDict):
-    """Defines data and metadata handling for file based time series repositories."""
+class Repository(TypedDict):
+    """Defines data and metadata handling for time series repositories."""
 
     name: NotRequired[str]
     directory: Required[FileRepoConfig]
     catalog: NotRequired[FileRepoConfig]
+    default: NotRequired[bool]
 
 
-Repository: TypeAlias = FileBasedRepository
+FileBasedRepository: TypeAlias = Repository
 
 
 class ConfigDict(TypedDict):
@@ -231,12 +232,14 @@ PRESETS: dict[str, ConfigDict] = {
             DAPLA_TEAM: {
                 # "name": "home",
                 "directory": {
-                    "path": str(Path(HOME, ROOT_DIR_NAME)),
                     "handler": "parquet",
+                    "options": {"path": str(Path(HOME, ROOT_DIR_NAME))},
                 },
                 "catalog": {
-                    "path": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
                     "handler": "json",
+                    "options": {
+                        "path": str(Path(HOME, ROOT_DIR_NAME, META_DIR_NAME)),
+                    },
                 },
             }
         },
@@ -252,12 +255,14 @@ PRESETS: dict[str, ConfigDict] = {
             DAPLA_TEAM: {
                 "name": DAPLA_TEAM,
                 "directory": {
-                    "path": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME)),
                     "handler": "parquet",
+                    "options": {"path": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME))},
                 },
                 "catalog": {
-                    "path": str(Path(DAPLALAB_FUSE, SSB_DIR_NAME, META_DIR_NAME)),
                     "handler": "json",
+                    "options": {
+                        "path": str(Path(DAPLALAB_FUSE, SSB_DIR_NAME, META_DIR_NAME)),
+                    },
                 },
             }
         },

@@ -21,10 +21,10 @@ def sharing_configs(conftest) -> tuple:
     """Read base paths only once."""
     config = conftest.configuration
 
-    persisted = Path(config["snapshots"]["default"]["directory"]["path"])
-    shared = Path(config["sharing"]["default"]["directory"]["path"])
-    shared_123 = Path(config["sharing"]["s123"]["directory"]["path"])
-    shared_234 = Path(config["sharing"]["s234"]["directory"]["path"])
+    persisted = Path(config["snapshots"]["default"]["directory"]["options"]["path"])
+    shared = Path(config["sharing"]["default"]["directory"]["options"]["path"])
+    shared_123 = Path(config["sharing"]["s123"]["directory"]["options"]["path"])
+    shared_234 = Path(config["sharing"]["s234"]["directory"]["options"]["path"])
 
     yield (persisted, shared, shared_123, shared_234)
 

@@ -23,14 +23,11 @@ from typing import Any
 from typing import Protocol
 from typing import runtime_checkable
 
-# from . import sql
-import duckdb
-
+from ssb_timeseries.config import Config
 from ssb_timeseries.config import FileBasedRepository
-from ssb_timeseries.io.json_metadata import find_metadata_files
-from ssb_timeseries.io.json_metadata import tags_from_json_file
+from ssb_timeseries.io import MetaIO
+from ssb_timeseries.logging import logger
 from ssb_timeseries.meta import TagDict
-from ssb_timeseries.meta import TagValue
 from ssb_timeseries.meta import matches_criteria
 
 # mypy: disable-error-code="no-untyped-def"
@@ -115,7 +112,6 @@ class CatalogItem:
 
     def has_tags(self, tags: Any) -> bool:
         """Check if the catalog item has all tags provided in criteria."""
-        # meta.search_by_tags(self.tags["series"], tags)
         if tags is None:
             return True
         elif isinstance(tags, dict):
@@ -138,19 +134,19 @@ class _CatalogProtocol(Protocol):
 
     Methods:
         series(
-            equals:str, contains:str, tags:TagDict | list[TagDict]
+            equals:str, contains:str, pattern:str, tags:TagDict | list[TagDict]
         ) --> list[CatalogItem]
 
         datasets(
-            equals:str, contains:str, tags:TagDict | list[TagDict]
+            equals:str, contains:str, pattern:str, tags:TagDict | list[TagDict]
         ) --> list[CatalogItem]
 
         items(
-            equals:str, contains:str, tags:TagDict | list[TagDict]
+            equals:str, contains:str, pattern:str, tags:TagDict | list[TagDict]
         ) --> list[CatalogItem]
 
         count(
-            object_type:str, equals:str, contains:str, tags:TagDict | list[TagDict]
+            object_type:str, equals:str, contains:str, pattern:str, tags:TagDict | list[TagDict]
         ) -> int
 
     :meta public:
@@ -168,6 +164,7 @@ class _CatalogProtocol(Protocol):
         Args:
             equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
             contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
+            pattern (str): Search within datasets where name matches pattern. The default '' searches within all sets.
             tags (dict): Filter the sets or series in the result set by the specified tags. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
         """
@@ -185,6 +182,7 @@ class _CatalogProtocol(Protocol):
         Args:
             equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
             contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
+            pattern (str): Search within datasets where name matches pattern. The default '' searches within all sets.
             tags (dict): Filter the sets or series in the result set by the specified tags. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
         """
@@ -204,6 +202,7 @@ class _CatalogProtocol(Protocol):
             object_type: 'dataset' or 'series'.
             equals (str): Search within datasets where names are equal to the argument. The default '' searches within all sets.
             contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
+            pattern (str): Search within datasets where name matches pattern. The default '' searches within all sets.
             tags (dict): Filter the sets or series in the result set by the specified tags. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
         """
@@ -225,6 +224,7 @@ class _CatalogProtocol(Protocol):
             series (bool):  Search for 'series'.
             equals (str):   Search within datasets where names are equal to the argument. The default '' searches within all sets.
             contains (str):  Search within datasets where names contain the argument. The default '' searches within all sets.
+            pattern (str): Search within datasets where name matches pattern. The default '' searches within all sets.
             tags (dict): Filter the sets or series in the result set by the specified tags. Defaults to None. All tags in dict must be satisfied for the same series (tags are combined by AND). If a list of values is provided for a tag, the criteria is satisfied for either of them (OR).
                 | list(dict) Support for list(dict) is planned, not yet implemented, to satisfy alternative sets of criteria (the dicts will be combined by OR).
         """
@@ -239,13 +239,7 @@ class RepositoryProtocol(Protocol):
     catalog: str
     # TODO: consider
     #   IDEA 1:
-    #    - renaming 'catalog' to 'metadata' communicate the intent better?
-    #   IDEA 2: add properties
-    #    - type: enum('db' | 'files')
-    #      ... to disinguish between file based and databases, switch interpretation of:
-    #    - data: Path | ConnectionString
-    #      ... data directory for file based, connection string for database repositories?
-    #      (require data and metadata to be same type?)
+    #    - would renaming 'catalog' to 'metadata' communicate the intent better?
     #   IDEA 3:
     #   - owner: str
 
@@ -257,21 +251,19 @@ class Catalog(_CatalogProtocol):
         self,
         config: Sequence[RepositoryProtocol | FileBasedRepository | dict[str, str]],
     ) -> None:
-        """Add all repositories in the configuration to catalog object.
+        """Multiple repositories may be collected in a catalog object.
 
-        Repositories are essentially just named locations.
+        Repositories are named specifications for where and how data and metadata are stored.
+        Neither repositories nor catalogs are intended for direct use.
+        Instead, use :catalog:`get_catalog` to get a `Catalog` generated from the configuration.
 
         Example:
-            >>> from ssb_timeseries.config import Config
-            >>> my_config = Config(preset='defaults')
-            >>> some_directory = my_config.repositories['<teamname>']['catalog']['path']
+            >>> import ssb_timeseries as ts
+            >>> catalog = ts.get_catalog()
 
-            >>> repo1 = Repository(name="test_1", catalog=some_directory)
-            >>> repo2 = Repository(name="test_2", catalog=some_directory)
-            >>> catalog = Catalog(config=[repo1, repo2])
-
-            >>> series_in_repo1 = repo1.series(contains='KOSTRA')
             >>> sets_in_catalog = catalog.datasets()
+            >>> sets_and_series = catalog.items()
+            >>> series_only = catalog.series()
         """
         self.repositories: list[Repository] = []
         for filerepo in config:
@@ -323,6 +315,7 @@ class Catalog(_CatalogProtocol):
         object_type: str = "",
         equals: str = "",
         contains: str = "",
+        pattern: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ) -> int:
         # Inherit docs from protocol.
@@ -348,6 +341,7 @@ class Catalog(_CatalogProtocol):
         series: bool = True,
         equals: str = "",
         contains: str = "",
+        pattern: str = "",
         **kwargs,
     ) -> list[CatalogItem]:
         """Aggregate all the information into a single dictionary."""
@@ -358,6 +352,7 @@ class Catalog(_CatalogProtocol):
                 series=series,
                 equals=equals,
                 contains=contains,
+                pattern=pattern,
                 **kwargs,
             ):
                 result.append(rr)
@@ -393,14 +388,13 @@ class Repository(_CatalogProtocol):
             raise TypeError(
                 "Repository requires name and directory to be provided, either as strings or wrapped in a configuration object."
             )
-        self.connection: duckdb.DuckDBPyConnection = duckdb.connect()
-        # Load all JSON files into DuckDB
 
     def datasets(
         self,
         *,
         equals: str = "",
         contains: str = "",
+        pattern: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
         # inherit docs from protocol class.
@@ -409,6 +403,7 @@ class Repository(_CatalogProtocol):
             series=False,
             equals=equals,
             contains=contains,
+            pattern=pattern,
             tags=tags,
         )
 
@@ -417,6 +412,7 @@ class Repository(_CatalogProtocol):
         *,
         equals: str = "",
         contains: str = "",
+        pattern: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
         # inherit docs from protocol class. List all series (across all sets).
@@ -425,6 +421,7 @@ class Repository(_CatalogProtocol):
             series=True,
             equals=equals,
             contains=contains,
+            pattern=pattern,
             tags=tags,
         )
 
@@ -440,15 +437,6 @@ class Repository(_CatalogProtocol):
                 items = self.items(**kwargs)
         return len(items)
 
-    def files(self, *, contains: str = "", equals: str = "") -> list[str]:
-        """Return all files in the repository."""
-        jsonfiles = find_metadata_files(
-            repository=self.catalog,
-            equals=equals,
-            contains=contains,
-        )
-        return jsonfiles
-
     def items(
         self,
         *,
@@ -456,80 +444,34 @@ class Repository(_CatalogProtocol):
         series: bool = True,
         equals: str = "",
         contains: str = "",
+        pattern: str = "",
         tags: TagDict | list[TagDict] | None = None,
     ) -> list[CatalogItem]:
-        # """Return all catalog items (sets, series or both) matching the search criteria."""
-        result: list[CatalogItem] = []
-        jsonfiles = self.files(equals=equals, contains=contains)
-        for f in jsonfiles:
-            # for all json files, read the tags / check against criteria in "tags"
-            tags_of_file = tags_from_json_file(f)
-            if isinstance(tags_of_file, dict):
-                set_name = tags_of_file["name"]
-                if datasets:
-                    dataset_item = CatalogItem(
-                        repository_name=self.name,
-                        object_name=set_name,  # type: ignore
-                        object_type="dataset",
-                        object_tags=tags_of_file,
-                        parent=tags_of_file.get("parent", ""),
-                        # children=tags.get("series"),
-                    )
-                    if dataset_item.has_tags(tags):
-                        result.append(dataset_item)
-                if series:
-                    for series_key, series_tags in tags_of_file["series"].items():
-                        series_item = CatalogItem(
-                            repository_name=self.name,
-                            object_name=series_key,
-                            object_type="series",
-                            object_tags=series_tags,  # type: ignore
-                            parent=set_name,
-                        )
-                        if series_item.has_tags(tags):
-                            result.append(series_item)
-            else:
-                raise TypeError(
-                    f"Expected tags from json file to be returned as a single dictionary. For file {f} we got {type(tags_of_file)}."
-                )
-
-        return result
+        """Return all catalog items (sets, series or both) matching the search criteria."""
+        filtered_on_names = MetaIO(repository=self.name).search(
+            # filtered_on_names = search(
+            repository=self.name,
+            equals=equals,
+            contains=contains,
+            pattern=pattern,
+            tags=tags,
+            datasets=datasets,
+            series=series,
+        )
+        logger.debug("wtf: %s", filtered_on_names)
+        return [CatalogItem(**d) for d in filtered_on_names]
 
     def __repr__(self) -> str:
         """Return a machine readable string representation that can regenerate the repository object."""
         return f"Repository(name='{self.name}',catalog='{self.catalog}')"
 
-    def _query(self, queryname: str, **kwargs: TagValue) -> Any:
-        """Helper function to make prepared statement queries using duckdb and .sql files."""
-        return _execute_prepared_sql(
-            connection=self.connection, queryname=queryname, **kwargs
-        )
 
-
-# NOSONAR
-# A duckdb approach may be simpler and more efficient than reading all the json files and then filtering
-# In that case, it is probably a good idea to use helpers to:
-#      * put queries in .sql files so they can be edited with proper syntax highlighting, linting etc:
-#      * use prepared statements and pass parameters to the queries to get (depending on target) enhanced performance and security
-
-
-def _read_sql_file(filename: str) -> str:
-    """Read SQL statement from a .sql file."""
-    raise NotImplementedError("pkg_resources.open_text ")
-    # implement with (something like( this:
-    # with pkg_resources.open_text(sql, filename) as file:
-    #     return file.read()
-
-
-def _execute_prepared_sql(connection: Any, queryname: str, **kwargs: Any) -> Any:
-    """Pass parameters to a named prepared statement."""
-    if queryname.endswith(".sql"):
-        filename = queryname
-    else:
-        filename = f"{queryname}.sql"
-    sql_query = _read_sql_file(filename)
-
-    if kwargs:
-        return connection.execute(sql_query, kwargs).fetchall()
-    else:
-        return connection.execute(sql_query).fetchall()
+def get_catalog() -> Catalog:
+    """Return the catalog corresponding to the active configuration."""
+    config_repos = Config.active().repositories
+    repo_list = [
+        Repository(name=k, catalog=v["catalog"])  # type: ignore[arg-type]
+        for k, v in config_repos.items()
+        if "catalog" in v
+    ]
+    return Catalog(repo_list)
