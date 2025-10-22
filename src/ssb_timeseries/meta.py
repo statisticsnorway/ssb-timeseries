@@ -42,7 +42,10 @@ from ssb_timeseries.types import PathStr
 TagValue: TypeAlias = str | list[str]
 TagDict: TypeAlias = dict[str, TagValue]
 SeriesTagDict: TypeAlias = dict[str, TagDict]
-DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict]
+# The more specific type hint below is too restrictive for runtime type checkers like typeguard,
+# which fail on the complex, nested structure of the tag dictionaries.
+# DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict]
+DatasetTagDict: TypeAlias = dict[str, Any]
 
 
 def camel_to_snake(name: str) -> str:

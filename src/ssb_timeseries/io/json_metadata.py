@@ -75,7 +75,10 @@ def _sanitize_for_json(d: dict) -> dict:
         elif isinstance(v, dict):
             sanitized_dict[k] = _sanitize_for_json(v)
         elif isinstance(v, list):
-            sanitized_dict[k] = [_sanitize_for_json(item) for item in v]
+            sanitized_dict[k] = [
+                _sanitize_for_json(item) if isinstance(item, dict) else item
+                for item in v
+            ]
         else:
             sanitized_dict[k] = v
     return sanitized_dict
