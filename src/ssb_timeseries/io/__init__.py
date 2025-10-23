@@ -71,7 +71,10 @@ def _repo_config(
 
 
 def _io_handler(**kwargs) -> protocols.DataReadWrite | protocols.MetadataReadWrite:
-    """Dynamically import and instantiate an IO handler for reading and writing data."""
+    """Dynamically import and instantiate an IO handler.
+
+    The handler is determined by the 'repository' and 'handler_type' arguments.
+    """
     repo_cfg = _repo_config(kwargs.pop("repository"))
     handler_type = kwargs.pop("handler_type")
     match handler_type.lower():
@@ -93,7 +96,7 @@ def _io_handler(**kwargs) -> protocols.DataReadWrite | protocols.MetadataReadWri
 
 
 def _handler_class(handler_name: str) -> type:
-    """Dynamically imports and instantiates a handler from the config."""
+    """Dynamically import and return a handler class from the config."""
     config = Config.active()  #  _ACTIVE_CONFIG  #TODO: add Config.refresh() first
     handler_conf = config.io_handlers[handler_name]
     handler_path = handler_conf["handler"]
@@ -106,18 +109,18 @@ def _handler_class(handler_name: str) -> type:
 
 
 class DataIO:
-    """Generic IO for data of a specific dataset."""
+    """Provides a generic IO interface for the data of a specific dataset."""
 
     def __init__(
         self,
         ds: Dataset,
     ) -> None:
-        """Retrieve configuration and initiate data IO handler for Dataset."""
+        """Initialize the data IO handler for the given Dataset."""
         self.ds = ds
 
     @property
     def dh(self) -> protocols.DataReadWrite:
-        """Expose the IO handler."""
+        """Expose the configured IO handler for data operations."""
         return _io_handler(
             handler_type="data",
             repository=self.ds.repository,
@@ -128,14 +131,17 @@ class DataIO:
 
 
 class MetaIO:
-    """Generic IO for metadata of a specific dataset."""
+    """Provides a generic IO interface for the metadata of a specific dataset."""
 
     def __init__(
         self,
         ds: Dataset | None = None,
         repository: str = "",
     ) -> None:
-        """Retrieve configuration and initiate metadata IO handler."""
+        """Initialize the metadata IO handler.
+
+        The handler can be bound to a Dataset instance or a repository name.
+        """
         # dirty: either for Dataset or for repo --> target is repo only
         if isinstance(ds, Dataset):
             self.ds = ds
@@ -151,7 +157,7 @@ class MetaIO:
 
     @property
     def dh(self) -> protocols.MetadataReadWrite:
-        """Expose the IO handler."""
+        """Expose the configured IO handler for metadata operations."""
         return _io_handler(
             handler_type="metadata",
             repository=self.repository,
@@ -161,7 +167,7 @@ class MetaIO:
         self,
         **kwargs,
     ) -> list[dict]:
-        """Search for datasets in single repo."""
+        """Search for datasets within a single repository."""
         kwargs.setdefault("datasets", True)
         kwargs.setdefault("series", False)
         return self.dh.search(**kwargs)
@@ -187,7 +193,11 @@ class MetaIO:
 
 
 def save(ds: Dataset) -> None:
-    """Write data and metadata using configured IO handlers."""
+    """Write a dataset's data and metadata to storage.
+
+    Args:
+        ds: The Dataset object to save.
+    """
     DataIO(ds).dh.write(data=ds.data, tags=ds.tags)
     MetaIO(ds).dh.write(set_name=ds.name, tags=ds.tags)
 
@@ -195,10 +205,11 @@ def save(ds: Dataset) -> None:
 def search(
     **kwargs,
 ) -> list[dict]:
-    """Search for datasets and/or series matching criteria in one or more 'repositories'.
+    """Search for datasets or series across one or more repositories.
 
-    Match by dataset name 'equals', 'contains' OR 'pattern' AND filter by 'tags'.
-    Set return options 'datasets' (default=True), 'series' (default=False).
+    Args:
+        **kwargs: Search criteria such as 'equals', 'contains', 'pattern',
+            'tags', and 'repositories'. See `JsonMetaIO.search` for details.
     """
     repositories = kwargs.pop("repositories", _all_repos())
     if isinstance(repositories, str):
@@ -223,7 +234,15 @@ def read_metadata(
     repository: str | dict,
     set_name: str,
 ) -> dict:
-    """Read metadata dict with configured IO Handlers."""
+    """Read the metadata for a single dataset from the configured handler.
+
+    Args:
+        repository: The repository name or configuration dictionary.
+        set_name: The name of the dataset.
+
+    Returns:
+        A dictionary containing the dataset's metadata.
+    """
     meta_io = _io_handler(
         handler_type="metadata",
         repository=repository,
@@ -240,7 +259,16 @@ def read_data(
     set_name: str,
     as_of_tz: datetime | None = None,
 ) -> IntoFrame:
-    """Read data into >Arrow Table with configured IO Handlers."""
+    """Read the data for a single dataset into a dataframe.
+
+    Args:
+        repository: The repository name or configuration dictionary.
+        set_name: The name of the dataset.
+        as_of_tz: The version timestamp if the dataset is versioned.
+
+    Returns:
+        A dataframe containing the dataset's data.
+    """
     tags = read_metadata(repository, set_name)
     if tags:
         set_type = SeriesType(tags["versioning"], tags["temporality"])
@@ -265,13 +293,21 @@ def find(
     require_unique: bool = False,
     **kwargs,  # unused, but simplifies passing params from Dataset.__init__
 ) -> list[dict] | dict:
-    """Search for datasets by name matching pattern in specified or all repositories.
+    """Find dataset metadata by name in specified or all repositories.
+
+    Args:
+        set_name: The name of the dataset to find.
+        repository: The specific repository to search in. If empty, searches all.
+        require_one: If True, raises an error if no results are found.
+        require_unique: If True, raises an error if more than one result is found.
+        **kwargs: Unused, but present for compatibility.
 
     Returns:
-         list[io.SearchResult] | Dataset | list[None]: The dataset for a single match, a list for no or multiple matches.
+        A single dictionary if one result is found, otherwise a list of dictionaries.
 
     Raises:
-        LookupError: If `require_unique = True` and a unique result is not found.
+        LookupError: If `require_one` or `require_unique` is True and the
+            number of results does not match the requirement.
     """
     if repository:
         repositories = [_repo_config(repository)]
@@ -317,7 +353,12 @@ def versions(
     ds: Dataset,
     **kwargs,
 ) -> list[datetime | str]:
-    """Get list of all series version markers (`as_of` dates or version names)."""
+    """Get a list of all available version markers for a dataset.
+
+    Args:
+        ds: The Dataset object to inspect.
+        **kwargs: Additional arguments passed to the underlying IO handler.
+    """
     data_io = DataIO(ds)
     versions = data_io.dh.versions(
         file_pattern="*.parquet",
@@ -329,41 +370,18 @@ def versions(
 def persist(
     ds: Dataset,
 ) -> None:
-    """Hardcoded with snapshot.FileSystem; note dependency on other IO for providing path(s) to write to.
+    """Copy a dataset snapshot to its configured immutable and shared locations.
 
-    The configuration file must specify an IO handler
+    This function relies on a `snapshots` section being defined in the project
+    configuration. The dataset's `process_stage` and `sharing` attributes
+    determine the exact destination paths.
 
-    `"snapshot_handler": {
-        "handler": "ssb_timeseries.io.snapshots.FileSystem",
-        "options": {},
-    },`
+    .. seealso::
+        For detailed configuration examples, refer to the guide on
+        :doc:`/howto-configure-storage`.
 
-    and required parameters in a 'snapshot' section:
-
-    `snapshots={
-        "default": {
-            "directory": {
-                "path": str(root_dir / "snapshots"),
-                "handler": "snapshot_handler",
-            }
-        },
-    },`
-
-    With the configuration paths are treated as root paths, snapshots are stored as
-    <path>/<process_stage>/<product>/<dataset>/*.parquet
-    where `process_stage` and `product` are optional dataset attributes.
-
-    The configuration can also specify sharing locations.
-
-    `sharing={
-        "default": {
-            "directory": {
-                "path": str(root_dir / "shared" / "default"),
-                "handler": "snapshot_handler",
-            }
-        },`
-
-    These are used in concert with `sharing` configurations for the dataset.
+    Args:
+        ds: The Dataset object to persist.
     """
     # TODO: rewrite to use _io_handler to dynamically define IO module from config
     snapshot_config = Config.active().snapshots

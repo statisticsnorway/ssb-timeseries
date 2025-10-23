@@ -1,6 +1,7 @@
-"""Simple file based persisting of dataset data in stable stages.
+"""Provides a file-based I/O handler for persisting dataset snapshots.
 
-Stores data in directory structure with named versioned files adhering to naming standards of Statistics Norway.
+This handler stores data in a versioned directory structure that adheres to
+the naming conventions of Statistics Norway.
 """
 
 from __future__ import annotations
@@ -15,13 +16,12 @@ from ..properties import Versioning
 from ..types import PathStr
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
-# ruff: noqa: D202
 
 
 def version_from_file_name(
     file_name: str, pattern: str | Versioning = "as_of", group: int = 2
 ) -> str:
-    """For known name patterns, extract version marker."""
+    """Extract a version marker from a filename using known patterns."""
     if isinstance(pattern, Versioning):
         pattern = str(pattern)
 
@@ -51,7 +51,7 @@ def version_from_file_name(
 
 
 class FileSystem:
-    """A filesystem abstraction for Dataset IO."""
+    """A filesystem abstraction for writing dataset snapshots."""
 
     def __init__(
         self,
@@ -61,10 +61,10 @@ class FileSystem:
         product: str = "",
         sharing: dict | None = None,
     ) -> None:
-        """Initialise filesystem abstraction for dataset.
+        """Initialize the filesystem handler for a given dataset snapshot.
 
-        Calculate directory structure based on dataset type and name.
-
+        This method calculates the necessary directory structure based on the
+        dataset's name and other contextual attributes.
         """
         self.bucket = bucket
         self.process_stage = process_stage
@@ -73,7 +73,7 @@ class FileSystem:
         self.sharing = sharing
 
     def last_version_number_by_regex(self, directory: str, pattern: str = "*") -> str:
-        """Check directory and get max version number from files matching regex pattern."""
+        """Return the max version number from files in a directory matching a pattern."""
         files = fs.ls(directory, pattern=pattern)
         number_of_files = len(files)
 
@@ -106,11 +106,11 @@ class FileSystem:
 
     @property
     def snapshot_directory(self) -> PathStr:
-        """Get name of snapshot directory.
+        """Return the directory path for the snapshot.
 
-        Uses dataset parameters, configuration, product and process stage.
+        The path is constructed from the configured bucket, process stage,
+        product, and dataset name.
         """
-
         directory = (
             Path(self.bucket) / self.process_stage / self.product / self.set_name
         )
@@ -126,10 +126,10 @@ class FileSystem:
         period_from: str = "",
         period_to: str = "",
     ) -> PathStr:
-        """Get full path of snapshot file.
+        """Construct the full filename for the snapshot file.
 
-        Uses dataset parameters, configuration, product, process stage and as-of time.
-        Relying on snapshot_directory() first to get the directory name.
+        The name includes the dataset name, period range, version timestamp,
+        and an incrementing version number.
         """
         directory = self.snapshot_directory
         next_vs = (
@@ -154,10 +154,7 @@ class FileSystem:
         return out
 
     def sharing_directory(self, path: str) -> PathStr:
-        """Get name of sharing directory based on dataset parameters and configuration.
-
-        Creates the directory if it does not exist.
-        """
+        """Return the directory path for sharing, creating it if it does not exist."""
         directory = Path(path) / self.set_name
 
         logger.debug(
@@ -176,17 +173,15 @@ class FileSystem:
         data_path: str = "",
         meta_path: str = "",
     ) -> None:
-        """Copies snapshots to bucket(s) according to processing stage and sharing configuration.
+        """Copy snapshot files to their primary and shared storage locations.
 
-        For this to work, .stage and sharing configurations should be set for the dataset, eg::
-
-            .sharing = [
-                {'team': 's123', 'path': '<s1234-bucket>'},
-                {'team': 's234', 'path': '<s234-bucket>'},
-                {'team': 's345': 'path': '<s345-bucket>'}
-            ]
-            .stage = 'statistikk'
-
+        Args:
+            sharing: A dictionary defining sharing configurations.
+            as_of_tz: The version timestamp of the snapshot.
+            period_from: The start of the data's time period.
+            period_to: The end of the data's time period.
+            data_path: The source path of the data file to copy.
+            meta_path: The source path of the metadata file to copy.
         """
         directory = self.snapshot_directory
         snapshot_name = self.snapshot_filename(
