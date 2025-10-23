@@ -259,7 +259,7 @@ class Catalog(_CatalogProtocol):
 
         Repositories are named specifications for where and how data and metadata are stored.
         Neither repositories nor catalogs are intended for direct use.
-        Instead, use :catalog:`get_catalog` to get a `Catalog` generated from the configuration.
+        Instead, use :py:func:`~ssb_timeseries.catalog.get_catalog` to get a `Catalog` generated from the configuration.
 
         Example:
             >>> import ssb_timeseries as ts

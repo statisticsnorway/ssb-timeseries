@@ -1,4 +1,4 @@
-# How-To: Configure Storage
+# Configure I/O
 
 This guide provides detailed examples for configuring data repositories, metadata catalogs, and snapshot (persistence) behavior in `ssb-timeseries`.
 

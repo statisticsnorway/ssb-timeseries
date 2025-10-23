@@ -1,6 +1,6 @@
 [project]
 name = "ssb-timeseries"
-version = "0.6.3"
+version = "0.7.0"
 description = "SSB Timeseries"
 authors = [{ name = "Bernhard Ryeng", email = "bernhard.ryeng@ssb.no" }]
 license = "MIT"
@@ -64,6 +64,10 @@ xdoctest = { extras = ["colors"], version = ">=0.15.10" }
 myst-parser = { version = ">=0.16.1" }
 deptry = ">=0.16.1"
 click = ">=8.1.7"
+
+
+[tool.poetry.group.docs.dependencies]
+sphinx-changelog = "^1.6.0"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.9"

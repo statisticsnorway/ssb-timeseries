@@ -378,7 +378,7 @@ def persist(
 
     .. seealso::
         For detailed configuration examples, refer to the guide on
-        :doc:`/howto-configure-storage`.
+        :doc:`/configure-io`.
 
     Args:
         ds: The Dataset object to persist.

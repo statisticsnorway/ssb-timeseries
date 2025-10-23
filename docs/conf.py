@@ -18,7 +18,7 @@ import sys
 # from tkinter import W
 
 
-sys.path.insert(0, os.path.abspath(".."))
+sys.path.insert(0, os.path.abspath("../src"))
 
 # -- Project information -----------------------------------------------------
 
@@ -40,6 +40,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_togglebutton",
     "myst_parser",
+    "sphinx_changelog",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

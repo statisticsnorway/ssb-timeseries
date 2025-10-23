@@ -454,10 +454,10 @@ class Dataset:
     def snapshot(self) -> None:
         """Copy data snapshot to immutable processing stage bucket and shared buckets.
 
-        If :Dataset:`sharing` identifies a configured location,
+        If :py:attr:`~ssb_timeseries.dataset.Dataset.sharing` identifies a configured location,
         the snapshot files will be copied there.
 
-        See :io:`persist` for more detail.
+        See :py:func:`~ssb_timeseries.io.persist` for more detail.
         """
         io.persist(self)  # is 'archive' a better name than 'persist' or 'snapshot'?
 
