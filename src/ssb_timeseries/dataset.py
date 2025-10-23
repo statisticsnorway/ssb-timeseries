@@ -51,7 +51,6 @@ from narwhals.typing import IntoSeries
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
-# import ssb_timeseries as ts
 from . import io
 from . import meta
 from .config import Config
@@ -268,6 +267,7 @@ class Dataset:
 
         self.name = name
         self.data_type = data_type
+        self.tags = {}
 
         self.repository = next(
             (
@@ -499,19 +499,13 @@ class Dataset:
         it is likely to remain a requirement that datasets remain a single type.
         Ie that `series` yields the same result as one of the specialized functions `numeric_columns` or `boolean_columns`.
         """
-        dt_expr = ~ncs.by_dtype(nw.Datetime, nw.Date)
-        non_datetime_cols = self.nw.select(dt_expr).columns
-        return sorted(non_datetime_cols)
-        # could fail if called before .data is assigned?
-        # ... but in that case, we are just 'failing fast'?
-        # an earlier implementation was more complicated
-        # if (
-        #    self.__getattribute__("data") is None
-        #    and self.__getattribute__("tags") is None
-        # ):
-        #    return sorted(self.series_tags.keys())
-        # else:
-        #    return sorted(self.numeric_columns)
+        if not is_empty(self.data):
+            dt_expr = ~ncs.by_dtype(nw.Datetime, nw.Date)
+            non_datetime_cols = self.nw.select(dt_expr).columns
+            return sorted(non_datetime_cols)
+        elif self.tags and "series" in self.tags:
+            return sorted(self.tags["series"].keys())
+        return []
 
     @property
     def series_tags(self) -> meta.SeriesTagDict:
@@ -1199,20 +1193,6 @@ class Dataset:
             as_of_tz=self.as_of_utc,
             data=out,
         )
-
-    # TODO: Add these?
-    # def __iter__(self):
-    #     self.n = 0 # start at latest version
-    #     return self
-    #
-    # def __next__(self):
-    #     if self.n <= self.data.columns:
-    #         x = self.n
-    #         self.n += 1 # return previous version
-    #         return x
-    #     else:
-    #         raise StopIteration
-    #     return x
 
     # TODO: rethink identity: is / is not behaviour
     # def identical(self, other:Self) -> bool:
@@ -1957,6 +1937,7 @@ def search(
         equals=equals,
         contains=contains,
         pattern=pattern,
+        repository=repository,
     )
     number_of_results = len(found)
 

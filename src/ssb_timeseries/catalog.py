@@ -292,7 +292,13 @@ class Catalog(_CatalogProtocol):
         # Inherit docs from protocol.
         # List all sets matching criteria.
         result: list[CatalogItem] = []
-        for r in self.repositories:
+        repository = kwargs.pop("repository", "")
+        if repository:
+            repos_to_search = [r for r in self.repositories if r.name == repository]
+        else:
+            repos_to_search = self.repositories
+
+        for r in repos_to_search:
             for rr in r.datasets(**kwargs):
                 result.append(rr)
             # problem if a dataset occurs in multiple repositories?

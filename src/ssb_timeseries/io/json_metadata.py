@@ -16,8 +16,6 @@ from typing import Any
 from typing import NamedTuple
 
 from .. import fs
-
-# from ..config import Config
 from ..config import FileBasedRepository
 from ..logging import logger
 from ..meta import DatasetTagDict
@@ -30,9 +28,6 @@ from ..types import PathStr
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 # ruff: noqa: D202
-
-
-# active_config = Config.active
 
 
 class SearchResult(NamedTuple):
@@ -235,9 +230,6 @@ class JsonMetaIO:
                 )
 
             repo_name = tags_from_file.get("repository")
-            # no longer a concern?
-            # if isinstance(repo_name, dict):
-            #    repo_name = repo_name.get("name")
 
             if do_datasets:
                 dataset_item = _build_dataset_item(tags_from_file, repo_name)
@@ -249,7 +241,6 @@ class JsonMetaIO:
                 matching_series = _filter_items(series_in_set, tags_criteria)
                 results.extend(matching_series)
 
-        # return _filter_items(all_results, tags_criteria)
         return results
 
 

@@ -1,16 +1,21 @@
-"""The IO modules define the read and write functionality that the Dataset module can access.
+"""The IO module provides the high-level facade for all data and metadata I/O.
 
-These modules are internal service modules.
-They are not supposed to be called directly from user code.
-Rather, for each time series repository,
-the configuration must identify the module to be used along with any required parameters.
-Thus, multiple time series repositories can be configured with different storage locations and technologies.
-Data and metadata are conceptually separated,
-so that a metadata catalog may be maintained per repository,
-or common to all repositories.
+This module serves as the single, authoritative entry point for all storage operations.
+The functions exposed here are intended to be the **exclusive** interface used by the
+rest of the library (such as the `Dataset` class) to interact with the storage layer.
+This includes `read_data`, `read_metadata`, `save`, `search`, `find`, `persist`,
+and `versions`.
 
-Some basic interaction patterns are built in,
-but the library can easily be extended with external IO modules.
+This facade design decouples the core application logic from the specifics of the
+storage backends.
+The underlying implementation is a pluggable, configuration-driven system.
+It dispatches tasks to the appropriate backend handler based on the active
+project configuration.
+
+Internal components like `Data_IO`, `Meta_IO`, and the concrete handler modules
+(e.g., `ssb_timeseries.io.simple`) are considered implementation details of this
+facade.
+They should not be imported or used directly by other parts of the application.
 """
 
 from __future__ import annotations
@@ -61,8 +66,6 @@ def _repo_config(
         raise TypeError(
             f"Repository must be provided either by name (str) or as full dict; was {type(target)}:\n{target}"
         )
-    if isinstance(repo, dict):
-        pass
 
     return repo
 
@@ -152,7 +155,6 @@ class MetaIO:
         return _io_handler(
             handler_type="metadata",
             repository=self.repository,
-            # set_name=getattr(self.ds, "name", ""),
         )
 
     def search(
@@ -217,43 +219,43 @@ def search(
     return result
 
 
-# def read_metadata(
-#    repository: str | dict,
-#    set_name: str,
-# ) -> dict:
-#    """Read metadata dict with configured IO Handlers."""
-#    meta_io = _io_handler(
-#        handler_type="metadata",
-#        repository=repository,
-#        set_name=set_name,
-#    )
-#    if meta_io:
-#        return meta_io.read()
-#    else:
-#        return {}
-#
-#
-# def read_data(
-#    repository: str | dict,
-#    set_name: str,
-#    as_of_tz: datetime | None = None,
-# ) -> IntoFrame:
-#    """Read data into >Arrow Table with configured IO Handlers."""
-#    tags = read_metadata(repository, set_name)
-#    if tags:
-#        set_type = SeriesType(tags["versioning"], tags["temporality"])
-#        data_io = _io_handler(
-#            handler_type="data",
-#            repository=repository,
-#            set_name=set_name,
-#            set_type=set_type,
-#            as_of_utc=date_utc(as_of_tz),
-#        )
-#        data = data_io.read(repository=repository, set_name=set_name)
-#    else:
-#        raise LookupError(f"Could not find Dataset('{set_name}') in {repository=}.")
-#
-#    return data
+def read_metadata(
+    repository: str | dict,
+    set_name: str,
+) -> dict:
+    """Read metadata dict with configured IO Handlers."""
+    meta_io = _io_handler(
+        handler_type="metadata",
+        repository=repository,
+        set_name=set_name,
+    )
+    if meta_io:
+        return meta_io.read()
+    else:
+        return {}
+
+
+def read_data(
+    repository: str | dict,
+    set_name: str,
+    as_of_tz: datetime | None = None,
+) -> IntoFrame:
+    """Read data into >Arrow Table with configured IO Handlers."""
+    tags = read_metadata(repository, set_name)
+    if tags:
+        set_type = SeriesType(tags["versioning"], tags["temporality"])
+        data_io = _io_handler(
+            handler_type="data",
+            repository=repository,
+            set_name=set_name,
+            set_type=set_type,
+            as_of_utc=date_utc(as_of_tz),
+        )
+        data = data_io.read()
+    else:
+        raise LookupError(f"Could not find Dataset('{set_name}') in {repository=}.")
+
+    return data
 
 
 def find(
