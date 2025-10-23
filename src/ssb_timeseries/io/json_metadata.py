@@ -42,7 +42,7 @@ class SearchResult(NamedTuple):
     type_directory: str
 
 
-def _filename(set_name: str = "") -> str:
+def _filename(set_name: str) -> str:
     """The name of the metadata file for the dataset."""
     return f"{set_name}-metadata.json"
 
@@ -109,7 +109,7 @@ def _build_series_items(tags_from_file: dict, repo_name: str) -> list[dict]:
     ]
 
 
-def _filter_items(items: list[dict], criteria: dict) -> list[dict]:
+def _filter_items(items: list[dict], criteria: dict | list[dict]) -> list[dict]:
     """Filter a list of catalog item dictionaries based on tag criteria."""
     if not criteria:
         return items
@@ -218,11 +218,14 @@ class JsonMetaIO:
         If no filters are provided, all files in the path are returned.
         """
         tags_criteria = kwargs.get("tags", {})
+        if tags_criteria is None:
+            tags_criteria = {}
+
         do_datasets = kwargs.pop("datasets", True)
         do_series = kwargs.pop("series", False)
 
         json_files = find_metadata_files(path=self.dir, **kwargs)
-        all_results = []
+        results = []
 
         for f in json_files:
             tags_from_file = tags_from_json_file(f)
@@ -232,19 +235,22 @@ class JsonMetaIO:
                 )
 
             repo_name = tags_from_file.get("repository")
-            # TODO: This check is for backward compatibility. Remove when old metadata formats are no longer a concern.
-            if isinstance(repo_name, dict):
-                repo_name = repo_name.get("name")
+            # no longer a concern?
+            # if isinstance(repo_name, dict):
+            #    repo_name = repo_name.get("name")
 
             if do_datasets:
                 dataset_item = _build_dataset_item(tags_from_file, repo_name)
-                all_results.append(dataset_item)
+                matching_set = _filter_items([dataset_item], tags_criteria)
+                results.extend(matching_set)
 
             if do_series:
-                series_items = _build_series_items(tags_from_file, repo_name)
-                all_results.extend(series_items)
+                series_in_set = _build_series_items(tags_from_file, repo_name)
+                matching_series = _filter_items(series_in_set, tags_criteria)
+                results.extend(matching_series)
 
-        return _filter_items(all_results, tags_criteria)
+        # return _filter_items(all_results, tags_criteria)
+        return results
 
 
 def find_metadata_files(
@@ -318,39 +324,3 @@ def tags_from_json_file(
     else:
         t = fs.read_json(file_or_files)
         return DatasetTagDict(t)
-
-
-#    def _query(self, queryname: str, **kwargs: TagValue) -> Any:
-#        """Helper function to make prepared statement queries using duckdb and .sql files."""
-#        return _execute_prepared_sql(
-#            connection=self.connection, queryname=queryname, **kwargs
-#        )
-
-
-# NOSONAR
-# A duckdb approach may be simpler and more efficient than reading all the json files and then filtering
-# In that case, it is probably a good idea to use helpers to:
-#      * put queries in .sql files so they can be edited with proper syntax highlighting, linting etc:
-#      * use prepared statements and pass parameters to the queries to get (depending on target) enhanced performance and security
-
-
-# def _read_sql_file(filename: str) -> str:
-#    """Read SQL statement from a .sql file."""
-#    raise NotImplementedError("pkg_resources.open_text ")
-#    # implement with (something like( this:
-#    # with pkg_resources.open_text(sql, filename) as file:
-#    #     return file.read()
-#
-#
-# def _execute_prepared_sql(connection: Any, queryname: str, **kwargs: Any) -> Any:
-#    """Pass parameters to a named prepared statement."""
-#    if queryname.endswith(".sql"):
-#        filename = queryname
-#    else:
-#        filename = f"{queryname}.sql"
-#    sql_query = _read_sql_file(filename)
-#
-#    if kwargs:
-#        return connection.execute(sql_query, kwargs).fetchall()
-#    else:
-#        return connection.execute(sql_query).fetchall()
