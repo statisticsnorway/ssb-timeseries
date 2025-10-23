@@ -8,6 +8,7 @@ readme = "README.md"
 requires-python = ">=3.10,<4.0"
 dynamic = ["classifiers"]
 dependencies = [
+    "click>=8.1.7",
     "typing-extensions>=4.11.0",   # "python-version"="<3.11",
     "python-dateutil>=2.9.0.post0",
     "tomli>=2.1.0",

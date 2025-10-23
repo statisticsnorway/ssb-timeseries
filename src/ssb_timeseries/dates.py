@@ -126,11 +126,7 @@ def ensure_tz_aware(some_date: datetime) -> datetime:
         ts.logger.debug(
             "DATE_UTC catched a date without timezone info. This will become an error later. Assuming CET."
         )
-        try:
-            tz_aware = some_date.astimezone(tz=DEFAULT_TZ)
-        except (ValueError, TypeError, AttributeError):
-            tz_aware = some_date.replace(tzinfo=DEFAULT_TZ)
-        return tz_aware
+        return some_date.replace(tzinfo=DEFAULT_TZ)
     else:
         return some_date
 

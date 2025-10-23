@@ -42,14 +42,18 @@ from ssb_timeseries.types import PathStr
 TagValue: TypeAlias = str | list[str]
 TagDict: TypeAlias = dict[str, TagValue]
 SeriesTagDict: TypeAlias = dict[str, TagDict]
-DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict]
+# The more specific type hint below is too restrictive for runtime type checkers like typeguard,
+# which fail on the complex, nested structure of the tag dictionaries.
+# DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict]
+DatasetTagDict: TypeAlias = dict[str, Any]
 
 
 def camel_to_snake(name: str) -> str:
     """Convert CamelCase to snake_case, handling acronyms.
 
     Example:
-        'HTTPConnection' -> 'http_connection'
+        >>> camel_to_snake('HTTPConnection')
+        'http_connection'
     """
     # Insert underscore before uppercase letter preceded by lowercase letter or digit.
     #    e.g., 'CamelCase' -> 'Camel_Case', 'MyValue1' -> 'My_Value1'
@@ -629,7 +633,11 @@ def permutations(
     If no filters are provided, the default is 'all'.
 
     Examples:
-        TODO: add some. See code for dataset.aggregate() for a notable use case.
+        >>> from ssb_timeseries.meta import Taxonomy
+        >>> tax_a = Taxonomy(data=[{'code': 'a1', 'parentCode': '0'}, {'code': 'a2', 'parentCode': '0'}])
+        >>> tax_b = Taxonomy(data=[{'code': 'b1', 'parentCode': '0'}, {'code': 'b2', 'parentCode': '0'}])
+        >>> permutations({'A': tax_a, 'B': tax_b})
+        [{'A': 'a1', 'B': 'b1'}, {'A': 'a1', 'B': 'b2'}, {'A': 'a2', 'B': 'b1'}, {'A': 'a2', 'B': 'b2'}]
     """
     out = []
     if not filters:

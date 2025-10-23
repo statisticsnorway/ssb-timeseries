@@ -16,8 +16,11 @@ def runner() -> CliRunner:
     return CliRunner()
 
 
-@pytest.mark.skip(reason="TODO: Check that this will not mess up configurations.")
-def test_main_succeeds(runner: CliRunner) -> None:
+def test_main_succeeds(
+    runner: CliRunner, monkeypatch: pytest.MonkeyPatch, buildup_and_teardown
+) -> None:
     """It exits with a status code of zero."""
+    monkeypatch.setenv("TIMESERIES_CONFIG", buildup_and_teardown.configuration_file)
     result = runner.invoke(__main__.main)
+    assert '"repositories"' in result.output
     assert result.exit_code == 0

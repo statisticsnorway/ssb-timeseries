@@ -258,7 +258,15 @@ def xdoctest(session: Session) -> None:
 
     session.install(".")
     session.install("xdoctest[colors]")
-    session.run("python", "-m", "xdoctest", *args)
+    config_path = Path(session.create_tmp()) / "timeseries_config.json"
+    config_path.write_text("{}")
+    session.run(
+        "python",
+        "-m",
+        "xdoctest",
+        *args,
+        env={"TIMESERIES_CONFIG": str(config_path)},
+    )
 
 
 @session(name="docs-build", python=python_versions[0])

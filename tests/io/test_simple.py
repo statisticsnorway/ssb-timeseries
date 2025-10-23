@@ -41,7 +41,7 @@ def check_file_count_change(
     timeout_seconds: float = 5.0,
     poll_interval: float = 0.1,
 ) -> None:
-    """Polls a directory until the number of files reaches the expected increment or timeout limit is reached."""
+    """Polls a directory until the file count reaches the expected increment or the check times out."""
     start_time = time.monotonic()
     while time.monotonic() - start_time < timeout_seconds:
         if file_count(directory) >= initial_count + expected_increment:
@@ -94,20 +94,18 @@ def test_versioning_as_of_creates_new_file(
     caplog.set_level(logging.DEBUG)
 
     x = existing_estimate_set
-    y = x * 1.1
-    files_before = file_count(DataIO(x).dh.directory)
+    data_dir = DataIO(x).dh.directory
+
+    files_before = file_count(data_dir)
+    x.data = (x * 1.1).data
+    time.sleep(1)  # so `now_utc()` does not get too close to old x.as_of_utc
     x.as_of_utc = now_utc()
-    time.sleep(1)
-    x.data = y.data
     x.save()
     assert check_file_count_change(
-        directory=DataIO(x).dh.directory,
+        directory=data_dir,
         initial_count=files_before,
-        timeout_seconds=10,
+        timeout_seconds=20,  # some times it takes time for the file to appear!
     )
-    # sleep(4)
-    # files_after = file_count(DataIO(x).dh.directory)
-    # assert files_after == files_before + 1
 
 
 def test_versioning_none_appends_to_existing_file(
@@ -169,7 +167,7 @@ def test_io_data_directory_path_as_expected(
         set_type=SeriesType.simple(),
         as_of_utc=None,
     )
-    repo_base_dir = Path(conftest.repo["directory"]["path"])
+    repo_base_dir = Path(conftest.repo["directory"]["options"]["path"])
     expected: str = repo_base_dir / "NONE_AT" / test_name
     assert str(test_io.directory) == str(expected)
 

@@ -51,10 +51,10 @@ from narwhals.typing import IntoSeries
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
-import ssb_timeseries as ts
-
+# import ssb_timeseries as ts
 from . import io
 from . import meta
+from .config import Config
 from .dataframes import empty_frame
 from .dataframes import infer_datatype
 from .dataframes import is_df_like
@@ -66,6 +66,8 @@ from .dates import period_index
 from .dates import utc_iso
 from .logging import logger
 from .properties import SeriesType
+from .properties import Temporality
+from .properties import Versioning
 from .types import F
 from .types import PathStr
 
@@ -79,7 +81,7 @@ if TYPE_CHECKING:
 
 def default_repository() -> str:
     """Check the configuration and get the name of the default repository."""
-    repos = ts.get_configuration().repositories
+    repos = Config.active().repositories
     candidates = []
     for name, cfg in repos.items():
         if cfg.get("default", False):
@@ -87,7 +89,9 @@ def default_repository() -> str:
         elif cfg.get("directory") and cfg.get("catalog"):
             candidates.append(str(name))
 
-    if len(candidates) == 0:
+    if len(candidates) == 1:
+        return candidates[0]
+    elif len(candidates) == 0:
         raise LookupError("Default repository could not be identified.")
     elif len(candidates) > 1:
         warnings.warn(
@@ -163,6 +167,7 @@ class Dataset:
     data_type: SeriesType
     data: Any
     tags: dict
+    repository: str
     sharing: dict | None
     lineage: str | None
 
@@ -241,7 +246,7 @@ class Dataset:
                 )
             elif isinstance(tags_for_existing, list):
                 raise LookupError(
-                    f"Found more th#an one existing dataset with {name=}:\n{tags_for_existing}."
+                    f"Dataset.__init__ can not get existing metadata because search returned multiple sets of same name: {name=}:\n{tags_for_existing}."
                 )
         else:
             tags_for_existing = {}
@@ -264,17 +269,22 @@ class Dataset:
         self.name = name
         self.data_type = data_type
 
+        self.repository = next(
+            (
+                r
+                for r in [
+                    repository,
+                    tags_for_existing.get("repository", False),
+                ]
+                if r
+            ),
+            default_repository(),
+        )
         if tags_for_existing:
             self.tags = tags_for_existing
-            self.repository = tags_for_existing.get("repository")
-        else:
-            if repository:
-                self.repository = repository
-            else:
-                self.repository = default_repository()
 
-            if data_type:
-                self.data_type = data_type
+        if data_type:
+            self.data_type = data_type
 
         if as_of_tz is not None:
             self.as_of_utc = date_utc(as_of_tz)
@@ -282,7 +292,7 @@ class Dataset:
             self.as_of_utc = None
 
         identify_latest: bool = (
-            self.data_type.versioning == ts.properties.Versioning.AS_OF
+            self.data_type.versioning == Versioning.AS_OF
             and not as_of_tz
             and find_existing
         )
@@ -311,7 +321,7 @@ class Dataset:
         else:
             self.data = empty_frame()
 
-        stored_tags = io.MetaIO(self).dh.read()
+        stored_tags = tags_for_existing
         self.tags = self.default_tags()
         self.tags.update(stored_tags)
         self.tag_dataset(tags=kwargs.get("dataset_tags", {}))
@@ -444,9 +454,12 @@ class Dataset:
     def snapshot(self) -> None:
         """Copy data snapshot to immutable processing stage bucket and shared buckets.
 
-        The configuration file must specify an IO handler and required parameters in a 'snapshot' section.
+        If :Dataset:`sharing` identifies a configured location,
+        the snapshot files will be copied there.
+
+        See :io:`persist` for more detail.
         """
-        io.persist(self)
+        io.persist(self)  # is 'archive' a better name than 'persist' or 'snapshot'?
 
     def versions(self, **kwargs: Any) -> list[datetime | str]:
         """Get list of all series version markers (`as_of` dates or version names).
@@ -459,7 +472,7 @@ class Dataset:
         else:
             logger.debug("DATASET %s: versions: %s.", self.name, versions)
 
-        if self.data_type.versioning == ts.properties.Versioning.AS_OF:
+        if self.data_type.versioning == Versioning.AS_OF:
             return_type = kwargs.get("return_type", "local")
         else:
             return_type = "raw"
@@ -512,6 +525,7 @@ class Dataset:
             "versioning": str(self.data_type.versioning),
             "temporality": str(self.data_type.temporality),
             "series": {s: {"dataset": self.name, "name": s} for s in self.series},
+            "repository": self.repository,
         }
 
     def tag_dataset(
@@ -1024,7 +1038,7 @@ class Dataset:
 
         df = nw.from_native(self.data).to_pandas()
 
-        if self.data_type.temporality == ts.properties.Temporality.FROM_TO:
+        if self.data_type.temporality == Temporality.FROM_TO:
             interval_handling = kwargs.pop("interval_handling", "interval").lower()
             match interval_handling:
                 case "interval":
@@ -1387,7 +1401,7 @@ class Dataset:
             # raise ValueError(f"Unsupported operand type: {type(other)}.") -->
             return NotImplemented
 
-        new_name = (f"({self.name}.{func.__name__}.{other_name})",)
+        new_name = f"({self.name}.{func.__name__}.{other_name})"
         out.rename(new_name)
         out.lineage = new_name
 
@@ -1908,6 +1922,8 @@ def column_aggregate(df: FrameT, method: str | F) -> Any:
 
 
 def search(
+    equals: str = "",
+    contains: str = "",
     pattern: str = "*",
     as_of_tz: datetime = None,
     repository: str = "",
@@ -1923,24 +1939,34 @@ def search(
         ValueError: If `require_unique = True` and a unique result is not found.
     """
     # TODO: REFACTOR (using catalog?)
-    from .io import simple as old_io
+    # from .io import simple as old_io
+    # found = old_io.find_datasets(
+    #    pattern=pattern,
+    #    repository=repository,
+    # )
+    # logger.debug(
+    #    "DATASET.search for '%s'\nin repositories\n%s\nreturned:\n%s",
+    #    pattern,
+    #    repository,
+    #    found,
+    # )
+    from .catalog import get_catalog
 
-    found = old_io.find_datasets(
+    c = get_catalog()
+    found = c.datasets(
+        equals=equals,
+        contains=contains,
         pattern=pattern,
-        repository=repository,
-    )
-    logger.debug(
-        "DATASET.search for '%s'\nin repositories\n%s\nreturned:\n%s",
-        pattern,
-        repository,
-        found,
     )
     number_of_results = len(found)
 
     if number_of_results == 1:
+        tags = found[0].object_tags
+        stype = SeriesType(tags["versioning"], tags["temporality"])
+        # stype =ts.properties.seriestype_from_str(found[0].type_directory)
         return Dataset(
-            name=found[0].name,
-            data_type=ts.properties.seriestype_from_str(found[0].type_directory),
+            name=tags["name"],
+            data_type=stype,
             as_of_tz=as_of_tz,
         )
     elif number_of_results == 0:

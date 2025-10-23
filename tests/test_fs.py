@@ -1,7 +1,6 @@
 import logging
 import uuid
 from pathlib import Path
-from sys import platform
 
 import polars
 import pyarrow
@@ -30,7 +29,10 @@ def df():
     yield simple_data
 
 
-@pytest.mark.skip("Fix this later")
+import os
+
+
+@pytest.mark.skipif(not os.getenv("DAPLA_TEAM_CONTEXT"), reason="Not on Dapla")
 def test_bucket_exists_if_running_on_dapla() -> None:
     ts.logger.warning(f"Home directory is {HOME}")
     assert fs.exists(BUCKET)
@@ -68,7 +70,7 @@ def test_fs_path() -> None:
     )
 
 
-@pytest.mark.skipif(platform != "linux", reason="Can not see GCS.")
+@pytest.mark.skipif(not os.getenv("DAPLA_TEAM_CONTEXT"), reason="Not on Dapla")
 def test_same_path() -> None:
     assert (
         fs.same_path(BUCKET, "/home/jovyan") == fs.path_to_str("/")

@@ -38,12 +38,14 @@ from ..dates import utc_iso_no_colon
 from ..logging import logger
 from ..meta import TagDict
 from ..types import PathStr
+from .json_metadata import _sanitize_for_json
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 # ruff: noqa: D202
 
 
 active_config = Config.active
+
 
 # TODO: get this from config / dataset metadata:
 PA_TIMESTAMP_UNIT = "ns"
@@ -110,13 +112,6 @@ def last_version_number_by_regex(directory: str, pattern: str = "*") -> str:
     return out
 
 
-class SearchResult(NamedTuple):
-    """Result item for search."""
-
-    name: str
-    type_directory: str
-
-
 class FileSystem:
     """A filesystem abstraction for Dataset IO."""
 
@@ -156,7 +151,7 @@ class FileSystem:
     @property
     def root(self) -> str:
         """The root path is the basis for all other paths."""
-        ts_root = self.repository["directory"]["path"]
+        ts_root = self.repository["directory"]["options"]["path"]
         return str(ts_root)
 
     @property
@@ -180,7 +175,7 @@ class FileSystem:
         """The data directory for the dataset. This is a subdirectory under the type path."""
         return os.path.join(
             self.root,
-            f"{self.data_type.versioning}_{self.data_type.temporality}",
+            f"{self.data_type.versioning!s}_{self.data_type.temporality!s}",
             self.set_name,
         )
 
@@ -290,6 +285,16 @@ class FileSystem:
         return versions
 
 
+# ================================ SEARCH: =================================
+
+
+class SearchResult(NamedTuple):
+    """Result item for search."""
+
+    name: str
+    type_directory: str
+
+
 def find_datasets(
     pattern: str | PathStr = "",
     exclude: str = "metadata",
@@ -307,7 +312,8 @@ def find_datasets(
         logger.debug("IO.find_dataset pattern %s in repo %s", pattern, repository)
     else:
         search_directories = [
-            v["directory"]["path"] for k, v in active_config().repositories.items()
+            v["directory"]["options"]["path"]
+            for k, v in active_config().repositories.items()
         ]
         repo_names = list(active_config().repositories.keys())
 
@@ -331,6 +337,9 @@ def find_datasets(
         )
     logger.debug("search results: %s", search_results)
     return [SearchResult(f[2], f[1]) for f in search_results]
+
+
+# ================================ READ/WRITE HELPERS: =================================
 
 
 def merge_data(
@@ -406,7 +415,8 @@ def tags_to_json(x: TagDict) -> dict[str, bytes]:
 
     The simple solution is to put it all into a single field: {json: <json-string>}
     """
-    j = {"json": json.dumps(x).encode("utf8")}
+    sanitized_tags = _sanitize_for_json(x)
+    j = {"json": json.dumps(sanitized_tags).encode("utf8")}
     return j
 
 
