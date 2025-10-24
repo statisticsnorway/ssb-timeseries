@@ -11,7 +11,6 @@ from __future__ import annotations
 import json
 import os
 import re
-from collections.abc import Iterable
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
@@ -22,17 +21,16 @@ import narwhals as nw
 import pyarrow
 import pyarrow.compute
 from narwhals.typing import FrameT
-from narwhals.typing import IntoFrameT
 
 from .. import fs
 from .. import properties
 from ..config import Config
 from ..dataframes import empty_frame
 from ..dataframes import is_empty
+from ..dataframes import merge_data
 from ..dates import date_utc
 from ..dates import datelike_to_utc
 from ..dates import prepend_as_of
-from ..dates import standardize_dates
 from ..dates import utc_iso_no_colon
 from ..logging import logger
 from ..meta import TagDict
@@ -348,30 +346,6 @@ def find_datasets(
 
 
 # ================================ READ/WRITE HELPERS: =================================
-
-
-def merge_data(
-    old: IntoFrameT, new: IntoFrameT, date_cols: Iterable[str]
-) -> pyarrow.Table:
-    """Merge new data into an existing dataframe, keeping the last entry for duplicates."""
-    new = standardize_dates(new)
-    old = standardize_dates(old)
-
-    expressions = [nw.selectors.by_dtype(nw.Float32).cast(nw.Float64)]
-    new = nw.from_native(new).lazy(backend="polars").with_columns(expressions).collect()  # type: ignore[call-arg]
-    old = nw.from_native(old).lazy(backend="polars").with_columns(expressions).collect()  # type: ignore[call-arg]
-
-    logger.debug("merge_data schemas \n%s\n%s", old.schema, new.schema)
-    merged = nw.concat(
-        [old, new],
-        how="diagonal",
-    )
-    out = merged.unique(
-        subset=date_cols,
-        keep="last",
-    ).sort(by=sorted(date_cols))
-    pa_table = nw.from_native(out).to_arrow()
-    return cast(pyarrow.Table, pa_table)
 
 
 def parquet_schema(
