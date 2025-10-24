@@ -97,7 +97,7 @@ By picking up and attaching *process identifiers* (this is a planned extension) 
 
 Unfortunately, this approach is not guaranteed to be complete. `Dataset.data` is represented as an Arrow table, and can be served as Pandas or Polars dataframes to any libraries supporting thses formats. That opens a world of possibilities, but at the cost of automatic data lineage. The result of any calculations done outside the library can be written back to same or new datasets as long as it abides to the schema restrictions.
 
-**Built in versioning:** The time series model provides several ways of taking care of versions of the data "as of" a specific time. Or not. Practical choices when using the library amounts to "implicit" data modelling, and the user must be aware of the [information model meaning](./info-model.md#sets-series-and-types) of implemntation details like [choice of series type](#ssb_timeseries.properties.SeriesType).
+**Built in versioning:** The time series model provides several ways of taking care of versions of the data "as of" a specific time. Or not. Practical choices when using the library amounts to "implicit" data modelling, and the user must be aware of the [information model meaning](./info-model.md#sets-series-and-types) of implemntation details like choice of {py:class}`~ssb_timeseries.properties.SeriesType`.
 
 
 **Persisting data in stable states** as required by the process model, allows going back and inspecting data as previously produced, shared  or published, even if time series versioning was not the pracical choice, or if the "wrong" choice was made.

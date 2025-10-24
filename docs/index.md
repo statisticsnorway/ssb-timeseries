@@ -1,26 +1,43 @@
-```{toctree}
----
-includehidden: True
-hidden: True
-maxdepth: 3
----
-Quickstart guide <quickstart>
-
-API reference <reference/index>
-
-structure
-Information model <info-model.md>
-workflow
-
-Contributor guide <contributing>
-Code of conduct <codeofconduct>
-License <license>
-Changelog <https://github.com/statisticsnorway/ssb-timeseries/releases>
-```
-
 ```{include} ../README.md
 ---
 relative-docs: docs/
 end-before: <!-- github-only -->
 ---
+```
+
+```{eval-rst}
+.. toctree::
+   :includehidden:
+   :hidden:
+   :maxdepth: 3
+   :caption: Practical Guides
+
+   quickstart
+   configure-io
+
+.. toctree::
+   :includehidden:
+   :hidden:
+   :caption: Background
+
+   architecture
+   info-model
+   workflow
+
+.. toctree::
+   :includehidden:
+   :hidden:
+   :caption: API Reference
+
+   reference/index
+
+.. toctree::
+   :includehidden:
+   :hidden:
+   :caption: Project
+
+   contributing
+   codeofconduct
+   license
+   changelog
 ```

@@ -1,10 +1,10 @@
-"""Simple file based read and write of metadata in JSON format.
+"""Provides a file-based I/O handler for storing metadata in JSON format.
 
-This 'registers' the JSON formatted metadata in a central 'catalog' for easy search and lookup:
-`/<repository catalog path>/<dataset name>-metadata.json`
+This handler registers dataset metadata in a central "catalog" directory.
+The structure is `/<repository_catalog_path>/<dataset_name>-metadata.json`.
 
-This will duplicate any metadata stored in Parquet files.
-The catalog location is configurable per metadata repository.
+This approach duplicates metadata that might also be stored in data files
+(like Parquet headers), but provides a fast and searchable central index.
 """
 
 from __future__ import annotations
@@ -16,8 +16,6 @@ from typing import Any
 from typing import NamedTuple
 
 from .. import fs
-
-# from ..config import Config
 from ..config import FileBasedRepository
 from ..logging import logger
 from ..meta import DatasetTagDict
@@ -29,26 +27,22 @@ from ..properties import Versioning
 from ..types import PathStr
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
-# ruff: noqa: D202
-
-
-# active_config = Config.active
 
 
 class SearchResult(NamedTuple):
-    """Result item for search."""
+    """Represents a single item in a metadata search result."""
 
     name: str
     type_directory: str
 
 
 def _filename(set_name: str) -> str:
-    """The name of the metadata file for the dataset."""
+    """Create the standard filename for a dataset's metadata file."""
     return f"{set_name}-metadata.json"
 
 
 def _matches_tags(d: dict, tags: Any) -> bool:
-    """Check if a dict includes all tags provided in criteria."""
+    """Check if a dictionary of tags satisfies a given set of criteria."""
     if not tags:
         return True
     elif isinstance(tags, dict):
@@ -59,11 +53,11 @@ def _matches_tags(d: dict, tags: Any) -> bool:
             checks.append(matches_criteria(d, t))
         return any(checks)
     else:
-        raise TypeError(f"Can not check tags of type '{type(tags)}'.")
+        raise TypeError(f"Cannot check tags of type '{type(tags)}'.")
 
 
 def _sanitize_for_json(d: dict) -> dict:
-    """Recursively convert ssb-timeseries types to strings in a dictionary."""
+    """Recursively convert custom ssb-timeseries types to JSON-serializable strings."""
     if not isinstance(d, dict):
         return d
     sanitized_dict = {}
@@ -85,7 +79,7 @@ def _sanitize_for_json(d: dict) -> dict:
 
 
 def _build_dataset_item(tags_from_file: dict, repo_name: str) -> dict:
-    """Construct a dataset catalog item dictionary."""
+    """Construct a dataset catalog item from its tags."""
     return {
         "repository_name": repo_name,
         "object_name": tags_from_file["name"],
@@ -96,6 +90,7 @@ def _build_dataset_item(tags_from_file: dict, repo_name: str) -> dict:
 
 
 def _build_series_items(tags_from_file: dict, repo_name: str) -> list[dict]:
+    """Construct a list of series catalog items from a dataset's tags."""
     set_name = tags_from_file["name"]
     return [
         {
@@ -110,21 +105,17 @@ def _build_series_items(tags_from_file: dict, repo_name: str) -> list[dict]:
 
 
 def _filter_items(items: list[dict], criteria: dict | list[dict]) -> list[dict]:
-    """Filter a list of catalog item dictionaries based on tag criteria."""
+    """Filter a list of catalog items based on tag criteria."""
     if not criteria:
         return items
     return [item for item in items if _matches_tags(item["object_tags"], criteria)]
 
 
 class JsonMetaIO:
-    """File based metadata storage for time series Datasets.
+    """Provides file-based metadata storage for time series Datasets.
 
-    Data storage solutions will often also handle descriptive metadata.
-    For instance, parquet files can include json metadata in the data files.
-    That keeps data and metadata together, which is good.
-
-    It also makes sense to 'register' the metadata in a central catalog.
-    :JsonMetaIO: puts metadata for a repository in the `repository.catalog.path`.
+    This class handles reading and writing metadata to a central catalog,
+    where each dataset's metadata is stored in a separate JSON file.
     """
 
     def __init__(
@@ -132,9 +123,11 @@ class JsonMetaIO:
         repository: FileBasedRepository,
         set_name: str = "",
     ) -> None:
-        """Initialise filesystem abstraction for dataset.
+        """Initialize the handler for a given repository and dataset.
 
-        Calculate directory structure based on dataset type and name.
+        Args:
+            repository: The repository configuration dictionary.
+            set_name: The name of the dataset to operate on.
         """
         if isinstance(repository, dict | FileBasedRepository):
             self.repository = repository
@@ -146,18 +139,22 @@ class JsonMetaIO:
 
     @property
     def dir(self) -> str:
-        """The location of the metadata file for the dataset."""
+        """Return the configured catalog directory path for the repository."""
         return self.repository["catalog"]["options"]["path"]
 
     def fullpath(self, set_name: str = "") -> str:
-        """The full path to the metadata file."""
+        """Return the full path to a dataset's metadata file."""
         if not set_name:
             set_name = self.set_name
 
         return str(Path(self.dir) / _filename(set_name))
 
     def read(self, **kwargs) -> dict:
-        """Read tags from the metadata file."""
+        """Read and return the metadata for a given dataset.
+
+        Args:
+            **kwargs: May include 'set_name' to override the instance's default.
+        """
         set_name = kwargs.get("set_name", self.set_name)
         path = self.fullpath(set_name)
         meta: dict = {"name": set_name}
@@ -182,7 +179,12 @@ class JsonMetaIO:
         tags: dict,
         set_name: str,
     ) -> None:
-        """Write tags to the metadata file."""
+        """Write metadata tags to a dataset's JSON file.
+
+        Args:
+            tags: The dictionary of metadata to write.
+            set_name: The name of the dataset.
+        """
         try:
             logger.info(
                 "JsonMetaIO.write.start %s: writing metadata to file\n\t%s\nstarted.",
@@ -206,16 +208,21 @@ class JsonMetaIO:
 
     @property
     def exists(self, set_name: str = "") -> bool:
-        """Check if the metadata file exists."""
+        """Check if the metadata file for a given dataset exists."""
         if not set_name:
             set_name = self.set_name
         return fs.exists(self.fullpath(set_name))
 
     def search(self, **kwargs) -> list[dict]:
-        """Read all tags from the metadata file and filter them.
+        """Search the catalog for datasets and series matching given criteria.
 
-        Match dataset name by 'equals', 'contains', OR 'pattern', AND filter by 'tags'.
-        If no filters are provided, all files in the path are returned.
+        Args:
+            **kwargs: Search criteria including 'equals', 'contains', 'pattern',
+                'tags', 'datasets' (bool), and 'series' (bool).
+
+        Returns:
+            A list of dictionaries, where each dictionary represents a
+            matching dataset or series.
         """
         tags_criteria = kwargs.get("tags", {})
         if tags_criteria is None:
@@ -235,9 +242,6 @@ class JsonMetaIO:
                 )
 
             repo_name = tags_from_file.get("repository")
-            # no longer a concern?
-            # if isinstance(repo_name, dict):
-            #    repo_name = repo_name.get("name")
 
             if do_datasets:
                 dataset_item = _build_dataset_item(tags_from_file, repo_name)
@@ -249,7 +253,6 @@ class JsonMetaIO:
                 matching_series = _filter_items(series_in_set, tags_criteria)
                 results.extend(matching_series)
 
-        # return _filter_items(all_results, tags_criteria)
         return results
 
 
@@ -260,10 +263,17 @@ def find_metadata_files(
     equals: str = "",
     **kwargs,
 ) -> list[str]:
-    """Search for metadata json files in the 'catalog' directory.
+    """Find metadata JSON files in the catalog directory.
 
-    Match dataset name by 'equals', 'contains' or 'pattern'.
-    If no filter is provided, all files in path are returned.
+    Args:
+        path: The directory path to search in.
+        pattern: A glob pattern to match against dataset names.
+        contains: A substring to match within dataset names.
+        equals: An exact dataset name to match.
+        **kwargs: Additional arguments passed to the underlying search function.
+
+    Returns:
+        A list of full paths to the matching metadata files.
     """
     if equals:
         pattern = equals
@@ -286,11 +296,14 @@ def find_metadata_files(
 
 
 def tags_to_json(x: TagDict) -> dict[str, str]:
-    """Turn tag dict into a dict where keys and values are coercible to bytes.
+    """Serialize a tag dictionary into a format suitable for Parquet metadata.
 
-    See: https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
+    This function encodes the entire tag dictionary as a single JSON string
+    within a new dictionary, which is required for compatibility with the
+    PyArrow schema metadata.
 
-    The simple solution is to put it all into a single field: {json: <json-string>}
+    See Also:
+        https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
     """
     j = {"json": json.dumps(x).encode("utf8")}
     return j
@@ -300,9 +313,10 @@ def tags_from_json(
     dict_with_json_string: dict,
     byte_encoded: bool = True,
 ) -> dict:
-    """Reverse 'tags_to_json()': return tag dict from dict that has been coerced to bytes.
+    """Deserialize a tag dictionary from the Parquet metadata format.
 
-    Mutliple dict fields into a single field: {json: <json-string>}. May or may not have been byte encoded.
+    This is the reverse of `tags_to_json`, extracting the JSON string
+    from the container dictionary and parsing it.
     """
     if byte_encoded:
         return json.loads(dict_with_json_string[b"json"].decode())  # type: ignore [no-any-return]
@@ -313,8 +327,7 @@ def tags_from_json(
 def tags_from_json_file(
     file_or_files: PathStr | list[PathStr],
 ) -> DatasetTagDict | list[DatasetTagDict]:
-    """Read one or more json files."""
-
+    """Read and parse one or more metadata JSON files."""
     if isinstance(file_or_files, list):
         result = []
         for f in file_or_files:

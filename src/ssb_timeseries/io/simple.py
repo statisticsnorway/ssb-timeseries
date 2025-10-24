@@ -1,10 +1,9 @@
-"""Simple file based read and write of dataset data and metadata in Parquet format.
+"""Provides a simple, file-based I/O handler for Parquet format.
 
-Stores wide format data in a hard coded directory structure:
-Repository/Datatype/Dataset/[Version|latest].parquet
+This handler stores datasets in a wide format using a defined directory
+structure: `<repository>/<datatype>/<dataset>/[<version>|<latest>].parquet`.
 
-The hard coded directory structure is as opposed to Hive partitioned alternative, and the IO is managed (eagerly) via Pyarrow.
-(Support for Hive partitioning and lazy reading coming soon.)
+It uses PyArrow for eager reading and writing.
 """
 
 from __future__ import annotations
@@ -41,7 +40,6 @@ from ..types import PathStr
 from .json_metadata import _sanitize_for_json
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
-# ruff: noqa: D202
 
 
 active_config = Config.active
@@ -56,10 +54,7 @@ PA_NUMERIC = "float64"
 def _version_from_file_name(
     file_name: str, pattern: str | properties.Versioning = "as_of", group: int = 2
 ) -> str:
-    """For known name patterns, extract version marker.
-
-    For persisted data, a number; for regular versioned series an 'as of' datetime.
-    """
+    """Extract a version marker from a filename using known patterns."""
     if isinstance(pattern, properties.Versioning):
         pattern = str(pattern)
 
@@ -89,7 +84,7 @@ def _version_from_file_name(
 
 
 def last_version_number_by_regex(directory: str, pattern: str = "*") -> str:
-    """Check directory and get max version number from files matching regex pattern."""
+    """Return the max version number from files in a directory matching a pattern."""
     files = fs.ls(directory, pattern=pattern)
     number_of_files = len(files)
 
@@ -113,7 +108,7 @@ def last_version_number_by_regex(directory: str, pattern: str = "*") -> str:
 
 
 class FileSystem:
-    """A filesystem abstraction for Dataset IO."""
+    """A filesystem abstraction for reading and writing dataset data."""
 
     def __init__(
         self,
@@ -124,10 +119,10 @@ class FileSystem:
         process_stage: str = "statistikk",
         sharing: dict | None = None,
     ) -> None:
-        """Initialise filesystem abstraction for dataset.
+        """Initialize the filesystem handler for a given dataset.
 
-        Calculate directory structure based on dataset type and name.
-
+        This method calculates the necessary directory structure based on the
+        dataset's type and name.
         """
         if isinstance(repository, dict):
             self.repository = repository
@@ -150,13 +145,13 @@ class FileSystem:
 
     @property
     def root(self) -> str:
-        """The root path is the basis for all other paths."""
+        """Return the root path of the configured repository."""
         ts_root = self.repository["directory"]["options"]["path"]
         return str(ts_root)
 
     @property
     def filename(self) -> str:
-        """The name of the data file for the dataset."""
+        """Construct the standard filename for the dataset's data file."""
         match str(self.data_type.versioning):
             case "AS_OF":
                 file_name = f"{self.set_name}-as_of_{self.as_of_utc}-data.parquet"
@@ -172,7 +167,7 @@ class FileSystem:
 
     @property
     def directory(self) -> str:
-        """The data directory for the dataset. This is a subdirectory under the type path."""
+        """Return the data directory for the dataset."""
         return os.path.join(
             self.root,
             f"{self.data_type.versioning!s}_{self.data_type.temporality!s}",
@@ -181,14 +176,17 @@ class FileSystem:
 
     @property
     def fullpath(self) -> str:
-        """The full path to the data file."""
+        """Return the full path to the dataset's data file."""
         return os.path.join(self.directory, self.filename)
 
     def read(
         self,
         interval: str = "",  # TODO: Implement use av interval = Interval.all,
     ) -> pyarrow.Table:
-        """Read data from the filesystem. Return empty dataframe if not found."""
+        """Read data from the filesystem.
+
+        Returns an empty dataframe if the file is not found.
+        """
         logger.debug(interval)
         if fs.exists(self.fullpath):
             logger.info(
@@ -214,10 +212,10 @@ class FileSystem:
         return cast(pyarrow.Table, pa_table)
 
     def write(self, data: FrameT, tags: dict | None = None) -> None:
-        """Writes data to the filesystem.
+        """Write data to the filesystem.
 
-        If versioning is AS_OF, writes to new file.
-        If versioning is NONE, writes to existing file.
+        If versioning is AS_OF, a new file is always created.
+        If versioning is NONE, new data is merged into the existing file.
         """
         new = nw.from_native(data)
         if self.data_type.versioning == properties.Versioning.AS_OF:
@@ -260,13 +258,13 @@ class FileSystem:
 
     @property
     def exists(self) -> bool:
-        """Check if the data file exists."""
+        """Check if the data file for the dataset exists."""
         return fs.exists(self.fullpath)
 
     def versions(
         self, file_pattern: str = "*", pattern: str | properties.Versioning = "as_of"
     ) -> list[datetime | str]:
-        """Check data directory and list version marker ('as-of' or 'name') of data files."""
+        """List all available version markers from the data directory."""
         files = fs.ls(self.directory, pattern=file_pattern)
         versions: list[str | datetime] = []
         if files:
@@ -289,7 +287,7 @@ class FileSystem:
 
 
 class SearchResult(NamedTuple):
-    """Result item for search."""
+    """Represents a single item in a search result."""
 
     name: str
     type_directory: str
@@ -300,7 +298,17 @@ def find_datasets(
     exclude: str = "metadata",
     repository: list[PathStr] | PathStr = "",
 ) -> list[SearchResult]:
-    """Search for files in data directories of all configured repositories."""
+    """Search for dataset directories in all configured repositories.
+
+    Args:
+        pattern: A glob pattern to match against directory names.
+        exclude: A substring to exclude from the search results.
+        repository: A specific repository path to search in. If empty,
+            searches all configured repositories.
+
+    Returns:
+        A list of SearchResult objects for the found datasets.
+    """
     if pattern:
         pattern = f"*{pattern}*"
     else:
@@ -345,7 +353,7 @@ def find_datasets(
 def merge_data(
     old: IntoFrameT, new: IntoFrameT, date_cols: Iterable[str]
 ) -> pyarrow.Table:
-    """Merge new data into old data."""
+    """Merge new data into an existing dataframe, keeping the last entry for duplicates."""
     new = standardize_dates(new)
     old = standardize_dates(old)
 
@@ -370,8 +378,7 @@ def parquet_schema(
     data_type: properties.SeriesType,
     meta: dict[str, Any],
 ) -> pyarrow.Schema | None:
-    """Dataset specific helper: translate tags to parquet schema metadata before the generic call 'write_parquet'."""
-
+    """Translate dataset tags into a PyArrow schema with embedded metadata."""
     if not meta:
         raise ValueError("Tags can not be empty.")
 
@@ -409,11 +416,10 @@ def parquet_schema(
 
 
 def tags_to_json(x: TagDict) -> dict[str, bytes]:
-    """Turn tag dict into a dict where keys and values are coercible to bytes.
+    """Serialize a tag dictionary into a format suitable for Parquet metadata.
 
-    See: https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
-
-    The simple solution is to put it all into a single field: {json: <json-string>}
+    See Also:
+        https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
     """
     sanitized_tags = _sanitize_for_json(x)
     j = {"json": json.dumps(sanitized_tags).encode("utf8")}
@@ -424,9 +430,9 @@ def tags_from_json(
     dict_with_json_string: dict[str | bytes, str | bytes],
     byte_encoded: bool = True,
 ) -> TagDict:  # dict[str, Any]:
-    """Reverse 'tags_to_json()': return tag dict from dict that has been coerced to bytes.
+    """Deserialize a tag dictionary from the Parquet metadata format.
 
-    Mutliple dict fields into a single field: {json: <json-string>}. May or may not have been byte encoded.
+    This is the reverse of `tags_to_json`.
     """
     if byte_encoded:
         d = json.loads(dict_with_json_string[b"json"].decode())

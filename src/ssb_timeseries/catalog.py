@@ -259,7 +259,7 @@ class Catalog(_CatalogProtocol):
 
         Repositories are named specifications for where and how data and metadata are stored.
         Neither repositories nor catalogs are intended for direct use.
-        Instead, use :catalog:`get_catalog` to get a `Catalog` generated from the configuration.
+        Instead, use :py:func:`~ssb_timeseries.catalog.get_catalog` to get a `Catalog` generated from the configuration.
 
         Example:
             >>> import ssb_timeseries as ts
@@ -292,7 +292,13 @@ class Catalog(_CatalogProtocol):
         # Inherit docs from protocol.
         # List all sets matching criteria.
         result: list[CatalogItem] = []
-        for r in self.repositories:
+        repository = kwargs.pop("repository", "")
+        if repository:
+            repos_to_search = [r for r in self.repositories if r.name == repository]
+        else:
+            repos_to_search = self.repositories
+
+        for r in repos_to_search:
             for rr in r.datasets(**kwargs):
                 result.append(rr)
             # problem if a dataset occurs in multiple repositories?

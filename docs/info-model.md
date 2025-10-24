@@ -1,4 +1,4 @@
-# Information model
+# Information Model
 
 ## The core concepts
 
