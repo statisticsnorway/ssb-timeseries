@@ -1,79 +1,45 @@
 """Tests for io/__init__.py."""
 
 import logging
-import uuid
 
 # from pathlib import Path
 from pytest import LogCaptureFixture
 
 from ssb_timeseries import io
 from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.properties import SeriesType
 
 # from ssb_timeseries.dates import datelike_to_utc
-from ssb_timeseries.properties import SeriesType
+
 
 # mypy: ignore-errors
 
 test_logger = logging.getLogger(__name__)
 
 
-def test_datafile_exists_after_create_dataset_and_save(
-    conftest,
-    xyz_at,
-    caplog,
-) -> None:
-    set_name = f"{conftest.function_name()}_{uuid.uuid4().hex}"
-    x = Dataset(
-        name=set_name,
-        data_type=SeriesType.simple(),
-        data=xyz_at,
-    )
-
-    io.save(x)
-    check = io.DataIO(x).dh.exists
-    assert check
-
-
-def test_read_existing_simple_data(
-    existing_simple_set: Dataset,
+def test_read_existing_data_works_for_all_series_types(
+    one_existing_set_for_each_data_type: Dataset,
     caplog: LogCaptureFixture,
 ) -> None:
+    """Test that reading a pre-saved dataset works for all series types."""
     caplog.set_level(logging.DEBUG)
+    existing_dataset = one_existing_set_for_each_data_type
+    expected_shape = existing_dataset.data.shape
 
-    set_name = existing_simple_set.name
-    x = Dataset(name=set_name, data_type=SeriesType.simple())
-    test_logger.debug(f"DATASET {x.name}: \n{x.data}")
-    if io.DataIO(x).dh.exists:
-        test_logger.debug(io.DataIO(x).dh.fullpath)
-        test_logger.debug(f"{x.data=}")
-        test_logger.debug(f"{x.data['valid_at'].unique()=}")
-        assert x.data.shape == (12, 28)
-    else:
-        test_logger.debug(
-            f"DATASET {x.name}: Data not found at {io.DataIO(x).dh.fullpath}. Writing."
-        )
-        raise AssertionError
+    # 1. Verify that the data file exists, as it's created by the fixture
+    assert io.DataIO(existing_dataset).dh.exists, "Data file does not exist."
 
-
-def test_read_existing_estimate_data(
-    existing_estimate_set: Dataset,
-    caplog: LogCaptureFixture,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    assert io.DataIO(existing_estimate_set).dh.exists
-
-    set_name = existing_estimate_set.name
-    as_of = existing_estimate_set.as_of_utc
-    x = Dataset(
-        name=set_name,
-        data_type=SeriesType.estimate(),
-        as_of_tz=as_of,
+    # 2. Create a new dataset instance to read the data back
+    read_dataset = Dataset(
+        name=existing_dataset.name,
+        data_type=existing_dataset.data_type,
+        as_of_tz=existing_dataset.as_of_utc,
     )
 
-    assert io.DataIO(x).dh.exists
-    test_logger.debug(x)
-    assert x.data.shape == (12, 28)
+    # 3. Verify the data is read correctly and has the expected shape
+    assert read_dataset.data.shape == expected_shape, (
+        f"Data shape mismatch for type {existing_dataset.data_type}."
+    )
 
 
 def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(

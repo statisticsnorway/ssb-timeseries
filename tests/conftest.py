@@ -349,6 +349,20 @@ def one_new_set_for_each_data_type(request):
     yield request.getfixturevalue(request.param)
 
 
+@pytest.fixture(
+    params=[
+        "existing_simple_set",
+        "existing_none_from_to_set",
+        "existing_estimate_set",
+        "existing_as_of_from_to_set",
+    ],
+    scope="function",
+)
+def one_existing_set_for_each_data_type(request):
+    """A parameterized fixture returning one saved dataset for each data type."""
+    yield request.getfixturevalue(request.param)
+
+
 @pytest.fixture(scope="module")
 def existing_simple_set(abc_at, buildup_and_teardown):
     """Create a simple dataset (and save so that files are existing) before running the test. Delete files afterwards."""
@@ -356,6 +370,19 @@ def existing_simple_set(abc_at, buildup_and_teardown):
         name="test-existing-simple-dataset",
         data_type=SeriesType.simple(),
         data=abc_at,
+        attributes=["A", "B", "C"],
+    )
+    x.save()
+    yield x
+
+
+@pytest.fixture(scope="module")
+def existing_none_from_to_set(abc_from_to, buildup_and_teardown):
+    """Create a non-versioned from-to dataset and save it."""
+    x = Dataset(
+        name="test-existing-none-from-to-dataset",
+        data_type=SeriesType.from_to(),
+        data=abc_from_to,
         attributes=["A", "B", "C"],
     )
     x.save()
@@ -370,6 +397,20 @@ def existing_estimate_set(abc_at, buildup_and_teardown):
         data_type=SeriesType.estimate(),
         as_of_tz=date_utc("2022-01-01"),
         data=abc_at,
+        attributes=["A", "B", "C"],
+    )
+    x.save()
+    yield x
+
+
+@pytest.fixture(scope="function")
+def existing_as_of_from_to_set(abc_from_to, buildup_and_teardown):
+    """Create a versioned from-to dataset and save it."""
+    x = Dataset(
+        name="test-existing-as-of-from-to-dataset",
+        data_type=SeriesType.as_of_from_to(),
+        as_of_tz=date_utc("2022-01-01"),
+        data=abc_from_to,
         attributes=["A", "B", "C"],
     )
     x.save()
