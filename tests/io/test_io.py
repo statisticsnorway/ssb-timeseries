@@ -1,4 +1,4 @@
-"""Tests for io/__init__.py."""
+"""Integration tests for the high-level I/O facade in `io/__init__.py`."""
 
 import logging
 
@@ -164,3 +164,34 @@ def test_search_for_dataset_by_setname_pattern_in_single_repo_returns_list_with_
     assert isinstance(datasets_found, list) and len(datasets_found) == 1
     assert datasets_found[0]["object_name"] == set_name
     assert datasets_found[0]["object_tags"] == x.tags
+
+
+def test_search_for_dataset_in_multiple_repos_returns_list_with_multiple_items(
+    conftest,
+    xyz_at,
+    caplog: LogCaptureFixture,
+):
+    caplog.set_level(logging.DEBUG)
+    set_name = conftest.function_name_hex()
+    x = Dataset(
+        name=set_name,
+        data_type=SeriesType.simple(),
+        load_data=False,
+        data=xyz_at,
+        repository="test_1",
+    )
+    io.save(x)
+    y = Dataset(
+        name=set_name,
+        data_type=SeriesType.simple(),
+        load_data=False,
+        data=xyz_at,
+        repository="test_2",
+    )
+    io.save(y)
+    datasets_found = io.search(
+        equals=set_name,
+    )
+    test_logger.debug(f"search for {set_name} returned: {datasets_found!s}")
+
+    assert isinstance(datasets_found, list) and len(datasets_found) == 2

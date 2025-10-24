@@ -1,3 +1,5 @@
+"""Tests for catalog.py."""
+
 import logging
 from collections import namedtuple
 from math import log
@@ -128,7 +130,6 @@ def test_init_repo_1_and_repo_2(
     repo_2: Repository,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Init repo 'test_1'."""
     caplog.set_level(logging.DEBUG)
 
     assert isinstance(repo_1, Repository)
@@ -140,7 +141,6 @@ def test_repository_datasets_called_with_no_params_lists_all_datasets_in_a_singl
     repo_1,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Find datasets where ."""
     caplog.set_level(logging.DEBUG)
     expected = {ds.name for ds in existing_sets}
 
@@ -155,7 +155,6 @@ def test_repository_series_called_with_no_params_lists_all_series_in_a_single_re
     repo_1,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Find datasets where ."""
     caplog.set_level(logging.DEBUG)
 
     # Because series names are unique only within the dataset,
@@ -178,7 +177,6 @@ def test_init_catalog_with_one_repo(
     catalog_with_one_repo: Catalog,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Find datasets where ."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
     assert isinstance(catalog, Catalog)
@@ -189,20 +187,18 @@ def test_init_catalog_with_two_repos(
     catalog_with_two_repos: Catalog,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Find datasets where ."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_two_repos
     assert isinstance(catalog, Catalog)
     assert catalog.count(object_type="datasets") > 0
 
 
-def test_init_catalog_with_repo_like_objects(
+def test_catalog_initializes_with_mixed_repository_types(
     repo_1: Repository,
     repo_2: Repository,
     buildup_and_teardown,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Find datasets where ."""
     caplog.set_level(logging.DEBUG)
 
     # any object with .name and .catalog should work(?)
@@ -228,8 +224,8 @@ def test_init_catalog_with_repo_like_objects(
     n_1 = catalog.repositories[1].count(object_type="dataset")
     n_2 = catalog.repositories[2].count(object_type="dataset")
 
-    assert n_0 == 0
-    assert n_1 == n_2 == catalog.count(object_type="dataset") / 2
+    assert n_1 == n_2
+    assert n_0 + n_1 + n_2 == catalog.count(object_type="dataset")
 
 
 def test_catalog_datasets_called_with_no_params_lists_all_datasets_for_catalog_w_one_repo(
@@ -237,7 +233,6 @@ def test_catalog_datasets_called_with_no_params_lists_all_datasets_for_catalog_w
     catalog_with_one_repo: Catalog,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """No criteria returns all datasets."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
     repos = [r.name for r in catalog.repositories]
@@ -255,7 +250,6 @@ def test_catalog_datasets_called_with_no_params_lists_all_datasets_for_catalog_w
     catalog_with_one_repo,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """No criteria returns all datasets."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
     repos = [r.name for r in catalog.repositories]
@@ -275,7 +269,6 @@ def test_catalog_series_called_with_no_params_lists_all_datasets_for_catalog_w_t
     catalog_with_one_repo,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """No criteria returns all seriess."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
     repos = [r.name for r in catalog.repositories]
@@ -301,7 +294,6 @@ def test_repository_search_by_tag_dict_none(
     repo_1: Repository,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Filtering by tags = None returns everything"""
     caplog.set_level(logging.DEBUG)
     # tags = None is the default
     assert set(repo_1.datasets(tags=None)) == set(repo_1.datasets())
@@ -319,7 +311,6 @@ def test_repository_search_by_tag_dict(
     caplog: pytest.LogCaptureFixture,
     find_this_existing_set,
 ) -> None:
-    """Filtering by tags: {<attritbute>: <value>}."""
     caplog.set_level(logging.DEBUG)
     # tags = None returns all items
     assert len(repo_1.datasets(tags=None)) >= 3
@@ -339,7 +330,6 @@ def test_catalog_search_by_tag_dict(
     caplog: pytest.LogCaptureFixture,
     find_this_existing_set,
 ) -> None:
-    """Filtering by tags chosen so that hits are expected for 'find_this_existing_set' only."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
     num_repos = len(catalog.repositories)
@@ -374,7 +364,6 @@ def test_catalog_search_by_tag_dict_multiple_criteria(
     caplog: pytest.LogCaptureFixture,
     existing_sets,
 ) -> None:
-    """Simple test case for filtering by tags."""
     caplog.set_level(logging.DEBUG)
     catalog = catalog_with_one_repo
     num_repos = len(catalog.repositories)
@@ -408,6 +397,31 @@ def test_catalog_search_by_list_of_tag_dicts(
     assert len(catalog.items(tags=[criteria_1, criteria_2])) == len(
         catalog.items(tags=criteria_1)
     ) + len(catalog.items(tags=criteria_2))
+
+
+@pytest.mark.xfail(reason="Proper setup of tests with multiple repos is needed.")
+def test_catalog_search_for_dataset_in_multiple_repos_returns_list_with_multiple_items(
+    catalog_with_two_repos,
+    existing_sets,
+    caplog: pytest.LogCaptureFixture,
+):
+    caplog.set_level(logging.DEBUG)
+    catalog = catalog_with_two_repos
+    set_name = existing_sets[0].name
+    y = Dataset(
+        name=set_name,
+        data_type=existing_sets[0].data_type,
+        load_data=False,
+        data=existing_sets[0].data,
+        repository="test_2",
+    )
+    y.save()
+    datasets_found = catalog.datasets(
+        equals=set_name,
+    )
+    test_logger.debug(f"search for {set_name} returned: {datasets_found!s}")
+
+    assert isinstance(datasets_found, list) and len(datasets_found) == 2
 
 
 # --------------------------------------------
