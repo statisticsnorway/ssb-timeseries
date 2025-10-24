@@ -40,7 +40,7 @@ x.save()
 x.snapshot()
 ```
 
-[TODO: Link to standard descriptions.]
+The process model is based on the international standard [Generic Statistical Business Process Model (GSBPM)](https://unece.org/statistics/specifications/gsbpm).
 
 While with proper configuration, the `snapshot` function will work, it is not expected to be of much use outside a SSB context.
 

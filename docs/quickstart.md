@@ -17,7 +17,8 @@ Note that the defaults are for local testing, ie not be suitable for the product
 
 ## Configuration
 
-The library expects an environment variable TIMESERIES_CONFIG to provide the path to a valid configuration file. The name or location of the file does not really matter, but some environments may require specific locations.
+The library expects an environment variable TIMESERIES_CONFIG to provide the path to a valid configuration file.
+The name or location of the file does not really matter, but some environments may require specific locations.
 
 For users in Statistics Norway:
 
@@ -82,12 +83,14 @@ See the [API reference] or tutorials section (coming soon) for more.
 ## Helper CLI
 
 The library exposes some configuration management features in a helper CLI.
-
-
 The command `poetry run timeseries-config <OPTION>` can be run from a terminal in order to shift between defaults.
 
 ## Disclaimer
 
-Note that while the library is in a workable state and should work both locally and (for SSB users) in JupyterLab, it is still in early development. There is a risk that fundamental choices are reversed and breaking changes introduced.
+The library is under active development and is considered stable for internal use.
+While it has not officially reached a Minimum Viable Product (MVP) milestone, the core functionality is well-tested.
+As we continue to refine the API, please be aware that breaking changes are still possible in future releases.
 
-Do not be shy about asking questions or giving feedback. The best channel for that is via https://github.com/statisticsnorway/ssb-timeseries/issues.
+We welcome questions and feedback.
+For users at Statistics Norway, feel free to contact the maintainers directly.
+For all other users, the best channel for discussion is through the project's [GitHub Issues](https://github.com/statisticsnorway/ssb-timeseries/issues).
