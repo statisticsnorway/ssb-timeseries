@@ -1,3 +1,5 @@
+"""Unit tests for the `simple` I/O handler."""
+
 import logging
 import time
 from pathlib import Path
@@ -10,11 +12,9 @@ from pytest import LogCaptureFixture
 
 # from ssb_timeseries.io import json_metadata
 from ssb_timeseries.dataset import Dataset
-from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import datelike_to_utc
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.fs import file_count
-from ssb_timeseries.io import DataIO
 from ssb_timeseries.io import simple as io
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
@@ -53,40 +53,6 @@ def check_file_count_change(
 # ================================ TESTS ================================
 
 
-@pytest.mark.skip("TO DO: test the right thing")
-def test_read_versioned_data_partitions_by_as_of(
-    caplog: LogCaptureFixture,
-    existing_estimate_set: Dataset,
-    conftest,
-):
-    caplog.set_level(logging.DEBUG)
-
-    new_set_name = conftest.function_name_hex()
-    new_set = existing_estimate_set.copy(new_set_name)
-    versions_before_saving = new_set.versions()
-    assert isinstance(new_set, Dataset)
-    assert len(versions_before_saving) == 0
-
-    as_of_dates = [
-        "2024-01-01",
-        "2024-02-01",
-        "2024-03-01",
-        "2024-04-01",
-        "2024-05-01",
-        "2024-06-01",
-    ]
-    for d in as_of_dates:
-        new_set.as_of_utc = date_utc(d)
-        new_set.data = create_df(
-            new_set.series, start_date="2023-01-01", end_date=d, freq="MS"
-        )
-        new_set.save()
-
-    # TO DO: this works, but we should check stored returned columns / Hive partitioning, not just the versions!
-    versions_after_saving = new_set.versions()
-    assert len(versions_after_saving) > len(versions_before_saving)
-
-
 @pytest.mark.parametrize(
     "versioned_dataset_fixture",
     ["existing_estimate_set", "existing_as_of_from_to_set"],
@@ -97,13 +63,19 @@ def test_versioning_as_of_creates_new_file(
     """Verify that saving an AS_OF dataset always creates a new file."""
     caplog.set_level(logging.DEBUG)
     x: Dataset = request.getfixturevalue(versioned_dataset_fixture)
-    data_dir = DataIO(x).dh.directory
+    io_handler = io.FileSystem(
+        repository=x.repository,
+        set_name=x.name,
+        set_type=x.data_type,
+        as_of_utc=x.as_of_utc,
+    )
+    data_dir = io_handler.directory
 
     files_before = file_count(data_dir)
     x.data = (x * 1.1).data
     time.sleep(1)  # so `now_utc()` does not get too close to old x.as_of_utc
-    x.as_of_utc = now_utc()
-    x.save()
+    io_handler.as_of_utc = now_utc()
+    io_handler.write(data=x.data, tags=x.tags)
     assert check_file_count_change(
         directory=data_dir,
         initial_count=files_before,
@@ -129,30 +101,32 @@ def test_versioning_none_appends_to_existing_file(
     """Verify that saving a NONE dataset merges data into the existing file."""
     caplog.set_level(logging.DEBUG)
     a: Dataset = request.getfixturevalue(unversioned_dataset_fixture)
+    io_handler = io.FileSystem(
+        repository=a.repository,
+        set_name=a.name,
+        set_type=a.data_type,
+        as_of_utc=a.as_of_utc,
+    )
 
     # Create new data that overlaps partially with the existing data
     # Original data is for 12 months in 2022. New data is for 12 months starting July 2022.
     # This creates a 6-month overlap.
-    b = Dataset(
-        name=a.name,
-        data_type=a.data_type,
-        data=create_df(
-            a.series,
-            start_date="2022-07-01",
-            end_date="2023-06-30",  # 12 months
-            freq="MS",
-            temporality=a.data_type.temporality.name,
-        ),
+    new_data = create_df(
+        a.series,
+        start_date="2022-07-01",
+        end_date="2023-06-30",  # 12 months
+        freq="MS",
+        temporality=a.data_type.temporality.name,
     )
-    b.save()
+    io_handler.write(data=new_data, tags=a.tags)
 
     # Read the data back and verify the merge logic
-    c = Dataset(name=a.name, data_type=a.data_type)
+    c = io_handler.read()
     test_logger.debug(
-        f"First write {len(a.data)} rows, second write {len(b.data)} rows --> combined {len(c.data)} rows."
+        f"First write {len(a.data)} rows, second write {len(new_data)} rows --> combined {len(c)} rows."
     )
     # Expected: 12 (original) + 12 (new) - 6 (overlap) = 18
-    assert len(c.data) == 18
+    assert len(c) == 18
 
 
 # --------------- from test_io -------------------------------
@@ -342,3 +316,50 @@ def test_io_merge_data_with_polars_dataframes(
     assert len(df) > len(x2)
     assert len(df) < len(x1) + len(x2)
     assert df.shape == (12, 4)
+
+
+def test_write_new_dataset_creates_file_with_correct_schema(
+    one_new_set_for_each_data_type: Dataset,
+    caplog: LogCaptureFixture,
+) -> None:
+    """Test that writing a new dataset creates a file with the correct schema."""
+    caplog.set_level(logging.DEBUG)
+    dataset = one_new_set_for_each_data_type
+    io_handler = io.FileSystem(
+        repository=dataset.repository,
+        set_name=dataset.name,
+        set_type=dataset.data_type,
+        as_of_utc=dataset.as_of_utc,
+    )
+
+    # The fixture ensures the dataset is new, so the file should not exist
+    assert not io_handler.exists
+
+    # Write the dataset, which triggers file and schema creation
+    io_handler.write(data=dataset.data, tags=dataset.tags)
+
+    # Verify that the file now exists
+    assert io_handler.exists
+
+    # Read the schema from the created file and verify it
+    schema = pyarrow.parquet.read_schema(io_handler.fullpath)
+    expected_schema = io.parquet_schema(dataset.data_type, dataset.tags)
+    assert schema.equals(expected_schema)
+
+
+def test_simple_write_with_none_data_raises_type_error(
+    one_new_set_for_each_data_type: Dataset,
+    caplog: LogCaptureFixture,
+) -> None:
+    """Test that calling write with data=None raises a TypeError."""
+    caplog.set_level(logging.DEBUG)
+    dataset = one_new_set_for_each_data_type
+    io_handler = io.FileSystem(
+        repository=dataset.repository,
+        set_name=dataset.name,
+        set_type=dataset.data_type,
+        as_of_utc=dataset.as_of_utc,
+    )
+
+    with pytest.raises(TypeError):
+        io_handler.write(data=None, tags=dataset.tags)
