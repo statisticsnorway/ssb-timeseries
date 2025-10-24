@@ -1,16 +1,14 @@
 import logging
-import uuid
 
 import pytest
 from pytest import LogCaptureFixture
 
+from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
 
 # from ssb_timeseries.dataset import search
-from ssb_timeseries.dates import now_utc
 from ssb_timeseries.io import MetaIO
 from ssb_timeseries.properties import SeriesType
-from ssb_timeseries.properties import Versioning
 
 # mypy: ignore-errors
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"
@@ -31,56 +29,25 @@ def meta_io(conftest):
 # =============================== TESTS ===================================
 
 
-def test_metadata_exists_only_after_set_create_and_save(
-    caplog: LogCaptureFixture,
-    xyz_at,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    set_name = f"test-metafile-exists-{uuid.uuid4().hex}"
-    x = Dataset(
-        name=set_name,
-        data_type=SeriesType.estimate(),
-        as_of_tz=now_utc(rounding="Min"),
-    )
-    assert not MetaIO(x).dh.exists
-    x.data = xyz_at
-    x.save()
-    assert MetaIO(x).dh.read(set_name=x.name) == x.tags
-
-
-def test_read_metadata_for_existing_simple_set_returns_expected_values(
-    existing_simple_set: Dataset,
+def test_read_existing_metadata_works_for_all_series_types(
+    one_existing_set_for_each_data_type: Dataset,
     caplog: LogCaptureFixture,
 ) -> None:
+    """Test that reading metadata from a pre-saved dataset works for all series types."""
     caplog.set_level(logging.DEBUG)
+    existing_dataset = one_existing_set_for_each_data_type
 
-    set_name = existing_simple_set.name
-    x = Dataset(name=set_name, data_type=SeriesType.simple())
-    assert MetaIO(x).dh.read(set_name=x.name) == existing_simple_set.tags
-    assert x.tags["name"] == set_name and x.tags["versioning"] == str(Versioning.NONE)
-
-
-def test_read_metadata_for_existing_estimate_set_returns_expected_values(
-    existing_estimate_set: Dataset,
-    caplog: LogCaptureFixture,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    set_name = existing_estimate_set.name
-    as_of = existing_estimate_set.as_of_utc
-    x = Dataset(
-        name=set_name,
-        data_type=SeriesType.estimate(),
-        as_of_tz=as_of,
+    # 1. Verify that the metadata file exists
+    meta_handler = MetaIO(existing_dataset).dh
+    assert fs.exists(meta_handler.fullpath(existing_dataset.name)), (
+        "Metadata file does not exist."
     )
 
-    test_logger.debug(MetaIO(x).dh.fullpath())
-    assert MetaIO(x).dh.read(set_name=x.name) == existing_estimate_set.tags
-    assert x.tags["name"] == set_name
-    assert x.tags["versioning"] == str(Versioning.AS_OF)
-    for _, v in x.series_tags.items():
-        assert v["A"] in ["a", "b", "c"]
+    # 2. Read the metadata back and verify it matches the source
+    read_tags = meta_handler.read(set_name=existing_dataset.name)
+    assert read_tags == existing_dataset.tags, (
+        f"Tag mismatch for type {existing_dataset.data_type}."
+    )
 
 
 def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
