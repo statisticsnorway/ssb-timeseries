@@ -93,4 +93,4 @@ As we continue to refine the API, please be aware that breaking changes are stil
 
 We welcome questions and feedback.
 For users at Statistics Norway, feel free to contact the maintainers directly.
-For all other users, the best channel for discussion is through the project's [GitHub Issues](https://github.com/statisticsnorway/ssb-timeseries/issues).
+For any external users, the best channel for discussion is through the project's [GitHub Issues](https://github.com/statisticsnorway/ssb-timeseries/issues).
