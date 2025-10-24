@@ -77,3 +77,25 @@
 #   background: var(--color-sidebar-background);
 #   border-right: 1px solid var(--color-sidebar-background-border);
 # }
+
+/* --- Sidebar Menu Item Styling --- */
+
+/* 1. Make all link/code backgrounds in the sidebar transparent to inherit from the parent LI. */
+.sidebar-tree li a,
+.sidebar-tree li a code {
+    background-color: transparent !important;
+}
+
+/* 2. Set the background on the parent LI for the specific selected page (L1 and L2). */
+/*    Uses .current-page to avoid highlighting parent L1 sections. */
+.sidebar-tree li.toctree-l1.current-page,
+.sidebar-tree li.toctree-l2.current-page {
+    background-color: var(--color-sidebar-search-background--focus) !important;
+}
+
+/* 3. Set background on the link itself for hovered items (L1 and L2). */
+/*    This targets the <a> tag to avoid highlighting the entire parent block. */
+.sidebar-tree li.toctree-l1 > a:hover,
+.sidebar-tree li.toctree-l2 > a:hover {
+    background-color: var(--color-background-hover) !important;
+}
