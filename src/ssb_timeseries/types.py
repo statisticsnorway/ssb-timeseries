@@ -1,3 +1,5 @@
+"""Defines common type aliases for the project."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
