@@ -8,10 +8,8 @@ It uses PyArrow for eager reading and writing.
 
 from __future__ import annotations
 
-import json
 import os
 import re
-from copy import deepcopy
 from datetime import datetime
 from typing import Any
 from typing import NamedTuple
@@ -33,9 +31,8 @@ from ..dates import datelike_to_utc
 from ..dates import prepend_as_of
 from ..dates import utc_iso_no_colon
 from ..logging import logger
-from ..meta import TagDict
 from ..types import PathStr
-from .json_metadata import _sanitize_for_json
+from .parquet_schema import parquet_schema
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 
@@ -346,73 +343,6 @@ def find_datasets(
 
 
 # ================================ READ/WRITE HELPERS: =================================
-
-
-def parquet_schema(
-    data_type: properties.SeriesType,
-    meta: dict[str, Any],
-) -> pyarrow.Schema | None:
-    """Translate dataset tags into a PyArrow schema with embedded metadata."""
-    if not meta:
-        raise ValueError("Tags can not be empty.")
-
-    dataset_meta = deepcopy(meta)
-    series_meta = dataset_meta.pop("series")
-
-    if not series_meta:
-        return None
-
-    date_col_fields = [
-        pyarrow.field(
-            d,
-            pyarrow.timestamp(unit=PA_TIMESTAMP_UNIT, tz=PA_TIMESTAMP_TZ),  # type: ignore[call-overload]
-            nullable=False,
-        )
-        for d in data_type.temporality.date_columns
-    ]
-
-    num_col_fields = [
-        pyarrow.field(
-            series_key,
-            PA_NUMERIC,
-            nullable=True,
-            metadata=tags_to_json(series_tags),
-        )
-        for series_key, series_tags in series_meta.items()
-    ]
-    num_col_fields.sort(key=lambda x: x.name)
-
-    schema = pyarrow.schema(
-        date_col_fields + num_col_fields,
-        metadata=tags_to_json(dataset_meta),
-    )
-    return schema
-
-
-def tags_to_json(x: TagDict) -> dict[str, bytes]:
-    """Serialize a tag dictionary into a format suitable for Parquet metadata.
-
-    See Also:
-        https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
-    """
-    sanitized_tags = _sanitize_for_json(x)
-    j = {"json": json.dumps(sanitized_tags).encode("utf8")}
-    return j
-
-
-def tags_from_json(
-    dict_with_json_string: dict[str | bytes, str | bytes],
-    byte_encoded: bool = True,
-) -> TagDict:  # dict[str, Any]:
-    """Deserialize a tag dictionary from the Parquet metadata format.
-
-    This is the reverse of `tags_to_json`.
-    """
-    if byte_encoded:
-        d = json.loads(dict_with_json_string[b"json"].decode())
-    else:
-        d = json.loads(dict_with_json_string["json"])
-    return cast(TagDict, d)
 
 
 # def tags_from_json_file(
