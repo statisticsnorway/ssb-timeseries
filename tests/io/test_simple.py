@@ -1,6 +1,5 @@
 import logging
 import time
-import uuid
 from pathlib import Path
 
 import pandas
@@ -88,12 +87,16 @@ def test_read_versioned_data_partitions_by_as_of(
     assert len(versions_after_saving) > len(versions_before_saving)
 
 
+@pytest.mark.parametrize(
+    "versioned_dataset_fixture",
+    ["existing_estimate_set", "existing_as_of_from_to_set"],
+)
 def test_versioning_as_of_creates_new_file(
-    existing_estimate_set: Dataset, caplog: LogCaptureFixture
+    versioned_dataset_fixture, request, caplog: LogCaptureFixture
 ) -> None:
+    """Verify that saving an AS_OF dataset always creates a new file."""
     caplog.set_level(logging.DEBUG)
-
-    x = existing_estimate_set
+    x: Dataset = request.getfixturevalue(versioned_dataset_fixture)
     data_dir = DataIO(x).dh.directory
 
     files_before = file_count(data_dir)
@@ -104,43 +107,52 @@ def test_versioning_as_of_creates_new_file(
     assert check_file_count_change(
         directory=data_dir,
         initial_count=files_before,
-        timeout_seconds=20,  # some times it takes time for the file to appear!
-    )
+        timeout_seconds=20,
+    ), f"File count did not increase for type {x.data_type}."
 
 
-def test_versioning_none_appends_to_existing_file(
-    caplog: LogCaptureFixture,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-
-    dataset_name = f"test-merge-{uuid.uuid4().hex}"
-    dataset_type = SeriesType.simple()
-    a = Dataset(
-        name=dataset_name,
-        data_type=dataset_type,
-        data=create_df(
-            ["x", "y", "z"], start_date="2022-01-01", end_date="2023-12-03", freq="MS"
+@pytest.mark.parametrize(
+    "unversioned_dataset_fixture",
+    [
+        "existing_simple_set",
+        pytest.param(
+            "existing_none_from_to_set",
+            marks=pytest.mark.xfail(
+                reason="merge_data does not yet support period-based data (FROM_TO)."
+            ),
         ),
-    )
-    a.save()
+    ],
+)
+def test_versioning_none_appends_to_existing_file(
+    unversioned_dataset_fixture, request, caplog: LogCaptureFixture
+) -> None:
+    """Verify that saving a NONE dataset merges data into the existing file."""
+    caplog.set_level(logging.DEBUG)
+    a: Dataset = request.getfixturevalue(unversioned_dataset_fixture)
 
+    # Create new data that overlaps partially with the existing data
+    # Original data is for 12 months in 2022. New data is for 12 months starting July 2022.
+    # This creates a 6-month overlap.
     b = Dataset(
-        name=dataset_name,
-        data_type=dataset_type,
+        name=a.name,
+        data_type=a.data_type,
         data=create_df(
-            ["x", "y", "z"], start_date="2023-01-01", end_date="2024-12-03", freq="MS"
+            a.series,
+            start_date="2022-07-01",
+            end_date="2023-06-30",  # 12 months
+            freq="MS",
+            temporality=a.data_type.temporality.name,
         ),
     )
     b.save()
 
-    c = Dataset(name=dataset_name, data_type=dataset_type)
+    # Read the data back and verify the merge logic
+    c = Dataset(name=a.name, data_type=a.data_type)
     test_logger.debug(
-        f"DATASET: {a.name}: First write {len(a.data)} rows, second write {len(b.data)} rows (50% new) --> combined {len(c.data)} rows."
+        f"First write {len(a.data)} rows, second write {len(b.data)} rows --> combined {len(c.data)} rows."
     )
-    test_logger.debug(f"{a.data}\n{b.data}\n{c.data}\n{len(c.data)}")
-    assert len(c.data) > len(a.data)
-    assert len(c.data) > len(b.data)
-    assert len(c.data) < len(a.data) + len(b.data)
+    # Expected: 12 (original) + 12 (new) - 6 (overlap) = 18
+    assert len(c.data) == 18
 
 
 # --------------- from test_io -------------------------------
