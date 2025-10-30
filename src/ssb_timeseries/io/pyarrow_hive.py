@@ -91,7 +91,7 @@ class HiveFileSystem:
         # when the partition only contains nulls (as is the case for Versioning.NONE).
         # partition_schema = pa.schema( [pa.field("as_of", pa.timestamp("ns", tz="UTC"), nullable=True)])
 
-        (file_schema, partitioning) = _parquet_schema(
+        (_file_schema, partitioning) = _parquet_schema(
             self.data_type,
             {
                 "name": self.set_name,

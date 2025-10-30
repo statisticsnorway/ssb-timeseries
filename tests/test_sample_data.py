@@ -165,3 +165,34 @@ def test_xyz_from_to() -> None:
     df = xyz_from_to()
     assert df.size == 60
     assert list(df.columns) == ["valid_from", "valid_to", "x", "y", "z"]
+
+
+def test_create_df_at_temporality_creates_correct_dates():
+    """Verify that create_df with AT temporality generates the correct date sequence."""
+    df = create_df(
+        start_date="2023-01-01", end_date="2023-03-01", freq="MS", temporality="AT"
+    )
+    expected_dates = ["2023-01-01", "2023-02-01", "2023-03-01"]
+    # Convert to datetime objects for comparison
+    expected_datetimes = [ts.dates.date_utc(d) for d in expected_dates]
+    # Convert dataframe column to list of datetime objects
+    actual_datetimes = [ts.dates.date_utc(d) for d in df["valid_at"].to_list()]
+    assert actual_datetimes == expected_datetimes
+
+
+def test_create_df_from_to_temporality_creates_correct_periods():
+    """Verify that create_df with FROM_TO temporality generates correct and valid periods."""
+    from dateutil.relativedelta import relativedelta
+
+    df = create_df(
+        start_date="2023-01-01", end_date="2023-03-01", freq="MS", temporality="FROM_TO"
+    )
+
+    # 1. Check that valid_from is always before valid_to
+    assert all(df["valid_from"] < df["valid_to"])
+
+    # 2. Check that the period is exactly one month
+    expected_delta = relativedelta(months=1)
+    for _index, row in df.iterrows():
+        actual_delta = relativedelta(row["valid_to"], row["valid_from"])
+        assert actual_delta == expected_delta
