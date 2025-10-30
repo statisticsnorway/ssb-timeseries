@@ -20,7 +20,7 @@ from narwhals.typing import IntoFrameT, FrameT, IntoSeriesT
 import narwhals as nw
 import narwhals.selectors as ncs
 from pandas import PeriodIndex
-
+import pyarrow as pa
 from .logging import logger
 
 
@@ -28,6 +28,10 @@ from .logging import logger
 MAX_TIME_PRECISION: str = "second"
 DEFAULT_TIMESPEC: str = "seconds"
 NW_DEFAULT_TIME_UNIT: Literal["ns", "us", "ms", "s"] = "ns"
+
+# PyArrow related constants to ensure consistent typing for timestamp columns
+PA_TIMESTAMP_UNIT: Literal["ns", "us", "ms", "s"] = "ns"
+PA_TIMESTAMP_TZ: str = "UTC"
 
 DEFAULT_TZ = ZoneInfo("Europe/Oslo")  # Will shift between CET and CEST
 CET = ZoneInfo("CET")
@@ -41,7 +45,6 @@ def date_utc(some_date: datetime | str | None, **kwargs) -> datetime:
     If date has no timezone information, the data is assumed to be in default timezone (CET).
 
     The output will be rounded to the precision specified by kwarg 'rounding'.
-    Max precision 'second' will be used if none is provided.
     """
     if some_date is None or some_date == "":
         return date_round(now_utc())
@@ -58,7 +61,6 @@ def date_local(some_date: datetime | str, **kwargs) -> datetime:
 
     If not configured otherwise the default is Europe/Oslo which provides automatic shifts between CET and CEST.
     The output can be rounded to the precision specified by kwarg 'rounding'.
-    Default precision 'minute' will be used if none is provided.
     """
     dt_type = ensure_datetime(some_date, tz=DEFAULT_TZ)
     return date_round(dt_type, **kwargs)
@@ -68,7 +70,6 @@ def date_cet(some_date: datetime | str, **kwargs) -> datetime:
     """Convert date to time_zone Europe/Oslo which provides automatic shifts between CET and CEST.
 
     The output can be rounded to the precision specified by kwarg 'rounding'.
-    Default precision 'minute' will be used if none is provided.
     """
     dt_type = ensure_datetime(some_date, tz=CET)
     return date_round(dt_type, **kwargs)
@@ -79,7 +80,7 @@ def date_round(d: datetime, **kwargs) -> datetime:
 
     Rounding can take the values 'none', 'day', 'd', 'hour', 'h', 'minute', 'min', 'm', 'second', 'sec', or 's'.
 
-    Default precision 'minute' is used if none is provided.
+    Default precision 'seconds' is used if none is provided.
     """
 
     if not d:
@@ -95,7 +96,7 @@ def date_round(d: datetime, **kwargs) -> datetime:
             out = d.replace(second=0, microsecond=0)
         case "second" | "sec" | "s":
             out = d.replace(microsecond=0)
-        case "none":
+        case "microsecond" | "mic" | "u" | "none":
             out = d
     return out
 
@@ -162,13 +163,22 @@ def utc_iso_no_colon(d: datetime, timespec: str = DEFAULT_TIMESPEC) -> str:
     return utc_iso(d, timespec=timespec).replace(":", "")
 
 
-def prepend_as_of(df: nw.typing.IntoFrameT, as_of: datetime) -> nw.typing.IntoFrameT:
+def prepend_as_of(
+    df: nw.typing.IntoFrameT, as_of: datetime | None
+) -> nw.typing.IntoFrameT:
     """Prepend column 'as_of' to dataframe."""
-    return (
-        cast(nw.DataFrame, nw.from_native(df)).with_columns(
-            nw.lit(date_utc(as_of)).alias("as_of")
+    nw_df = cast(nw.DataFrame, nw.from_native(df))
+
+    if as_of is not None:
+        as_of_value = date_utc(as_of)
+        return nw_df.with_columns(nw.lit(as_of_value).alias("as_of")).to_native()
+    else:
+        # Create a column of typed nulls to avoid type inference errors
+        nw_df = cast(nw.DataFrame, nw.from_native(df))
+        as_of_nulls_series = nw.lit(None).cast(
+            nw.Datetime(time_unit=PA_TIMESTAMP_UNIT, time_zone=PA_TIMESTAMP_TZ)
         )
-    ).to_native()
+        return nw_df.with_columns(as_of=as_of_nulls_series).to_native()
 
 
 def local_timezone() -> ZoneInfo:
@@ -399,8 +409,8 @@ def validate_dates(
 
 def standardize_dates(
     df: nw.typing.IntoFrameT,
-    as_of: datetime | None = None,
-    time_unit: Literal["ns", "us", "ms", "s"] = NW_DEFAULT_TIME_UNIT,
+    # as_of: datetime | None = None, # Removed as prepend_as_of is no longer called here
+    time_unit: Literal["ns", "us", "ms"] = "ms",  # NW_DEFAULT_TIME_UNIT,
 ) -> nw.typing.IntoFrameT:
     """Ensure that all date columns conform to the same standards.
 
@@ -412,8 +422,7 @@ def standardize_dates(
     * Pandas Period indexes are nice -> consider conversions?
     * Pendulum or other libraries?
     """
-    if as_of:
-        df = prepend_as_of(df, as_of)
+    # df = prepend_as_of(df, as_of) # Removed
 
     as_utc = datelike_to_utc(df)
     return datetime_time_unit(as_utc, time_unit)

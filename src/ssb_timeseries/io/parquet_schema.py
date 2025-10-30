@@ -18,6 +18,8 @@ PA_TIMESTAMP_UNIT = "ns"
 PA_TIMESTAMP_TZ = "UTC"
 PA_NUMERIC = "float64"
 
+_TIMESTAMP = pyarrow.timestamp(unit=PA_TIMESTAMP_UNIT, tz=PA_TIMESTAMP_TZ)  # type: ignore[call-overload]
+
 
 def parquet_schema(
     data_type: properties.SeriesType,
@@ -36,10 +38,10 @@ def parquet_schema(
     date_col_fields = [
         pyarrow.field(
             d,
-            pyarrow.timestamp(unit=PA_TIMESTAMP_UNIT, tz=PA_TIMESTAMP_TZ),  # type: ignore[call-overload]
+            _TIMESTAMP,  # type: ignore[call-overload]
             nullable=False,
         )
-        for d in data_type.temporality.date_columns
+        for d in set(data_type.date_columns)
     ]
 
     num_col_fields = [
@@ -51,6 +53,7 @@ def parquet_schema(
         )
         for series_key, series_tags in series_meta.items()
     ]
+    date_col_fields.sort(key=lambda x: x.name)
     num_col_fields.sort(key=lambda x: x.name)
 
     schema = pyarrow.schema(

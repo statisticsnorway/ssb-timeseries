@@ -33,6 +33,7 @@ from ..config import Config
 from ..config import FileBasedRepository
 from ..dataset import Dataset
 from ..dates import date_utc
+from ..dates import datelike_to_utc
 from ..logging import logger
 from ..meta import TagDict
 from ..properties import SeriesType
@@ -198,7 +199,8 @@ def save(ds: Dataset) -> None:
     Args:
         ds: The Dataset object to save.
     """
-    DataIO(ds).dh.write(data=ds.data, tags=ds.tags)
+    utc_data = datelike_to_utc(ds.data)
+    DataIO(ds).dh.write(data=utc_data, tags=ds.tags)
     MetaIO(ds).dh.write(set_name=ds.name, tags=ds.tags)
 
 

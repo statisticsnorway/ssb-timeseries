@@ -4,15 +4,12 @@ import logging
 import time
 from pathlib import Path
 
-import pandas
-import polars
 import pyarrow
 import pytest
 from pytest import LogCaptureFixture
 
 # from ssb_timeseries.io import json_metadata
 from ssb_timeseries.dataset import Dataset
-from ssb_timeseries.dates import datelike_to_utc
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.fs import file_count
 from ssb_timeseries.io import simple as io
@@ -25,10 +22,6 @@ from ssb_timeseries.sample_data import create_df
 test_logger = logging.getLogger(__name__)
 # test_logger = logging.getLogger()
 # test_logger = ts.logger
-
-# copied from test_dataset_core --> review  to make sure correct scope
-# here: test io/simple.py behaviours
-# (leave to test_dataset_core to test Dataset behaviours)
 
 # =============================== HELPERS ===============================
 
@@ -53,16 +46,12 @@ def check_file_count_change(
 # ================================ TESTS ================================
 
 
-@pytest.mark.parametrize(
-    "versioned_dataset_fixture",
-    ["existing_estimate_set", "existing_as_of_from_to_set"],
-)
 def test_versioning_as_of_creates_new_file(
-    versioned_dataset_fixture, request, caplog: LogCaptureFixture
+    one_new_set_for_each_versioned_type, caplog: LogCaptureFixture
 ) -> None:
     """Verify that saving an AS_OF dataset always creates a new file."""
     caplog.set_level(logging.DEBUG)
-    x: Dataset = request.getfixturevalue(versioned_dataset_fixture)
+    x: Dataset = one_new_set_for_each_versioned_type
     io_handler = io.FileSystem(
         repository=x.repository,
         set_name=x.name,
@@ -83,24 +72,12 @@ def test_versioning_as_of_creates_new_file(
     ), f"File count did not increase for type {x.data_type}."
 
 
-@pytest.mark.parametrize(
-    "unversioned_dataset_fixture",
-    [
-        "existing_simple_set",
-        pytest.param(
-            "existing_none_from_to_set",
-            marks=pytest.mark.xfail(
-                reason="merge_data does not yet support period-based data (FROM_TO)."
-            ),
-        ),
-    ],
-)
 def test_versioning_none_appends_to_existing_file(
-    unversioned_dataset_fixture, request, caplog: LogCaptureFixture
+    one_existing_set_for_each_unversioned_type, caplog: LogCaptureFixture
 ) -> None:
     """Verify that saving a NONE dataset merges data into the existing file."""
     caplog.set_level(logging.DEBUG)
-    a: Dataset = request.getfixturevalue(unversioned_dataset_fixture)
+    a: Dataset = one_existing_set_for_each_unversioned_type
     io_handler = io.FileSystem(
         repository=a.repository,
         set_name=a.name,
@@ -109,17 +86,16 @@ def test_versioning_none_appends_to_existing_file(
     )
 
     # Create new data that overlaps partially with the existing data
-    # Original data is for 12 months in 2022. New data is for 12 months starting July 2022.
+    # Original data is for 12 months of 2022. New data is for 12 months starting July 2022.
     # This creates a 6-month overlap.
     new_data = create_df(
         a.series,
         start_date="2022-07-01",
         end_date="2023-06-30",  # 12 months
         freq="MS",
-        temporality=a.data_type.temporality.name,
+        temporality=a.data_type.temporality,
     )
     io_handler.write(data=new_data, tags=a.tags)
-
     # Read the data back and verify the merge logic
     c = io_handler.read()
     test_logger.debug(
@@ -127,9 +103,6 @@ def test_versioning_none_appends_to_existing_file(
     )
     # Expected: 12 (original) + 12 (new) - 6 (overlap) = 18
     assert len(c) == 18
-
-
-# --------------- from test_io -------------------------------
 
 
 def test_io_dirs(conftest) -> None:
@@ -158,94 +131,6 @@ def test_io_data_directory_path_as_expected(
     assert str(test_io.directory) == str(expected)
 
 
-def test_io_merge_data_with_arrow_tables(
-    caplog,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-    x1 = pyarrow.Table.from_pandas(
-        create_df(
-            ["x", "y", "z"],
-            start_date="2022-01-01",
-            end_date="2022-09-03",
-            freq="MS",
-        )
-    )
-    x2 = pyarrow.Table.from_pandas(
-        create_df(
-            ["x", "y", "z"],
-            start_date="2022-07-01",
-            end_date="2022-12-03",
-            freq="MS",
-        )
-    )
-    assert isinstance(x1, pyarrow.Table) and isinstance(x2, pyarrow.Table)
-    df = io.merge_data(x1, x2, {"valid_at"})
-    logging.debug(
-        f"merge arrow tables:\nOLD\n{x1.to_pandas()}\n\nNEW\n{x2.to_pandas()}\n\nRESULT\n{df.to_pandas()}"
-    )
-    assert isinstance(df, pyarrow.Table)
-    assert df.shape == (12, 4)
-
-
-def test_io_merge_data_with_pandas_dataframes(
-    caplog,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-    x1 = create_df(
-        ["x", "y", "z"],
-        start_date="2022-01-01",
-        end_date="2022-10-03",
-        freq="MS",
-    )
-    x2 = create_df(
-        ["x", "y", "z"],
-        start_date="2022-07-01",
-        end_date="2022-12-03",
-        freq="MS",
-    )
-    assert isinstance(x1, pandas.DataFrame) and isinstance(x2, pandas.DataFrame)
-    df = io.merge_data(x1, x2, ["valid_at"])
-    logging.debug(f"merge pandas dataframes:\nOLD\n{x1}\n\nNEW\n{x2}\n\nRESULT\n{df}")
-    assert isinstance(df, pyarrow.Table)
-    # assert isinstance(df, pandas.DataFrame)
-    assert df.shape == (12, 4)
-
-
-def test_io_merge_data_with_polars_dataframes(
-    caplog,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-    x1 = polars.from_pandas(
-        create_df(
-            ["x", "y", "z"],
-            start_date="2022-01-01",
-            end_date="2022-08-03",
-            freq="MS",
-        )
-    ).sort("valid_at")
-    x1 = datelike_to_utc(x1)
-    x2 = polars.from_pandas(
-        create_df(
-            ["x", "y", "z"],
-            start_date="2022-08-01",
-            end_date="2022-12-03",
-            freq="MS",
-        )
-    ).sort("valid_at")
-    x2 = datelike_to_utc(x2)
-    assert isinstance(x1, polars.DataFrame) and isinstance(x2, polars.DataFrame)
-    df = io.merge_data(x1, x2, {"valid_at"})
-    logging.debug(
-        f"merge polars dataframes:\nOLD\n{x1.to_pandas()}\n\nNEW:\n{x2.to_pandas()}\n\nRESULT:\n{df.to_pandas()}"
-    )
-    #   assert isinstance(df, polars.DataFrame)
-    assert isinstance(df, pyarrow.Table)
-    assert len(df) > len(x1)
-    assert len(df) > len(x2)
-    assert len(df) < len(x1) + len(x2)
-    assert df.shape == (12, 4)
-
-
 def test_write_new_dataset_creates_file_with_correct_schema(
     one_new_set_for_each_data_type: Dataset,
     caplog: LogCaptureFixture,
@@ -260,16 +145,10 @@ def test_write_new_dataset_creates_file_with_correct_schema(
         as_of_utc=dataset.as_of_utc,
     )
 
-    # The fixture ensures the dataset is new, so the file should not exist
     assert not io_handler.exists
-
-    # Write the dataset, which triggers file and schema creation
     io_handler.write(data=dataset.data, tags=dataset.tags)
-
-    # Verify that the file now exists
     assert io_handler.exists
 
-    # Read the schema from the created file and verify it
     schema = pyarrow.parquet.read_schema(io_handler.fullpath)
     expected_schema = io.parquet_schema(dataset.data_type, dataset.tags)
     assert schema.equals(expected_schema)

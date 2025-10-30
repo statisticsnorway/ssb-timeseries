@@ -18,7 +18,6 @@ from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
 from .dates import standardize_dates
-from .logging import logger
 from .properties import SeriesType
 from .properties import Temporality
 from .properties import Versioning
@@ -243,37 +242,44 @@ def merge_data(
     For `FROM_TO` temporality, it uses an anti-join to replace rows with matching
     `valid_from` and `valid_to` pairs.
     """
-    new_pl = cast(nw.DataFrame, nw.from_native(standardize_dates(new))).to_polars()
-    old_pl = cast(nw.DataFrame, nw.from_native(standardize_dates(old))).to_polars()
+    new_utc = standardize_dates(new)
+    old_utc = standardize_dates(old)
+    new_pl = cast(nw.DataFrame, nw.from_native(new_utc)).to_polars()
+    old_pl = cast(nw.DataFrame, nw.from_native(old_utc)).to_polars()
+    common_date_cols = [
+        col for col in date_cols if col in old_pl.columns and col in new_pl.columns
+    ]
+    if not common_date_cols:
+        raise ValueError(
+            f"No matching date columns; old:\n{old_pl.schema}\nnew:\n{new_pl.schema}."
+        )
+    old_pl = old_pl.with_columns(
+        pl.col(common_date_cols).cast(pl.Datetime(time_unit="us", time_zone="UTC"))
+    )
+    new_pl = new_pl.with_columns(
+        pl.col(common_date_cols).cast(pl.Datetime(time_unit="us", time_zone="UTC"))
+    )
 
     # Ensure consistent dtypes, casting float32 to float64
     new_pl = new_pl.with_columns(pl.col(pl.Float32).cast(pl.Float64))
     old_pl = old_pl.with_columns(pl.col(pl.Float32).cast(pl.Float64))
 
-    logger.debug("merge_data schemas \n%s\n%s", old_pl.schema, new_pl.schema)
-
     if temporality == Temporality.FROM_TO:
         # Polars-specific anti-join
-        old_filtered = old_pl.join(new_pl, on=["valid_from", "valid_to"], how="anti")
-        merged = nw.concat(
-            [
-                nw.from_native(old_filtered),
-                nw.from_native(new_pl),
-            ],
-            how="diagonal",
-        )
+        old_filtered = old_pl.join(new_pl, on=common_date_cols, how="anti")
     else:
-        # Original logic for 'AT' temporality
-        merged = nw.concat(
-            [nw.from_native(old_pl), nw.from_native(new_pl)],
-            how="diagonal",
-        )
+        old_filtered = old_pl.join(new_pl, on=common_date_cols, how="anti")
+        # Original logic for 'AT' temporality --> rely on unique below to deduplicate
+        # old_filtered = old_pl
 
+    merged = nw.concat(
+        [nw.from_native(old_filtered), nw.from_native(new_pl)],
+        how="diagonal",
+    )
     # Deduplicate and sort to ensure integrity
     out = merged.unique(
-        subset=list(date_cols),
+        subset=common_date_cols,
         keep="last",
-    ).sort(by=sorted(date_cols))
-
+    ).sort(by=sorted(common_date_cols))
     pa_table = out.to_arrow()
     return cast(pyarrow.Table, pa_table)

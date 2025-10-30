@@ -6,71 +6,24 @@ from ssb_timeseries.io import parquet_schema as io
 from ssb_timeseries.io.json_helpers import tags_from_json
 
 
-def test_io_parquet_schema_as_of_at(
-    new_dataset_none_at,
+def test_io_parquet_schema_for_all_series_types(
+    one_new_set_for_each_data_type,
     conftest,
     caplog,
 ) -> None:
+    """Test that parquet_schema generates a correct schema for all series types."""
     caplog.set_level(logging.DEBUG)
-    dataset = new_dataset_none_at
+    dataset = one_new_set_for_each_data_type
     schema = io.parquet_schema(dataset.data_type, dataset.tags)
-    assert set(schema.names) == set(dataset.series + dataset.datetime_columns)
+
+    # The schema should include all series columns AND the date columns defined by the SeriesType
+    # This was the source of the original bug: using dataset.datetime_columns (from the in-memory dataframe)
+    # instead of dataset.data_type.date_columns (which correctly includes 'as_of' for versioned types).
+    expected_columns = set(dataset.series + dataset.data_type.date_columns)
+    assert set(schema.names) == expected_columns
+
+    # Verify that the metadata for each series is correctly embedded in the schema
     for key in dataset.series:
-        # tags = json.loads(schema.field(key).metadata[b'json'].decode())
-        tags = tags_from_json(schema.field(key).metadata)
-        logging.debug(f"{key=}:\n{tags=}")
-        assert tags["name"] == key
-        for k, v in tags.items():
-            assert dataset.tags["series"][key][k] == v
-
-
-def test_io_parquet_schema_none_from_to(
-    new_dataset_none_from_to,
-    conftest,
-    caplog,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-    dataset = new_dataset_none_from_to
-    schema = io.parquet_schema(dataset.data_type, dataset.tags)
-    assert set(schema.names) == set(dataset.series + dataset.datetime_columns)
-    for key in dataset.series:
-        # tags = json.loads(schema.field(key).metadata[b'json'].decode())
-        tags = tags_from_json(schema.field(key).metadata)
-        logging.debug(f"{key=}:\n{tags=}")
-        assert tags["name"] == key
-        for k, v in tags.items():
-            assert dataset.tags["series"][key][k] == v
-
-
-def test_io_parquet_schema_none_at(
-    new_dataset_as_of_at,
-    conftest,
-    caplog,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-    dataset = new_dataset_as_of_at
-    schema = io.parquet_schema(dataset.data_type, dataset.tags)
-    assert set(schema.names) == set(dataset.series + dataset.datetime_columns)
-    for key in dataset.series:
-        # tags = json.loads(schema.field(key).metadata[b'json'].decode())
-        tags = tags_from_json(schema.field(key).metadata)
-        logging.debug(f"{key=}:\n{tags=}")
-        assert tags["name"] == key
-        for k, v in tags.items():
-            assert dataset.tags["series"][key][k] == v
-
-
-def test_io_parquet_schema_as_of_from_to(
-    new_dataset_as_of_from_to,
-    conftest,
-    caplog,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-    dataset = new_dataset_as_of_from_to
-    schema = io.parquet_schema(dataset.data_type, dataset.tags)
-    assert set(schema.names) == set(dataset.series + dataset.datetime_columns)
-    for key in dataset.series:
-        # tags = json.loads(schema.field(key).metadata[b'json'].decode())
         tags = tags_from_json(schema.field(key).metadata)
         logging.debug(f"{key=}:\n{tags=}")
         assert tags["name"] == key

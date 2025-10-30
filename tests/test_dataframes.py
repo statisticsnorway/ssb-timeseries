@@ -1,4 +1,8 @@
+import logging
+
 import narwhals as nw
+import pandas
+import polars
 import pyarrow as pa
 import pytest
 from pandas import DataFrame as PdDf
@@ -9,6 +13,9 @@ from ssb_timeseries.dataframes import are_equal
 from ssb_timeseries.dataframes import empty_frame
 from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.dataframes import is_empty
+from ssb_timeseries.dataframes import merge_data
+from ssb_timeseries.dates import datelike_to_utc
+from ssb_timeseries.sample_data import create_df
 
 
 def test_empty_frame_call_with_no_parameters_returns_df_with_shape_0_0() -> None:
@@ -154,3 +161,95 @@ def test_are_equal_returns_true_if_columnn_names_are_out_of_order() -> None:
     b_pa = pa.Table.from_pydict(b)
 
     assert are_equal(a_pa, b_pa)
+
+
+def test_io_merge_data_with_arrow_tables(
+    caplog,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    x1 = pa.Table.from_pandas(
+        create_df(
+            ["x", "y", "z"],
+            start_date="2022-01-01",
+            end_date="2022-09-03",
+            freq="MS",
+        )
+    )
+    x2 = pa.Table.from_pandas(
+        create_df(
+            ["x", "y", "z"],
+            start_date="2022-07-01",
+            end_date="2022-12-03",
+            freq="MS",
+        )
+    )
+    assert isinstance(x1, pa.Table) and isinstance(x2, pa.Table)
+    df = merge_data(x1, x2, {"valid_at"})
+    logging.debug(
+        f"merge arrow tables:\nOLD\n{x1.to_pandas()}\n\nNEW\n{x2.to_pandas()}\n\nRESULT\n{df.to_pandas()}"
+    )
+    df = merge_data(x1, x2, {"valid_at"})
+    logging.debug(
+        f"merge arrow tables:\nOLD\n{x1.to_pandas()}\n\nNEW\n{x2.to_pandas()}\n\nRESULT\n{df.to_pandas()}"
+    )
+    assert isinstance(df, pa.Table)
+    assert df.shape == (12, 4)
+
+
+def test_io_merge_data_with_pandas_dataframes(
+    caplog,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    x1 = create_df(
+        ["x", "y", "z"],
+        start_date="2022-01-01",
+        end_date="2022-10-03",
+        freq="MS",
+    )
+    x2 = create_df(
+        ["x", "y", "z"],
+        start_date="2022-07-01",
+        end_date="2022-12-03",
+        freq="MS",
+    )
+    assert isinstance(x1, pandas.DataFrame) and isinstance(x2, pandas.DataFrame)
+    df = merge_data(x1, x2, ["valid_at"])
+    logging.debug(f"merge pandas dataframes:\nOLD\n{x1}\n\nNEW\n{x2}\n\nRESULT\n{df}")
+    assert isinstance(df, pa.Table)
+    # assert isinstance(df, pandas.DataFrame)
+    assert df.shape == (12, 4)
+
+
+def test_io_merge_data_with_polars_dataframes(
+    caplog,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    x1 = polars.from_pandas(
+        create_df(
+            ["x", "y", "z"],
+            start_date="2022-01-01",
+            end_date="2022-08-03",
+            freq="MS",
+        )
+    ).sort("valid_at")
+    x1 = datelike_to_utc(x1)
+    x2 = polars.from_pandas(
+        create_df(
+            ["x", "y", "z"],
+            start_date="2022-08-01",
+            end_date="2022-12-03",
+            freq="MS",
+        )
+    ).sort("valid_at")
+    x2 = datelike_to_utc(x2)
+    assert isinstance(x1, polars.DataFrame) and isinstance(x2, polars.DataFrame)
+    df = merge_data(x1, x2, {"valid_at"})
+    logging.debug(
+        f"merge polars dataframes:\nOLD\n{x1.to_pandas()}\n\nNEW:\n{x2.to_pandas()}\n\nRESULT:\n{df.to_pandas()}"
+    )
+    #   assert isinstance(df, polars.DataFrame)
+    assert isinstance(df, pa.Table)
+    assert len(df) > len(x1)
+    assert len(df) > len(x2)
+    assert len(df) < len(x1) + len(x2)
+    assert df.shape == (12, 4)

@@ -211,12 +211,15 @@ def date_ranges(
         dtstart=dt_start,
         until=dt_end,
     )
-    if temporality == "AT":
-        return {"valid_at": list(d)}
-    else:
-        delta = relativedelta(d[1], d[0])
+    d_list = list(d)
+    if str(temporality) == "AT":
+        return {"valid_at": d_list}
+    elif str(temporality) == "FROM_TO":
+        delta = relativedelta(d_list[1], d_list[0])
         d_to = r(dtstart=dt_start + delta, until=dt_end + delta)
-        return {"valid_from": list(d), "valid_to": list(d_to)}
+        return {"valid_from": d_list, "valid_to": list(d_to)}
+    else:
+        raise ValueError(f"Unhandled temporality: {temporality}")
 
 
 def random_numbers(

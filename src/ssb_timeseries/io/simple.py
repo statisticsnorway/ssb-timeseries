@@ -39,7 +39,6 @@ from .parquet_schema import parquet_schema
 
 active_config = Config.active
 
-
 # TODO: get this from config / dataset metadata:
 PA_TIMESTAMP_UNIT = "ns"
 PA_TIMESTAMP_TZ = "UTC"
@@ -204,6 +203,11 @@ class FileSystem:
             df = empty_frame()
             logger.debug(f"No file {self.fullpath} - return empty frame instead.")
         pa_table = datelike_to_utc(df)
+
+        # The 'as_of' column is a storage detail and should not be part of the logical dataset
+        if "as_of" in pa_table.column_names:
+            pa_table = pa_table.drop(["as_of"])
+
         return cast(pyarrow.Table, pa_table)
 
     def write(self, data: FrameT, tags: dict | None = None) -> None:
@@ -219,13 +223,20 @@ class FileSystem:
         else:
             old = self.read(self.set_name)
             if is_empty(old):
-                df = datelike_to_utc(new)
+                df = new
             else:
-                df = merge_data(
-                    new=datelike_to_utc(new),
-                    old=datelike_to_utc(old),
-                    date_cols=self.data_type.date_columns,
+                logger.debug(
+                    f"Merging data with temporality: {self.data_type.temporality}"
                 )
+                logger.debug(f"Old data length: {len(old)}")
+                logger.debug(f"New data length: {len(new)}")
+                df = merge_data(
+                    new=new,
+                    old=old,
+                    date_cols=self.data_type.date_columns,
+                    temporality=self.data_type.temporality,
+                )
+                logger.debug(f"Merged data length: {len(df)}")
 
         logger.info(
             "DATASET.write.start %s: writing data to file\n\t%s\nstarted.",

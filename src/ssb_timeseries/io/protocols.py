@@ -45,8 +45,8 @@ class DataReadWrite(Protocol):
         ...
 
     @property
-    def exists(self) -> bool:
-        """Check if the data file for the dataset exists in the configured storage."""
+    def exists(self, set_name: str = "") -> bool:
+        """Check if the dataset exists in the configured storage."""
         ...
 
     def write(self, data: Any, tags: dict | None = None) -> None:
