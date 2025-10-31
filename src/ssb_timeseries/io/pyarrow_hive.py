@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 from typing import cast
 from urllib.parse import unquote
@@ -75,12 +76,10 @@ class HiveFileSystem:
     @property
     def directory(self) -> str:
         """Return the data directory for the dataset."""
-        return "/".join(
-            [
-                self.root,
-                f"data_type={self.data_type.versioning!s}_{self.data_type.temporality!s}",
-                f"dataset={self.set_name}",
-            ]
+        return str(
+            Path(self.root)
+            / f"data_type={self.data_type.versioning!s}_{self.data_type.temporality!s}"
+            / f"dataset={self.set_name}"
         )
 
     def read(self, *args, **kwargs) -> FrameT:

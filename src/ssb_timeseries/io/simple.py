@@ -135,7 +135,7 @@ class FileSystem:
                 "An 'as of' datetime must be specified when the type has versioning of type Versioning.AS_OF."
             )
 
-        self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
+        self.as_of_utc: datetime = as_of_utc
 
     @property
     def root(self) -> str:
@@ -148,7 +148,8 @@ class FileSystem:
         """Construct the standard filename for the dataset's data file."""
         match str(self.data_type.versioning):
             case "AS_OF":
-                file_name = f"{self.set_name}-as_of_{self.as_of_utc}-data.parquet"
+                safe_timestamp = utc_iso_no_colon(self.as_of_utc)
+                file_name = f"{self.set_name}-as_of_{safe_timestamp}-data.parquet"
             case "NONE":
                 file_name = f"{self.set_name}-latest-data.parquet"
             case "NAMED":
