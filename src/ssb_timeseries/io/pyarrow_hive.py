@@ -78,8 +78,8 @@ class HiveFileSystem:
         return "/".join(
             [
                 self.root,
-                f"{self.data_type.versioning!s}_{self.data_type.temporality!s}",
-                self.set_name,
+                f"data_type={self.data_type.versioning!s}_{self.data_type.temporality!s}",
+                f"dataset={self.set_name}",
             ]
         )
 

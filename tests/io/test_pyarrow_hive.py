@@ -137,7 +137,7 @@ def test_write_creates_correct_partition_directories(
     if dataset.data_type.versioning == "AS_OF":
         assert any(d.startswith("as_of=") for d in subdirectories)
     elif dataset.data_type.versioning == "NONE":
-        assert "version=LATEST" in subdirectories
+        assert "as_of=__HIVE_DEFAULT_PARTITION__" in subdirectories
 
 
 def test_versions_method_returns_correct_versions(
@@ -194,7 +194,7 @@ def test_io_data_directory_path_as_expected(
         as_of_utc=None,
     )
     repo_base_dir = Path(conftest.repo["directory"]["options"]["path"])
-    expected: str = repo_base_dir / "NONE_AT" / test_name
+    expected: str = repo_base_dir / "data_type=NONE_AT" / f"dataset={test_name}"
     assert str(test_io.directory) == str(expected)
 
 

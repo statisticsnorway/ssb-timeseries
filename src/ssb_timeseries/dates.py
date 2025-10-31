@@ -425,7 +425,7 @@ def standardize_dates(
     # df = prepend_as_of(df, as_of) # Removed
 
     as_utc = datelike_to_utc(df)
-    return datetime_time_unit(as_utc, time_unit)
+    return datetime_time_unit(as_utc, time_unit=NW_DEFAULT_TIME_UNIT)
 
 
 def period_index(col: IntoSeriesT, freq: str) -> PeriodIndex:
