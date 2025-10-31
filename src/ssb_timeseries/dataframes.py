@@ -234,7 +234,7 @@ def merge_data(
     old: IntoFrameT,
     new: IntoFrameT,
     date_cols: Iterable[str],
-    temporality: Temporality = Temporality.AT,
+    **kwargs,  # temporality: Temporality = Temporality.AT,
 ) -> pyarrow.Table:
     """Merge new data into an existing dataframe, handling overlaps for period-based data.
 
@@ -253,12 +253,6 @@ def merge_data(
         raise ValueError(
             f"No matching date columns; old:\n{old_pl.schema}\nnew:\n{new_pl.schema}."
         )
-    old_pl = old_pl.with_columns(
-        pl.col(common_date_cols).cast(pl.Datetime(time_unit="us", time_zone="UTC"))
-    )
-    new_pl = new_pl.with_columns(
-        pl.col(common_date_cols).cast(pl.Datetime(time_unit="us", time_zone="UTC"))
-    )
 
     new_pl = new_pl.with_columns(pl.col(pl.Float32).cast(pl.Float64))
     old_pl = old_pl.with_columns(pl.col(pl.Float32).cast(pl.Float64))
