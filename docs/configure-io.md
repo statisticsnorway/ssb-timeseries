@@ -15,7 +15,7 @@ This example defines the three standard handlers used by the library.
 {
     "io_handlers": {
         "my_data_handler": {
-            "handler": "ssb_timeseries.io.simple.FileSystem",
+            "handler": "ssb_timeseries.io.pyarrow_simple.FileSystem",
             "options": {}
         },
         "my_metadata_handler": {

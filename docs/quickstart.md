@@ -35,8 +35,8 @@ A minimal example suitable for testing (version 0.7.0 and above) look like this:
     "configuration_file": "/home/onyxia/work/timeseries/configuration/minimal.json",
     "logging": {},
     "io_handlers": {
-        "simple-parquet": {
-            "handler": "ssb_timeseries.io.simple.FileSystem",
+        "pyarrow-simple-parquet": {
+            "handler": "ssb_timeseries.io.pyarrow_simple.FileSystem",
             "options": {}
         },
         "json": {

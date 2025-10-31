@@ -13,7 +13,7 @@ It dispatches tasks to the appropriate backend handler based on the active
 project configuration.
 
 Internal components like `Data_IO`, `Meta_IO`, and the concrete handler modules
-(e.g., `ssb_timeseries.io.simple`) are considered implementation details of this
+(e.g., `ssb_timeseries.io.pyarrow_simple`) are considered implementation details of this
 facade.
 They should not be imported or used directly by other parts of the application.
 """

@@ -1,4 +1,4 @@
-"""Provides a simple, file-based I/O handler for Parquet format.
+"""Provides a PyArrow-based simple, file-based I/O handler for Parquet format.
 
 This handler stores datasets in a wide format using a defined directory
 structure: `<repository>/<datatype>/<dataset>/[<version>|<latest>].parquet`.
@@ -91,7 +91,7 @@ def last_version_number_by_regex(directory: str, pattern: str = "*") -> str:
         out = number_of_files
 
     logger.debug(
-        "io/simple.last_version_number_by_regex() search in directory: \n\t%s\n\tfor '%s' found %s files, regex identified version %s --> vs %s.",
+        "io/pyarrow_simple.last_version_number_by_regex() search in directory: \n\t%s\n\tfor '%s' found %s files, regex identified version %s --> vs %s.",
         directory,
         pattern,
         f"{number_of_files!s}",

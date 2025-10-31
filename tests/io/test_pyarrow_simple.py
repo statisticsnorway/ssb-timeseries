@@ -12,7 +12,7 @@ from pytest import LogCaptureFixture
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.fs import file_count
-from ssb_timeseries.io import simple as io
+from ssb_timeseries.io import pyarrow_simple as io
 from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
 
@@ -152,6 +152,36 @@ def test_write_new_dataset_creates_file_with_correct_schema(
     schema = pyarrow.parquet.read_schema(io_handler.fullpath)
     expected_schema = io.parquet_schema(dataset.data_type, dataset.tags)
     assert schema.equals(expected_schema)
+
+
+def test_simple_filesystem_init_raises_error_for_as_of_without_as_of_utc(
+    one_new_set_for_each_versioned_type: Dataset,
+) -> None:
+    """Verify that initializing FileSystem with Versioning.AS_OF and as_of_utc=None raises a ValueError."""
+    dataset = one_new_set_for_each_versioned_type
+    with pytest.raises(ValueError, match="An 'as of' datetime must be specified"):
+        io.FileSystem(
+            repository=dataset.repository,
+            set_name=dataset.name,
+            set_type=dataset.data_type,
+            as_of_utc=None,
+        )
+
+
+def test_read_non_existent_dataset_returns_empty_frame(
+    one_new_set_for_each_data_type: Dataset,
+) -> None:
+    """Verify that reading a non-existent dataset returns an empty dataframe."""
+    dataset = one_new_set_for_each_data_type
+    io_handler = io.FileSystem(
+        repository=dataset.repository,
+        set_name="non_existent_dataset",  # Ensure it doesn't exist
+        set_type=dataset.data_type,
+        as_of_utc=dataset.as_of_utc,
+    )
+    assert not io_handler.exists
+    read_data = io_handler.read()
+    assert read_data.shape[0] == 0
 
 
 def test_simple_write_with_none_data_raises_type_error(

@@ -45,7 +45,7 @@ REPO = "test_1"
 
 IO_HANDLERS = {
     "parquet": {
-        "handler": "ssb_timeseries.io.simple.FileSystem",
+        "handler": "ssb_timeseries.io.pyarrow_simple.FileSystem",
         "options": {"compression": "snappy"},
     },
     "json": {
