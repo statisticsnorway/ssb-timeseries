@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import importlib
 import os
+import warnings
 from datetime import datetime
 from datetime import timezone
 from functools import cache
@@ -110,6 +111,15 @@ def _handler_class(handler_name: str) -> type:
     config = Config.active()  #  _ACTIVE_CONFIG  #TODO: add Config.refresh() first
     handler_conf = config.io_handlers[handler_name]
     handler_path = handler_conf["handler"]
+
+    if "io.simple.FileSystem" in handler_path:
+        warnings.warn(
+            "The I/O handler 'ssb_timeseries.io.simple.FileSystem' is deprecated and will be removed in a future version. "
+            "Please update your configuration to use 'ssb_timeseries.io.pyarrow_simple.FileSystem'.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        handler_path = "ssb_timeseries.io.pyarrow_simple.FileSystem"
 
     module_path, class_name = handler_path.rsplit(".", 1)
     module = importlib.import_module(module_path)

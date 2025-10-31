@@ -24,6 +24,7 @@ Fixtures
 import logging
 import os
 import uuid
+from pathlib import Path
 
 import pytest
 
@@ -304,6 +305,52 @@ def test_init_w_only_config_file_param_pointing_to_file_not_exists_raises_error(
         configuration = cfg.Config(configuration_file=non_existing_file)
         assert configuration.is_valid
         test_logger.debug(f"Created configuration: {configuration}")
+
+
+def test_loading_deprecated_handler_path_issues_warning(
+    caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Verify that loading a config with the old handler path issues a DeprecationWarning."""
+    caplog.set_level("DEBUG")
+    deprecated_config_content = {
+        "io_handlers": {
+            "parquet": {
+                "handler": "ssb_timeseries.io.simple.FileSystem",
+                "options": {},
+            }
+        },
+        "repositories": {
+            "test_repo": {
+                "directory": {"path": str(tmp_path), "handler": "parquet"},
+                "catalog": {"path": str(tmp_path), "handler": "parquet"},
+            }
+        },
+    }
+    config_path = tmp_path / "deprecated_config.json"
+    deprecated_config_content["configuration_file"] = str(config_path)
+    import json
+
+    with open(config_path, "w") as f:
+        json.dump(deprecated_config_content, f)
+
+    monkeypatch.setenv("TIMESERIES_CONFIG", str(config_path))
+    config.Config()
+
+    with pytest.warns(
+        DeprecationWarning,
+        match="The I/O handler 'ssb_timeseries.io.simple.FileSystem' is deprecated",
+    ):
+        from ssb_timeseries.io import _io_handler
+        from ssb_timeseries.properties import SeriesType
+
+        _io_handler(
+            handler_type="data",
+            repository="test_repo",
+            set_name="test",
+            set_type=SeriesType.simple(),
+        )
 
 
 def test_init_w_no_params_and_env_var_pointing_to_non_existing_file_raises_error(
