@@ -260,26 +260,18 @@ def merge_data(
         pl.col(common_date_cols).cast(pl.Datetime(time_unit="us", time_zone="UTC"))
     )
 
-    # Ensure consistent dtypes, casting float32 to float64
     new_pl = new_pl.with_columns(pl.col(pl.Float32).cast(pl.Float64))
     old_pl = old_pl.with_columns(pl.col(pl.Float32).cast(pl.Float64))
 
-    if temporality == Temporality.FROM_TO:
-        # Polars-specific anti-join
-        old_filtered = old_pl.join(new_pl, on=common_date_cols, how="anti")
-    else:
-        old_filtered = old_pl.join(new_pl, on=common_date_cols, how="anti")
-        # Original logic for 'AT' temporality --> rely on unique below to deduplicate
-        # old_filtered = old_pl
+    old_filtered = old_pl.join(new_pl, on=common_date_cols, how="anti")
 
     merged = nw.concat(
         [nw.from_native(old_filtered), nw.from_native(new_pl)],
         how="diagonal",
-    )
-    # Deduplicate and sort to ensure integrity
-    out = merged.unique(
-        subset=common_date_cols,
-        keep="last",
+        # )
+        # out = merged.unique(
+        #    subset=common_date_cols,
+        #    keep="last",
     ).sort(by=sorted(common_date_cols))
-    pa_table = out.to_arrow()
+    pa_table = merged.to_arrow()
     return cast(pyarrow.Table, pa_table)

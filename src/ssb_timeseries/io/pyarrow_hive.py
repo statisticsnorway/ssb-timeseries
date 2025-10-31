@@ -9,7 +9,6 @@ from typing import Any
 from typing import cast
 from urllib.parse import unquote
 
-# import pyarrow.dataset as ds
 import narwhals as nw
 import pyarrow as pa
 from dateutil.parser import parse
@@ -23,8 +22,6 @@ from ..dataframes import is_empty
 from ..dataframes import merge_data
 from ..dates import prepend_as_of
 from ..dates import standardize_dates
-
-# from .parquet_schema import parquet_schema as parquet_schema
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped"
 
@@ -139,16 +136,8 @@ class HiveFileSystem:
                 )
 
         pa_table = nw.from_native(df).to_arrow()
-        # Reorder columns to match the schema and then cast to enforce it
         pa_table = pa_table.select(file_schema.names).cast(file_schema)
 
-        # if self.data_type.versioning == properties.Versioning.NONE:
-        #    # For unversioned data, write to a single Parquet file.
-        #    fs.mk_parent_dir(self.directory)
-        #    file_path = f"{self.directory}/data.parquet"
-        #    pa.parquet.write_table(pa_table, file_path)
-        # else:
-        #    # For versioned data, use Hive partitioning.
         pa.dataset.write_dataset(
             pa_table,
             base_dir=self.directory,

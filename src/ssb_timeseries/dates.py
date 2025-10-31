@@ -27,7 +27,7 @@ from .logging import logger
 # TODO: align these / control by configuration
 MAX_TIME_PRECISION: str = "second"
 DEFAULT_TIMESPEC: str = "seconds"
-NW_DEFAULT_TIME_UNIT: Literal["ns", "us", "ms", "s"] = "ns"
+NW_DEFAULT_TIME_UNIT: Literal["ns", "us", "ms"] = "ns"
 
 # PyArrow related constants to ensure consistent typing for timestamp columns
 PA_TIMESTAMP_UNIT: Literal["ns", "us", "ms", "s"] = "ns"
@@ -409,8 +409,7 @@ def validate_dates(
 
 def standardize_dates(
     df: nw.typing.IntoFrameT,
-    # as_of: datetime | None = None, # Removed as prepend_as_of is no longer called here
-    time_unit: Literal["ns", "us", "ms"] = "ms",  # NW_DEFAULT_TIME_UNIT,
+    time_unit: Literal["ns", "us", "ms"] = NW_DEFAULT_TIME_UNIT,
 ) -> nw.typing.IntoFrameT:
     """Ensure that all date columns conform to the same standards.
 
@@ -422,10 +421,8 @@ def standardize_dates(
     * Pandas Period indexes are nice -> consider conversions?
     * Pendulum or other libraries?
     """
-    # df = prepend_as_of(df, as_of) # Removed
-
     as_utc = datelike_to_utc(df)
-    return datetime_time_unit(as_utc, time_unit=NW_DEFAULT_TIME_UNIT)
+    return datetime_time_unit(as_utc, time_unit=time_unit)
 
 
 def period_index(col: IntoSeriesT, freq: str) -> PeriodIndex:
