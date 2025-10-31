@@ -8,11 +8,19 @@ and `versions`.
 
 This facade design decouples the core application logic from the specifics of the
 storage backends.
-The underlying implementation is a pluggable, configuration-driven system.
-It dispatches tasks to the appropriate backend handler based on the active
+The underlying implementation is a pluggable, configuration-driven system that
+dispatches tasks to the appropriate backend handler based on the active
 project configuration.
 
-Internal components like `Data_IO`, `Meta_IO`, and the concrete handler modules
+### Convenience Wrappers (`DataIO`, `MetaIO`)
+
+The `Dataset` class does not call the dispatch mechanism directly. Instead, it uses
+these two helper classes. When you create an instance like `DataIO(my_dataset)`,
+it holds the dataset context. Its `.dh` property then calls the `_io_handler`
+to get the appropriate data handler on the fly. `MetaIO` does the same for metadata.
+This simplifies the interaction from the `Dataset` class's perspective.
+
+Internal components like `DataIO`, `MetaIO`, and the concrete handler modules
 (e.g., `ssb_timeseries.io.pyarrow_simple`) are considered implementation details of this
 facade.
 They should not be imported or used directly by other parts of the application.
@@ -63,6 +71,7 @@ def _repo_config(
         repo.setdefault("name", target)
     elif isinstance(target, dict):
         repo = target
+        pass
     else:
         raise TypeError(
             f"Repository must be provided either by name (str) or as full dict; was {type(target)}:\n{target}"

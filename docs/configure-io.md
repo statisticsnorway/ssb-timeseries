@@ -30,7 +30,44 @@ This example defines the three standard handlers used by the library.
 }
 ```
 
-## 2. Repository Configuration
+## 2. Handler Directory Structures
+
+The choice of I/O handler determines how your data is organized on disk. Below are examples of the directory structures created by the built-in handlers.
+
+### `pyarrow_simple`
+
+This handler stores each dataset in a single Parquet file, with versioning information encoded in the filename.
+
+```
+<repository_root>/
+├── AS_OF_AT/
+│   └── my_versioned_dataset/
+│       ├── my_versioned_dataset-as_of_20230101T120000+0000-data.parquet
+│       └── my_versioned_dataset-as_of_20230102T120000+0000-data.parquet
+└── NONE_AT/
+    └── my_dataset/
+        └── my_dataset-latest-data.parquet
+```
+
+### `pyarrow_hive`
+
+This handler creates a Hive-partitioned directory structure, which is optimized for query engines like Spark or DuckDB.
+
+```
+<repository_root>/
+├── data_type=AS_OF_AT/
+│   └── dataset=my_versioned_dataset/
+│       ├── as_of=2023-01-01T120000+0000/
+│       │   └── part-0.parquet
+│       └── as_of=2023-01-02T120000+0000/
+│           └── part-0.parquet
+└── data_type=NONE_AT/
+    └── dataset=my_dataset/
+        └── as_of=__HIVE_DEFAULT_PARTITION__/
+            └── part-0.parquet
+```
+
+## 3. Repository Configuration
 
 A "repository" is a named storage location for your time series.
 It connects a data handler and a metadata handler to a specific set of paths.

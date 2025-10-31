@@ -1,7 +1,18 @@
 """Provides a PyArrow-based simple, file-based I/O handler for Parquet format.
 
-This handler stores datasets in a wide format using a defined directory
-structure: `<repository>/<datatype>/<dataset>/[<version>|<latest>].parquet`.
+This handler stores datasets in a wide format (series as columns) with embedded metadata,
+using a defined directory structure. For example:
+
+.. code-block::
+
+    <repository_root>/
+    ├── AS_OF_AT/
+    │   └── my_versioned_dataset/
+    │       ├── my_versioned_dataset-as_of_20230101T120000+0000-data.parquet
+    │       └── my_versioned_dataset-as_of_20230102T120000+0000-data.parquet
+    └── NONE_AT/
+        └── my_dataset/
+            └── my_dataset-latest-data.parquet
 
 It uses PyArrow for eager reading and writing.
 """
@@ -352,22 +363,3 @@ def find_datasets(
         )
     logger.debug("search results: %s", search_results)
     return [SearchResult(f[2], f[1]) for f in search_results]
-
-
-# ================================ READ/WRITE HELPERS: =================================
-
-
-# def tags_from_json_file(
-#    file_or_files: PathStr | list[PathStr],
-# ) -> DatasetTagDict | list[DatasetTagDict]:
-#    """Read one or more json files."""
-#
-#    if isinstance(file_or_files, list):
-#        result = []
-#        for f in file_or_files:
-#            j = fs.read_json(f)
-#            result.append(json.loads(j))
-#        return result
-#    else:
-#        t = fs.read_json(file_or_files)
-#        return DatasetTagDict(t)

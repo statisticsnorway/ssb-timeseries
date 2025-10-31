@@ -1,4 +1,22 @@
-"""Provides a Hive-partitioned, file-based I/O handler for Parquet format."""
+"""Provides a Hive-partitioned, file-based I/O handler for Parquet format.
+
+This handler stores datasets in a wide format (series as columns) with embedded metadata,
+using a defined Hive-partitioned directory structure. For example:
+
+.. code-block::
+
+    <repository_root>/
+    ├── data_type=AS_OF_AT/
+    │   └── dataset=my_versioned_dataset/
+    │       ├── as_of=2023-01-01T120000+0000/
+    │       │   └── part-0.parquet
+    │       └── as_of=2023-01-02T120000+0000/
+    │           └── part-0.parquet
+    └── data_type=NONE_AT/
+        └── dataset=my_dataset/
+            └── as_of=__HIVE_DEFAULT_PARTITION__/
+                └── part-0.parquet
+"""
 
 from __future__ import annotations
 

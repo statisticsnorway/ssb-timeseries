@@ -11,7 +11,7 @@ These are designed to separate the acts of *working with* data from *finding* da
     It represents a single time series dataset, bringing together its data and metadata.
     It provides a rich API for I/O, calculations, and data manipulation.
 -   **The `Catalog` module**: This provides functions for discovery and search within all datasets by name or metadata (tags) across all configured storage locations (repositories).
-    Although it provides critical functionality, a facade pattern hides the admitted complexity of managing the configuration and instantiating the `Catalog` and `Repository` objects behind the function `get_catalog()`.
+    The `get_catalog()` function acts as a simple facade, hiding the complexity of reading the configuration and instantiating the `Catalog` and `Repository` objects.
 
 ## Key Helper Modules
 
@@ -42,7 +42,7 @@ The library aims to provide easy and intuitive use of linear algebra for calcula
 A key design feature is the interpretation of datasets as mathematical matrices of series vectors, all aligned by a common date axis.
 
 To accomplish this, the basic data structure is a table where each time series is a column vector.
-The `Dataset` object itself exposes a rich set of mathematical operations (e.g., `+`, `-`, `*`, `/`).
+The `Dataset` object itself exposes a rich set of mathematical operations by overloading Python's standard operators (e.g., `+`, `-`, `*`, `/`).
 This allows for natural, expressive code, such as `new_dataset = (dataset_a + dataset_b) / 2`.
 
 ### The Implementation: An Opinionated, High-Performance Stack
@@ -61,8 +61,9 @@ This conceptual model naturally leads to an opinionated selection of high-perfor
 While the core stack is opinionated, a primary goal is to avoid creating a "walled garden."
 The library is designed to be a good citizen in the PyData ecosystem.
 
-This is achieved through **[Narwhals](https://narwhals-dev.github.io/narwhals/)**, a lightweight abstraction layer that provides a unified API over multiple dataframe backends.
-This means the library's internal logic works seamlessly whether the in-memory data is a Pandas DataFrame, a Polars DataFrame, or a PyArrow Table, offering maximum flexibility to users.
+This is achieved through **[Narwhals](https://narwhals-dev.github.io/narwhals/)**.
+Narwhals is a lightweight abstraction layer that provides a unified API over multiple dataframe backends.
+This strategic choice means the library's internal logic works seamlessly whether the in-memory data is a Pandas DataFrame, a Polars DataFrame, or a PyArrow Table, offering maximum flexibility and future-proofing.
 
 ### A Commitment to Interoperability
 
@@ -103,9 +104,21 @@ The library's ability to adapt to different storage environments is based on a d
 This system follows a classic **Facade** and **Strategy** design pattern.
 
 -   **The Facade (`ssb_timeseries.io`)**: As mentioned, this module is the single entry point for all storage operations.
-    It presents a simple API (e.g., `read_data`, `save`) to the rest of the application.
+    It presents a simple API (e.g., `read_data`, `save`, `search`) to the rest of the application.
 -   **Pluggable Handlers (The Strategy)**: The facade reads the project's configuration to dynamically load the appropriate **I/O handler** for a given task.
     These handlers are the concrete "strategies" for different backends (e.g., local files, cloud buckets) and are defined in a single JSON file, as detailed in the {doc}`configure-io` guide.
     This design allows for specifying custom handlers from outside the core library.
 -   **The Contract (`protocols.py`)**: The methods required for any I/O handler are formally defined in `protocols.py` using `typing.Protocol`.
     This ensures that any custom handler is compatible with the library's I/O system.
+
+### The Three-Layer I/O Information Model
+
+To ensure consistent behavior and coexistence between different I/O handlers, the system is designed around a three-layer information model.
+
+1.  **The Logical Data Model (In-Memory `Dataset` Object)**: This represents a single, versioned "slice" of data with its full context. The `Dataset.data` dataframe contains only the core series data, and versioning information is stored as a metadata attribute on the `Dataset` object itself (e.g., `Dataset.as_of_utc`). This layer is clean, implementation-agnostic, and focused on a single version for efficient in-memory analysis.
+
+2.  **The Physical Storage Model (I/O Handlers)**: This defines how a logical `Dataset` is persisted to a storage medium. Each I/O handler translates the logical model into a physical representation. For example:
+    -   The `pyarrow_simple` handler embeds the `as_of_utc` metadata in the **filename**.
+    -   The `pyarrow_hive` handler uses the `as_of_utc` metadata as a **Hive partition key**. For unversioned data, it uses a special partition named `as_of=__HIVE_DEFAULT_PARTITION__/`.
+
+3.  **The Unified Query Model (External View)**: This is a conceptual model for how external query engines (e.g., DuckDB, Spark) should see the entire data repository, across all versions. It presents data as a single, unified table with an `as_of` column that is `NULL` for unversioned data. The `pyarrow_hive` handler is designed to create this model natively on disk, making the data immediately queryable in a unified way.
