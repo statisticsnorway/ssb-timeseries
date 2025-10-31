@@ -8,12 +8,20 @@ and `versions`.
 
 This facade design decouples the core application logic from the specifics of the
 storage backends.
-The underlying implementation is a pluggable, configuration-driven system.
-It dispatches tasks to the appropriate backend handler based on the active
+The underlying implementation is a pluggable, configuration-driven system that
+dispatches tasks to the appropriate backend handler based on the active
 project configuration.
 
-Internal components like `Data_IO`, `Meta_IO`, and the concrete handler modules
-(e.g., `ssb_timeseries.io.simple`) are considered implementation details of this
+### Convenience Wrappers (`DataIO`, `MetaIO`)
+
+The `Dataset` class does not call the dispatch mechanism directly. Instead, it uses
+these two helper classes. When you create an instance like `DataIO(my_dataset)`,
+it holds the dataset context. Its `.dh` property then calls the `_io_handler`
+to get the appropriate data handler on the fly. `MetaIO` does the same for metadata.
+This simplifies the interaction from the `Dataset` class's perspective.
+
+Internal components like `DataIO`, `MetaIO`, and the concrete handler modules
+(e.g., `ssb_timeseries.io.pyarrow_simple`) are considered implementation details of this
 facade.
 They should not be imported or used directly by other parts of the application.
 """
@@ -22,6 +30,7 @@ from __future__ import annotations
 
 import importlib
 import os
+import warnings
 from datetime import datetime
 from datetime import timezone
 from functools import cache
@@ -33,6 +42,7 @@ from ..config import Config
 from ..config import FileBasedRepository
 from ..dataset import Dataset
 from ..dates import date_utc
+from ..dates import datelike_to_utc
 from ..logging import logger
 from ..meta import TagDict
 from ..properties import SeriesType
@@ -62,6 +72,7 @@ def _repo_config(
         repo.setdefault("name", target)
     elif isinstance(target, dict):
         repo = target
+        pass
     else:
         raise TypeError(
             f"Repository must be provided either by name (str) or as full dict; was {type(target)}:\n{target}"
@@ -100,6 +111,15 @@ def _handler_class(handler_name: str) -> type:
     config = Config.active()  #  _ACTIVE_CONFIG  #TODO: add Config.refresh() first
     handler_conf = config.io_handlers[handler_name]
     handler_path = handler_conf["handler"]
+
+    if "io.simple.FileSystem" in handler_path:
+        warnings.warn(
+            "The I/O handler 'ssb_timeseries.io.simple.FileSystem' is deprecated and will be removed in a future version. "
+            "Please update your configuration to use 'ssb_timeseries.io.pyarrow_simple.FileSystem'.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        handler_path = "ssb_timeseries.io.pyarrow_simple.FileSystem"
 
     module_path, class_name = handler_path.rsplit(".", 1)
     module = importlib.import_module(module_path)
@@ -198,7 +218,8 @@ def save(ds: Dataset) -> None:
     Args:
         ds: The Dataset object to save.
     """
-    DataIO(ds).dh.write(data=ds.data, tags=ds.tags)
+    utc_data = datelike_to_utc(ds.data)
+    DataIO(ds).dh.write(data=utc_data, tags=ds.tags)
     MetaIO(ds).dh.write(set_name=ds.name, tags=ds.tags)
 
 

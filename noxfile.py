@@ -172,15 +172,27 @@ def lint(session: Session) -> None:
 @session(python=python_versions)
 def mypy(session: Session) -> None:
     """Type-check 'src' directory using mypy."""
-    args = session.posargs or ["src",] # "tests"]
+    args = session.posargs or ["src"]
+    # Export deps to a requirements file
+    session.run(
+        "poetry",
+        "export",
+        "--with",
+        "dev",
+        "--format=requirements.txt",
+        "--output",
+        "requirements-dev.txt",
+        external=True,
+    )
+    session.install("-r", "requirements-dev.txt")
     session.install(".")
-    session.install("mypy", "pytest", "pytest-mypy", "click")
     project_root = Path(__file__).parent
-    pyproj_toml_file = str(project_root /  "pyproject.toml")
+    pyproj_toml_file = str(project_root / "pyproject.toml")
     with session.chdir(project_root):
         session.run(
             "mypy",
-            "--config-file", pyproj_toml_file,
+            "--config-file",
+            pyproj_toml_file,
             *args,
         )
         if not session.posargs:

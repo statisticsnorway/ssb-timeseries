@@ -1,18 +1,26 @@
-"""Provides a simple, file-based I/O handler for Parquet format.
+"""Provides a PyArrow-based simple, file-based I/O handler for Parquet format.
 
-This handler stores datasets in a wide format using a defined directory
-structure: `<repository>/<datatype>/<dataset>/[<version>|<latest>].parquet`.
+This handler stores datasets in a wide format (series as columns) with embedded metadata,
+using a defined directory structure. For example:
+
+.. code-block::
+
+    <repository_root>/
+    ├── AS_OF_AT/
+    │   └── my_versioned_dataset/
+    │       ├── my_versioned_dataset-as_of_20230101T120000+0000-data.parquet
+    │       └── my_versioned_dataset-as_of_20230102T120000+0000-data.parquet
+    └── NONE_AT/
+        └── my_dataset/
+            └── my_dataset-latest-data.parquet
 
 It uses PyArrow for eager reading and writing.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import re
-from collections.abc import Iterable
-from copy import deepcopy
 from datetime import datetime
 from typing import Any
 from typing import NamedTuple
@@ -22,28 +30,25 @@ import narwhals as nw
 import pyarrow
 import pyarrow.compute
 from narwhals.typing import FrameT
-from narwhals.typing import IntoFrameT
 
 from .. import fs
 from .. import properties
 from ..config import Config
 from ..dataframes import empty_frame
 from ..dataframes import is_empty
+from ..dataframes import merge_data
 from ..dates import date_utc
 from ..dates import datelike_to_utc
 from ..dates import prepend_as_of
-from ..dates import standardize_dates
 from ..dates import utc_iso_no_colon
 from ..logging import logger
-from ..meta import TagDict
 from ..types import PathStr
-from .json_metadata import _sanitize_for_json
+from .parquet_schema import parquet_schema
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 
 
 active_config = Config.active
-
 
 # TODO: get this from config / dataset metadata:
 PA_TIMESTAMP_UNIT = "ns"
@@ -97,7 +102,7 @@ def last_version_number_by_regex(directory: str, pattern: str = "*") -> str:
         out = number_of_files
 
     logger.debug(
-        "io/simple.last_version_number_by_regex() search in directory: \n\t%s\n\tfor '%s' found %s files, regex identified version %s --> vs %s.",
+        "io/pyarrow_simple.last_version_number_by_regex() search in directory: \n\t%s\n\tfor '%s' found %s files, regex identified version %s --> vs %s.",
         directory,
         pattern,
         f"{number_of_files!s}",
@@ -141,7 +146,7 @@ class FileSystem:
                 "An 'as of' datetime must be specified when the type has versioning of type Versioning.AS_OF."
             )
 
-        self.as_of_utc: datetime = utc_iso_no_colon(as_of_utc)
+        self.as_of_utc: datetime = as_of_utc
 
     @property
     def root(self) -> str:
@@ -154,7 +159,8 @@ class FileSystem:
         """Construct the standard filename for the dataset's data file."""
         match str(self.data_type.versioning):
             case "AS_OF":
-                file_name = f"{self.set_name}-as_of_{self.as_of_utc}-data.parquet"
+                safe_timestamp = utc_iso_no_colon(self.as_of_utc)
+                file_name = f"{self.set_name}-as_of_{safe_timestamp}-data.parquet"
             case "NONE":
                 file_name = f"{self.set_name}-latest-data.parquet"
             case "NAMED":
@@ -209,6 +215,11 @@ class FileSystem:
             df = empty_frame()
             logger.debug(f"No file {self.fullpath} - return empty frame instead.")
         pa_table = datelike_to_utc(df)
+
+        # The 'as_of' column is a storage detail and should not be part of the logical dataset
+        if "as_of" in pa_table.column_names:
+            pa_table = pa_table.drop(["as_of"])
+
         return cast(pyarrow.Table, pa_table)
 
     def write(self, data: FrameT, tags: dict | None = None) -> None:
@@ -224,13 +235,20 @@ class FileSystem:
         else:
             old = self.read(self.set_name)
             if is_empty(old):
-                df = datelike_to_utc(new)
+                df = new
             else:
-                df = merge_data(
-                    new=datelike_to_utc(new),
-                    old=datelike_to_utc(old),
-                    date_cols=self.data_type.date_columns,
+                logger.debug(
+                    f"Merging data with temporality: {self.data_type.temporality}"
                 )
+                logger.debug(f"Old data length: {len(old)}")
+                logger.debug(f"New data length: {len(new)}")
+                df = merge_data(
+                    new=new,
+                    old=old,
+                    date_cols=self.data_type.date_columns,
+                    temporality=self.data_type.temporality,
+                )
+                logger.debug(f"Merged data length: {len(df)}")
 
         logger.info(
             "DATASET.write.start %s: writing data to file\n\t%s\nstarted.",
@@ -345,113 +363,3 @@ def find_datasets(
         )
     logger.debug("search results: %s", search_results)
     return [SearchResult(f[2], f[1]) for f in search_results]
-
-
-# ================================ READ/WRITE HELPERS: =================================
-
-
-def merge_data(
-    old: IntoFrameT, new: IntoFrameT, date_cols: Iterable[str]
-) -> pyarrow.Table:
-    """Merge new data into an existing dataframe, keeping the last entry for duplicates."""
-    new = standardize_dates(new)
-    old = standardize_dates(old)
-
-    expressions = [nw.selectors.by_dtype(nw.Float32).cast(nw.Float64)]
-    new = nw.from_native(new).lazy(backend="polars").with_columns(expressions).collect()  # type: ignore[call-arg]
-    old = nw.from_native(old).lazy(backend="polars").with_columns(expressions).collect()  # type: ignore[call-arg]
-
-    logger.debug("merge_data schemas \n%s\n%s", old.schema, new.schema)
-    merged = nw.concat(
-        [old, new],
-        how="diagonal",
-    )
-    out = merged.unique(
-        subset=date_cols,
-        keep="last",
-    ).sort(by=sorted(date_cols))
-    pa_table = nw.from_native(out).to_arrow()
-    return cast(pyarrow.Table, pa_table)
-
-
-def parquet_schema(
-    data_type: properties.SeriesType,
-    meta: dict[str, Any],
-) -> pyarrow.Schema | None:
-    """Translate dataset tags into a PyArrow schema with embedded metadata."""
-    if not meta:
-        raise ValueError("Tags can not be empty.")
-
-    dataset_meta = deepcopy(meta)
-    series_meta = dataset_meta.pop("series")
-
-    if not series_meta:
-        return None
-
-    date_col_fields = [
-        pyarrow.field(
-            d,
-            pyarrow.timestamp(unit=PA_TIMESTAMP_UNIT, tz=PA_TIMESTAMP_TZ),  # type: ignore[call-overload]
-            nullable=False,
-        )
-        for d in data_type.temporality.date_columns
-    ]
-
-    num_col_fields = [
-        pyarrow.field(
-            series_key,
-            PA_NUMERIC,
-            nullable=True,
-            metadata=tags_to_json(series_tags),
-        )
-        for series_key, series_tags in series_meta.items()
-    ]
-    num_col_fields.sort(key=lambda x: x.name)
-
-    schema = pyarrow.schema(
-        date_col_fields + num_col_fields,
-        metadata=tags_to_json(dataset_meta),
-    )
-    return schema
-
-
-def tags_to_json(x: TagDict) -> dict[str, bytes]:
-    """Serialize a tag dictionary into a format suitable for Parquet metadata.
-
-    See Also:
-        https://arrow.apache.org/docs/python/generated/pyarrow.schema.html
-    """
-    sanitized_tags = _sanitize_for_json(x)
-    j = {"json": json.dumps(sanitized_tags).encode("utf8")}
-    return j
-
-
-def tags_from_json(
-    dict_with_json_string: dict[str | bytes, str | bytes],
-    byte_encoded: bool = True,
-) -> TagDict:  # dict[str, Any]:
-    """Deserialize a tag dictionary from the Parquet metadata format.
-
-    This is the reverse of `tags_to_json`.
-    """
-    if byte_encoded:
-        d = json.loads(dict_with_json_string[b"json"].decode())
-    else:
-        d = json.loads(dict_with_json_string["json"])
-    return cast(TagDict, d)
-
-
-# def tags_from_json_file(
-#    file_or_files: PathStr | list[PathStr],
-# ) -> DatasetTagDict | list[DatasetTagDict]:
-#    """Read one or more json files."""
-#
-#    if isinstance(file_or_files, list):
-#        result = []
-#        for f in file_or_files:
-#            j = fs.read_json(f)
-#            result.append(json.loads(j))
-#        return result
-#    else:
-#        t = fs.read_json(file_or_files)
-#        return DatasetTagDict(t)

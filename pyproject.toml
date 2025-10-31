@@ -1,6 +1,6 @@
 [project]
 name = "ssb-timeseries"
-version = "0.7.0"
+version = "0.7.1"
 description = "SSB Timeseries"
 authors = [{ name = "Bernhard Ryeng", email = "bernhard.ryeng@ssb.no" }]
 license = "MIT"
@@ -17,10 +17,8 @@ dependencies = [
     "narwhals>=1.38.0",
     "numpy>=1.26.4",
     "pandas>=2.1.1",
-    "pandas-stubs>=2.2.3.250308",
     "polars>=1.5.0",
     "pyarrow>=14.0.0",
-    "pyarrow-stubs>=20.0.0.20250627",
     "duckdb>=1.0.0",
     "dapla-toolbelt>=1.3.2",
     "ssb-klass-python>=0.0.7",
@@ -64,6 +62,9 @@ xdoctest = { extras = ["colors"], version = ">=0.15.10" }
 myst-parser = { version = ">=0.16.1" }
 deptry = ">=0.16.1"
 click = ">=8.1.7"
+pandas-stubs = "^2.3.2.250926"
+pyarrow-stubs = "^20.0.0.20250928"
+types-python-dateutil = "^2.9.0.20251008"
 
 
 [tool.poetry.group.docs.dependencies]
@@ -115,6 +116,10 @@ ignore_errors = true              # Suppress ALL type errors from the tests dire
 module = "noxfile.py"
 ignore_errors = true
 warn_unreachable = false
+
+[[tool.mypy.overrides]]
+module = "multipledispatch"
+ignore_missing_imports = true
 
 [tool.ruff]
 force-exclude = true  # Apply excludes to pre-commit

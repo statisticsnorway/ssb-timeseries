@@ -156,7 +156,15 @@ def ls(path: str, pattern: str = "*", create: bool = False) -> list[str]:
 
 
 def cp(from_path: PathStr, to_path: PathStr) -> None:
-    """Copy file ... regardless of source and target location is local fs or GCS to local."""
+    """Copy file from one location to another.
+
+    This function handles copying files between local and GCS paths,
+    automatically selecting the correct backend.
+
+    Args:
+        from_path: The path to the source file.
+        to_path: The path to the destination file.
+    """
     from_type = fs_type(from_path)
     to_type = fs_type(to_path)
     if is_gcs(from_path) | is_gcs(to_path):
@@ -176,7 +184,15 @@ def cp(from_path: PathStr, to_path: PathStr) -> None:
 
 
 def mv(from_path: PathStr, to_path: PathStr) -> None:
-    """Move file ... regardless of source and target location is local fs or GCS to local."""
+    """Move file from one location to another.
+
+    This function handles moving files between local and GCS paths,
+    automatically selecting the correct backend.
+
+    Args:
+        from_path: The path to the source file.
+        to_path: The path to the destination file.
+    """
     from_type = fs_type(from_path)
     to_type = fs_type(to_path)
 
@@ -197,7 +213,13 @@ def mv(from_path: PathStr, to_path: PathStr) -> None:
 
 
 def rm(path: PathStr) -> None:
-    """Remove file from local or GCS filesystem. Nonrecursive. For a recursive variant, see rmtree()."""
+    """Remove a file from either the local filesystem or GCS.
+
+    This function is non-recursive. For a recursive variant, see rmtree().
+
+    Args:
+        path: The path to the file to be removed.
+    """
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()
         fs.rm(path)
@@ -386,7 +408,20 @@ def read_parquet(
     implementation: str = "pyarrow",
     **kwargs,
 ) -> narwhals.typing.Frame:
-    """Read parquet file into data frame."""
+    """Read a Parquet file into a dataframe.
+
+    This function can read from both local and GCS paths.
+
+    Args:
+        path: The path to the Parquet file.
+        lazy: If True, returns a lazy dataframe. Defaults to False.
+        implementation: The backend to use for reading the file.
+            Defaults to "pyarrow".
+        **kwargs: Additional keyword arguments passed to the backend.
+
+    Returns:
+        A Narwhals dataframe.
+    """
     if lazy:
         return narwhals.scan_parquet(path, backend=implementation, **kwargs)
     else:
@@ -399,7 +434,18 @@ def write_parquet(
     schema: pyarrow.Schema | None = None,
     **kwargs,
 ) -> None:
-    """Write dataframe into parquet file."""
+    """Write a dataframe to a Parquet file.
+
+    This function can write to both local and GCS paths, automatically
+    selecting the correct filesystem backend. It also handles schema validation.
+
+    Args:
+        data: The dataframe to write (can be a PyArrow Table or any
+            Narwhals-compatible dataframe).
+        path: The destination path for the Parquet file.
+        schema: An optional PyArrow schema to validate against before writing.
+        **kwargs: Additional keyword arguments passed to the backend.
+    """
     table = to_arrow(data, schema)  # to validate schema ...
     if is_gcs(path):
         fs = FileClient.get_gcs_file_system()

@@ -212,7 +212,7 @@ LOGGING_PRESETS = {
 
 BUILTIN_IO_HANDLERS = {
     "simple-parquet": {
-        "handler": "ssb_timeseries.io.simple.FileSystem",
+        "handler": "ssb_timeseries.io.pyarrow_simple.FileSystem",
         "options": {},
     },
     "json": {

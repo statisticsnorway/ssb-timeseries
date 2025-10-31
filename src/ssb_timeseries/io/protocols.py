@@ -45,20 +45,39 @@ class DataReadWrite(Protocol):
         ...
 
     @property
-    def exists(self) -> bool:
-        """Check if data exists in the configured storage."""
+    def exists(self, set_name: str = "") -> bool:
+        """Check if the dataset exists in the configured storage."""
         ...
 
     def write(self, data: Any, tags: dict | None = None) -> None:
-        """Write data to the configured storage."""
+        """Write the dataset's data to the configured storage.
+
+        This method should handle both the creation of new data files and the
+        updating/merging of data into existing files, depending on the
+        versioning strategy of the dataset.
+
+        Args:
+            data: The data to be written (e.g., a pandas DataFrame or PyArrow Table).
+            tags: A dictionary of metadata tags to be stored with the data,
+                often in the file's schema.
+        """
         ...
 
     def read(self, *args, **kwargs) -> Any:
-        """Read data from the configured storage."""
+        """Read data from the configured storage.
+
+        Returns:
+            The dataset's data in a dataframe-like format (e.g., PyArrow Table).
+            If the data does not exist, an empty dataframe should be returned.
+        """
         ...
 
     def versions(self, *args, **kwargs) -> list[datetime | str]:
-        """Retrieve available versions from the configured storage."""
+        """Retrieve a list of available versions for the dataset.
+
+        Returns:
+            A sorted list of version identifiers (datetimes or strings).
+        """
         ...
 
 
@@ -72,15 +91,21 @@ class MetadataReadWrite(Protocol):
         set_name: str,  # TODO: remove -> turn into method parameter
         **kwargs,
     ) -> None:
-        """Initialize the IO handler for a specific metadata storage."""
+        """Initialize the IO handler for a specific metadata storage.
+
+        Args:
+            repository: The metadata repository name or configuration.
+            set_name: The dataset name to operate on.
+            **kwargs: Any parameters defined for the handler in the configuration.
+        """
         ...
 
     def exists(self, name: str) -> bool:
-        """Check if metadata exists in the configured storage."""
+        """Check if metadata for a given dataset name exists."""
         ...
 
     def find(self, **kwargs) -> bool:
-        """Find datasets in the configured storage."""
+        """Find datasets in the configured storage based on metadata criteria."""
         ...
 
     def write(self, **kwargs) -> None:
@@ -88,10 +113,21 @@ class MetadataReadWrite(Protocol):
         ...
 
     def read(self, **kwargs) -> dict[str, Any]:
-        """Read metadata from the configured storage."""
+        """Read metadata from the configured storage.
+
+        Returns:
+            A dictionary containing the metadata tags for the dataset.
+        """
         ...
 
     @classmethod
     def search(cls, **kwargs) -> dict[str, Any]:
-        """Search and retrieve metadata from the configured storage."""
+        """Search and retrieve metadata from the configured storage.
+
+        This method should allow searching for datasets based on various
+        metadata criteria.
+
+        Returns:
+            A dictionary or list of dictionaries containing the search results.
+        """
         ...

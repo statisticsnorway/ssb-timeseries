@@ -10,7 +10,6 @@ This approach duplicates metadata that might also be stored in data files
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 from typing import NamedTuple
@@ -21,10 +20,8 @@ from ..logging import logger
 from ..meta import DatasetTagDict
 from ..meta import TagDict
 from ..meta import matches_criteria
-from ..properties import SeriesType
-from ..properties import Temporality
-from ..properties import Versioning
 from ..types import PathStr
+from .json_helpers import sanitize_for_json
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 
@@ -54,28 +51,6 @@ def _matches_tags(d: dict, tags: Any) -> bool:
         return any(checks)
     else:
         raise TypeError(f"Cannot check tags of type '{type(tags)}'.")
-
-
-def _sanitize_for_json(d: dict) -> dict:
-    """Recursively convert custom ssb-timeseries types to JSON-serializable strings."""
-    if not isinstance(d, dict):
-        return d
-    sanitized_dict = {}
-    for k, v in d.items():
-        if isinstance(v, SeriesType | Versioning | Temporality):
-            sanitized_dict[k] = str(v)
-        elif isinstance(v, datetime):
-            sanitized_dict[k] = v.isoformat()
-        elif isinstance(v, dict):
-            sanitized_dict[k] = _sanitize_for_json(v)
-        elif isinstance(v, list):
-            sanitized_dict[k] = [
-                _sanitize_for_json(item) if isinstance(item, dict) else item
-                for item in v
-            ]
-        else:
-            sanitized_dict[k] = v
-    return sanitized_dict
 
 
 def _build_dataset_item(tags_from_file: dict, repo_name: str) -> dict:
@@ -191,7 +166,7 @@ class JsonMetaIO:
                 set_name,
                 self.fullpath(set_name),
             )
-            sanitized_tags = _sanitize_for_json(tags)
+            sanitized_tags = sanitize_for_json(tags)
             fs.write_json(self.fullpath(set_name), sanitized_tags)
             logger.info(
                 "JsonMetaIO.write.success %s: Writing metadata to file %s.",

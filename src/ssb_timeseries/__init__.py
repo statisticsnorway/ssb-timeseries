@@ -33,8 +33,6 @@ The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether da
 
 from __future__ import annotations
 
-# from ssb_timeseries.catalog import Catalog
-# from ssb_timeseries.catalog import Repository
 from ssb_timeseries.catalog import get_catalog
 from ssb_timeseries.config import CONFIG
 from ssb_timeseries.config import Config
@@ -47,18 +45,8 @@ _current_config = get_configuration()
 logger = set_up_logging_according_to_config(__name__, _current_config.logging)
 
 
-# def get_catalog() -> Catalog:
-#    """Return the catalog corresponding to the active configuration."""
-#    config_repos = get_configuration().repositories
-#    repo_list = [
-#        Repository(name=k, catalog=v["catalog"])  # type: ignore[arg-type]
-#        for k, v in config_repos.items()
-#        if "catalog" in v
-#    ]
-#    return Catalog(repo_list)
-
-
 __all__ = [
+    "dataframes",
     "dataset",
     "dates",
     "fs",

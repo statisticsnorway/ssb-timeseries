@@ -63,7 +63,7 @@ def console_log_handler() -> None:
         "%(name)s | %(levelname)s | %(asctime)s | %(message)s \n"
     )
     console.setFormatter(string_format)
-    console.setLevel("INFO")
+    console.setLevel("DEBUG")
     return console
 
 
@@ -228,6 +228,9 @@ def buildup_and_teardown(
     assert active_config_after == _ENV_VAR_VALUE_BEFORE_TESTS
 
 
+# -----------------------------------------------------------------------------
+
+
 @pytest.fixture(scope="session")
 def tag_values():
     """Define series names for which to generate test data."""
@@ -248,7 +251,7 @@ def abc_at(tag_values):
     yield df
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def abc_from_to(tag_values):
     df = create_df(
         *tag_values,
@@ -258,6 +261,9 @@ def abc_from_to(tag_values):
         temporality="FROM_TO",
     )
     yield df
+
+
+# -----------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="session")
@@ -282,6 +288,9 @@ def xyz_from_to():
         temporality="FROM_TO",
     )
     yield df
+
+
+# -----------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="function")
@@ -335,6 +344,33 @@ def new_dataset_as_of_from_to(abc_from_to, buildup_and_teardown):
     yield x
 
 
+# -----------------------------------------------------------------------------
+
+
+@pytest.fixture(
+    params=[
+        "new_dataset_none_at",
+        "new_dataset_none_from_to",
+    ],
+    scope="function",
+)
+def one_new_set_for_each_unversioned_type(request):
+    """A fixture returning one example dataset for each *unversioned* data type in a list."""
+    yield request.getfixturevalue(request.param)
+
+
+@pytest.fixture(
+    params=[
+        "new_dataset_as_of_at",
+        "new_dataset_as_of_from_to",
+    ],
+    scope="function",
+)
+def one_new_set_for_each_versioned_type(request):
+    """A fixture returning one example dataset for each *versioned* data type in a list."""
+    yield request.getfixturevalue(request.param)
+
+
 @pytest.fixture(
     params=[
         "new_dataset_none_at",
@@ -349,7 +385,102 @@ def one_new_set_for_each_data_type(request):
     yield request.getfixturevalue(request.param)
 
 
-@pytest.fixture(scope="module")
+# -----------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="function")
+def existing_none_at_set(abc_at, buildup_and_teardown):
+    """Create a simple dataset (and save so that files are existing) before running the test. Delete files afterwards."""
+    x = Dataset(
+        name="test-existing-dataset-none-at",
+        data_type=SeriesType.simple(),
+        data=abc_at,
+        attributes=["A", "B", "C"],
+    )
+    x.save()
+    yield x
+
+
+@pytest.fixture(scope="function")
+def existing_none_from_to_set(abc_from_to, buildup_and_teardown):
+    """Create a non-versioned from-to dataset and save it."""
+    x = Dataset(
+        name="test-existing-dataset-none-from-to",
+        data_type=SeriesType.from_to(),
+        data=abc_from_to,
+        attributes=["A", "B", "C"],
+    )
+    x.save()
+    yield x
+
+
+@pytest.fixture(scope="function")
+def existing_as_of_at_set(abc_at, buildup_and_teardown):
+    """Create an estimate (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
+    x = Dataset(
+        name="test-existing-dataset-as-of-at",
+        data_type=SeriesType.estimate(),
+        as_of_tz=date_utc("2022-01-01"),
+        data=abc_at,
+        attributes=["A", "B", "C"],
+    )
+    x.save()
+    yield x
+
+
+@pytest.fixture(scope="function")
+def existing_as_of_from_to_set(abc_from_to, buildup_and_teardown):
+    """Create a versioned from-to dataset and save it."""
+    x = Dataset(
+        name="test-existing-dataset-as-of-from-to",
+        data_type=SeriesType.as_of_from_to(),
+        as_of_tz=date_utc("2022-01-01"),
+        data=abc_from_to,
+        attributes=["A", "B", "C"],
+    )
+    x.save()
+    yield x
+
+
+# -----------------------------------------------------------------------------
+
+
+@pytest.fixture(
+    params=["existing_none_at_set", "existing_none_from_to_set"],
+    scope="function",
+)
+def one_existing_set_for_each_unversioned_type(request):
+    """A fixture returning one example dataset for each *unversioned* data type in a list."""
+    yield request.getfixturevalue(request.param)
+
+
+@pytest.fixture(
+    params=["existing_dataset_as_of_at", "existing_dataset_as_of_from_to"],
+    scope="function",
+)
+def one_existing_set_for_each_versioned_type(request):
+    """A fixture returning one example dataset for each *versioned* data type in a list."""
+    yield request.getfixturevalue(request.param)
+
+
+@pytest.fixture(
+    params=[
+        "existing_none_at_set",
+        "existing_none_from_to_set",
+        "existing_estimate_set",
+        "existing_as_of_from_to_set",
+    ],
+    scope="function",
+)
+def one_existing_set_for_each_data_type(request):
+    """A parameterized fixture returning one saved dataset for each data type."""
+    yield request.getfixturevalue(request.param)
+
+
+# -----------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="function")
 def existing_simple_set(abc_at, buildup_and_teardown):
     """Create a simple dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     x = Dataset(
@@ -364,7 +495,7 @@ def existing_simple_set(abc_at, buildup_and_teardown):
 
 @pytest.fixture(scope="function")
 def existing_estimate_set(abc_at, buildup_and_teardown):
-    """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
+    """Create an estimate (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     x = Dataset(
         name="test-existing-estimate-dataset",
         data_type=SeriesType.estimate(),
@@ -377,24 +508,8 @@ def existing_estimate_set(abc_at, buildup_and_teardown):
 
 
 @pytest.fixture(scope="function")
-def existing_from_to_set(abc_from_to, buildup_and_teardown):
-    """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
-    x = Dataset(
-        name="test-existing-small-dataset",
-        data_type=SeriesType.from_to(),
-        as_of_tz=date_utc("2022-01-01"),
-        data=abc_from_to,
-        attributes=["A", "B", "C"],
-        series_tags={"D": "d"},
-        dataset_tags={"E": "e", "F": ["f1", "f2"]},
-    )
-    x.save()
-    yield
-
-
-@pytest.fixture(scope="function")
 def existing_small_set(buildup_and_teardown):
-    """Create an estimeat (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
+    """Create an estimate (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     tags = {"A": ["a1", "a2", "a3"], "B": ["b"], "C": ["c"]}
     tag_values = [value for value in tags.values()]
     x = Dataset(
