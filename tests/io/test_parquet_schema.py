@@ -6,6 +6,15 @@ from ssb_timeseries.io import parquet_schema as io
 from ssb_timeseries.io.json_helpers import tags_from_json
 
 
+def test_parquet_schema_returns_none_when_no_series_meta():
+    """Test that parquet_schema returns None when there is no series metadata."""
+    from ssb_timeseries.properties import SeriesType
+
+    tags = {"name": "test-dataset", "series": {}}
+    schema = io.parquet_schema(SeriesType.simple(), tags)
+    assert schema is None
+
+
 def test_io_parquet_schema_for_all_series_types(
     one_new_set_for_each_data_type,
     conftest,

@@ -29,6 +29,24 @@ def test_tags_to_json():
     assert json.loads(json_tags["json"].decode()) == tags
 
 
+def test_sanitize_for_json_with_nested_structures():
+    """Test that sanitize_for_json correctly handles nested dictionaries and lists."""
+    nested_tags = {
+        "name": "nested-dataset",
+        "config": {
+            "type": SeriesType.as_of_from_to(),
+            "versions": [
+                {"tag": "v1", "spec": SeriesType.simple()},
+                {"tag": "v2", "spec": SeriesType.from_to()},
+            ],
+        },
+    }
+    sanitized = sanitize_for_json(nested_tags)
+    assert sanitized["config"]["type"] == "AS_OF_FROM_TO"
+    assert sanitized["config"]["versions"][0]["spec"] == "NONE_AT"
+    assert sanitized["config"]["versions"][1]["spec"] == "NONE_FROM_TO"
+
+
 def test_tags_from_json():
     """Test that the tags_from_json function correctly deserializes a tag dictionary."""
     tags = {

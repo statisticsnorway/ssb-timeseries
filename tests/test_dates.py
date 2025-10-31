@@ -406,6 +406,29 @@ def test_validate_dates_fails_for_non_utc_dates(caplog, xyz_at, xyz_from_to):
         )
 
 
+from unittest.mock import patch
+
+
+def test_now_cet_returns_cet_timezone():
+    """Test that now_cet returns the current time in CET."""
+    now = now_cet()
+    assert now.tzinfo == CET
+    # Check that it's close to the actual now, ignoring microseconds for robustness
+    assert (datetime.now(tz=CET) - now).total_seconds() < 1
+
+
+def test_local_timezone_with_monkeypatch(monkeypatch):
+    """Test that local_timezone correctly reflects the system's timezone."""
+    new_york_tz = ZoneInfo("America/New_York")
+
+    with patch("ssb_timeseries.dates.datetime") as mock_datetime:
+        mock_datetime.now.return_value.astimezone.return_value.tzinfo = new_york_tz
+
+        tz = local_timezone()
+
+        assert tz == new_york_tz
+
+
 def test_validate_dates_fails_for_missing_date_columns(caplog, xyz_at, xyz_from_to):
     assert not validate_dates(
         xyz_at,

@@ -48,8 +48,8 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
     # "Real dataseries" = "The most used naming convention for series in the legacy FAME databases of Statistics Norway"
     separator = kwargs.get("separator", "_")
 
-    if isinstance(args, dict):
-        return args.values()
+    if len(args) == 1 and isinstance(args[0], dict):
+        return list(args[0].values())
 
     final_args = []
 
@@ -62,6 +62,8 @@ def series_names(*args: dict | str | list[str] | tuple, **kwargs: str) -> list[s
             final_args.append(arg)
         elif isinstance(arg, tuple):
             final_args.append(list(arg))
+        elif isinstance(arg, dict):
+            final_args.append(list(arg.values()))
         else:
             raise ValueError(f"Invalid argument type: {type(arg)}")
 

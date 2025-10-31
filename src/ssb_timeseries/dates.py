@@ -149,7 +149,7 @@ def now_utc(**kwargs) -> datetime:
 
 def now_cet(**kwargs) -> datetime:
     """Return now in CET."""
-    t = datetime.now(tz=UTC)
+    t = datetime.now(tz=CET)
     return date_round(t, **kwargs)
 
 

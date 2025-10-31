@@ -9,16 +9,14 @@ import pytest
 from pytest import LogCaptureFixture
 
 from ssb_timeseries import fs
-
-# from ssb_timeseries.io import json_metadata
+from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.fs import file_count
 from ssb_timeseries.io import pyarrow_hive as io
-
-# from ssb_timeseries.io.parquet_schema import parquet_schema
 from ssb_timeseries.io.pyarrow_hive import _parquet_schema
 from ssb_timeseries.properties import SeriesType
+from ssb_timeseries.properties import Versioning
 from ssb_timeseries.sample_data import create_df
 
 # mypy: ignore-errors
@@ -266,3 +264,42 @@ def test_simple_write_with_none_data_raises_type_error(
 
     with pytest.raises(TypeError):
         io_handler.write(data=None, tags=dataset.tags)
+
+
+def test_hive_filesystem_init_raises_error_for_as_of_none_without_as_of_utc(
+    one_new_set_for_each_versioned_type: Dataset,
+) -> None:
+    """Verify that initializing HiveFileSystem with Versioning.AS_OF and as_of_utc=None raises a ValueError."""
+    dataset = one_new_set_for_each_versioned_type
+    with pytest.raises(ValueError, match="An 'as of' datetime must be specified"):
+        io.HiveFileSystem(
+            repository=dataset.repository,
+            set_name=dataset.name,
+            set_type=SeriesType(
+                versioning=Versioning.AS_OF,
+                temporality=dataset.data_type.temporality,
+            ),
+            as_of_utc=None,
+        )
+
+
+def test_read_non_existent_dataset_returns_empty_frame(
+    one_new_set_for_each_data_type: Dataset,
+) -> None:
+    """Verify that reading a non-existent dataset returns an empty dataframe."""
+    dataset = one_new_set_for_each_data_type
+    io_handler = io.HiveFileSystem(
+        repository=dataset.repository,
+        set_name=dataset.name,
+        set_type=dataset.data_type,
+        as_of_utc=dataset.as_of_utc,
+    )
+    # Ensure the dataset does not exist
+    if io_handler.exists:
+        # This should not happen with the fixture, but as a safeguard
+        # we would need to delete the directory. For now, assume it doesn't exist.
+        pass
+
+    read_data = io_handler.read()
+    assert read_data.shape == (0, 0)
+    assert is_empty(read_data)

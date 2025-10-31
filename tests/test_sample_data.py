@@ -38,6 +38,12 @@ def test_series_names_from_two_lists_of_strings_returns_list_of_permutations(cap
     assert sorted(names) == ["a_1", "a_2", "b_1", "b_2", "c_1", "c_2"]
 
 
+def test_series_names_from_dict_returns_dict_values(caplog):
+    """Test that series_names returns the values of a dictionary argument."""
+    names = series_names({"a": "x", "b": "y", "c": "z"})
+    assert sorted(list(names)) == ["x", "y", "z"]
+
+
 def test_series_names_from_two_tuples_of_strings_returns_list_of_permutations(caplog):
     names = series_names(("a", "b", "c"), ("1", "2"))
     assert sorted(names) == ["a_1", "a_2", "b_1", "b_2", "c_1", "c_2"]
