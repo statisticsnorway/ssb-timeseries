@@ -11,6 +11,7 @@ from urllib.parse import unquote
 # import pyarrow.dataset as ds
 import narwhals as nw
 import pyarrow as pa
+from dateutil.parser import parse
 from narwhals.typing import FrameT
 
 from .. import fs
@@ -173,7 +174,7 @@ class HiveFileSystem:
         for d in version_dirs:
             if "as_of=" in d:
                 version_str = d.split("as_of=")[-1]
-                versions.append(datetime.fromisoformat(unquote(version_str)))
+                versions.append(parse(unquote(version_str)))
         return sorted(versions)
 
 
