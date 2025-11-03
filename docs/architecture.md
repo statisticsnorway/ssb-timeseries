@@ -17,7 +17,7 @@ These are designed to separate the acts of *working with* data from *finding* da
 
 While `Dataset` and `Catalog` are the main interfaces, several helper modules provide the foundation for the library's flexibility and robustness.
 
--   **`properties`**: This module defines key enumerations `Versioning` and `Temporality` that constitutes the `SeriesType`.
+-   **`types`**: This module defines key enumerations `Versioning` and `Temporality` that constitutes the `SeriesType`.
     They form a type system core that allows key concepts from the {doc}`info-model` to translate into different technical implementations.
 -   **`dates`**: This module provides utility functions for standardizing all time-related operations.
     It ensures consistent handling of timezones, frequencies, and formats throughout the library.

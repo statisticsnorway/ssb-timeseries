@@ -2,11 +2,11 @@
 
 The dataset is the unit of analysis for both :doc:`information model <../info-model>` and :doc:`workflow integration <../workflow>`,and performance will benefit from linear algebra with sets as matrices consisting of series column vectors.
 
-As described in the :doc:`../info-model` time series datasets may consist of any number of series of the same :py:class:`~ssb_timeseries.properties.SeriesType`.
+As described in the :doc:`../info-model` time series datasets may consist of any number of series of the same :py:class:`~ssb_timeseries.types.SeriesType`.
 The series types are defined by dimensionality characteristics:
 
-* :py:class:`~ssb_timeseries.properties.Versioning` (NONE, AS_OF, NAMED)
-* :py:class:`~ssb_timeseries.properties.Temporality` (Valid AT point in time, or FROM and TO for duration)
+* :py:class:`~ssb_timeseries.types.Versioning` (NONE, AS_OF, NAMED)
+* :py:class:`~ssb_timeseries.types.Temporality` (Valid AT point in time, or FROM and TO for duration)
 * The type of the value. For now only scalar values are supported.
 
 Additional type determinants (sparsity, irregular frequencies, non-numeric or non-scalar values, ...) are conceivable and may be introduced later.
@@ -51,6 +51,8 @@ from narwhals.typing import IntoSeries
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
+from ssb_timeseries.types import SeriesType
+
 from . import io
 from . import meta
 from .config import Config
@@ -64,11 +66,10 @@ from .dates import date_utc
 from .dates import period_index
 from .dates import utc_iso
 from .logging import logger
-from .properties import SeriesType
-from .properties import Temporality
-from .properties import Versioning
 from .types import F
 from .types import PathStr
+from .types import Temporality
+from .types import Versioning
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -129,17 +130,17 @@ def _identify_data_type(**kwargs: Any) -> SeriesType | None:
 
 
 class Dataset:
-    """Datasets contain one or more series of the same :py:class:`~ssb_timeseries.properties.SeriesType`.
+    """Datasets contain one or more series of the same :py:class:`~ssb_timeseries.types.SeriesType`.
 
     The grouping of series in a set usually reflect some common denominator in terms of descriptive metadata.
     In a well defined set, all the series in the set come from the same process,
     so that the set comprises a natural chunk of data for reads and writes in a batch oriented workflow.
 
-    For all the series in a dataset to be of the same :py:class:`~ssb_timeseries.properties.SeriesType` means they share dimensionality characteristics :py:class:`~ssb_timeseries.properties.Versioning` and :py:class:`~ssb_timeseries.properties.Temporality` and any other schema information that have technical implications.
+    For all the series in a dataset to be of the same :py:class:`~ssb_timeseries.types.SeriesType` means they share dimensionality characteristics :py:class:`~ssb_timeseries.types.Versioning` and :py:class:`~ssb_timeseries.types.Temporality` and any other schema information that have technical implications.
     See the :doc:`../info-model` documentation for more about that.
 
     Descriptive commonality is beneficial,
-    especially for attributes that reflect technical properties,
+    especially for attributes that reflect technical types,
     although not technically enforced.
     A notable example is time resolution.
     Sparse data is a strong indication that a dataset is not well defined.
@@ -314,9 +315,7 @@ class Dataset:
         kwarg_data = kwargs.get("data", None)
         if is_df_like(kwarg_data) and not is_empty(kwarg_data):
             self.data = kwarg_data
-        elif (
-            find_existing
-        ):  # and self.data_type.versioning == properties.Versioning.AS_OF:
+        elif find_existing:  # and self.data_type.versioning == types.Versioning.AS_OF:
             self.data = io.DataIO(self).dh.read()
         else:
             self.data = empty_frame()
@@ -550,7 +549,7 @@ class Dataset:
 
         Examples:
             >>> from ssb_timeseries.dataset import Dataset
-            >>> from ssb_timeseries.properties import SeriesType
+            >>> from ssb_timeseries.types import SeriesType
             >>> from ssb_timeseries.sample_data import create_df
             >>>
             >>> x = Dataset(name='sample_dataset',
@@ -609,7 +608,7 @@ class Dataset:
             Dependencies
 
             >>> from ssb_timeseries.dataset import Dataset
-            >>> from ssb_timeseries.properties import SeriesType
+            >>> from ssb_timeseries.types import SeriesType
             >>> from ssb_timeseries.sample_data import create_df
             >>>
             >>> some_data = create_df(['x', 'y', 'z'], start_date='2024-01-01', end_date='2024-12-31', freq='MS')
@@ -710,7 +709,7 @@ class Dataset:
 
         Examples:
             >>> from ssb_timeseries.dataset import Dataset
-            >>> from ssb_timeseries.properties import SeriesType
+            >>> from ssb_timeseries.types import SeriesType
             >>> from ssb_timeseries.sample_data import create_df
 
             Tag using attributes and dcefault separator:
@@ -1701,7 +1700,7 @@ class Dataset:
             To calculate 10 and 90 percentiles and median for the dataset `x` where codes from KLASS 157 (energy_balance) distinguishes between series in the set.
 
             >>> from ssb_timeseries.dataset import Dataset
-            >>> from ssb_timeseries.properties import SeriesType
+            >>> from ssb_timeseries.types import SeriesType
             >>> from ssb_timeseries.sample_data import create_df
             >>> from ssb_timeseries.meta import Taxonomy
             >>>
@@ -1944,7 +1943,7 @@ def search(
     if number_of_results == 1:
         tags = found[0].object_tags
         stype = SeriesType(tags["versioning"], tags["temporality"])
-        # stype =ts.properties.seriestype_from_str(found[0].type_directory)
+        # stype =ts.types.seriestype_from_str(found[0].type_directory)
         return Dataset(
             name=tags["name"],
             data_type=stype,

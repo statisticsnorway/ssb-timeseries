@@ -32,14 +32,14 @@ import pyarrow as pa
 from dateutil.parser import parse
 from narwhals.typing import FrameT
 
-from .. import fs
-from .. import properties
+from .. import types
 from ..config import Config
 from ..dataframes import empty_frame
 from ..dataframes import is_empty
 from ..dataframes import merge_data
 from ..dates import prepend_as_of
 from ..dates import standardize_dates
+from . import fs
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped"
 
@@ -62,7 +62,7 @@ class HiveFileSystem:
         self,
         repository: Any,
         set_name: str,
-        set_type: properties.SeriesType,
+        set_type: types.SeriesType,
         as_of_utc: datetime | None = None,
         **kwargs: dict[str, Any],
     ) -> None:
@@ -76,7 +76,7 @@ class HiveFileSystem:
         self.set_name = set_name
         self.data_type = set_type
 
-        if as_of_utc is None and set_type.versioning == properties.Versioning.AS_OF:
+        if as_of_utc is None and set_type.versioning == types.Versioning.AS_OF:
             raise ValueError(
                 "An 'as of' datetime must be specified when the type has versioning of type Versioning.AS_OF."
             )
@@ -127,7 +127,7 @@ class HiveFileSystem:
         # The 'as_of' column is a storage detail and should not be part of the logical dataset
         if (
             "as_of" in table.column_names
-            and self.data_type.versioning == properties.Versioning.NONE
+            and self.data_type.versioning == types.Versioning.NONE
         ):
             table = table.drop(["as_of"])
 
@@ -142,7 +142,7 @@ class HiveFileSystem:
             tags,
             partition_by=["as_of"],
         )
-        if self.data_type.versioning == properties.Versioning.NONE:
+        if self.data_type.versioning == types.Versioning.NONE:
             old_data = self.read()
             if not is_empty(old_data):
                 old_data = prepend_as_of(old_data, None)
@@ -172,7 +172,7 @@ class HiveFileSystem:
 
     def versions(self) -> list[datetime | str]:
         """List available versions by inspecting subdirectories."""
-        if not self.exists or self.data_type.versioning != properties.Versioning.AS_OF:
+        if not self.exists or self.data_type.versioning != types.Versioning.AS_OF:
             return []
 
         version_dirs = fs.ls(self.directory)
@@ -195,7 +195,7 @@ def _partitioning_schema(
 
 
 def _parquet_schema(
-    data_type: properties.SeriesType,
+    data_type: types.SeriesType,
     meta: dict[str, Any],
     partition_by: list[str],
 ) -> tuple[pa.Schema, pa.dataset.Partitioning]:

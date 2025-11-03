@@ -31,8 +31,7 @@ import pyarrow
 import pyarrow.compute
 from narwhals.typing import FrameT
 
-from .. import fs
-from .. import properties
+from .. import types
 from ..config import Config
 from ..dataframes import empty_frame
 from ..dataframes import is_empty
@@ -43,6 +42,7 @@ from ..dates import prepend_as_of
 from ..dates import utc_iso_no_colon
 from ..logging import logger
 from ..types import PathStr
+from . import fs
 from .parquet_schema import parquet_schema
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
@@ -57,10 +57,10 @@ PA_NUMERIC = "float64"
 
 
 def _version_from_file_name(
-    file_name: str, pattern: str | properties.Versioning = "as_of", group: int = 2
+    file_name: str, pattern: str | types.Versioning = "as_of", group: int = 2
 ) -> str:
     """Extract a version marker from a filename using known patterns."""
-    if isinstance(pattern, properties.Versioning):
+    if isinstance(pattern, types.Versioning):
         pattern = str(pattern)
 
     match pattern.lower():
@@ -119,7 +119,7 @@ class FileSystem:
         self,
         repository: Any,  # dict[str,str] | FileBasedRepository,
         set_name: str,
-        set_type: properties.SeriesType,
+        set_type: types.SeriesType,
         as_of_utc: datetime | None = None,
         process_stage: str = "statistikk",
         sharing: dict | None = None,
@@ -141,7 +141,7 @@ class FileSystem:
         self.process_stage = process_stage
         self.sharing = sharing
 
-        if as_of_utc is None and set_type.versioning == properties.Versioning.AS_OF:
+        if as_of_utc is None and set_type.versioning == types.Versioning.AS_OF:
             raise ValueError(
                 "An 'as of' datetime must be specified when the type has versioning of type Versioning.AS_OF."
             )
@@ -229,7 +229,7 @@ class FileSystem:
         If versioning is NONE, new data is merged into the existing file.
         """
         new = nw.from_native(data)
-        if self.data_type.versioning == properties.Versioning.AS_OF:
+        if self.data_type.versioning == types.Versioning.AS_OF:
             # consider a merge option for versioned writing?
             df = prepend_as_of(new, self.as_of_utc)
         else:
@@ -280,7 +280,7 @@ class FileSystem:
         return fs.exists(self.fullpath)
 
     def versions(
-        self, file_pattern: str = "*", pattern: str | properties.Versioning = "as_of"
+        self, file_pattern: str = "*", pattern: str | types.Versioning = "as_of"
     ) -> list[datetime | str]:
         """List all available version markers from the data directory."""
         files = fs.ls(self.directory, pattern=file_pattern)
@@ -289,12 +289,12 @@ class FileSystem:
             vs_strings = [
                 _version_from_file_name(str(fname), pattern, group=2) for fname in files
             ]
-            match properties.Versioning(pattern):
-                case properties.Versioning.AS_OF:
+            match types.Versioning(pattern):
+                case types.Versioning.AS_OF:
                     versions = sorted([date_utc(as_of) for as_of in vs_strings])
-                case properties.Versioning.NAMES:
+                case types.Versioning.NAMES:
                     versions = sorted(vs_strings)
-                case properties.Versioning.NONE:
+                case types.Versioning.NONE:
                     versions = vs_strings
                 case _:
                     raise ValueError(f"pattern '{pattern}' not recognized.")

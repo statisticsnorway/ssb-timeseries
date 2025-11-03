@@ -18,9 +18,9 @@ from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
 from .dates import standardize_dates
-from .properties import SeriesType
-from .properties import Temporality
-from .properties import Versioning
+from .types import SeriesType
+from .types import Temporality
+from .types import Versioning
 
 # mypy: disable-error-code="union-attr"
 

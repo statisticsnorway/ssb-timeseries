@@ -7,7 +7,7 @@ import pyarrow
 import pytest
 
 import ssb_timeseries as ts
-from ssb_timeseries import fs
+from ssb_timeseries.io import fs
 from ssb_timeseries.sample_data import create_df
 
 # mypy: ignore-errors

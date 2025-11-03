@@ -7,7 +7,7 @@ from pytest import LogCaptureFixture
 
 from ssb_timeseries import io
 from ssb_timeseries.dataset import Dataset
-from ssb_timeseries.properties import SeriesType
+from ssb_timeseries.types import SeriesType
 
 # from ssb_timeseries.dates import datelike_to_utc
 

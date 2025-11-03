@@ -14,13 +14,13 @@ from pathlib import Path
 from typing import Any
 from typing import NamedTuple
 
-from .. import fs
 from ..config import FileBasedRepository
 from ..logging import logger
 from ..meta import DatasetTagDict
 from ..meta import TagDict
 from ..meta import matches_criteria
 from ..types import PathStr
+from . import fs
 from .json_helpers import sanitize_for_json
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "

@@ -11,10 +11,10 @@ from pytest import LogCaptureFixture
 # from ssb_timeseries.io import json_metadata
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import now_utc
-from ssb_timeseries.fs import file_count
 from ssb_timeseries.io import pyarrow_simple as io
-from ssb_timeseries.properties import SeriesType
+from ssb_timeseries.io.fs import file_count
 from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.types import SeriesType
 
 # mypy: ignore-errors
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"

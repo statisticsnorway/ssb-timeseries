@@ -30,7 +30,7 @@ import pytest
 
 # import ssb_timeseries as ts
 from ssb_timeseries import config
-from ssb_timeseries import fs
+from ssb_timeseries.io import fs
 from tests.conftest import Helpers
 
 # NOSONAR
@@ -343,7 +343,7 @@ def test_loading_deprecated_handler_path_issues_warning(
         match="The I/O handler 'ssb_timeseries.io.simple.FileSystem' is deprecated",
     ):
         from ssb_timeseries.io import _io_handler
-        from ssb_timeseries.properties import SeriesType
+        from ssb_timeseries.types import SeriesType
 
         _io_handler(
             handler_type="data",

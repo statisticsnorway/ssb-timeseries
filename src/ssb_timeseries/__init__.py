@@ -26,7 +26,7 @@ The most practical entry points are the :py:mod:`ssb_timeseries.dataset` and :py
 
 The other modules of the package are helpers used by these core modules, and not intended for direct use.
 
-Some notable exceptions are taxonomy and hierarchy features of :py:mod:`ssb_timeseries.meta` and type definitions in :py:mod:`ssb_timeseries.properties`.
+Some notable exceptions are taxonomy and hierarchy features of :py:mod:`ssb_timeseries.meta` and type definitions in :py:mod:`ssb_timeseries.types`.
 :py:mod:`ssb_timeseries.config` may be used for initial set up and later switching between repositories, if needed.
 The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether data and metada are stored in files or databases and :py:mod:`ssb_timeseries.fs` is an abstraction for local vs GCS file systems.
 """
@@ -34,26 +34,26 @@ The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether da
 from __future__ import annotations
 
 from ssb_timeseries.catalog import get_catalog
-from ssb_timeseries.config import CONFIG
 from ssb_timeseries.config import Config
 from ssb_timeseries.logging import set_up_logging_according_to_config
 
-get_configuration = Config.active
+# get_configuration = Config.active
 """Return the active configuration."""
 
-_current_config = get_configuration()
-logger = set_up_logging_according_to_config(__name__, _current_config.logging)
+# _current_config = get_configuration()
+# logger = set_up_logging_according_to_config(__name__, _current_config.logging)
+
+logger = set_up_logging_according_to_config(__name__, Config.active().logging)
 
 
 __all__ = [
     "dataframes",
     "dataset",
     "dates",
-    "fs",
     "get_catalog",
     "get_configuration",
     "io",
     "logger",
-    "properties",
     "sample_data",
+    "types",
 ]

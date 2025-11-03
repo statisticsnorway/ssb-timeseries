@@ -38,24 +38,24 @@ from typing import Any
 
 from narwhals.typing import IntoFrame
 
-from ..config import Config
 from ..config import FileBasedRepository
 from ..dataset import Dataset
 from ..dates import date_utc
 from ..dates import datelike_to_utc
 from ..logging import logger
 from ..meta import TagDict
-from ..properties import SeriesType
+from ..types import SeriesType
 from . import protocols
 from . import snapshot
 
 # mypy: disable-error-code="no-any-return,no-untyped-def,return-value,assignment,attr-defined"
 DEFAULT_PROCESS_STAGE = "Statistikk"  # TODO: control from config?
-_ACTIVE_CONFIG = Config.active()
 
 
 def _all_repos() -> list:
     """Get a list of all repository names."""
+    from ..config import Config
+
     return list(Config.active().repositories.keys())
 
 
@@ -66,6 +66,8 @@ def _repo_config(
 
     A target that is already a dictionary will simply be passed through.
     """
+    from ..config import Config
+
     if isinstance(target, str):
         config = Config.active()  #  _ACTIVE_CONFIG #TODO: add Config.refresh() first
         repo = config.repositories[target]
@@ -108,6 +110,8 @@ def _io_handler(**kwargs) -> protocols.DataReadWrite | protocols.MetadataReadWri
 
 def _handler_class(handler_name: str) -> type:
     """Dynamically import and return a handler class from the config."""
+    from ..config import Config
+
     config = Config.active()  #  _ACTIVE_CONFIG  #TODO: add Config.refresh() first
     handler_conf = config.io_handlers[handler_name]
     handler_path = handler_conf["handler"]
@@ -330,6 +334,8 @@ def find(
         LookupError: If `require_one` or `require_unique` is True and the
             number of results does not match the requirement.
     """
+    from ..config import Config
+
     if repository:
         repositories = [_repo_config(repository)]
     else:
@@ -404,6 +410,8 @@ def persist(
     Args:
         ds: The Dataset object to persist.
     """
+    from ..config import Config
+
     # TODO: rewrite to use _io_handler to dynamically define IO module from config
     snapshot_config = Config.active().snapshots
     if not snapshot_config:

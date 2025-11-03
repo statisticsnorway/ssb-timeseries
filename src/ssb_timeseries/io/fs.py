@@ -19,9 +19,9 @@ import tomli_w
 from dapla import FileClient
 from narwhals.typing import IntoFrame
 
-from ssb_timeseries.dataframes import to_arrow
-from ssb_timeseries.types import F
-from ssb_timeseries.types import PathStr
+from ..dataframes import to_arrow
+from ..types import F
+from ..types import PathStr
 
 # mypy: disable-error-code="arg-type, type-arg, no-any-return, no-untyped-def, import-untyped, attr-defined, type-var, index, return-value"
 
