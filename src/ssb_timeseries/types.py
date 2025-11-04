@@ -6,8 +6,6 @@ from collections.abc import Callable
 from os import PathLike
 from typing import TypeAlias
 
-# from ssb_timeseries.logging import ts_logger
-
 PathStr: TypeAlias = str | PathLike[str]
 F: TypeAlias = Callable
 
@@ -89,7 +87,11 @@ class Temporality(SuperEnum):
     @property
     def date_columns(self) -> list[str]:
         """Returns the data columns of the temporality."""
-        return ["valid_at"] if self == Temporality.AT else ["valid_from", "valid_to"]
+        if self == Temporality.AT:
+            return ["valid_at"]
+        if self == Temporality.FROM_TO:
+            return ["valid_from", "valid_to"]
+        return []
 
 
 class SeriesType:
@@ -117,22 +119,33 @@ class SeriesType:
         #   (without further specification for float/int/decimal)
         # partial support: bool
         # consider later: text
-        words = [t.lower() for t in type_def]
-        if versioning:
-            self.versioning = versioning
-        elif {"asof", "as_of", "estimate"} & set(words):
-            self.versioning = Versioning.AS_OF
-        elif {"names"} & set(words):
-            self.versioning = Versioning.NAMES
-        else:
-            self.versioning = Versioning.NONE
+        words = {str(t).lower() for t in type_def}
 
-        if temporality:
-            self.temporality = temporality
-        elif {"at", "simple"} & set(words):
-            self.temporality = Temporality.AT
+        # Initialize with defaults
+        _versioning = Versioning.NONE
+        _temporality = Temporality.FROM_TO
+
+        # Handle high-level keywords first
+        if "simple" in words:
+            _versioning = Versioning.NONE
+            _temporality = Temporality.AT
+        elif "estimate" in words:
+            _versioning = Versioning.AS_OF
+            _temporality = Temporality.AT
         else:
-            self.temporality = Temporality.FROM_TO
+            # Fallback for other versioning keywords if no high-level keyword was found
+            if {"asof", "as_of"} & words:
+                _versioning = Versioning.AS_OF
+            elif {"names"} & words:
+                _versioning = Versioning.NAMES
+
+            # Fallback for other temporality keywords if no high-level keyword was found
+            if {"at"} & words:
+                _temporality = Temporality.AT
+
+        # Explicit arguments always override
+        self.versioning = versioning if versioning is not None else _versioning
+        self.temporality = temporality if temporality is not None else _temporality
 
     @classmethod
     def none_at(cls) -> Self:
