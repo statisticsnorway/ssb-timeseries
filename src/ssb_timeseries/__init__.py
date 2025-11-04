@@ -37,13 +37,10 @@ from ssb_timeseries.catalog import get_catalog
 from ssb_timeseries.config import Config
 from ssb_timeseries.logging import set_up_logging_according_to_config
 
-# get_configuration = Config.active
+get_configuration = Config.active
 """Return the active configuration."""
 
-# _current_config = get_configuration()
-# logger = set_up_logging_according_to_config(__name__, _current_config.logging)
-
-logger = set_up_logging_according_to_config(__name__, Config.active().logging)
+logger = set_up_logging_according_to_config(__name__, get_configuration().logging)
 
 
 __all__ = [

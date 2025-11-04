@@ -1943,7 +1943,6 @@ def search(
     if number_of_results == 1:
         tags = found[0].object_tags
         stype = SeriesType(tags["versioning"], tags["temporality"])
-        # stype =ts.types.seriestype_from_str(found[0].type_directory)
         return Dataset(
             name=tags["name"],
             data_type=stype,
