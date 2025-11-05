@@ -1063,7 +1063,7 @@ class Dataset:
         return df.plot(
             xlabels,
             *args,
-            legend=len(self.data.columns) < 9,
+            legend=len(self.nw.columns) < 9,
             title=self.name,
             figsize=(12, 4),
             **kwargs,
@@ -1084,13 +1084,13 @@ class Dataset:
         stack = inspect.stack()
         locals_ = stack[1][0].f_locals
 
-        for col in self.data.columns:
+        for col in self.nw.columns:
             if col.__contains__(pattern):
-                cmd = f"{col} = self.data['{col}']"
+                cmd = f"{col} = self.nw['{col}']"
                 logger.debug(cmd)
                 # the original idea was running (in caller scope)
                 # exec(cmd)
-                locals_[col] = self.data[col]
+                locals_[col] = self.nw[col]
 
     def groupby(
         self,
@@ -1104,7 +1104,7 @@ class Dataset:
         Returns a new Dataset.
         """
         datetime_columns = list(
-            set(self.data.columns) & {"valid_at", "valid_to", "valid_from"}
+            set(self.nw.columns) & {"valid_at", "valid_to", "valid_from"}
         )
 
         # works for datetime_columns = "valid_at", untested for others
