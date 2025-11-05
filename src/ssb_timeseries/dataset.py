@@ -25,6 +25,7 @@ import re
 import warnings
 from collections.abc import Iterable
 from collections.abc import Sequence
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -394,6 +395,8 @@ class Dataset:
             attributes=autotag_attr,
             **kwargs,
         )
+        out.tags = deepcopy(self.tags)
+        out.rename(new_name)
         # not necessary?
         # for k, v in self.__dict__.items():
         #    #print(f"copy attr from self: {k=}, ")
@@ -905,6 +908,7 @@ class Dataset:
                 if not new_name:
                     new_name = f"COPY of({self.name} SELECTED by names {names}, pattern: {pattern}, regex: {regex} tags: {tags})"
                 out = self.copy(new_name, data=df, **kwargs)
+                out.rename(new_name)
                 matching_series_tags = {
                     k: v
                     for k, v in out.tags["series"].items()

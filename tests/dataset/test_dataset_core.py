@@ -752,3 +752,25 @@ def test_get_dataset_series_and_series_tags(
     assert isinstance(series_tags, dict)
     assert len(series_names) == len(series_tags_keys)
     assert sorted(series_names) == sorted(series_tags_keys)
+
+
+def test_select_preserves_tags(
+    new_dataset_none_at: Dataset, caplog: LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    x = new_dataset_none_at
+    # Add a custom tag that cannot be auto-generated
+    x.tag_series(tags={"custom_tag": "custom_value"})
+
+    selected_series = x.series[0]
+    y = x.select(selected_series)
+
+    original_tags = x.series_tags[selected_series].copy()
+    selected_tags = y.series_tags[selected_series].copy()
+
+    # The 'dataset' tag is expected to change to the new dataset's name
+    assert selected_tags.pop("dataset") == y.name
+    original_tags.pop("dataset")
+
+    # The rest of the tags should be identical
+    assert original_tags == selected_tags
