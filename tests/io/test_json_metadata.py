@@ -4,10 +4,10 @@ import logging
 
 from pytest import LogCaptureFixture
 
-from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.io import fs
 from ssb_timeseries.io import json_metadata
-from ssb_timeseries.properties import SeriesType
+from ssb_timeseries.types import SeriesType
 
 # mypy: ignore-errors
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"

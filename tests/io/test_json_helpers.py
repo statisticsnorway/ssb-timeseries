@@ -5,7 +5,7 @@ import json
 from ssb_timeseries.io.json_helpers import sanitize_for_json
 from ssb_timeseries.io.json_helpers import tags_from_json
 from ssb_timeseries.io.json_helpers import tags_to_json
-from ssb_timeseries.properties import SeriesType
+from ssb_timeseries.types import SeriesType
 
 
 def test_sanitize_for_json():

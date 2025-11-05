@@ -8,16 +8,15 @@ import pyarrow.parquet as pq
 import pytest
 from pytest import LogCaptureFixture
 
-from ssb_timeseries import fs
 from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import now_utc
-from ssb_timeseries.fs import file_count
+from ssb_timeseries.io import fs
 from ssb_timeseries.io import pyarrow_hive as io
 from ssb_timeseries.io.pyarrow_hive import _parquet_schema
-from ssb_timeseries.properties import SeriesType
-from ssb_timeseries.properties import Versioning
 from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import Versioning
 
 # mypy: ignore-errors
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"
@@ -43,7 +42,7 @@ def check_file_count_change(
     """Polls a directory until the file count reaches the expected increment or the check times out."""
     start_time = time.monotonic()
     while time.monotonic() - start_time < timeout_seconds:
-        if file_count(directory) >= initial_count + expected_increment:
+        if fs.file_count(directory) >= initial_count + expected_increment:
             return True  # Success!
         time.sleep(poll_interval)
 

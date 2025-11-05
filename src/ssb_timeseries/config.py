@@ -25,6 +25,8 @@ which is equivalent to::
 See :py:func:`ssb_timeseries.config.main` for details on the named options.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -46,8 +48,7 @@ except ImportError:
 from typing import Any
 from typing import TypeAlias
 
-from ssb_timeseries import fs
-from ssb_timeseries.types import PathStr
+from .types import PathStr
 
 # mypy: disable-error-code="assignment, arg-type, override,call-arg,has-type,no-untyped-def,attr-defined,import-untyped,"
 
@@ -89,7 +90,12 @@ class ConfigDict(TypedDict):
 
 def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
     """Check if a dictionary is a valid configuration :py:class:`ConfigDict`."""
-    missing_required = ConfigDict.__required_keys__ - set(configuration.keys())
+    # The ConfigDict.__required_keys__ includes optional fields like 'snapshots' and 'sharing'
+    # which causes a ValidationError when the default configuration is loaded.
+    # To fix this, we explicitly define the required keys.
+    # missing_required = ConfigDict.__required_keys__ - set(configuration.keys())
+    required_keys = {"configuration_file", "io_handlers", "repositories", "logging"}
+    missing_required = required_keys - set(configuration.keys())
     if missing_required:
         msg = f"Configuration is missing required fields: {list(missing_required)}\n{configuration}"
         return (False, msg)
@@ -447,6 +453,8 @@ class Config:
         Raises:
             ValueError: If `path` is not provided and :attr:`configuration_file` is not set.
         """
+        from .io import fs
+
         if path:
             self.configuration_file = str(path)
         elif not self.configuration_file:
@@ -497,6 +505,8 @@ class ValidationError(Exception):
 
 def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
     """Read configurations from a JSON file into a Config object."""
+    from .io import fs
+
     if fs.exists(path):
         from_json = fs.read_json(path)
         if not isinstance(from_json, dict):
@@ -584,6 +594,8 @@ if __name__ == "__main__":
     print(f"Arguments of the script : {sys.argv[1:]=}")
     main(sys.argv[1])
 else:
+    from .io import fs
+
     if active_file():
         if fs.exists(active_file()):
             CONFIGFILE = active_file()

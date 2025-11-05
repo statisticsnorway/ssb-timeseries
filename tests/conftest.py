@@ -10,12 +10,12 @@ from pathlib import Path
 import pytest
 
 from ssb_timeseries import config
-from ssb_timeseries import fs
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
+from ssb_timeseries.io import fs
 from ssb_timeseries.logging import set_up_logging_according_to_config
-from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.types import SeriesType
 
 # mypy: ignore-errors
 

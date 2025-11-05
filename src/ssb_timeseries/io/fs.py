@@ -19,9 +19,9 @@ import tomli_w
 from dapla import FileClient
 from narwhals.typing import IntoFrame
 
-from ssb_timeseries.dataframes import to_arrow
-from ssb_timeseries.types import F
-from ssb_timeseries.types import PathStr
+from ..dataframes import to_arrow
+from ..types import F
+from ..types import PathStr
 
 # mypy: disable-error-code="arg-type, type-arg, no-any-return, no-untyped-def, import-untyped, attr-defined, type-var, index, return-value"
 
@@ -388,20 +388,6 @@ def write_json(path: PathStr, content: str | dict) -> None:
             json.dump(content, file, indent=4, ensure_ascii=False)
 
 
-# def metadata_from_parquet(filename: PathStr) -> dict:
-#     """Read metadata from parquet file."""
-#     meta = pq.read_metadata(filename)
-#     decoded_schema = base64.b64decode(meta.metadata[b"ARROW:schema"])
-#     return pyarrow.ipc.read_schema(pyarrow.BufferReader(decoded_schema))
-
-
-# def metadata_to_parquet(metadata: dict, filename: PathStr) -> None:
-#     """Write metadata to parquet file."""
-#     schema = pyarrow.schema(metadata)
-#     table = pyarrow.Table.from_pandas(metadata, schema=schema)
-#     pq.write_table(table, filename)
-
-
 def read_parquet(
     path: PathStr,
     lazy: bool = False,  # TODO: Later steps need lazy-proofing before we can switch defaults.
@@ -475,30 +461,4 @@ def write_parquet(
     #     # partitioning_flavor="hive",
     #     **kwargs,
     # )
-
-
-# def update_parquet_metadata(
-#     path: PathStr,
-#     tags: dict | None = None,
-#     schema: pyarrow.Schema = None,
-# ) -> None:
-#     """TODO: Add faster pyarrrow implementations enforcing type based schemas."""
-#     table = pq.read_table(path)
-#     existing_metadata = table.schema.metadata
-
-#     if schema:
-#         table = table.cast(schema)
-
-#     byte_encoded_tags = json.dumps(tags).encode("utf8")
-#     merged_metadata = {
-#         **existing_metadata,
-#         **{"metadata": byte_encoded_tags},
-#     }
-
-#     # is this covered by cast(schema) and replace_schema_metadata?
-#     # convert_data = table.cast(table.schema)
-#     pq.write_table(
-#         table,
-#         table.replace_schema_metadata(merged_metadata),
-#         path,
-#     )
+    # --> TODO: review interaction / lack thereof with pyarrow-...-helpers

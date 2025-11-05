@@ -8,7 +8,7 @@ from ssb_timeseries.io.json_helpers import tags_from_json
 
 def test_parquet_schema_returns_none_when_no_series_meta():
     """Test that parquet_schema returns None when there is no series metadata."""
-    from ssb_timeseries.properties import SeriesType
+    from ssb_timeseries.types import SeriesType
 
     tags = {"name": "test-dataset", "series": {}}
     schema = io.parquet_schema(SeriesType.simple(), tags)

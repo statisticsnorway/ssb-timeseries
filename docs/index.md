@@ -27,6 +27,7 @@ end-before: <!-- github-only -->
 .. toctree::
    :includehidden:
    :hidden:
+   :maxdepth: 4
    :caption: API Reference
 
    reference/index

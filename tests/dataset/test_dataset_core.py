@@ -11,12 +11,12 @@ from ssb_timeseries.dataset import default_repository
 from ssb_timeseries.dataset import search
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.dates import now_utc
-from ssb_timeseries.fs import file_count
 from ssb_timeseries.io import DataIO
 from ssb_timeseries.io import MetaIO
-from ssb_timeseries.properties import SeriesType
-from ssb_timeseries.properties import Versioning
+from ssb_timeseries.io.fs import file_count
 from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import Versioning
 
 # mypy: ignore-errors
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"

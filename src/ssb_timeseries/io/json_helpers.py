@@ -8,9 +8,9 @@ from typing import Any
 from typing import cast
 
 from ..meta import TagDict
-from ..properties import SeriesType
-from ..properties import Temporality
-from ..properties import Versioning
+from ..types import SeriesType
+from ..types import Temporality
+from ..types import Versioning
 
 # mypy: disable-error-code="assignment, union-attr"
 

@@ -73,7 +73,7 @@ def find_this_existing_set(buildup_and_teardown):
     tag_values = [value for value in tags.values()]
     x = ts.dataset.Dataset(
         name="find_this_existing_set",
-        data_type=ts.properties.SeriesType.estimate(),
+        data_type=ts.types.SeriesType.estimate(),
         as_of_tz="2022-01-01",
         data=ts.sample_data.create_df(
             *tag_values,

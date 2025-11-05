@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from ssb_timeseries import fs
+from ssb_timeseries.io import fs
 
 # mypy: disable-error-code="no-untyped-def,no-untyped-call,arg-type,attr-defined,assignment"
 

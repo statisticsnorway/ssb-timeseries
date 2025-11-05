@@ -10,10 +10,10 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from .. import fs
 from ..logging import logger
-from ..properties import Versioning
 from ..types import PathStr
+from ..types import Versioning
+from . import fs
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 

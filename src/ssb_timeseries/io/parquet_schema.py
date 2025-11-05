@@ -8,7 +8,7 @@ from typing import cast
 
 import pyarrow
 
-from .. import properties
+from .. import types
 from .json_helpers import tags_to_json
 
 # mypy: disable-error-code="arg-type"
@@ -22,7 +22,7 @@ _TIMESTAMP = pyarrow.timestamp(unit=PA_TIMESTAMP_UNIT, tz=PA_TIMESTAMP_TZ)  # ty
 
 
 def parquet_schema(
-    data_type: properties.SeriesType,
+    data_type: types.SeriesType,
     meta: dict[str, Any],
 ) -> pyarrow.Schema | None:
     """Translate dataset tags into a PyArrow schema with embedded metadata."""

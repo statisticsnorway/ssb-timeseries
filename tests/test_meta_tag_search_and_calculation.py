@@ -13,8 +13,8 @@ from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import is_df_like
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.meta import Taxonomy
-from ssb_timeseries.properties import SeriesType
 from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.types import SeriesType
 
 # ---mypy: disable-error-code="attr-defined,no-untyped-def,union-attr,index,call-overload"
 

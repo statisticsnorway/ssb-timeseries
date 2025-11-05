@@ -32,9 +32,9 @@ from klass import get_classification
 from narwhals.typing import IntoFrameT
 
 import ssb_timeseries as ts
-from ssb_timeseries import fs
 from ssb_timeseries.dataframes import are_equal
 from ssb_timeseries.dataframes import is_df_like
+from ssb_timeseries.io import fs
 from ssb_timeseries.types import PathStr
 
 # mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-untyped-call,operator,valid-type,no-any-return"

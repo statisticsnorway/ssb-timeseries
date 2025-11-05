@@ -9,7 +9,7 @@ from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import is_df_like
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.properties import SeriesType
+from ssb_timeseries.types import SeriesType
 from ssb_timeseries.sample_data import create_df
 
 # mypy: disable-error-code="arg-type,attr-defined,no-untyped-def,index,no-untyped-def"
