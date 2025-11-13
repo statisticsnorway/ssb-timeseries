@@ -1,7 +1,9 @@
-"""The :py:mod:`ssb_timeseries.tags` module is responsible for tag maintenance.
+"""Provides functions for manipulating dataset and series metadata tags.
 
-Dataset and series tags are handled by Python dictionaries. This module takes
-care of the mechanics of manipulating the dictionaries.
+Tags are stored in dictionaries, and this module contains the core logic
+for creating, updating, deleting, and transforming those dictionaries.
+It defines the main type aliases used for metadata, such as ``TagDict``
+and ``DatasetTagDict``.
 """
 
 from __future__ import annotations
@@ -28,12 +30,12 @@ def matches_criteria(tag: dict[str, Any], criteria: dict[str, str | list[str]]) 
     """Check if a tag matches the specified criteria.
 
     Args:
-        tag (dict[str, any]): The tag to check.
-        criteria (dict[str, str | list[str]]): The criteria to match against.
+        tag: The tag to check.
+        criteria: The criteria to match against.
             Values can be single strings or lists of strings.
 
     Returns:
-        bool: True if the tag matches the criteria, False otherwise.
+        True if the tag matches the criteria, False otherwise.
     """
     for key, value in criteria.items():
         if isinstance(value, list):
@@ -51,12 +53,12 @@ def filter_tags(
     """Filter tags based on the specified criteria.
 
     Args:
-        tags (dict[str, dict[str, any]]): The dictionary of tags to filter.
-        criteria (dict[str, str | list[str]]): The criteria to filter by.
+        tags: The dictionary of tags to filter.
+        criteria: The criteria to filter by.
             Values can be single strings or lists of strings.
 
     Returns:
-        dict[str, dict[str, any]]: A dictionary of tags that match the criteria.
+        A dictionary of tags that match the criteria.
     """
     return {k: v for k, v in tags.items() if matches_criteria(v, criteria)}
 
@@ -64,15 +66,15 @@ def filter_tags(
 def search_by_tags(
     tags: dict[str, dict[str, Any]], criteria: dict[str, str | list[str]]
 ) -> list[str]:
-    """Filter tags based on the specified criteria.
+    """Filter tags based on the specified criteria and return the keys.
 
     Args:
-        tags (dict[str, dict[str, any]]): The dictionary of tags to filter.
-        criteria (dict[str, str | list[str]]): The criteria to filter by.
+        tags: The dictionary of tags to filter.
+        criteria: The criteria to filter by.
             Values can be single strings or lists of strings.
 
     Returns:
-        dict[str, dict[str, any]]: A dictionary of tags that match the criteria.
+        A list of keys for tags that match the criteria.
     """
     return list(filter_tags(tags, criteria).keys())
 

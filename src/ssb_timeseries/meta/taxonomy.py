@@ -1,6 +1,9 @@
-"""The :py:mod:`ssb_timeseries.taxonomy` module is responsible for taxonomy management.
+"""Provides the Taxonomy class for managing hierarchical metadata.
 
-It consumes taxonomies from KLASS and other sources, and represents them as hierarchical structures.
+This module defines the ``Taxonomy`` class, which is used to represent
+hierarchical classifications, such as those from SSB's KLASS system.
+It handles fetching data from KLASS, building tree structures, and
+providing methods for navigating and manipulating the taxonomy.
 """
 
 from __future__ import annotations

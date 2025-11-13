@@ -1,6 +1,7 @@
-"""The :py:mod:`ssb_timeseries.meta` module is responsible for metadata maintenance.
+"""The :py:mod:`ssb_timeseries.meta` module defines the public API for metadata operations.
 
-It re-exports functionality from submodules for backward compatibility and a unified API.
+It provides data structures and functions for managing tags and taxonomies.
+Functionality is imported from submodules to create a single, convenient point of access.
 """
 
 from ssb_timeseries.meta.tags import DatasetTagDict
