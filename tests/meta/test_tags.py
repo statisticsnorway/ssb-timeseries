@@ -425,3 +425,90 @@ def test_series_names_to_tags_failed_xdoctest() -> None:
         data=more_data,
     )
     x.series_names_to_tags(attributes=["xyz", "abc"], regex=r"([a-z])*([a-z])")
+
+
+import ssb_timeseries as ts
+from ssb_timeseries.meta.tags import filter_tags
+from ssb_timeseries.meta.tags import search_by_tags
+from ssb_timeseries.meta.tags import to_tag_value
+from ssb_timeseries.meta.tags import unique_tag_values
+
+
+def test_search_by_tags(
+    new_dataset_none_at,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    series_tags = new_dataset_none_at.tags["series"]
+    ts.logger.debug(f"test filter_by_tags ... series tags: {series_tags}")
+    out = search_by_tags(series_tags, {"A": ["a", "b"], "B": "p", "C": "z1"})
+    assert isinstance(out, list)
+    assert sorted(out) == sorted(["a_p_z1", "b_p_z1"])
+
+
+def test_filter_tags(
+    new_dataset_none_at,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    series_tags = new_dataset_none_at.tags["series"]
+    ts.logger.debug(f"test filter_by_tags ... series tags: {series_tags}")
+    out = filter_tags(series_tags, {"A": ["a", "b"], "B": "q", "C": "z1"})
+    ts.logger.debug(f"test filter_by_tags ... {out}")
+    assert isinstance(out, dict)
+    assert sorted(out) == sorted(
+        {
+            "b_q_z1": {
+                "name": "b_q_z1",
+                "dataset": "test-existing-dataset-none-at",
+                "versioning": "NONE",
+                "temporality": "AT",
+                "A": "b",
+                "B": "q",
+                "C": "z1",
+                "D": "d",
+            },
+            "a_q_z1": {
+                "name": "a_q_z1",
+                "dataset": "test-existing-dataset-none-at",
+                "versioning": "NONE",
+                "temporality": "AT",
+                "A": "a",
+                "B": "q",
+                "C": "z1",
+                "D": "d",
+            },
+        }
+    )
+
+
+def test_to_tag_value__for_list_with_multiple_values_returns_list() -> None:
+    assert to_tag_value(["a", "b", "c"]) == ["a", "b", "c"]
+
+
+def test_to_tag_value_for_set_with_multiple_values_returns_list() -> None:
+    assert to_tag_value(set(["a", "b", "c"])) == ["a", "b", "c"]
+
+
+def test_to_tag_value_for_set_with_one_value_returns_string() -> None:
+    assert to_tag_value(set(["abc"])) == "abc"
+
+
+def test_to_tag_value_for_list_with_one_value_returns_string() -> None:
+    assert to_tag_value(["abc"]) == "abc"
+
+
+def test_to_tag_value_for_string_returns_string() -> None:
+    assert to_tag_value("abc") == "abc"
+
+
+def test_unique_list_for_set_returns_list() -> None:
+    assert unique_tag_values(set(["a", "b", "c"])) == ["a", "b", "c"]
+
+
+def test_unique_list_for_list_returns_list() -> None:
+    assert unique_tag_values(["a", "b", "c"]) == ["a", "b", "c"]
+
+
+def test_unique_list_for_list_returns_only_unique_items() -> None:
+    assert unique_tag_values(["a", "b", "b", "c"]) == ["a", "b", "c"]

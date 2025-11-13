@@ -12,7 +12,7 @@ from ssb_timeseries import sample_metadata
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import is_df_like
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.meta import Taxonomy
+from ssb_timeseries.meta.taxonomy import Taxonomy
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.types import SeriesType
 
