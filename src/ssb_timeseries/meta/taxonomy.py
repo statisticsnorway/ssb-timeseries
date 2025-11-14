@@ -9,25 +9,22 @@ providing methods for navigating and manipulating the taxonomy.
 from __future__ import annotations
 
 import itertools
-from collections.abc import Hashable
-from functools import cache
 from typing import Any
-from typing import TypeAlias
 
 import bigtree
 import bigtree.node
 import bigtree.tree
 import narwhals as nw
-import pyarrow as pa
 from bigtree import get_tree_diff
 from bigtree import print_tree
-from klass import get_classification
 from narwhals.typing import IntoFrameT
 
 import ssb_timeseries as ts
 from ssb_timeseries.dataframes import are_equal
-from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.io import fs
+from ssb_timeseries.meta.loaders import DataLoader
+from ssb_timeseries.meta.loaders import FileLoader
+from ssb_timeseries.meta.loaders import KlassLoader
 from ssb_timeseries.types import PathStr
 
 
@@ -37,84 +34,31 @@ class MissingAttributeError(Exception):
     ...
 
 
-KLASS_ITEM_SCHEMA = pa.schema(
-    [
-        pa.field("code", "string", nullable=False),
-        pa.field("parentCode", "string", nullable=True),
-        pa.field("name", "string", nullable=False),
-        pa.field("level", "string", nullable=True),
-        pa.field("shortName", "string", nullable=True),
-        pa.field("presentationName", "string", nullable=True),
-        pa.field("validFrom", "string", nullable=True),
-        pa.field("validTo", "string", nullable=True),
-        pa.field("notes", "string", nullable=True),
-    ]
-)
-
-DEFAULT_ROOT_NODE: dict[str, Any] = {
-    "name": "<no name>",
-    "code": "0",
-    "parentCode": None,
-    "level": "0",
-    "shortName": "",
-    "presentationName": "",
-    "validFrom": "",
-    "validTo": "",
-    "notes": "",
-}
-
-KlassTaxonomy: TypeAlias = list[dict[Hashable, Any] | dict[str, str | None]]
-
-
-@cache
-def klass_classification(klass_id: int) -> KlassTaxonomy:
-    """Get KLASS classification identified by ID as a list of dicts."""
-    root_node = DEFAULT_ROOT_NODE
-    root_node["name"] = f"KLASS-{klass_id}"
-
-    classification = get_classification(str(klass_id)).get_codes()
-    klass_data = classification.data.to_dict("records")
-    for k in klass_data:
-        if not k["parentCode"]:
-            k["parentCode"] = root_node["code"]
-    list_of_items: KlassTaxonomy = [record for record in [root_node, *klass_data]]  # type: ignore[misc]
-    return list_of_items
-
-
-def records_to_arrow(records: list[dict[str, Any]]) -> pa.Table:
-    """Creates a PyArrow Table from a list of dictionaries (row/records).
-
-    Args:
-        records: A list where each element is a dictionary representing a row.
-
-    Returns:
-        A pyarrow.Table representing the data.
-    """
-    if not records:
-        return pa.Table.from_pylist([], schema=KLASS_ITEM_SCHEMA)
-    else:
-        return pa.Table.from_pylist(records, schema=KLASS_ITEM_SCHEMA)
-
-
 class Taxonomy:
     """Wraps taxonomies defined in KLASS or json files in a object structure.
 
-    Attributes:
-        name  (str):
-        structure_type:     enum:   list | tree | graph
-        levels: number of levels not counting the root node
-        entities (pa.Table): Entity definitions, represented as a dataframe with columns as defined by ::py:class:`KlassItem`.
-        structure (bigtree.Node):
+    :ivar name: The name of the taxonomy.
+    :vartype name: str
+    :ivar structure_type: The type of structure, e.g., 'list', 'tree', 'graph'.
+    :vartype structure_type: str
+    :ivar levels: The number of levels not counting the root node.
+    :vartype levels: int
+    :ivar entities: Entity definitions, represented as a PyArrow Table.
+    :vartype entities: pa.Table
+    :ivar structure: The hierarchical structure of the taxonomy.
+    :vartype structure: bigtree.Node
 
-    Notes:
-        structure:
-            Relations between entities of the taxonomy.
-            Both lists and trees will be represented as hierarchies; with the root node being the taxonomy.
-            Level two will be the first item level, so a flat list will have two levels.
-            Hierarchies with a natural top or "root" node should have a single node at level two.
+    .. note::
 
-        lookups:
-            Listing of supported names for all entities, mapping different categories of names of different standards and in different languages to a unique identifier.
+        **Structure**:
+        Relations between entities of the taxonomy.
+        Both lists and trees will be represented as hierarchies, with the root node being the taxonomy.
+        Level two will be the first item level, so a flat list will have two levels.
+        Hierarchies with a natural top or "root" node should have a single node at level two.
+
+        **Lookups**:
+        Listing of supported names for all entities, mapping different categories of names
+        of different standards and in different languages to a unique identifier.
     """
 
     def __init__(
@@ -133,21 +77,19 @@ class Taxonomy:
         Optional keyword arguments: substitutions (dict): Code values to be replaced: `{'substitute_this': 'with_this', 'and_this': 'as well'}`
         """
         self.name = name
+        loader: DataLoader | FileLoader | KlassLoader
         if klass_id:
-            # TO DO: handle versions of KLASS
-            list_of_items = klass_classification(klass_id)
-            tbl = records_to_arrow(list_of_items)  # type: ignore[arg-type]
-        elif data and isinstance(data, list):
-            tbl = records_to_arrow(data)
-        elif data and not isinstance(data, list) and is_df_like(data):
-            tbl = nw.from_native(data).to_arrow()  # type: ignore [type-var, attr-defined]
+            loader = KlassLoader(klass_id)
+        elif data is not None:
+            loader = DataLoader(data)
         elif path:
-            dict_from_file = fs.read_json(str(path))
-            tbl = records_to_arrow(dict_from_file)  # type: ignore [arg-type]
+            loader = FileLoader(path)
         else:
             raise MissingAttributeError(
                 "Either klass_id (int), data (dict|df), or path (str) must be provided."
             )
+
+        tbl = loader.load()
 
         # TODO: add proper validation - check tbl for root node + duplicates + fill missing
         self.entities = tbl
