@@ -143,9 +143,10 @@ class Taxonomy:
     #         remove = self.subtree(other.name).asc  # noqa: F841
     #         return NotImplemented
 
-    # def __getitem__(self, key: str) -> bigtree.Node:  # type: ignore[name-defined]
-    #     """Get tree node by name (KLASS code)."""
-    #     return bigtree.find_name(self.structure, key)
+    def __getitem__(self, key: str):  # type: ignore[name-defined]
+        """Get tree node by name (KLASS code)."""
+        # TODO: Return node object
+        return self.structure.nodes[key]
 
     # def subtree(self, key: str) -> Any:
     #     """Get subtree of node identified by name (KLASS code)."""
