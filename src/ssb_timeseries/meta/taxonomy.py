@@ -15,6 +15,7 @@ import bigtree
 import bigtree.node
 import bigtree.tree
 import narwhals as nw
+import networkx as nx
 from bigtree import get_tree_diff
 from bigtree import print_tree
 from narwhals.typing import IntoFrameT
@@ -97,93 +98,130 @@ class Taxonomy:
         self.substitute(kwargs.get("substitutions", {}))
 
         pandas_df = nw.from_native(self.entities).to_pandas()
-        self.structure: bigtree.Node = bigtree.dataframe_to_tree_by_relation(
-            data=pandas_df,
-            child_col="code",
-            parent_col="parentCode",
+
+        # tbl til networkx-struktur
+        # Skal ikke ha med ParentCode=nan i edges
+        df = pandas_df[pandas_df["parentCode"].notna()]
+        list_attrs = list(df.columns.difference(["code", "parentCode", "level"]))
+    
+        # Lager dict med attributter for hver rad
+        df["attrs"] = df.apply(
+            lambda row: {x: row[x] for x in list_attrs},  axis=1,
         )
+    
+        # Bruker zip til å lage en liste over tuples
+        nx_edges = list(zip(df["code"], df["parentCode"], df["attrs"]))
 
-    def __eq__(self, other: object) -> bool:
-        """Checks for equality. Taxonomies are considered equal if their codes and hierarchical relations are the same."""
-        if not isinstance(other, Taxonomy):
-            return NotImplemented
-        tree_diff = get_tree_diff(self.structure, other.structure)
-        if tree_diff:
-            return False
 
-        # the implementation of are_equal() allows comparing parentCode fields
-        # (which have value null for root nodes)
-        # fields_to_compare = ["code", "parentCode",]
-        fields_to_compare = ["code", "parentCode", "name"]
+        self.structure: nx.DiGraph = nx.DiGraph(nx_edges)
 
-        self_tbl = self.entities.select(fields_to_compare).sort_by(
-            [(f, "ascending") for f in fields_to_compare]
-        )
-        othr_tbl = other.entities.select(fields_to_compare).sort_by(
-            [(f, "ascending") for f in fields_to_compare]
-        )
-        return are_equal(self_tbl, othr_tbl)
+    # def __eq__(self, other: object) -> bool:
+    #     # TODO: Implement networkx
+    #     """Checks for equality. Taxonomies are considered equal if their codes and hierarchical relations are the same."""
+    #     if not isinstance(other, Taxonomy):
+    #         return NotImplemented
+    #     tree_diff = get_tree_diff(self.structure, other.structure)
+    #     if tree_diff:
+    #         return False
 
-    def __sub__(self, other: bigtree.Node) -> bigtree.Node:  # type: ignore[name-defined]
-        """Return the tree difference between the two taxonomy (tree) structures."""
-        ts.logger.debug("other: %s", other)
-        if isinstance(other, bigtree.Node):
-            remove = self.subtree(other.name).asc  # noqa: F841
-            return NotImplemented
+    #     # the implementation of are_equal() allows comparing parentCode fields
+    #     # (which have value null for root nodes)
+    #     # fields_to_compare = ["code", "parentCode",]
+    #     fields_to_compare = ["code", "parentCode", "name"]
 
-    def __getitem__(self, key: str) -> bigtree.Node:  # type: ignore[name-defined]
-        """Get tree node by name (KLASS code)."""
-        return bigtree.find_name(self.structure, key)
+    #     self_tbl = self.entities.select(fields_to_compare).sort_by(
+    #         [(f, "ascending") for f in fields_to_compare]
+    #     )
+    #     othr_tbl = other.entities.select(fields_to_compare).sort_by(
+    #         [(f, "ascending") for f in fields_to_compare]
+    #     )
+    #     return are_equal(self_tbl, othr_tbl)
 
-    def subtree(self, key: str) -> Any:
-        """Get subtree of node identified by name (KLASS code)."""
-        the_node = bigtree.find_name(self.structure, key)
-        return bigtree.get_subtree(the_node)
+    # def __sub__(self, other: bigtree.Node) -> bigtree.Node:  # type: ignore[name-defined]
+    #     """Return the tree difference between the two taxonomy (tree) structures."""
+    #     ts.logger.debug("other: %s", other)
+    #     if isinstance(other, bigtree.Node):
+    #         remove = self.subtree(other.name).asc  # noqa: F841
+    #         return NotImplemented
 
-    def print_tree(self, *args, **kwargs) -> str:
-        """Return a string with the tree structure.
+    # def __getitem__(self, key: str) -> bigtree.Node:  # type: ignore[name-defined]
+    #     """Get tree node by name (KLASS code)."""
+    #     return bigtree.find_name(self.structure, key)
 
-        Implementation is ugly! It would be preferable not to print the tree to std out.
-        ... but this works.
-        """
-        import io
-        from contextlib import redirect_stdout
+    # def subtree(self, key: str) -> Any:
+    #     """Get subtree of node identified by name (KLASS code)."""
+    #     the_node = bigtree.find_name(self.structure, key)
+    #     return bigtree.get_subtree(the_node)
 
-        with io.StringIO() as buf, redirect_stdout(buf):
-            print_tree(self.structure, *args, **kwargs)
-            output = buf.getvalue()
-        return output
+    # def print_tree(self, *args, **kwargs) -> str:
+    #     """Return a string with the tree structure.
 
-    def all_nodes(self) -> list[bigtree.Node]:
+    #     Implementation is ugly! It would be preferable not to print the tree to std out.
+    #     ... but this works.
+    #     """
+    #     import io
+    #     from contextlib import redirect_stdout
+
+    #     with io.StringIO() as buf, redirect_stdout(buf):
+    #         print_tree(self.structure, *args, **kwargs)
+    #         output = buf.getvalue()
+    #     return output
+
+    @property
+    def all_nodes(self) -> list:
         """Return all nodes in the taxonomy."""
-        return list(self.structure.descendants)
+        return list(self.structure.nodes)
 
-    def leaf_nodes(
-        self, name: bigtree.Node | str = ""
-    ) -> list[bigtree.Node] | list[str]:  # type: ignore[name-defined]
+    @property
+    def leaf_nodes(self) -> list[str]:  # type: ignore[name-defined]
         """Return all leaf nodes in the taxonomy."""
-        if name:
-            if isinstance(name, bigtree.Node):
-                leaves = [n.name for n in name.leaves]
-            else:
-                leaves = [n.name for n in self.subtree(name).leaves]
-                # --- alternative:
-                # leaves = [n.name for n in self.__getitem__(name).leaves]
-                # tree_node = bigtree.find_name(self.structure, name)[0]
-                # tree_node = bigtree.get_subtree(self.structure, name)[0]
+        leaves = [x for x in self.structure.nodes if list(self.structure.predecessors(x)) == []]
+        ts.logger.debug("leaves: %s", leaves)
+        return leaves
 
-            ts.logger.debug("leaves: %s", leaves)
-            return leaves
-        else:
-            return [n.name for n in self.structure.leaves]
-
+    @property
     def parent_nodes(self) -> list[bigtree.Node]:
         """Return all non-leaf nodes in the taxonomy."""
-        parents = [
-            n for n in self.structure.descendants if n not in self.structure.leaves
-        ] + [self.structure]
+        parents = [x for x in self.structure.nodes if x not in self.leaf_nodes]
         ts.logger.debug("parents: %s", parents)
         return parents
+
+    @property
+    def code_dict(self):
+        """
+        List all aggregates for level 0 nodes.
+        """
+        return {
+            y: sum([x[1] for x in nx.bfs_successors(self.structure, source=y)], []) for y in self.leaf_nodes
+        }
+        
+    @property
+    def agg_table(self):
+        # Denne ble tidligere brukt til å utlede agg_dict, men er ikke nødvendig til det
+        # Mulig den likevel kan brukes til et eller annet
+        """
+        Aggregate matrix for directed graph.
+        """
+        dict1 = self.code_dict
+    
+        a1 = self.parent_nodes
+    
+        agg_table = pd.DataFrame(
+        {col: [col in dict1[key] for key in dict1.keys()] 
+         for col in a1},
+        index=dict1.keys())
+    
+        return agg_table
+    
+    @property
+    def agg_dict(self):
+        """
+        Dictionary of aggregate codes as list of zero level nodes.
+        """
+        leaves = self.leaf_nodes
+        parents = self.parent_nodes
+        c_dict = self.code_dict
+        return {agg: [code for code in leaves if agg in c_dict[code]] for agg in parents}
 
     def save(self, path: PathStr) -> None:
         """Save taxonomy to json file.
@@ -240,13 +278,13 @@ def permutations(
     for (_attr, taxonomy), func in zip(taxonomies.items(), filters, strict=False):
         match func.lower():
             case "all" | "all_nodes":
-                nodes = taxonomy.all_nodes()
+                nodes = taxonomy.all_nodes
             case "parents" | "parent_nodes":
-                nodes = taxonomy.parent_nodes()
+                nodes = taxonomy.parent_nodes
             case "leaves" | "leaf_nodes" | "children" | "child_nodes":
-                nodes = taxonomy.leaf_nodes()  # type: ignore[assignment]
+                nodes = taxonomy.leaf_nodes  # type: ignore[assignment]
 
-        node_lists.append([node.name for node in nodes])
+        node_lists.append(nodes)
 
     combinations = itertools.product(*node_lists)
     for c in combinations:
