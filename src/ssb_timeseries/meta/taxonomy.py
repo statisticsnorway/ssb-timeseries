@@ -101,41 +101,40 @@ class Taxonomy:
 
         # tbl til networkx-struktur
         # Skal ikke ha med ParentCode=nan i edges
-        df = pandas_df[pandas_df["parentCode"].notna()]
+        df = pandas_df[pandas_df["parentCode"].notna()].copy()
         list_attrs = list(df.columns.difference(["code", "parentCode", "level"]))
     
-        # Lager dict med attributter for hver rad
+        # TODO: Check if we need these in a Taxonomy object
         df["attrs"] = df.apply(
             lambda row: {x: row[x] for x in list_attrs},  axis=1,
         )
     
-        # Bruker zip til å lage en liste over tuples
         nx_edges = list(zip(df["code"], df["parentCode"], df["attrs"]))
-
 
         self.structure: nx.DiGraph = nx.DiGraph(nx_edges)
 
-    # def __eq__(self, other: object) -> bool:
-    #     # TODO: Implement networkx
-    #     """Checks for equality. Taxonomies are considered equal if their codes and hierarchical relations are the same."""
-    #     if not isinstance(other, Taxonomy):
-    #         return NotImplemented
-    #     tree_diff = get_tree_diff(self.structure, other.structure)
-    #     if tree_diff:
-    #         return False
+    def __eq__(self, other: object) -> bool:
+        """Checks for equality. Taxonomies are considered equal if their codes and hierarchical relations are the same."""
+        if not isinstance(other, Taxonomy):
+            return NotImplemented
+        
+        # TODO: Update with nx
+        # tree_diff = get_tree_diff(self.structure, other.structure)
+        # if tree_diff:
+        #     return False
 
-    #     # the implementation of are_equal() allows comparing parentCode fields
-    #     # (which have value null for root nodes)
-    #     # fields_to_compare = ["code", "parentCode",]
-    #     fields_to_compare = ["code", "parentCode", "name"]
+        # the implementation of are_equal() allows comparing parentCode fields
+        # (which have value null for root nodes)
+        # fields_to_compare = ["code", "parentCode",]
+        fields_to_compare = ["code", "parentCode", "name"]
 
-    #     self_tbl = self.entities.select(fields_to_compare).sort_by(
-    #         [(f, "ascending") for f in fields_to_compare]
-    #     )
-    #     othr_tbl = other.entities.select(fields_to_compare).sort_by(
-    #         [(f, "ascending") for f in fields_to_compare]
-    #     )
-    #     return are_equal(self_tbl, othr_tbl)
+        self_tbl = self.entities.select(fields_to_compare).sort_by(
+            [(f, "ascending") for f in fields_to_compare]
+        )
+        othr_tbl = other.entities.select(fields_to_compare).sort_by(
+            [(f, "ascending") for f in fields_to_compare]
+        )
+        return are_equal(self_tbl, othr_tbl)
 
     # def __sub__(self, other: bigtree.Node) -> bigtree.Node:  # type: ignore[name-defined]
     #     """Return the tree difference between the two taxonomy (tree) structures."""
