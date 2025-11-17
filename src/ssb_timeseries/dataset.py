@@ -1749,7 +1749,8 @@ class Dataset:
         for p in permutations:
             criteria = {}
             for attr, value in p.items():
-                criteria[attr] = taxonomy_dict[attr].leaf_nodes(value)
+                # Leaf nodes replaced by agg_dict - this should work
+                criteria[attr] = taxonomy_dict[attr].agg_dict[value]
             output_series_name = sep.join(p.values())  # move into func loop?
             leaf_node_subset = self.select(tags=criteria, output="df")
             for func in functions:
