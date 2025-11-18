@@ -219,20 +219,20 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
     #    fs.rm(temp_file)
 
     # compare all leaf nodes of sub tree
-    k157_names = [n.name for n in klass157.structure.root.leaves]
-    f157_names = [n.name for n in file157.structure.root.leaves]
+    k157_names = klass157.leaf_nodes #[n.name for n in klass157.structure.root.leaves]
+    f157_names = file157.leaf_nodes #[n.name for n in file157.structure.root.leaves]
     assert k157_names == f157_names
 
-    ts.logger.debug(f"klass157 ...\n{print_tree(klass157.structure)}")
-    ts.logger.debug(f"file157 ...\n{print_tree(file157.structure)}")
+    # ts.logger.debug(f"klass157 ...\n{print_tree(klass157.structure)}")
+    # ts.logger.debug(f"file157 ...\n{print_tree(file157.structure)}")
 
-    diff = get_tree_diff(klass157.structure, file157.structure)
-    if diff:
-        ts.logger.debug(f"diff:\n{print_tree(diff)}")
-        # --> assert should fail
-    else:
-        ts.logger.debug(f"diff: {diff}")
-        # --> assert should pass
+    # diff = get_tree_diff(klass157.structure, file157.structure)
+    # if diff:
+    #     ts.logger.debug(f"diff:\n{print_tree(diff)}")
+    #     # --> assert should fail
+    # else:
+    #     ts.logger.debug(f"diff: {diff}")
+    #     # --> assert should pass
 
     assert isinstance(klass157, Taxonomy) and isinstance(file157, Taxonomy)
     assert klass157 == file157
