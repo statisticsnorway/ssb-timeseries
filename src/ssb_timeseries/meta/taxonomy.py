@@ -19,6 +19,7 @@ import networkx as nx
 from bigtree import get_tree_diff
 from bigtree import print_tree
 from narwhals.typing import IntoFrameT
+import matplotlib.pyplot as plt
 
 import ssb_timeseries as ts
 from ssb_timeseries.dataframes import are_equal
@@ -148,24 +149,24 @@ class Taxonomy:
         # TODO: Return node object
         return self.structure.nodes[key]
 
-    # def subtree(self, key: str) -> Any:
-    #     """Get subtree of node identified by name (KLASS code)."""
-    #     the_node = bigtree.find_name(self.structure, key)
-    #     return bigtree.get_subtree(the_node)
+    def subtree(self, key: str) -> Any:
+        """Get subtree of node identified by code."""
+        return self.structure.subgraph(key)
 
-    # def print_tree(self, *args, **kwargs) -> str:
-    #     """Return a string with the tree structure.
-
-    #     Implementation is ugly! It would be preferable not to print the tree to std out.
-    #     ... but this works.
-    #     """
-    #     import io
-    #     from contextlib import redirect_stdout
-
-    #     with io.StringIO() as buf, redirect_stdout(buf):
-    #         print_tree(self.structure, *args, **kwargs)
-    #         output = buf.getvalue()
-    #     return output
+    def print_tree(self):
+        """
+        Graphical representation of directed graph.
+        """
+        options = {
+            "font_size": 16,
+            "node_size": 8,
+            "node_color": "white",
+            "edgecolors": "black",
+            "linewidths": 1,
+            "width": 1,
+        }
+        # plt.figure(figsize=(24, 12))
+        nx.draw_networkx(self.structure, pos=nx.bfs_layout(self.structure, start=self.leaf_nodes), **options)
 
     @property
     def all_nodes(self) -> list:
@@ -189,7 +190,7 @@ class Taxonomy:
     @property
     def code_dict(self):
         """
-        List all aggregates for level 0 nodes.
+        List all aggregates that each leaf node is a part of.
         """
         return {
             y: sum([x[1] for x in nx.bfs_successors(self.structure, source=y)], []) for y in self.leaf_nodes
@@ -216,7 +217,7 @@ class Taxonomy:
     @property
     def agg_dict(self):
         """
-        Dictionary of aggregate codes as list of zero level nodes.
+        Dictionary of aggregate codes as list of leaf nodes.
         """
         leaves = self.leaf_nodes
         parents = self.parent_nodes
