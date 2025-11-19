@@ -100,9 +100,13 @@ class Taxonomy:
 
         pandas_df = nw.from_native(self.entities).to_pandas()
 
+        # Legger til 0-nivå
+        # TODO: Her blir det feil hvis "0" inngår som parentcode i datasettet
+        # Dette vil også legge til en unødvendig parent hvis det er en totalsum i strukturen
+        pandas_df['parentCode'] = pandas_df['parentCode'].fillna("0")
+
         # tbl til networkx-struktur
-        # Skal ikke ha med ParentCode=nan i edges
-        df = pandas_df[pandas_df["parentCode"].notna()].copy()
+        df = pandas_df.copy()
         list_attrs = list(df.columns.difference(["code", "parentCode", "level"]))
     
         # TODO: Check if we need these in a Taxonomy object
@@ -151,6 +155,7 @@ class Taxonomy:
 
     def subtree(self, key: str) -> Any:
         """Get subtree of node identified by code."""
+        # TODO: Denne fungerer ikke ennå
         return self.structure.subgraph(key)
 
     def print_tree(self):
@@ -181,7 +186,7 @@ class Taxonomy:
         return leaves
 
     @property
-    def parent_nodes(self) -> list[bigtree.Node]:
+    def parent_nodes(self) -> list[str]:
         """Return all non-leaf nodes in the taxonomy."""
         parents = [x for x in self.structure.nodes if x not in self.leaf_nodes]
         ts.logger.debug("parents: %s", parents)

@@ -17,9 +17,11 @@ def test_read_flat_code_list_from_klass_returns_two_level_tree() -> None:
     ts.logger.debug(f"captured ...\n{activity.entities}")
 
     assert activity.entities.shape == (16, 9)
-    assert activity.structure.max_depth == 2
-    assert activity.structure.root.name == "0"
-    assert activity.structure.diameter == 2
+    assert len(activity.leaf_nodes) == 15
+    assert len(activity.parent_nodes) == 1
+    # assert activity.structure.max_depth == 2
+    assert activity.root == "0"
+    # assert activity.structure.diameter == 2
 
 
 def test_read_hierarchical_code_set_from_klass_returns_multi_level_tree() -> None:
