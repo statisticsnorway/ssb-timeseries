@@ -100,23 +100,32 @@ class Taxonomy:
 
         pandas_df = nw.from_native(self.entities).to_pandas()
 
-        # Legger til 0-nivå
-        # TODO: Her blir det feil hvis "0" inngår som parentcode i datasettet
-        # Dette vil også legge til en unødvendig parent hvis det er en totalsum i strukturen
-        pandas_df['parentCode'] = pandas_df['parentCode'].fillna("0")
-
         # tbl til networkx-struktur
-        df = pandas_df.copy()
-        list_attrs = list(df.columns.difference(["code", "parentCode", "level"]))
+        edges_df = pandas_df[pandas_df['parentCode'].notna()].copy()
+        list_attrs = list(edges_df.columns.difference(["code", "parentCode", "level"]))
     
         # TODO: Check if we need these in a Taxonomy object
-        df["attrs"] = df.apply(
+        edges_df["attrs"] = edges_df.apply(
             lambda row: {x: row[x] for x in list_attrs},  axis=1,
         )
     
-        nx_edges = list(zip(df["code"], df["parentCode"], df["attrs"]))
+        nx_edges = list(zip(edges_df["code"], edges_df["parentCode"], edges_df["attrs"]))
 
         self.structure: nx.DiGraph = nx.DiGraph(nx_edges)
+
+        # Finding root nodes
+        # This could be done in the loaders module
+        roots = [x for x in self.structure.nodes if list(self.structure.successors(x)) == []]
+        if len(roots) > 1:
+            root_edge_list = [(x, "0") for x in roots]
+            self.structure.add_edges_from(root_edge_list)
+            # TODO: This should be a networkx node
+            self.root = "0"
+        elif len(roots) == 1:
+            self.root = roots[0]
+        else:
+            # TODO: Should this raise an error?
+            self.root = None
 
     def __eq__(self, other: object) -> bool:
         """Checks for equality. Taxonomies are considered equal if their codes and hierarchical relations are the same."""
