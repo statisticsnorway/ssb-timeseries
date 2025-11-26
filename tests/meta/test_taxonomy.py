@@ -238,3 +238,26 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
 
     assert isinstance(klass157, Taxonomy) and isinstance(file157, Taxonomy)
     assert klass157 == file157
+
+import pandas as pd
+simple_nx_data_no_root = pd.DataFrame({"code": ["100","200","200","300","400","A", "B", "C"],
+                              "parentCode": ["A","A","B", "C", "C", "F1", "F1", "F2"]})
+simple_nx_data_one_root = pd.DataFrame({"code": ["100","200","200","300","400","A", "B", "C", "F1", "F2",],
+                              "parentCode": ["A","A","B", "C", "C", "F1", "F1", "F2","F", "F", ]})
+simple_nx_data_multiple_roots = pd.DataFrame({"code": ["100","200","200","300","400","A", "B", "C", "F1", "F2", "100", "300",],
+                              "parentCode": ["A","A","B", "C", "C", "F1", "F1", "F2","F", "F", "AAA", "AAA", ]})
+
+def test_nx_from_df() -> None:
+    nx_taxonomy = Taxonomy(data=simple_nx_data_no_root)
+    assert nx_taxonomy.root == "0"
+    assert nx_taxonomy.agg_dict[nx_taxonomy.root] == nx_taxonomy.leaf_nodes
+
+def test_nx_root_from_df() -> None:
+    nx_taxonomy = Taxonomy(data=simple_nx_data_one_root)
+    assert nx_taxonomy.root == "F"
+    assert nx_taxonomy.agg_dict[nx_taxonomy.root] == nx_taxonomy.leaf_nodes
+
+def test_nx_multiple_from_df() -> None:
+    nx_taxonomy = Taxonomy(data=simple_nx_data_multiple_roots)
+    assert nx_taxonomy.root == "0"
+    assert nx_taxonomy.agg_dict[nx_taxonomy.root] == nx_taxonomy.leaf_nodes
