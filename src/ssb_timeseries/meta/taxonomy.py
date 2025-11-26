@@ -164,8 +164,8 @@ class Taxonomy:
 
     def subtree(self, key: str) -> Any:
         """Get subtree of node identified by code."""
-        # TODO: Denne fungerer ikke ennå
-        return self.structure.subgraph(key)
+        # TODO: Denne fungerer ikke ennå, men returnerer en graf
+        return nx.subgraph(self.structure, list(nx.dfs_postorder_nodes(nx.reverse_view(self.structure), key)))
 
     def print_tree(self):
         """
