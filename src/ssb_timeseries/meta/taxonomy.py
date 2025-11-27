@@ -12,12 +12,10 @@ import itertools
 from typing import Any
 
 import bigtree
-import bigtree.node
-import bigtree.tree
-import narwhals as nw
-import networkx as nx
 from bigtree import get_tree_diff
-from bigtree import print_tree
+
+import networkx as nx
+import narwhals as nw
 from narwhals.typing import IntoFrameT
 import matplotlib.pyplot as plt
 
