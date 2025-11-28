@@ -53,8 +53,9 @@ def test_get_leaf_nodes_from_hierarchical_klass_taxonomy(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
-    tree = Taxonomy(klass_id=157).structure
-    leaves = [n.name for n in tree.root["1"].leaves]
+    tree = Taxonomy(klass_id=157) #.structure
+    # leaves = [n.name for n in tree.root["1"].leaves]
+    leaves = tree.agg_dict["1"]
     # ts.logger.debug(f"{print_tree(tree)} ...\n{leaves}")
     ts.logger.debug(f"{tree} ...\n{leaves}")
 
@@ -72,7 +73,8 @@ def test_get_leaf_nodes_from_middle_of_hierarchical_klass_taxonomy(
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
     subtree = klass157.subtree("1.1")
-    leaves = [n.name for n in subtree.root.leaves]
+    # leaves = [n.name for n in subtree.root.leaves]
+    leaves = klass157.agg_dict["1.1"]
     # ts.logger.debug(f"{print_tree(subtree)} ...\n{leaves}")
 
     assert leaves == [
