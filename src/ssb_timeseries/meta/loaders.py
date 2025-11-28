@@ -18,6 +18,8 @@ import pyarrow as pa
 from klass import get_classification
 from narwhals.typing import IntoFrameT
 
+from datetime import date
+
 from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.io import fs
 from ssb_timeseries.types import PathStr
@@ -71,23 +73,24 @@ class TaxonomyLoader(Protocol):
 class KlassLoader:
     """Loads taxonomy data from the KLASS API."""
 
-    def __init__(self, klass_id: int) -> None:
+    def __init__(self, klass_id: int, from_date: str = str(date.today())) -> None:
         """Initialize the KLASS loader with a classification ID."""
         self.klass_id = klass_id
+        self.from_date = from_date
 
     def load(self) -> pa.Table:
         """Fetch data from KLASS and convert it to a PyArrow Table."""
-        list_of_items = self._klass_classification(self.klass_id)
+        list_of_items = self._klass_classification(self.klass_id, self.from_date)
         return records_to_arrow(list_of_items)  # type: ignore[arg-type]
 
     @staticmethod
     @cache
-    def _klass_classification(klass_id: int) -> KlassTaxonomy:
+    def _klass_classification(klass_id: int, from_date: str) -> KlassTaxonomy:
         """Get KLASS classification identified by ID as a list of dicts."""
         root_node = DEFAULT_ROOT_NODE.copy()
         root_node["name"] = f"KLASS-{klass_id}"
 
-        classification = get_classification(str(klass_id)).get_codes()
+        classification = get_classification(str(klass_id)).get_codes(from_date)
         klass_data = classification.data.to_dict("records")
         for k in klass_data:
             if not k.get("parentCode"):
