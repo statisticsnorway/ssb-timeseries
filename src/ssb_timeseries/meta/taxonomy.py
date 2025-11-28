@@ -115,10 +115,15 @@ class Taxonomy:
         # This could be done in the loaders module
         roots = [x for x in self.structure.nodes if list(self.structure.successors(x)) == []]
         if len(roots) > 1:
-            root_edge_list = [(x, "0") for x in roots]
-            self.structure.add_edges_from(root_edge_list)
-            # TODO: This should be a networkx node
-            self.root = "0"
+            self.root = None
+            for x in roots:
+                if self.agg_dict[x] == self.leaf_nodes:
+                    self.root = x
+            if self.root == None:
+                root_edge_list = [(x, "0") for x in roots]
+                self.structure.add_edges_from(root_edge_list)
+                # TODO: This should be a networkx node
+                self.root = "0"
         elif len(roots) == 1:
             self.root = roots[0]
         else:
