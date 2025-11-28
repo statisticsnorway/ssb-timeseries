@@ -18,7 +18,7 @@ import networkx as nx
 import narwhals as nw
 from narwhals.typing import IntoFrameT
 import matplotlib.pyplot as plt
-
+from datetime import date
 import ssb_timeseries as ts
 from ssb_timeseries.dataframes import are_equal
 from ssb_timeseries.io import fs
@@ -65,6 +65,7 @@ class Taxonomy:
         self,
         *,
         klass_id: int = 0,
+        from_date: str = str(date.today()),
         data: list[dict[str, str]] | IntoFrameT | None = None,
         path: PathStr = "",
         name: str = "Taxonomy",
@@ -79,7 +80,7 @@ class Taxonomy:
         self.name = name
         loader: DataLoader | FileLoader | KlassLoader
         if klass_id:
-            loader = KlassLoader(klass_id)
+            loader = KlassLoader(klass_id, from_date)
         elif data is not None:
             loader = DataLoader(data)
         elif path:

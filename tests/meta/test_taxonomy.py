@@ -23,6 +23,22 @@ def test_read_flat_code_list_from_klass_returns_two_level_tree() -> None:
     assert activity.root == "0"
     # assert activity.structure.diameter == 2
 
+def test_read_flat_code_list_date() -> None:
+    activity = Taxonomy(klass_id=697, from_date="1997-11-01")
+    ts.logger.debug(f"captured ...\n{activity.entities}")
+
+    assert activity.entities.shape == (16, 9)
+    assert len(activity.leaf_nodes) == 15
+    assert len(activity.parent_nodes) == 1
+    # assert activity.structure.max_depth == 2
+    assert activity.root == "0"
+    # assert activity.structure.diameter == 2
+
+def test_different_dates_nace() -> None:
+    nace_today = Taxonomy(klass_id=6)
+    nace_2020 = Taxonomy(klass_id=6, from_date="2020-01-01")
+    assert nace_today.entities.shape != nace_2020.entities.shape
+
 
 def test_read_hierarchical_code_set_from_klass_returns_multi_level_tree() -> None:
     energy_balance = Taxonomy(klass_id=157)
