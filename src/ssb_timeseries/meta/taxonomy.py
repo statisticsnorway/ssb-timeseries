@@ -174,11 +174,8 @@ class Taxonomy:
 
         subgraph_data = []
         for parent, children in nx.bfs_successors(nx.reverse_view(self.structure), key):
-            d = {'parentCode': parent}
-            for y in children:
-                d['code'] = y
-                cd = d.copy()
-                subgraph_data.append(cd)
+            for child in children:
+                subgraph_data.append({'parentCode': parent, 'code': child})
         return Taxonomy(data=subgraph_data)
 
 
