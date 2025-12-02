@@ -834,14 +834,37 @@ tests = ["pytest", "pytest-cov", "pytest-xdist"]
 
 [[package]]
 name = "dapla-auth-client"
-version = "1.1.0"
+version = "1.2.0"
 description = "Dapla Auth Client"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
+markers = "python_version == \"3.10\""
 files = [
-    {file = "dapla_auth_client-1.1.0-py3-none-any.whl", hash = "sha256:ef36d6fdf52a9e7f259cbe39864ca8ac8a1c04264847ccae79a6cc08bd90bc65"},
-    {file = "dapla_auth_client-1.1.0.tar.gz", hash = "sha256:8dcb7b3dd3e2d4869900b9410f8433464abc727eb7525aa5748c43b6bfb4255e"},
+    {file = "dapla_auth_client-1.2.0-py3-none-any.whl", hash = "sha256:74c173b522c48768d9993f010cb441433d6df79bc9056c8595484a19fc3153f5"},
+    {file = "dapla_auth_client-1.2.0.tar.gz", hash = "sha256:ab73bbb1fa9fa18965a8c24bce00f879f51bb2f0d9c1b0a77e29d77349339bb7"},
+]
+
+[package.dependencies]
+deprecated = ">=1.2.18,<2.0.0"
+google-auth = ">=2.40.2"
+pytest = ">=8.4.0,<9.0.0"
+requests = ">=2.27.1"
+responses = ">=0.24.0"
+types-deprecated = ">=1.2.15.20250304,<2.0.0.0"
+types-requests = ">=2.28.11"
+
+[[package]]
+name = "dapla-auth-client"
+version = "1.2.1"
+description = "Dapla Auth Client"
+optional = false
+python-versions = ">=3.11"
+groups = ["main"]
+markers = "python_version >= \"3.11\""
+files = [
+    {file = "dapla_auth_client-1.2.1-py3-none-any.whl", hash = "sha256:58c3edb0f43495392c55051260480bf3fc7daf94d78cd7c20762c3876dcbc2cc"},
+    {file = "dapla_auth_client-1.2.1.tar.gz", hash = "sha256:0bc9e6c188857c26bc4e1b239fc22f1a2b5cb2ea9a2216781f1643e57879cc33"},
 ]
 
 [package.dependencies]
