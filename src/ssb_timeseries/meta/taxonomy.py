@@ -27,6 +27,9 @@ from ssb_timeseries.meta.loaders import FileLoader
 from ssb_timeseries.meta.loaders import KlassLoader
 from ssb_timeseries.types import PathStr
 
+# TODO: Replace with nw in agg_table-method
+import pandas as pd
+
 
 class MissingAttributeError(Exception):
     """At least one required attribute was not provided."""
@@ -128,7 +131,7 @@ class Taxonomy:
         elif len(roots) == 1:
             self.root = roots[0]
         else:
-            # TODO: Should this raise an error?
+            # TODO: Should this raise an error or warning?
             self.root = None
 
     def __eq__(self, other: object) -> bool:
@@ -168,8 +171,16 @@ class Taxonomy:
 
     def subtree(self, key: str) -> Any:
         """Get subtree of node identified by code."""
-        # TODO: Denne fungerer ikke ennå, men returnerer en graf
-        return nx.subgraph(self.structure, list(nx.dfs_postorder_nodes(nx.reverse_view(self.structure), key)))
+
+        subgraph_data = []
+        for parent, children in nx.bfs_successors(nx.reverse_view(self.structure), key):
+            d = {'parentCode': parent}
+            for y in children:
+                d['code'] = y
+                cd = d.copy()
+                subgraph_data.append(cd)
+        return Taxonomy(data=subgraph_data)
+
 
     def print_tree(self):
         """
