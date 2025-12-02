@@ -57,12 +57,12 @@ def test_taxonomy_subtree(
     klass157 = Taxonomy(klass_id=157)
     klass157_subtree = klass157.subtree("1.1")
     ts.logger.debug(f"tree ...\n{klass157_subtree}")
-    assert isinstance(klass157_subtree, nx.DiGraph)
-    # assert klass157_subtree.root.name == "1.1"
+    assert isinstance(klass157_subtree, Taxonomy)
+    assert klass157_subtree.root == "1.1"
     # assert klass157_subtree.diameter == 2
     # assert klass157_subtree.max_depth == 2
 
-    # assert [n.name for n in klass157_subtree.leaves] == ["1.1.1", "1.1.2", "1.1.3"]
+    assert klass157_subtree.leaf_nodes == ["1.1.1", "1.1.2", "1.1.3"]
 
 
 def test_get_leaf_nodes_from_hierarchical_klass_taxonomy(
@@ -278,3 +278,8 @@ def test_nx_multiple_from_df() -> None:
     nx_taxonomy = Taxonomy(data=simple_nx_data_multiple_roots)
     assert nx_taxonomy.root == "F"
     assert nx_taxonomy.agg_dict[nx_taxonomy.root] == nx_taxonomy.leaf_nodes
+
+def test_simple_subtree() -> None:
+    nx_taxonomy = Taxonomy(data=simple_nx_data_no_root)
+    assert nx_taxonomy.subtree("F2").root == "F2"
+    assert nx_taxonomy.subtree("F2").leaf_nodes == ["300", "400"]
