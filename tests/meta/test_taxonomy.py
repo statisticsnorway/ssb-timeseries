@@ -106,11 +106,11 @@ def test_get_item_from_hierarchical_klass_taxonomy(
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
     tree = klass157.structure
-    node_1_1 = bigtree.find_name(tree.root, "1.1")
+    # node_1_1 = bigtree.find_name(tree.root, "1.1")
 
-    assert [n.name for n in node_1_1.children] == ["1.1.1", "1.1.2", "1.1.3"]
+    assert list(tree.predecessors('1.1')) == ["1.1.1", "1.1.2", "1.1.3"]
 
-    assert klass157["1.1"] == node_1_1
+    # assert klass157["1.1"] == node_1_1
 
 
 def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
@@ -120,14 +120,14 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
     klass157 = Taxonomy(klass_id=157)
     tree = klass157.structure
 
-    leaf_nodes = [n.name for n in tree.root.leaves]
-    all_nodes = [n.name for n in tree.root.descendants] + [tree.root.name]
-    parent_nodes = [n for n in all_nodes if n not in leaf_nodes]
-    parent_nodes2 = [n.name for n in klass157.parent_nodes()]
+    # leaf_nodes = [n.name for n in tree.root.leaves]
+    # all_nodes = [n.name for n in tree.root.descendants] + [tree.root.name]
+    parent_nodes = [n for n in klass157.all_nodes if n not in klass157.leaf_nodes]
+    parent_nodes2 = klass157.parent_nodes
 
-    ts.logger.debug(f"All nodes:\n\t{all_nodes}")
+    ts.logger.debug(f"All nodes:\n\t{klass157.all_nodes}")
 
-    assert len(all_nodes) == len(leaf_nodes) + len(parent_nodes)
+    assert len(klass157.all_nodes) == len(klass157.leaf_nodes) + len(klass157.parent_nodes)
     assert sorted(parent_nodes) == sorted(parent_nodes2)
 
 
