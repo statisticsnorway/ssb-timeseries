@@ -171,9 +171,8 @@ class Taxonomy:
 
     def subtree(self, key: str) -> Any:
         """Get subtree of node identified by code."""
-
         subgraph_data = []
-        for parent, children in nx.bfs_successors(nx.reverse_view(self.structure), key):
+        for parent, children in nx.bfs_successors(nx.reverse_view(self.structure), source=key):
             for child in children:
                 subgraph_data.append({'parentCode': parent, 'code': child})
         return Taxonomy(data=subgraph_data)
