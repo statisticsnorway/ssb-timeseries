@@ -1993,6 +1993,9 @@ def _nw_normalize_dtype(t: IntoDType) -> IntoDType:
             out = t
     return out
 
+# TODO: move these functions and remove the import
+import pandas as pd
+
 # TODO: Bør dette være en hjelpefunksjon eller bør den ligge inne i Dataset-klassen?
 def combinations(ds, attributes = [], taxonomies = [], all_attributes = [], sep='.'):
     """
