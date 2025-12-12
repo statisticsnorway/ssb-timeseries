@@ -50,6 +50,7 @@ DEFAULT_ROOT_NODE: dict[str, Any] = {
 }
 
 KlassTaxonomy: TypeAlias = list[dict[Hashable, Any] | dict[str, str | None]]
+"""A list of dictionaries representing KLASS classification items."""
 
 
 def records_to_arrow(records: list[dict[str, Any]]) -> pa.Table:
