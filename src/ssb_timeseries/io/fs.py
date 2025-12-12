@@ -16,8 +16,6 @@ import pyarrow.dataset
 import pyarrow.parquet as pq
 import tomli
 import tomli_w
-
-# from dapla import FileClient
 from gcsfs import GCSFileSystem
 from narwhals.typing import IntoFrame
 
