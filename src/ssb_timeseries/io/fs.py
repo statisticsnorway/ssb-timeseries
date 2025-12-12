@@ -16,7 +16,9 @@ import pyarrow.dataset
 import pyarrow.parquet as pq
 import tomli
 import tomli_w
-from dapla import FileClient
+
+# from dapla import FileClient
+from gcsfs import GCSFileSystem
 from narwhals.typing import IntoFrame
 
 from ..dataframes import to_arrow
@@ -82,7 +84,7 @@ def exists(path: PathStr) -> bool:
     if not path:
         return False
     elif is_gcs(path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
         return fs.exists(path)
     else:
         return Path(path).exists()
@@ -103,7 +105,7 @@ def existing_subpath(path: PathStr) -> PathStr:
 def touch(path: PathStr) -> PathStr:
     """Touch file regardless of wether the filesystem is local or GCS; return path."""
     if is_gcs(path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
         fs.touch(path)
     else:
         mk_parent_dir(path)
@@ -147,7 +149,7 @@ def ls(path: str, pattern: str = "*", create: bool = False) -> list[str]:
     """List files. Should work regardless of wether the filesystem is local or GCS."""
     search = os.path.join(path, pattern)
     if is_gcs(path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
         return fs.glob(search)
     else:
         if create:
@@ -168,7 +170,7 @@ def cp(from_path: PathStr, to_path: PathStr) -> None:
     from_type = fs_type(from_path)
     to_type = fs_type(to_path)
     if is_gcs(from_path) | is_gcs(to_path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
     if is_local(to_path):
         mk_parent_dir(to_path)
 
@@ -197,7 +199,7 @@ def mv(from_path: PathStr, to_path: PathStr) -> None:
     to_type = fs_type(to_path)
 
     if is_gcs(from_path) | is_gcs(to_path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
     if is_local(to_path):
         mk_parent_dir(to_path)
 
@@ -221,7 +223,7 @@ def rm(path: PathStr) -> None:
         path: The path to the file to be removed.
     """
     if is_gcs(path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
         fs.rm(path)
     else:
         os.remove(path)
@@ -234,7 +236,7 @@ def rmtree(
     if is_gcs(path):
         ...
         # TO DO: implement this (but recursive)
-        # fs = FileClient.get_gcs_file_system()
+        # fs = GCSFileSystem()
         # fs.rm(path)
     else:
         shutil.rmtree(path)
@@ -272,7 +274,7 @@ def find(
         search_str = path(search_path, pattern)
 
     if is_gcs(path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
         found = fs.glob(search_str)
     else:
         found = glob.glob(search_str)
@@ -293,7 +295,7 @@ def read_text(path: PathStr, file_format: str = "") -> dict:
         file_format = Path(path).suffix
     read_func = _text_reader(file_format)
     if is_gcs(path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
         with fs.open(path, "r") as file:
             return read_func(file)
     else:
@@ -308,7 +310,7 @@ def write_text(path: PathStr, content: str | dict, file_format: str) -> None:
     write = _text_writer(file_format)
 
     if is_gcs(path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
         with fs.open(path, "w") as file:
             write(file, content)
     else:
@@ -366,7 +368,7 @@ def _text_writer(file_format: str) -> Callable[[PathStr, dict], None]:
 def read_json(path: PathStr) -> dict:
     """Read json file from path on either local fs or GCS."""
     if is_gcs(path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
         with fs.open(path, "r") as file:
             return json.load(file)
     else:
@@ -377,7 +379,7 @@ def read_json(path: PathStr) -> dict:
 def write_json(path: PathStr, content: str | dict) -> None:
     """Write json file to path on either local fs or GCS."""
     if is_gcs(path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
         with fs.open(path, "w") as file:
             if isinstance(content, str):
                 content = json.loads(content)
@@ -434,7 +436,7 @@ def write_parquet(
     """
     table = to_arrow(data, schema)  # to validate schema ...
     if is_gcs(path):
-        fs = FileClient.get_gcs_file_system()
+        fs = GCSFileSystem()
     else:
         fs = pyarrow.fs.LocalFileSystem()
         mk_parent_dir(path)
