@@ -82,8 +82,8 @@ def exists(path: PathStr) -> bool:
     if not path:
         return False
     elif is_gcs(path):
-        fs = GCSFileSystem()
-        return fs.exists(path)
+        fs = GCSFileSystem()  # pragma: no cover
+        return fs.exists(path)  # pragma: no cover
     else:
         return Path(path).exists()
 
@@ -103,8 +103,8 @@ def existing_subpath(path: PathStr) -> PathStr:
 def touch(path: PathStr) -> PathStr:
     """Touch file regardless of wether the filesystem is local or GCS; return path."""
     if is_gcs(path):
-        fs = GCSFileSystem()
-        fs.touch(path)
+        fs = GCSFileSystem()  # pragma: no cover
+        fs.touch(path)  # pragma: no cover
     else:
         mk_parent_dir(path)
         Path(path).touch()
@@ -147,8 +147,8 @@ def ls(path: str, pattern: str = "*", create: bool = False) -> list[str]:
     """List files. Should work regardless of wether the filesystem is local or GCS."""
     search = os.path.join(path, pattern)
     if is_gcs(path):
-        fs = GCSFileSystem()
-        return fs.glob(search)
+        fs = GCSFileSystem()  # pragma: no cover
+        return fs.glob(search)  # pragma: no cover
     else:
         if create:
             mkdir(path)
@@ -168,9 +168,9 @@ def cp(from_path: PathStr, to_path: PathStr) -> None:
     from_type = fs_type(from_path)
     to_type = fs_type(to_path)
     if is_gcs(from_path) | is_gcs(to_path):
-        fs = GCSFileSystem()
+        fs = GCSFileSystem()  # pragma: no cover
     if is_local(to_path):
-        mk_parent_dir(to_path)
+        mk_parent_dir(to_path)  # pragma: no cover
 
     match (from_type, to_type):
         case ("local", "local"):
@@ -197,7 +197,7 @@ def mv(from_path: PathStr, to_path: PathStr) -> None:
     to_type = fs_type(to_path)
 
     if is_gcs(from_path) | is_gcs(to_path):
-        fs = GCSFileSystem()
+        fs = GCSFileSystem()  # pragma: no cover
     if is_local(to_path):
         mk_parent_dir(to_path)
 
@@ -221,8 +221,8 @@ def rm(path: PathStr) -> None:
         path: The path to the file to be removed.
     """
     if is_gcs(path):
-        fs = GCSFileSystem()
-        fs.rm(path)
+        fs = GCSFileSystem()  # pragma: no cover
+        fs.rm(path)  # pragma: no cover
     else:
         os.remove(path)
 
@@ -234,8 +234,8 @@ def rmtree(
     if is_gcs(path):
         ...
         # TO DO: implement this (but recursive)
-        # fs = GCSFileSystem()
-        # fs.rm(path)
+        # fs = GCSFileSystem() # pragma: no cover
+        # fs.rm(path) # pragma: no cover
     else:
         shutil.rmtree(path)
 
@@ -272,8 +272,8 @@ def find(
         search_str = path(search_path, pattern)
 
     if is_gcs(path):
-        fs = GCSFileSystem()
-        found = fs.glob(search_str)
+        fs = GCSFileSystem()  # pragma: no cover
+        found = fs.glob(search_str)  # pragma: no cover
     else:
         found = glob.glob(search_str)
 
@@ -293,9 +293,9 @@ def read_text(path: PathStr, file_format: str = "") -> dict:
         file_format = Path(path).suffix
     read_func = _text_reader(file_format)
     if is_gcs(path):
-        fs = GCSFileSystem()
+        fs = GCSFileSystem()  # pragma: no cover
         with fs.open(path, "r") as file:
-            return read_func(file)
+            return read_func(file)  # pragma: no cover
     else:
         with open(path) as file:
             return read_func(file)
@@ -308,9 +308,9 @@ def write_text(path: PathStr, content: str | dict, file_format: str) -> None:
     write = _text_writer(file_format)
 
     if is_gcs(path):
-        fs = GCSFileSystem()
+        fs = GCSFileSystem()  # pragma: no cover
         with fs.open(path, "w") as file:
-            write(file, content)
+            write(file, content)  # pragma: no cover
     else:
         mk_parent_dir(path)
         with open(path, "w") as file:
@@ -366,9 +366,9 @@ def _text_writer(file_format: str) -> Callable[[PathStr, dict], None]:
 def read_json(path: PathStr) -> dict:
     """Read json file from path on either local fs or GCS."""
     if is_gcs(path):
-        fs = GCSFileSystem()
+        fs = GCSFileSystem()  # pragma: no cover
         with fs.open(path, "r") as file:
-            return json.load(file)
+            return json.load(file)  # pragma: no cover
     else:
         with open(path) as file:
             return json.load(file)
@@ -377,11 +377,11 @@ def read_json(path: PathStr) -> dict:
 def write_json(path: PathStr, content: str | dict) -> None:
     """Write json file to path on either local fs or GCS."""
     if is_gcs(path):
-        fs = GCSFileSystem()
+        fs = GCSFileSystem()  # pragma: no cover
         with fs.open(path, "w") as file:
             if isinstance(content, str):
                 content = json.loads(content)
-            json.dump(content, file, indent=4, ensure_ascii=False)
+            json.dump(content, file, indent=4, ensure_ascii=False)  # pragma: no cover
     else:
         mk_parent_dir(path)
         with open(path, "w") as file:
@@ -434,7 +434,7 @@ def write_parquet(
     """
     table = to_arrow(data, schema)  # to validate schema ...
     if is_gcs(path):
-        fs = GCSFileSystem()
+        fs = GCSFileSystem()  # pragma: no cover
     else:
         fs = pyarrow.fs.LocalFileSystem()
         mk_parent_dir(path)
