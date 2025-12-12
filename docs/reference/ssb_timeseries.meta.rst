@@ -24,13 +24,25 @@ The following classes and functions are exposed as the public API of the `meta` 
 **Type Aliases**
 ~~~~~~~~~~~~~~~~
 
-.. autodata:: ssb_timeseries.meta.DatasetTagDict
+.. py:data:: DatasetTagDict
+   :annotation: = dict[str, Any]
 
-.. autodata:: ssb_timeseries.meta.SeriesTagDict
+   A dictionary representing the full dataset metadata, including 'series'.
 
-.. autodata:: ssb_timeseries.meta.TagDict
+.. py:data:: SeriesTagDict
+   :annotation: = dict[str, TagDict]
 
-.. autodata:: ssb_timeseries.meta.TagValue
+   A dictionary mapping series names to their TagDict.
+
+.. py:data:: TagDict
+   :annotation: = dict[str, TagValue]
+
+   A dictionary of tags, where keys are tag names and values are TagValues.
+
+.. py:data:: TagValue
+   :annotation: = str | list[str]
+
+   A tag value can be a single string or a list of strings.
 
 **Functions**
 ~~~~~~~~~~~~~

@@ -18,12 +18,19 @@ import ssb_timeseries as ts
 # mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-any-return"
 
 TagValue: TypeAlias = str | list[str]
+"""A tag value can be a single string or a list of strings."""
+
 TagDict: TypeAlias = dict[str, TagValue]
+"""A dictionary of tags, where keys are tag names and values are TagValues."""
+
 SeriesTagDict: TypeAlias = dict[str, TagDict]
+"""A dictionary mapping series names to their TagDict."""
+
 # The more specific type hint below is too restrictive for runtime type checkers like typeguard,
 # which fail on the complex, nested structure of the tag dictionaries.
 # DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict]
 DatasetTagDict: TypeAlias = dict[str, Any]
+"""A dictionary representing the full dataset metadata, including 'series'."""
 
 
 def matches_criteria(tag: dict[str, Any], criteria: dict[str, str | list[str]]) -> bool:
