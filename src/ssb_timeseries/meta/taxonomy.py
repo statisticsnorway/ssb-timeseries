@@ -11,9 +11,6 @@ from __future__ import annotations
 import itertools
 from typing import Any
 
-import bigtree
-from bigtree import get_tree_diff
-
 import networkx as nx
 import narwhals as nw
 from narwhals.typing import IntoFrameT
@@ -178,7 +175,7 @@ class Taxonomy:
         return Taxonomy(data=subgraph_data)
 
 
-    def print_tree(self):
+    def print_tree(self) -> None:
         """
         Graphical representation of directed graph.
         """
@@ -194,7 +191,7 @@ class Taxonomy:
         nx.draw_networkx(self.structure, pos=nx.bfs_layout(self.structure, start=self.leaf_nodes), **options)
 
     @property
-    def all_nodes(self) -> list:
+    def all_nodes(self) -> list[str]:
         """Return all nodes in the taxonomy."""
         return list(self.structure.nodes)
 
@@ -213,7 +210,7 @@ class Taxonomy:
         return parents
 
     @property
-    def code_dict(self):
+    def code_dict(self) -> dict[str, list[str]]:
         """
         List all aggregates that each leaf node is a part of.
         """
@@ -222,7 +219,7 @@ class Taxonomy:
         }
         
     @property
-    def agg_table(self):
+    def agg_table(self) -> pd.DataFrame:
         # Denne ble tidligere brukt til å utlede agg_dict, men er ikke nødvendig til det
         # Mulig den likevel kan brukes til et eller annet
         """
@@ -240,7 +237,7 @@ class Taxonomy:
         return agg_table
     
     @property
-    def agg_dict(self):
+    def agg_dict(self) -> dict[str, list[str]]:
         """
         Dictionary of aggregate codes as list of leaf nodes.
         """
