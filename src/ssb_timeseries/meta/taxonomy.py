@@ -175,20 +175,27 @@ class Taxonomy:
         return Taxonomy(data=subgraph_data)
 
 
-    def print_tree(self) -> None:
-        """
-        Graphical representation of directed graph.
-        """
-        options = {
+    def print_tree(
+        self,
+        options: dict = {
             "font_size": 16,
             "node_size": 8,
             "node_color": "white",
             "edgecolors": "black",
             "linewidths": 1,
             "width": 1,
-        }
-        # plt.figure(figsize=(24, 12))
-        nx.draw_networkx(self.structure, pos=nx.bfs_layout(self.structure, start=self.leaf_nodes), **options)
+        },
+        figsize: tuple = (24, 12),
+    ) -> None:
+        """
+        Graphical representation of directed graph.
+        """
+        plt.figure(figsize=figsize)
+        nx.draw_networkx(
+            self.structure,
+            pos=nx.bfs_layout(self.structure, start=self.leaf_nodes),
+            **options,
+        )
 
     @property
     def all_nodes(self) -> list[str]:
