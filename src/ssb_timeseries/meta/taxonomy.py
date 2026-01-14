@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import itertools
 from typing import Any
+from typing import TYPE_CHECKING
 
 import networkx as nx
 import narwhals as nw
@@ -27,6 +28,9 @@ from ssb_timeseries.types import PathStr
 # TODO: Replace with nw in agg_table-method
 import pandas as pd
 
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
+    from matplotlib.axes import Axes
 
 class MissingAttributeError(Exception):
     """At least one required attribute was not provided."""
@@ -193,9 +197,11 @@ class Taxonomy:
         plt.figure(figsize=figsize)
         nx.draw_networkx(
             self.structure,
-            pos=nx.bfs_layout(self.structure, start=self.leaf_nodes),
-            **options,
+            # pos=nx.bfs_layout(self.structure, start=self.leaf_nodes),
+            **options
         )
+        
+        
 
     @property
     def all_nodes(self) -> list[str]:
@@ -225,23 +231,22 @@ class Taxonomy:
             y: sum([x[1] for x in nx.bfs_successors(self.structure, source=y)], []) for y in self.leaf_nodes
         }
         
-    @property
-    def agg_table(self) -> pd.DataFrame:
-        # Denne ble tidligere brukt til å utlede agg_dict, men er ikke nødvendig til det
-        # Mulig den likevel kan brukes til et eller annet
-        """
-        Aggregate matrix for directed graph.
-        """
-        dict1 = self.code_dict
+    # @property
+    # def agg_table(self) -> pd.DataFrame:
+    #     # Denne ble tidligere brukt til å utlede agg_dict, men er ikke nødvendig til det
+    #     # Mulig den likevel kan brukes til et eller annet
+    #     """
+    #     Aggregate matrix for directed graph.
+    #     """
+    #     dict1 = self.code_dict
     
-        a1 = self.parent_nodes
+    #     a1 = self.parent_nodes
     
-        agg_table = pd.DataFrame(
-        {col: [col in dict1[key] for key in dict1.keys()] 
-         for col in a1},
-        index=dict1.keys())
-    
-        return agg_table
+    #     return pd.DataFrame(
+    #         {col: [col in dict1[key] for key in dict1.keys()] 
+    #         for col in a1},
+    #         index=dict1.keys()
+    #     )
     
     @property
     def agg_dict(self) -> dict[str, list[str]]:
