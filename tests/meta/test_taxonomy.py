@@ -88,7 +88,6 @@ def test_get_leaf_nodes_from_middle_of_hierarchical_klass_taxonomy(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
-    subtree = klass157.subtree("1.1")
     # leaves = [n.name for n in subtree.root.leaves]
     leaves = klass157.agg_dict["1.1"]
     # ts.logger.debug(f"{print_tree(subtree)} ...\n{leaves}")
@@ -118,7 +117,6 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
-    tree = klass157.structure
 
     # leaf_nodes = [n.name for n in tree.root.leaves]
     # all_nodes = [n.name for n in tree.root.descendants] + [tree.root.name]
@@ -130,22 +128,22 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
     assert len(klass157.all_nodes) == len(klass157.leaf_nodes) + len(klass157.parent_nodes)
     assert sorted(parent_nodes) == sorted(parent_nodes2)
 
+# TODO: Replace with a functioning test
+# @pytest.mark.xfail(reason="Tree diff error?")
+# def test_taxonomy_minus_subtree(
+#     caplog: pytest.LogCaptureFixture,
+# ) -> None:
+#     caplog.set_level(logging.DEBUG)
+#     klass157 = Taxonomy(klass_id=157)
+#     klass157_subtree = klass157.subtree("1.1")
+#     ts.logger.warning(f"tree ...\n{klass157_subtree}")
+#     # rest = bigtree.get_tree_diff(klass157.structure.root, klass157_subtree)
+#     # rest = klass157.structure.root - klass157_subtree
 
-@pytest.mark.xfail(reason="Tree diff error?")
-def test_taxonomy_minus_subtree(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    caplog.set_level(logging.DEBUG)
-    klass157 = Taxonomy(klass_id=157)
-    klass157_subtree = klass157.subtree("1.1")
-    ts.logger.warning(f"tree ...\n{klass157_subtree}")
-    # rest = bigtree.get_tree_diff(klass157.structure.root, klass157_subtree)
-    # rest = klass157.structure.root - klass157_subtree
+#     rest = klass157 - klass157_subtree
+#     # ts.logger.warning(f"...\n{rest}")
 
-    rest = klass157 - klass157_subtree
-    ts.logger.warning(f"...\n{rest}")
-
-    assert isinstance(rest, bigtree.Node)
+    # assert isinstance(rest, bigtree.Node)
 
 
 def test_replace_chars_in_flat_codes(

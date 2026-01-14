@@ -247,8 +247,7 @@ class Taxonomy:
 
     @property
     def agg_dict(self) -> dict[str, list[str]]:
-        """Dictionary of aggregate codes as list of leaf nodes.
-        """
+        """Dictionary of aggregate codes as list of leaf nodes."""
         leaves = self.leaf_nodes
         parents = self.parent_nodes
         c_dict = self.code_dict
