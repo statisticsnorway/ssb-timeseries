@@ -123,7 +123,7 @@ class Taxonomy:
             for x in roots:
                 if self.agg_dict[x] == self.leaf_nodes:
                     self.root = x
-            if self.root == None:
+            if self.root is None:
                 root_edge_list = [(x, "0") for x in roots]
                 self.structure.add_edges_from(root_edge_list)
                 # TODO: This should be a networkx node
@@ -164,7 +164,7 @@ class Taxonomy:
     #         remove = self.subtree(other.name).asc
     #         return NotImplemented
 
-    def __getitem__(self, key: str):  # type: ignore[name-defined]
+    def __getitem__(self, key: str) -> str:  # type: ignore[name-defined]
         """Get tree node by name (KLASS code)."""
         # TODO: Return node object
         return self.structure.nodes[key]
@@ -180,18 +180,19 @@ class Taxonomy:
 
     def print_tree(
         self,
-        options: dict = {
+        options: dict | None = None,
+        figsize: tuple = (24, 12),
+    ) -> None:
+        """Graphical representation of directed graph."""
+        if options is None:
+            options = {
             "font_size": 16,
             "node_size": 8,
             "node_color": "white",
             "edgecolors": "black",
             "linewidths": 1,
             "width": 1,
-        },
-        figsize: tuple = (24, 12),
-    ) -> None:
-        """Graphical representation of directed graph.
-        """
+        }
         plt.figure(figsize=figsize)
         nx.draw_networkx(
             self.structure,
@@ -222,8 +223,7 @@ class Taxonomy:
 
     @property
     def code_dict(self) -> dict[str, list[str]]:
-        """List all aggregates that each leaf node is a part of.
-        """
+        """List all aggregates that each leaf node is a part of."""
         return {
             y: sum([x[1] for x in nx.bfs_successors(self.structure, source=y)], []) for y in self.leaf_nodes
         }
