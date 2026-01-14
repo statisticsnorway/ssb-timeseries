@@ -8,6 +8,7 @@ KLASS API, local files, and in-memory data structures.
 from __future__ import annotations
 
 from collections.abc import Hashable
+from datetime import date
 from functools import cache
 from typing import Any
 from typing import Protocol
@@ -17,8 +18,6 @@ import narwhals as nw
 import pyarrow as pa
 from klass import get_classification
 from narwhals.typing import IntoFrameT
-
-from datetime import date
 
 from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.io import fs

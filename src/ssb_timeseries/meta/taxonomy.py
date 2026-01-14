@@ -9,14 +9,17 @@ providing methods for navigating and manipulating the taxonomy.
 from __future__ import annotations
 
 import itertools
-from typing import Any
-from typing import TYPE_CHECKING
-
-import networkx as nx
-import narwhals as nw
-from narwhals.typing import IntoFrameT
-import matplotlib.pyplot as plt
 from datetime import date
+from typing import TYPE_CHECKING
+from typing import Any
+
+import matplotlib.pyplot as plt
+import narwhals as nw
+import networkx as nx
+
+# TODO: Replace with nw in agg_table-method
+from narwhals.typing import IntoFrameT
+
 import ssb_timeseries as ts
 from ssb_timeseries.dataframes import are_equal
 from ssb_timeseries.io import fs
@@ -25,12 +28,8 @@ from ssb_timeseries.meta.loaders import FileLoader
 from ssb_timeseries.meta.loaders import KlassLoader
 from ssb_timeseries.types import PathStr
 
-# TODO: Replace with nw in agg_table-method
-import pandas as pd
-
 if TYPE_CHECKING:
-    from matplotlib.figure import Figure
-    from matplotlib.axes import Axes
+    pass
 
 class MissingAttributeError(Exception):
     """At least one required attribute was not provided."""
@@ -106,13 +105,13 @@ class Taxonomy:
         # tbl til networkx-struktur
         edges_df = pandas_df[pandas_df['parentCode'].notna()].copy()
         list_attrs = list(edges_df.columns.difference(["code", "parentCode", "level"]))
-    
+
         # TODO: Check if we need these in a Taxonomy object
         edges_df["attrs"] = edges_df.apply(
             lambda row: {x: row[x] for x in list_attrs},  axis=1,
         )
-    
-        nx_edges = list(zip(edges_df["code"], edges_df["parentCode"], edges_df["attrs"]))
+
+        nx_edges = list(zip(edges_df["code"], edges_df["parentCode"], edges_df["attrs"], strict=False))
 
         self.structure: nx.DiGraph = nx.DiGraph(nx_edges)
 
@@ -139,7 +138,7 @@ class Taxonomy:
         """Checks for equality. Taxonomies are considered equal if their codes and hierarchical relations are the same."""
         if not isinstance(other, Taxonomy):
             return NotImplemented
-        
+
         # TODO: Update with nx
         # tree_diff = get_tree_diff(self.structure, other.structure)
         # if tree_diff:
@@ -162,7 +161,7 @@ class Taxonomy:
     #     """Return the tree difference between the two taxonomy (tree) structures."""
     #     ts.logger.debug("other: %s", other)
     #     if isinstance(other, bigtree.Node):
-    #         remove = self.subtree(other.name).asc  # noqa: F841
+    #         remove = self.subtree(other.name).asc
     #         return NotImplemented
 
     def __getitem__(self, key: str):  # type: ignore[name-defined]
@@ -191,8 +190,7 @@ class Taxonomy:
         },
         figsize: tuple = (24, 12),
     ) -> None:
-        """
-        Graphical representation of directed graph.
+        """Graphical representation of directed graph.
         """
         plt.figure(figsize=figsize)
         nx.draw_networkx(
@@ -200,8 +198,8 @@ class Taxonomy:
             # pos=nx.bfs_layout(self.structure, start=self.leaf_nodes),
             **options
         )
-        
-        
+
+
 
     @property
     def all_nodes(self) -> list[str]:
@@ -224,13 +222,12 @@ class Taxonomy:
 
     @property
     def code_dict(self) -> dict[str, list[str]]:
-        """
-        List all aggregates that each leaf node is a part of.
+        """List all aggregates that each leaf node is a part of.
         """
         return {
             y: sum([x[1] for x in nx.bfs_successors(self.structure, source=y)], []) for y in self.leaf_nodes
         }
-        
+
     # @property
     # def agg_table(self) -> pd.DataFrame:
     #     # Denne ble tidligere brukt til å utlede agg_dict, men er ikke nødvendig til det
@@ -239,19 +236,18 @@ class Taxonomy:
     #     Aggregate matrix for directed graph.
     #     """
     #     dict1 = self.code_dict
-    
+
     #     a1 = self.parent_nodes
-    
+
     #     return pd.DataFrame(
-    #         {col: [col in dict1[key] for key in dict1.keys()] 
+    #         {col: [col in dict1[key] for key in dict1.keys()]
     #         for col in a1},
     #         index=dict1.keys()
     #     )
-    
+
     @property
     def agg_dict(self) -> dict[str, list[str]]:
-        """
-        Dictionary of aggregate codes as list of leaf nodes.
+        """Dictionary of aggregate codes as list of leaf nodes.
         """
         leaves = self.leaf_nodes
         parents = self.parent_nodes

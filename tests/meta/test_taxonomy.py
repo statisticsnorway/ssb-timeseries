@@ -1,11 +1,11 @@
 import logging
 import uuid
-import networkx as nx
+
 # import bigtree
 import pytest
+
 # from bigtree import get_tree_diff
 # from bigtree import print_tree
-
 import ssb_timeseries as ts
 from ssb_timeseries.meta.taxonomy import Taxonomy
 
@@ -257,6 +257,7 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
     assert klass157 == file157
 
 import pandas as pd
+
 simple_nx_data_no_root = pd.DataFrame({"code": ["100","200","200","300","400","A", "B", "C"],
                               "parentCode": ["A","A","B", "C", "C", "F1", "F1", "F2"]})
 simple_nx_data_one_root = pd.DataFrame({"code": ["100","200","200","300","400","A", "B", "C", "F1", "F2",],

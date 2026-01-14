@@ -5,7 +5,7 @@ description = "SSB Timeseries"
 authors = [{ name = "Bernhard Ryeng", email = "bernhard.ryeng@ssb.no" }]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.11,<3.14.1 || >3.14.1,<4.0"
+requires-python = ">=3.11, <4.0, !=3.14.1"
 dynamic = ["classifiers"]
 dependencies = [
     "click>=8.1.7",
