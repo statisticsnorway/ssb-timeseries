@@ -3,31 +3,23 @@
 ## Installation
 
 Clone from [GitHub](https://github.com/statisticsnorway/ssb-timeseries/),
-or use your favourite dependency management tool to install from [PyPi](https://pypi.org/project/ssb-timeseries/).
-Despite the increasing traction of `uv`, the standard in Statistics Norway is still `Poetry`:
+or install from [PyPi](https://pypi.org/project/ssb-timeseries/):
 
 ```bash
 poetry add ssb-timeseries
 ```
 
-
-If you are lucky, the library works out of the box with default or predefined settings.
-
-Note that the defaults are for local testing, ie not be suitable for the production setting.
+The library should work out of the box with default settings.
+For local use or testing, but are likely to require modifications to be suitable in a production setting.
 
 ## Configuration
 
-The library expects an environment variable TIMESERIES_CONFIG to provide the path to a valid configuration file.
-The name or location of the file does not really matter, but some environments may require specific locations.
+The library expects an environment variable TIMESERIES_CONFIG to identify a configuration file.
+Neither name nor location of the file matters as long as the file is identified correctly, accessible and complies with the JSON schema for the library version.
 
-For users in Statistics Norway:
-
-- `/home/onyxia/work/` for your own testing and development in **Dapla Lab**.
-- `/home/onyxia/buckets/<bucket-name>` for working with sharp data.
-- `gs://<team>/<timeseries-config-path>` for GCP service configuration.
-
-The configuration file should be in JSON format.
-A minimal example suitable for testing (version 0.7.0 and above) look like this:
+A minimal configuration specifies the "repositories" where data and meta data are stored, and associated with the "handlers" that implement the read and write functionality.
+See the {Configure IO} guide for more details, multiple repositories can  different
+A working example for version 0.7.0 and above may look like this:
 
 ```json
 {
@@ -64,6 +56,12 @@ A minimal example suitable for testing (version 0.7.0 and above) look like this:
     }
 }
 ```
+
+For users in Statistics Norway,
+
+- `/home/onyxia/work/timeseries/configuration/timeseries_config.json` for working with your own testing and development in **Dapla Lab**.
+- `/buckets/<bucket-name>/konfigurasjon/tidsserier/<name-of-file>` for working with the team's data.
+- `gs://<team>/konfigurasjon/<name-of-file>` for GCP service configuration.
 
 The easiest way to set the environment variable within a Dapla Lab session is with a cell magic.
 Assuming the configuration file is `/home/onyxia/work/timeseries/configuration/minimal.json`:
