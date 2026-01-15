@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import itertools
 from datetime import date
+from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -224,9 +225,12 @@ class Taxonomy:
     @property
     def code_dict(self) -> dict[str, list[str]]:
         """List all aggregates that each leaf node is a part of."""
-        return {
-            y: sum([x[1] for x in nx.bfs_successors(self.structure, source=y)], []) for y in self.leaf_nodes
-        }
+        c_dict = {}
+
+        for y in self.leaf_nodes:
+            c_dict[y] = list(chain.from_iterable([x[1] for x in nx.bfs_successors(self.structure, source=y)]))
+
+        return c_dict
 
     # @property
     # def agg_table(self) -> pd.DataFrame:
