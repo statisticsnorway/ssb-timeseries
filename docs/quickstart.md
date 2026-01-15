@@ -9,24 +9,17 @@ or install from [PyPi](https://pypi.org/project/ssb-timeseries/):
 poetry add ssb-timeseries
 ```
 
-The library should work out of the box with default settings that may suffice for local use or testing,
-but modifications are likely to be required.
+The library should work out of the box with default settings.
+For local use or testing, but are likely to require modifications to be suitable in a production setting.
 
 ## Configuration
 
-The library expects an environment variable TIMESERIES_CONFIG to identify a valid configuration file,
-but neither the name nor the location of the file matters.
+The library expects an environment variable TIMESERIES_CONFIG to identify a configuration file.
+Neither name nor location of the file matters as long as the file is identified correctly, accessible and complies with the JSON schema for the library version.
 
-The primary purpose of the configuration is to specify the "repositories" where data and meta data are stored,
-and the "handlers" that implement the read and write functionality.
-Data and metadata are configured independent of each other, multiple repositories can be configured at the same time, and handlers may support a variety of technologies.
-See the {Configure IO} guide for more details.
-
-The configuration can also define some behaviours of the library, notably logging.
-Options include a standard logging.dictConfig or `"logging": {},` for no logging.
-See the {Configure Logging} guide for examples.
-
-A minimal working example for version 0.7.0 and above may look like this:
+A minimal configuration specifies the "repositories" where data and meta data are stored, and associated with the "handlers" that implement the read and write functionality.
+See the {Configure IO} guide for more details, multiple repositories can  different
+A working example for version 0.7.0 and above may look like this:
 
 ```json
 {
