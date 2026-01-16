@@ -104,21 +104,29 @@ class Taxonomy:
         pandas_df = nw.from_native(self.entities).to_pandas()
 
         # tbl til networkx-struktur
-        edges_df = pandas_df[pandas_df['parentCode'].notna()].copy()
+        edges_df = pandas_df[pandas_df["parentCode"].notna()].copy()
         list_attrs = list(edges_df.columns.difference(["code", "parentCode", "level"]))
 
         # TODO: Check if we need these in a Taxonomy object
         edges_df["attrs"] = edges_df.apply(
-            lambda row: {x: row[x] for x in list_attrs},  axis=1,
+            lambda row: {x: row[x] for x in list_attrs}, 
+            axis=1,
         )
 
-        nx_edges = list(zip(edges_df["code"], edges_df["parentCode"], edges_df["attrs"], strict=False))
+        nx_edges = list(
+            zip(edges_df["code"], 
+                edges_df["parentCode"], 
+                edges_df["attrs"], 
+                strict=False)
+        )
 
         self.structure: nx.DiGraph = nx.DiGraph(nx_edges)
 
         # Finding root nodes
         # This could be done in the loaders module
-        roots = [x for x in self.structure.nodes if list(self.structure.successors(x)) == []]
+        roots = [
+            x for x in self.structure.nodes if list(self.structure.successors(x)) == []
+        ]
         if len(roots) > 1:
             self.root = None
             for x in roots:
