@@ -23,6 +23,7 @@ def test_read_flat_code_list_from_klass_returns_two_level_tree() -> None:
     assert activity.root == "0"
     # assert activity.structure.diameter == 2
 
+
 def test_read_flat_code_list_date() -> None:
     activity = Taxonomy(klass_id=697, from_date="1997-11-01")
     ts.logger.debug(f"captured ...\n{activity.entities}")
@@ -33,6 +34,7 @@ def test_read_flat_code_list_date() -> None:
     # assert activity.structure.max_depth == 2
     assert activity.root == "0"
     # assert activity.structure.diameter == 2
+
 
 def test_different_dates_nace() -> None:
     nace_today = Taxonomy(klass_id=6)
@@ -69,7 +71,7 @@ def test_get_leaf_nodes_from_hierarchical_klass_taxonomy(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
-    tree = Taxonomy(klass_id=157) #.structure
+    tree = Taxonomy(klass_id=157)  # .structure
     # leaves = [n.name for n in tree.root["1"].leaves]
     leaves = tree.agg_dict["1"]
     # ts.logger.debug(f"{print_tree(tree)} ...\n{leaves}")
@@ -107,7 +109,7 @@ def test_get_item_from_hierarchical_klass_taxonomy(
     tree = klass157.structure
     # node_1_1 = bigtree.find_name(tree.root, "1.1")
 
-    assert list(tree.predecessors('1.1')) == ["1.1.1", "1.1.2", "1.1.3"]
+    assert list(tree.predecessors("1.1")) == ["1.1.1", "1.1.2", "1.1.3"]
 
     # assert klass157["1.1"] == node_1_1
 
@@ -125,8 +127,11 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
 
     ts.logger.debug(f"All nodes:\n\t{klass157.all_nodes}")
 
-    assert len(klass157.all_nodes) == len(klass157.leaf_nodes) + len(klass157.parent_nodes)
+    assert len(klass157.all_nodes) == len(klass157.leaf_nodes) + len(
+        klass157.parent_nodes
+    )
     assert sorted(parent_nodes) == sorted(parent_nodes2)
+
 
 # TODO: Replace with a functioning test
 # @pytest.mark.xfail(reason="Tree diff error?")
@@ -143,7 +148,7 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
 #     rest = klass157 - klass157_subtree
 #     # ts.logger.warning(f"...\n{rest}")
 
-    # assert isinstance(rest, bigtree.Node)
+# assert isinstance(rest, bigtree.Node)
 
 
 def test_replace_chars_in_flat_codes(
@@ -163,7 +168,7 @@ def test_replace_chars_in_flat_codes(
             "lagere": "lagerendring",
         },  # multiple replacements! --> generate substitution dict from json file if required
     )
-    k697_names = k697.leaf_nodes #[n.name for n in k697.structure.root.children]
+    k697_names = k697.leaf_nodes  # [n.name for n in k697.structure.root.children]
     ts.logger.debug(f"klass 697 codes:\n{k697_names}")
     # ts.logger.debug(
     #     f"tree ...\n{print_tree(k697.structure.root, attr_list=['fullname'])}"
@@ -205,7 +210,7 @@ def test_replace_chars_in_hierarchical_codes(
         },
     )
     # compare for leaf nodes of sub tree
-    k157_names = k157.leaf_nodes[:4] #[n.name for n in k157["1"].leaves]
+    k157_names = k157.leaf_nodes[:4]  # [n.name for n in k157["1"].leaves]
     ts.logger.debug(f"klass 157 codes:\n{k157_names}")
     # ts.logger.warning(
     #     f"tree ...\n{print_tree(k157.structure.root['1'], attr_list=['fullname'])}"
@@ -236,8 +241,8 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
     #    fs.rm(temp_file)
 
     # compare all leaf nodes of sub tree
-    k157_names = klass157.leaf_nodes #[n.name for n in klass157.structure.root.leaves]
-    f157_names = file157.leaf_nodes #[n.name for n in file157.structure.root.leaves]
+    k157_names = klass157.leaf_nodes  # [n.name for n in klass157.structure.root.leaves]
+    f157_names = file157.leaf_nodes  # [n.name for n in file157.structure.root.leaves]
     assert k157_names == f157_names
 
     # ts.logger.debug(f"klass157 ...\n{print_tree(klass157.structure)}")
@@ -254,29 +259,94 @@ def test_hierarchical_codes_retrieved_from_klass_and_reloaded_from_json_file_are
     assert isinstance(klass157, Taxonomy) and isinstance(file157, Taxonomy)
     assert klass157 == file157
 
+
 import pandas as pd
 
-simple_nx_data_no_root = pd.DataFrame({"code": ["100","200","200","300","400","A", "B", "C"],
-                              "parentCode": ["A","A","B", "C", "C", "F1", "F1", "F2"]})
-simple_nx_data_one_root = pd.DataFrame({"code": ["100","200","200","300","400","A", "B", "C", "F1", "F2",],
-                              "parentCode": ["A","A","B", "C", "C", "F1", "F1", "F2","F", "F", ]})
-simple_nx_data_multiple_roots = pd.DataFrame({"code": ["100","200","200","300","400","A", "B", "C", "F1", "F2", "100", "300",],
-                              "parentCode": ["A","A","B", "C", "C", "F1", "F1", "F2","F", "F", "AAA", "AAA", ]})
+simple_nx_data_no_root = pd.DataFrame(
+    {
+        "code": ["100", "200", "200", "300", "400", "A", "B", "C"],
+        "parentCode": ["A", "A", "B", "C", "C", "F1", "F1", "F2"],
+    }
+)
+simple_nx_data_one_root = pd.DataFrame(
+    {
+        "code": [
+            "100",
+            "200",
+            "200",
+            "300",
+            "400",
+            "A",
+            "B",
+            "C",
+            "F1",
+            "F2",
+        ],
+        "parentCode": [
+            "A",
+            "A",
+            "B",
+            "C",
+            "C",
+            "F1",
+            "F1",
+            "F2",
+            "F",
+            "F",
+        ],
+    }
+)
+simple_nx_data_multiple_roots = pd.DataFrame(
+    {
+        "code": [
+            "100",
+            "200",
+            "200",
+            "300",
+            "400",
+            "A",
+            "B",
+            "C",
+            "F1",
+            "F2",
+            "100",
+            "300",
+        ],
+        "parentCode": [
+            "A",
+            "A",
+            "B",
+            "C",
+            "C",
+            "F1",
+            "F1",
+            "F2",
+            "F",
+            "F",
+            "AAA",
+            "AAA",
+        ],
+    }
+)
+
 
 def test_nx_from_df() -> None:
     nx_taxonomy = Taxonomy(data=simple_nx_data_no_root)
     assert nx_taxonomy.root == "0"
     assert nx_taxonomy.agg_dict[nx_taxonomy.root] == nx_taxonomy.leaf_nodes
 
+
 def test_nx_root_from_df() -> None:
     nx_taxonomy = Taxonomy(data=simple_nx_data_one_root)
     assert nx_taxonomy.root == "F"
     assert nx_taxonomy.agg_dict[nx_taxonomy.root] == nx_taxonomy.leaf_nodes
 
+
 def test_nx_multiple_from_df() -> None:
     nx_taxonomy = Taxonomy(data=simple_nx_data_multiple_roots)
     assert nx_taxonomy.root == "F"
     assert nx_taxonomy.agg_dict[nx_taxonomy.root] == nx_taxonomy.leaf_nodes
+
 
 def test_simple_subtree() -> None:
     nx_taxonomy = Taxonomy(data=simple_nx_data_no_root)

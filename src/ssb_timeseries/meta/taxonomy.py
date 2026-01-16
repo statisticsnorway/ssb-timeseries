@@ -32,6 +32,7 @@ from ssb_timeseries.types import PathStr
 if TYPE_CHECKING:
     pass
 
+
 class MissingAttributeError(Exception):
     """At least one required attribute was not provided."""
 
@@ -109,15 +110,17 @@ class Taxonomy:
 
         # TODO: Check if we need these in a Taxonomy object
         edges_df["attrs"] = edges_df.apply(
-            lambda row: {x: row[x] for x in list_attrs}, 
+            lambda row: {x: row[x] for x in list_attrs},
             axis=1,
         )
 
         nx_edges = list(
-            zip(edges_df["code"], 
-                edges_df["parentCode"], 
-                edges_df["attrs"], 
-                strict=False)
+            zip(
+                edges_df["code"],
+                edges_df["parentCode"],
+                edges_df["attrs"],
+                strict=False,
+            )
         )
 
         self.structure: nx.DiGraph = nx.DiGraph(nx_edges)
@@ -181,11 +184,12 @@ class Taxonomy:
     def subtree(self, key: str) -> Any:
         """Get subtree of node identified by code."""
         subgraph_data = []
-        for parent, children in nx.bfs_successors(nx.reverse_view(self.structure), source=key):
+        for parent, children in nx.bfs_successors(
+            nx.reverse_view(self.structure), source=key
+        ):
             for child in children:
-                subgraph_data.append({'parentCode': parent, 'code': child})
+                subgraph_data.append({"parentCode": parent, "code": child})
         return Taxonomy(data=subgraph_data)
-
 
     def print_tree(
         self,
@@ -195,21 +199,19 @@ class Taxonomy:
         """Graphical representation of directed graph."""
         if options is None:
             options = {
-            "font_size": 16,
-            "node_size": 8,
-            "node_color": "white",
-            "edgecolors": "black",
-            "linewidths": 1,
-            "width": 1,
-        }
+                "font_size": 16,
+                "node_size": 8,
+                "node_color": "white",
+                "edgecolors": "black",
+                "linewidths": 1,
+                "width": 1,
+            }
         plt.figure(figsize=figsize)
         nx.draw_networkx(
             self.structure,
             # pos=nx.bfs_layout(self.structure, start=self.leaf_nodes),
-            **options
+            **options,
         )
-
-
 
     @property
     def all_nodes(self) -> list[str]:
@@ -219,7 +221,11 @@ class Taxonomy:
     @property
     def leaf_nodes(self) -> list[str]:  # type: ignore[name-defined]
         """Return all leaf nodes in the taxonomy."""
-        leaves = [x for x in self.structure.nodes if list(self.structure.predecessors(x)) == []]
+        leaves = [
+            x
+            for x in self.structure.nodes
+            if list(self.structure.predecessors(x)) == []
+        ]
         ts.logger.debug("leaves: %s", leaves)
         return leaves
 
@@ -236,7 +242,11 @@ class Taxonomy:
         c_dict = {}
 
         for y in self.leaf_nodes:
-            c_dict[y] = list(chain.from_iterable([x[1] for x in nx.bfs_successors(self.structure, source=y)]))
+            c_dict[y] = list(
+                chain.from_iterable(
+                    [x[1] for x in nx.bfs_successors(self.structure, source=y)]
+                )
+            )
 
         return c_dict
 
@@ -263,7 +273,9 @@ class Taxonomy:
         leaves = self.leaf_nodes
         parents = self.parent_nodes
         c_dict = self.code_dict
-        return {agg: [code for code in leaves if agg in c_dict[code]] for agg in parents}
+        return {
+            agg: [code for code in leaves if agg in c_dict[code]] for agg in parents
+        }
 
     def save(self, path: PathStr) -> None:
         """Save taxonomy to json file.

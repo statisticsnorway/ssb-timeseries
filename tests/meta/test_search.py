@@ -489,9 +489,7 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
     assert isinstance(y, Dataset)
     assert len(y.numeric_columns) == 3 * len(klass157.parent_nodes)
     expected_names = [
-        f"{f[0]}{f[1]}({n})"
-        for n in klass157.parent_nodes
-        for f in multiple_functions
+        f"{f[0]}{f[1]}({n})" for n in klass157.parent_nodes for f in multiple_functions
     ]
     assert sorted(y.numeric_columns) == sorted(expected_names)
     assert not np.isnan(y.numeric_array()).any()
@@ -536,9 +534,7 @@ def test_aggregate_callable_for_hierarchical_taxonomy(
     assert isinstance(y, Dataset)
     assert len(y.numeric_columns) == 2 * len(klass157.parent_nodes)
     expected_names = [
-        f"{f.__name__}({n})"
-        for n in klass157.parent_nodes
-        for f in [perc10, perc90]
+        f"{f.__name__}({n})" for n in klass157.parent_nodes for f in [perc10, perc90]
     ]
     assert sorted(y.numeric_columns) == sorted(expected_names)
     assert not np.isnan(y.numeric_array()).any()
