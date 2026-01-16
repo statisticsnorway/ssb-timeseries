@@ -1709,7 +1709,7 @@ class Dataset:
             >>> from ssb_timeseries.meta import Taxonomy
             >>>
             >>> klass157 = Taxonomy(klass_id=157)
-            >>> klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+            >>> klass157_leaves = klass157.leaf_nodes
             >>> tag_permutation_space = {"A": klass157_leaves, "B": ["q"], "C": ["z"]}
             >>> series_names: list[list[str]] = [value for value in tag_permutation_space.values()]
             >>> sample_df = create_df(*series_names, start_date="2024-01-01", end_date="2024-12-31", freq="MS",)
