@@ -255,7 +255,6 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
     klass157_leaves = klass157.leaf_nodes
-    # klass157_leaves = [n.name for n in klass157.structure.root.leaves]
 
     set_name = conftest.function_name()
     set_tags = {
@@ -294,7 +293,6 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
     klass157_leaves = klass157.leaf_nodes
-    # klass157_leaves = [n.name for n in klass157.structure.root.leaves]
 
     set_name = conftest.function_name()
     set_tags = {
@@ -333,7 +331,6 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
     klass157_leaves = klass157.leaf_nodes
-    # klass157_leaves = [n.name for n in klass157.structure.root.leaves]
 
     set_name = conftest.function_name()
     set_tags = {
@@ -466,7 +463,6 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
     klass157_leaves = klass157.leaf_nodes
-    # klass157_leaves = [n.name for n in klass157.structure.root.leaves]
 
     set_name = conftest.function_name()
     series_tags = {"A": klass157_leaves, "B": ["pq"], "C": ["xyz"]}
@@ -509,7 +505,6 @@ def test_aggregate_callable_for_hierarchical_taxonomy(
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
     klass157_leaves = klass157.leaf_nodes
-    # klass157_leaves = [n.name for n in klass157.structure.root.leaves]
 
     set_name = conftest.function_name()
     set_tags = {
