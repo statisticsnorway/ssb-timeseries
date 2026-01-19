@@ -166,7 +166,8 @@ def test_aggregate_sum_for_flat_list_taxonomy(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass48 = Taxonomy(klass_id=48)
-    klass48_leaves = [f"{n.name:s}" for n in klass48.structure.root.leaves]
+    klass48_leaves = klass48.leaf_nodes
+    # klass48_leaves = [f"{n.name:s}" for n in klass48.structure.root.leaves]
 
     set_name = conftest.function_name()
     set_tags = {
@@ -191,9 +192,9 @@ def test_aggregate_sum_for_flat_list_taxonomy(
 
     y = x.aggregate(attributes=["A"], taxonomies=[klass48], functions=["sum"])
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns) == len(klass48.parent_nodes())
+    assert len(y.numeric_columns) == len(klass48.parent_nodes)
     assert sorted(y.numeric_columns) == sorted(
-        [f"sum({n.name})" for n in klass48.parent_nodes()]
+        [f"sum({n})" for n in klass48.parent_nodes]
     )
     assert not np.isnan(y.numeric_array()).any()
     assert (y.numeric_array() > 0).all()
@@ -205,7 +206,8 @@ def test_aggregate_multiple_functions_for_flat_list_taxonomy(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass48 = Taxonomy(klass_id=48)
-    klass48_leaves = [f"{n.name:s}" for n in klass48.structure.root.leaves]
+    klass48_leaves = klass48.leaf_nodes
+    # klass48_leaves = [f"{n.name:s}" for n in klass48.structure.root.leaves]
 
     set_name = conftest.function_name()
     set_tags = {
@@ -236,7 +238,7 @@ def test_aggregate_multiple_functions_for_flat_list_taxonomy(
         attributes=["A"], taxonomies=[klass48], functions=aggregate_functions
     )
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns) == len(klass48.parent_nodes()) * len(
+    assert len(y.numeric_columns) == len(klass48.parent_nodes) * len(
         aggregate_functions
     )
     assert sorted(y.numeric_columns) == sorted(
@@ -252,7 +254,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
-    klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+    klass157_leaves = klass157.leaf_nodes
 
     set_name = conftest.function_name()
     set_tags = {
@@ -276,9 +278,9 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
 
     y = x.aggregate(["A"], [klass157], {"sum"})
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns) == len(klass157.parent_nodes())
+    assert len(y.numeric_columns) == len(klass157.parent_nodes)
     assert sorted(y.numeric_columns) == sorted(
-        [f"sum({n.name})" for n in klass157.parent_nodes()]
+        [f"sum({n})" for n in klass157.parent_nodes]
     )
     assert not np.isnan(y.numeric_array()).any()
     assert (y.numeric_array() > 0).all()
@@ -290,7 +292,7 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
-    klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+    klass157_leaves = klass157.leaf_nodes
 
     set_name = conftest.function_name()
     set_tags = {
@@ -314,9 +316,9 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
 
     y = x.aggregate(["A"], [klass157], {"mean"})
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns) == len(klass157.parent_nodes())
+    assert len(y.numeric_columns) == len(klass157.parent_nodes)
     assert sorted(y.numeric_columns) == sorted(
-        [f"mean({n.name})" for n in klass157.parent_nodes()]
+        [f"mean({n})" for n in klass157.parent_nodes]
     )
     assert not np.isnan(y.numeric_array()).any()
     assert (y.numeric_array() > 0).all()
@@ -328,7 +330,7 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
-    klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+    klass157_leaves = klass157.leaf_nodes
 
     set_name = conftest.function_name()
     set_tags = {
@@ -357,11 +359,11 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
     )
     assert isinstance(y, Dataset)
     assert len(y.numeric_columns) == len(
-        klass157.parent_nodes() * len(multiple_functions)
+        klass157.parent_nodes * len(multiple_functions)
     )
     for func in multiple_functions:
         assert sorted(y.select(pattern=func).numeric_columns) == sorted(
-            [f"{func}({n.name})" for n in klass157.parent_nodes()]
+            [f"{func}({n})" for n in klass157.parent_nodes]
         )
 
     assert (y["mean(12.3)"] == y["sum(12.3)"] / y["count(12.3)"]).all()
@@ -377,13 +379,16 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
     # caplog.set_level(logging.DEBUG)
 
     balance = sample_metadata.balance()
-    balance_leaves = [n.name for n in balance.structure.root.leaves]
+    balance_leaves = balance.leaf_nodes
+    # balance_leaves = [n.name for n in balance.structure.root.leaves]
 
     commodity = sample_metadata.commodity()
-    commodity_leaves = [n.name for n in commodity.structure.root.leaves]
+    commodity_leaves = commodity.leaf_nodes
+    # commodity_leaves = [n.name for n in commodity.structure.root.leaves]
 
     geography = sample_metadata.nordic_countries()
-    geography_leaves = [n.name for n in geography.structure.root.leaves]
+    geography_leaves = geography.leaf_nodes
+    # geography_leaves = [n.name for n in geography.structure.root.leaves]
 
     set_name = conftest.function_name()
     series_tags = {
@@ -416,9 +421,9 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
     assert isinstance(y, Dataset)
     logging.debug(f"{y.series=}")
 
-    bal_aggregates = [b.name for b in balance.parent_nodes()]
-    com_aggregates = [c.name for c in commodity.parent_nodes()]
-    geo_aggregates = [b.name for b in geography.parent_nodes()]
+    bal_aggregates = [b for b in balance.parent_nodes]
+    com_aggregates = [c for c in commodity.parent_nodes]
+    geo_aggregates = [b for b in geography.parent_nodes]
     attribute_permutations = [
         c for c in itertools.product(bal_aggregates, com_aggregates, geo_aggregates)
     ]
@@ -457,7 +462,7 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
-    klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+    klass157_leaves = klass157.leaf_nodes
 
     set_name = conftest.function_name()
     series_tags = {"A": klass157_leaves, "B": ["pq"], "C": ["xyz"]}
@@ -482,11 +487,9 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
 
     y = x.aggregate(["A"], [klass157], multiple_functions)
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns) == 3 * len(klass157.parent_nodes())
+    assert len(y.numeric_columns) == 3 * len(klass157.parent_nodes)
     expected_names = [
-        f"{f[0]}{f[1]}({n.name})"
-        for n in klass157.parent_nodes()
-        for f in multiple_functions
+        f"{f[0]}{f[1]}({n})" for n in klass157.parent_nodes for f in multiple_functions
     ]
     assert sorted(y.numeric_columns) == sorted(expected_names)
     assert not np.isnan(y.numeric_array()).any()
@@ -499,7 +502,7 @@ def test_aggregate_callable_for_hierarchical_taxonomy(
 ) -> None:
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
-    klass157_leaves = [n.name for n in klass157.structure.root.leaves]
+    klass157_leaves = klass157.leaf_nodes
 
     set_name = conftest.function_name()
     set_tags = {
@@ -529,11 +532,9 @@ def test_aggregate_callable_for_hierarchical_taxonomy(
 
     y = x.aggregate(["A"], [klass157], [perc10, perc90])
     assert isinstance(y, Dataset)
-    assert len(y.numeric_columns) == 2 * len(klass157.parent_nodes())
+    assert len(y.numeric_columns) == 2 * len(klass157.parent_nodes)
     expected_names = [
-        f"{f.__name__}({n.name})"
-        for n in klass157.parent_nodes()
-        for f in [perc10, perc90]
+        f"{f.__name__}({n})" for n in klass157.parent_nodes for f in [perc10, perc90]
     ]
     assert sorted(y.numeric_columns) == sorted(expected_names)
     assert not np.isnan(y.numeric_array()).any()
