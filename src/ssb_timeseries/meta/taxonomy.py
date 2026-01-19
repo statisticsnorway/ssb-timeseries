@@ -127,21 +127,21 @@ class Taxonomy:
 
         # Finding root nodes
         # This could be done in the loaders module
-        roots = [
+        self.root_nodes = [
             x for x in self.structure.nodes if list(self.structure.successors(x)) == []
         ]
-        if len(roots) > 1:
+        if len(self.root_nodes) > 1:
             self.root = None
-            for x in roots:
+            for x in self.root_nodes:
                 if self.agg_dict[x] == self.leaf_nodes:
                     self.root = x
             if self.root is None:
-                root_edge_list = [(x, "0") for x in roots]
+                root_edge_list = [(x, "0") for x in self.root_nodes]
                 self.structure.add_edges_from(root_edge_list)
                 # TODO: This should be a networkx node
                 self.root = "0"
-        elif len(roots) == 1:
-            self.root = roots[0]
+        elif len(self.root_nodes) == 1:
+            self.root = self.root_nodes[0]
         else:
             # TODO: Should this raise an error or warning?
             self.root = None
@@ -332,8 +332,9 @@ def permutations(
     for (_attr, taxonomy), func in zip(taxonomies.items(), filters, strict=False):
         match func.lower():
             case "all" | "all_nodes":
-                nodes = taxonomy.all_nodes
+                nodes = [x for x in taxonomy.all_nodes if x not in taxonomy.root_nodes]
             case "parents" | "parent_nodes":
+                # TODO: Check if root_nodes should be filtered out.
                 nodes = taxonomy.parent_nodes
             case "leaves" | "leaf_nodes" | "children" | "child_nodes":
                 nodes = taxonomy.leaf_nodes  # type: ignore[assignment]

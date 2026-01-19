@@ -7,7 +7,7 @@ import pytest
 # from bigtree import get_tree_diff
 # from bigtree import print_tree
 import ssb_timeseries as ts
-from ssb_timeseries.meta.taxonomy import Taxonomy
+from ssb_timeseries.meta.taxonomy import Taxonomy, permutations
 
 # mypy: disable-error-code="no-untyped-def,attr-defined,func-returns-value,operator"
 
@@ -352,3 +352,9 @@ def test_simple_subtree() -> None:
     nx_taxonomy = Taxonomy(data=simple_nx_data_no_root)
     assert nx_taxonomy.subtree("F2").root == "F2"
     assert nx_taxonomy.subtree("F2").leaf_nodes == ["300", "400"]
+
+def test_permutations_simple() -> None:
+    tax_a = Taxonomy(data=[{'code': 'a1', 'parentCode': '0'}, {'code': 'a2', 'parentCode': '0'}])
+    tax_b = Taxonomy(data=[{'code': 'b1', 'parentCode': '0'}, {'code': 'b2', 'parentCode': '0'}])
+    assert permutations({'A': tax_a, 'B': tax_b}) == [{'A': 'a1', 'B': 'b1'}, {'A': 'a1', 'B': 'b2'}, {'A': 'a2', 'B': 'b1'}, {'A': 'a2', 'B': 'b2'}]
+
