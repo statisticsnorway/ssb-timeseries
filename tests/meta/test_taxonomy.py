@@ -1,15 +1,11 @@
 import logging
 import uuid
 
-# import bigtree
 import pytest
 
-# from bigtree import get_tree_diff
-# from bigtree import print_tree
 import ssb_timeseries as ts
-from ssb_timeseries.meta.taxonomy import permutations
 from ssb_timeseries.meta.taxonomy import Taxonomy
-
+from ssb_timeseries.meta.taxonomy import permutations
 
 # mypy: disable-error-code="no-untyped-def,attr-defined,func-returns-value,operator"
 
