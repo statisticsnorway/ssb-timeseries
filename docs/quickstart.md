@@ -9,17 +9,24 @@ or install from [PyPi](https://pypi.org/project/ssb-timeseries/):
 poetry add ssb-timeseries
 ```
 
-The library should work out of the box with default settings.
-For local use or testing, but are likely to require modifications to be suitable in a production setting.
+The library should work out of the box with default settings that may suffice for local use or testing,
+but modifications are likely to be required.
 
 ## Configuration
 
-The library expects an environment variable TIMESERIES_CONFIG to identify a configuration file.
-Neither name nor location of the file matters as long as the file is identified correctly, accessible and complies with the JSON schema for the library version.
+The library expects an environment variable TIMESERIES_CONFIG to identify a valid configuration file,
+but neither the name nor the location of the file matters.
 
-A minimal configuration specifies the "repositories" where data and meta data are stored, and associated with the "handlers" that implement the read and write functionality.
-See the {Configure IO} guide for more details, multiple repositories can  different
-A working example for version 0.7.0 and above may look like this:
+The primary purpose of the configuration is to specify the "repositories" where data and meta data are stored,
+and the "handlers" that implement the read and write functionality.
+Data and metadata are configured independent of each other, multiple repositories can be configured at the same time, and handlers may support a variety of technologies.
+See the {Configure IO} guide for more details.
+
+The configuration can also define some behaviours of the library, notably logging.
+Options include a standard logging.dictConfig or `"logging": {},` for no logging.
+See the {Configure Logging} guide for examples.
+
+A minimal working example for version 0.7.0 and above may look like this:
 
 ```json
 {
@@ -70,8 +77,7 @@ Assuming the configuration file is `/home/onyxia/work/timeseries/configuration/m
 %env TIMESERIES_CONFIG=/home/onyxia/work/timeseries/configuration/minimal.json
 ```
 
-Note that managed this way, `TIMESERIES_CONFIG` will not be persisted between subshells.
-The procedure need to be repeated for every new session or kernel restart.
+Note that managed this way, `TIMESERIES_CONFIG` will not be persisted between Jupyter sessions or kernel restarts.
 Refer to the Dapla documentation for setting the variable at the project level or in a startup script.
 
 With the environment variable pointing to the configuration file you should be ready to go.
