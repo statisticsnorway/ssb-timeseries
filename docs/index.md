@@ -20,8 +20,8 @@ end-before: <!-- github-only -->
    :hidden:
    :caption: Background
 
-   architecture
    info-model
+   architecture
    workflow
 
 .. toctree::
