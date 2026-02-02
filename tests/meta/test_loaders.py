@@ -93,9 +93,9 @@ class TestKlassLoader:
         KlassLoader._klass_classification.cache_clear()  # Clear cache before test
         # Mock the behavior of klass.get_classification
         mock_classification_instance = MagicMock()
-        mock_classification_instance.get_codes.return_value.data.to_dict.return_value = sample_klass_data[
-            1:
-        ]  # Exclude root node
+        mock_classification_instance.get_codes.return_value.data = pd.DataFrame(
+            sample_klass_data[1:]
+        )  # Exclude root node
         mock_get_classification.return_value = mock_classification_instance
 
         loader = KlassLoader(klass_id=123)
@@ -122,7 +122,9 @@ class TestKlassLoader:
             {"code": "1.1", "parentCode": "1", "name": "Subitem 1.1", "level": "2"},
         ]
         mock_classification_instance = MagicMock()
-        mock_classification_instance.get_codes.return_value.data.to_dict.return_value = klass_data_missing_parent
+        mock_classification_instance.get_codes.return_value.data = pd.DataFrame(
+            klass_data_missing_parent
+        )
         mock_get_classification.return_value = mock_classification_instance
 
         loader = KlassLoader(klass_id=456)
