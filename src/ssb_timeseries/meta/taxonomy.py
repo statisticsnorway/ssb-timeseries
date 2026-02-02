@@ -51,7 +51,7 @@ class Taxonomy:
     :ivar entities: Entity definitions, represented as a PyArrow Table.
     :vartype entities: pa.Table
     :ivar structure: The hierarchical structure of the taxonomy.
-    :vartype structure: bigtree.Node
+    :vartype structure: nx.DiGraph
 
     .. note::
 
@@ -151,14 +151,8 @@ class Taxonomy:
         if not isinstance(other, Taxonomy):
             return NotImplemented
 
-        # TODO: Update with nx
-        # tree_diff = get_tree_diff(self.structure, other.structure)
-        # if tree_diff:
-        #     return False
-
-        # the implementation of are_equal() allows comparing parentCode fields
-        # (which have value null for root nodes)
-        # fields_to_compare = ["code", "parentCode",]
+        # The implementation of are_equal() compares parentCode fields,
+        # ensuring that any changes in hierarchy/relationships are detected.
         fields_to_compare = ["code", "parentCode", "name"]
 
         self_tbl = self.entities.select(fields_to_compare).sort_by(
@@ -169,16 +163,20 @@ class Taxonomy:
         )
         return are_equal(self_tbl, othr_tbl)
 
-    # def __sub__(self, other: bigtree.Node) -> bigtree.Node:  # type: ignore[name-defined]
-    #     """Return the tree difference between the two taxonomy (tree) structures."""
-    #     ts.logger.debug("other: %s", other)
-    #     if isinstance(other, bigtree.Node):
-    #         remove = self.subtree(other.name).asc
-    #         return NotImplemented
+    def __sub__(self, other: Taxonomy) -> Taxonomy:
+        """Return a new Taxonomy with nodes from 'other' removed."""
+        if not isinstance(other, Taxonomy):
+            return NotImplemented
 
-    def __getitem__(self, key: str) -> str:  # type: ignore[name-defined]
-        """Get tree node by name (KLASS code)."""
-        # TODO: Return node object
+        other_codes = list(other.all_nodes)
+        df = nw.from_native(self.entities)
+        # Filter out codes that are present in the 'other' taxonomy
+        new_df = df.filter(~nw.col("code").is_in(other_codes))
+
+        return Taxonomy(data=new_df, name=f"{self.name}_minus_{other.name}")
+
+    def __getitem__(self, key: str) -> dict[str, Any]:
+        """Get tree node attributes by name (KLASS code)."""
         return self.structure.nodes[key]
 
     def subtree(self, key: str) -> Any:

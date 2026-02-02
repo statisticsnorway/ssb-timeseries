@@ -124,7 +124,7 @@ class DataLoader:
             return records_to_arrow(self.data)
         elif is_df_like(self.data):
             # Convert DataFrame to list of dicts to ensure schema consistency
-            df_as_list = nw.from_native(self.data).to_native().to_dict("records")  # type: ignore[union-attr, type-var]
+            df_as_list = nw.from_native(self.data).to_arrow().to_pylist()
             return records_to_arrow(df_as_list)
         else:
             # This path should ideally not be reached if types are checked
