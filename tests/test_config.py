@@ -202,9 +202,8 @@ def test_config_init_for_no_params_returns_same_as_preset_defaults(
     test_logger.debug(f"compare:\n{cfg_0=}\n{cfg_1=}\n{cfg_2=}")
     assert id(cfg_0) != id(cfg_1) != id(cfg_2)
     assert cfg_0.__dict__ == cfg_1.__dict__ == cfg_2
-    # WTF: different results when running only this testfile and all tests!
-    # r = "<teamname>" # works running pytest for this file  only
-    r = REPO  # works running pytest all tests
+
+    r = config.DAPLA_TEAM
     assert (
         cfg_0.repositories[r]["directory"]["options"]["path"]
         == cfg_1.repositories[r]["directory"]["options"]["path"]
