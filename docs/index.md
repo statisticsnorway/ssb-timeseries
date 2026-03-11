@@ -14,6 +14,7 @@ end-before: <!-- github-only -->
 
    quickstart
    configure-io
+   configure-logging
 
 .. toctree::
    :includehidden:
