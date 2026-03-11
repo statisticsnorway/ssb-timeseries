@@ -93,6 +93,14 @@
     background-color: var(--color-sidebar-search-background--focus) !important;
 }
 
+/* Force dark text on the active menu item to maintain contrast against the custom background */
+.sidebar-tree li.toctree-l1.current-page > a,
+.sidebar-tree li.toctree-l1.current-page > a code,
+.sidebar-tree li.toctree-l2.current-page > a,
+.sidebar-tree li.toctree-l2.current-page > a code {
+    color: #1a1a1a !important;
+}
+
 /* 3. Set background on the link itself for hovered items (L1 and L2). */
 /*    This targets the <a> tag to avoid highlighting the entire parent block. */
 .sidebar-tree li.toctree-l1 > a:hover,
