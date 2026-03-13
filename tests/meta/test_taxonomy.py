@@ -105,7 +105,6 @@ def test_get_item_from_hierarchical_klass_taxonomy(
     caplog.set_level(logging.DEBUG)
     klass157 = Taxonomy(klass_id=157)
     tree = klass157.structure
-    # node_1_1 = bigtree.find_name(tree.root, "1.1")
 
     assert list(tree.predecessors("1.1")) == ["1.1.1", "1.1.2", "1.1.3"]
 
@@ -131,22 +130,21 @@ def test_get_parent_nodes_from_hierarchical_klass_taxonomy(
     assert sorted(parent_nodes) == sorted(parent_nodes2)
 
 
-# TODO: Replace with a functioning test
-# @pytest.mark.xfail(reason="Tree diff error?")
-# def test_taxonomy_minus_subtree(
-#     caplog: pytest.LogCaptureFixture,
-# ) -> None:
-#     caplog.set_level(logging.DEBUG)
-#     klass157 = Taxonomy(klass_id=157)
-#     klass157_subtree = klass157.subtree("1.1")
-#     ts.logger.warning(f"tree ...\n{klass157_subtree}")
-#     # rest = bigtree.get_tree_diff(klass157.structure.root, klass157_subtree)
-#     # rest = klass157.structure.root - klass157_subtree
+def test_taxonomy_minus_subtree(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    klass157 = Taxonomy(klass_id=157)
+    klass157_subtree = klass157.subtree("1.1")
+    ts.logger.debug(f"tree ...\n{klass157_subtree}")
 
-#     rest = klass157 - klass157_subtree
-#     # ts.logger.warning(f"...\n{rest}")
+    rest = klass157 - klass157_subtree
 
-# assert isinstance(rest, bigtree.Node)
+    assert isinstance(rest, Taxonomy)
+    assert "1.1.1" not in rest.all_nodes
+    assert "1.1.2" not in rest.all_nodes
+    assert "1.1.3" not in rest.all_nodes
+    assert "1.2" in rest.all_nodes
 
 
 def test_replace_chars_in_flat_codes(

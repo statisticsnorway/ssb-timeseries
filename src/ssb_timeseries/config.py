@@ -27,6 +27,7 @@ See :py:func:`ssb_timeseries.config.main` for details on the named options.
 
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import os
@@ -340,7 +341,7 @@ class Config:
 
         if preset_name:
             _config_logger.debug(f"Loading preset configuration {preset_name}.")
-            self.apply(PRESETS[preset_name])
+            self.apply(copy.deepcopy(PRESETS[preset_name]))
             return
         elif kwargs_are_complete_config:
             _config_logger.debug("Complete configuration in parameters.\n%s", kwargs)
@@ -368,7 +369,7 @@ class Config:
             else:
                 config_from_file = {}
 
-            config_values = PRESETS["default"]
+            config_values = copy.deepcopy(PRESETS["default"])
             config_values.update(config_from_file)  # type: ignore [typeddict-item]
             _config_logger.debug(f"FROM FILE: {config_values=}")
         elif active_file():
@@ -384,7 +385,7 @@ class Config:
             _config_logger.warning(
                 f"The environment variable {ENV_VAR_NAME} did not exist and no configuration file parameter was provided. Loading default configuration."
             )
-            config_values = PRESETS["defaults"]
+            config_values = copy.deepcopy(PRESETS["defaults"])
 
         config_values.update(kwargs)  # type: ignore [typeddict-item]
         self.apply(config_values)

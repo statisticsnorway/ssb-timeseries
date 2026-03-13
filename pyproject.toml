@@ -21,7 +21,6 @@ dependencies = [
     "pyarrow>=14.0.0",
     "duckdb>=1.0.0",
     "ssb-klass-python>=0.0.7",
-    "bigtree>=0.17.2",
     "multipledispatch>=1.0.0",
     "tzdata>=2025.2",
     "gcsfs (>=2025.12.0,<2026.0.0)",
@@ -81,6 +80,7 @@ pythonpath = ["src"]
 filterwarnings = [
     "error",
     "error", "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore:.*return.*finally.*:SyntaxWarning",
     #"ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*", # Introduced with Pillow 13; await pandas update.
 ]
 # log_cli = true # does NOT fix issues with configuring loggers for testing

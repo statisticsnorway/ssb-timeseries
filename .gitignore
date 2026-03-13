@@ -7,7 +7,7 @@
 .poetry
 .ipynb
 requirements-dev.txt
-.gemini/
+.gemini*
 GEMINI.md
 notes/
 

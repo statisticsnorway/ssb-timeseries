@@ -14,14 +14,15 @@ end-before: <!-- github-only -->
 
    quickstart
    configure-io
+   configure-logging
 
 .. toctree::
    :includehidden:
    :hidden:
    :caption: Background
 
-   architecture
    info-model
+   architecture
    workflow
 
 .. toctree::

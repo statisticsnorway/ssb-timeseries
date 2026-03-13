@@ -91,7 +91,7 @@ class KlassLoader:
         root_node["name"] = f"KLASS-{klass_id}"
 
         classification = get_classification(str(klass_id)).get_codes(from_date)
-        klass_data = classification.data.to_dict("records")
+        klass_data = nw.from_native(classification.data).to_arrow().to_pylist()
         for k in klass_data:
             if not k.get("parentCode"):
                 k["parentCode"] = root_node["code"]
@@ -124,7 +124,7 @@ class DataLoader:
             return records_to_arrow(self.data)
         elif is_df_like(self.data):
             # Convert DataFrame to list of dicts to ensure schema consistency
-            df_as_list = nw.from_native(self.data).to_native().to_dict("records")  # type: ignore[union-attr, type-var]
+            df_as_list = nw.from_native(self.data).to_arrow().to_pylist()  # type: ignore[type-var]
             return records_to_arrow(df_as_list)
         else:
             # This path should ideally not be reached if types are checked
