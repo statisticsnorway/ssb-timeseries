@@ -201,6 +201,7 @@ classmethod-decorators = ["classmethod", "validator", "root_validator", "pydanti
 
 [tool.deptry.per_rule_ignores]
 DEP001 = ["ssb_timeseries", "nox", "nox_poetry"]  # packages available by default
+DEP003 = ["ssb_timeseries"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
