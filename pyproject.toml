@@ -19,7 +19,6 @@ dependencies = [
     "pandas>=2.1.1",
     "polars>=1.5.0",
     "pyarrow>=14.0.0",
-    "duckdb>=1.0.0",
     "ssb-klass-python>=0.0.7",
     "multipledispatch>=1.0.0",
     "gcsfs (>=2025.12.0,<2026.0.0)",
