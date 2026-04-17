@@ -323,3 +323,14 @@ def docs(session: Session) -> None:
     #session.run("sphinx-autobuild", *args)
     # RYE: Always run sphinx-autobuild with the optional flags AND the mandatory directories
     session.run("sphinx-autobuild", *args, source_dir, str(build_dir))
+
+@session(name="deptry", python=python_versions[0])
+def deptry(session: Session) -> None:
+    """Checks dependencies."""
+    session.install(".")
+    session.install(
+        "deptry"
+    )
+
+    args = session.posargs or []
+    session.run("deptry", *args, ".")
