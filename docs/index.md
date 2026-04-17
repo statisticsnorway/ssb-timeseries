@@ -13,6 +13,7 @@ end-before: <!-- github-only -->
    :caption: Practical Guides
 
    quickstart
+   getting_started
    configure-io
    configure-logging
 
