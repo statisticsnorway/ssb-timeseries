@@ -4,7 +4,7 @@ It does set up and tear down for testing of tutorials,
 making working configs and temp directories available.
 """
 
-# from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 
@@ -16,24 +16,6 @@ from ssb_timeseries.io import fs
 # mypy: ignore-errors
 
 _ENV_VAR_VALUE_BEFORE_TESTS = config.active_file()
-
-
-# def pytest_configure(config):
-#     """Pytest hook to configure plugins."""
-#     try:
-#         from typeguard import config as typeguard_config  # deptry: ignore[DEP004]
-#
-#         # Policy can be 'warn' (default), 'error', or 'ignore'
-#         # 'ignore' will suppress the warning and let the tests pass.
-#         # fix typeguard.TypeHintWarning: Cannot resolve forward reference 'DataFrame[Any]'
-#         typeguard_config.forward_ref_policy = "ignore"
-#     except ImportError:
-#         pass  # typeguard is not installed
-
-# @pytest.fixture(scope="session")
-# def root_dir(tmp_path_factory):
-#     root = tmp_path_factory.mktemp("tests")
-#     yield root
 
 
 def _repository_test_config(path: Path) -> dict[str, str]:
