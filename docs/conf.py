@@ -41,7 +41,15 @@ extensions = [
     "sphinx_togglebutton",
     "myst_parser",
     "sphinx_changelog",
+    "sphinx_marimo",
 ]
+
+# marimo configs ------------------------------------------------------------
+marimo_notebook_dir = 'marimo'  # Directory containing .py Marimo notebooks
+marimo_default_height = '600px'
+marimo_default_width = '100%'
+
+# ---------------------------------------------------------------------------
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path: list[str] = []

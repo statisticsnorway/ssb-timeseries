@@ -1,15 +1,14 @@
-<--
-substitutions:
-  my_var: "Some value"
----
-
 Getting started
 ===============
 
-```{code-cell}
-:label: markdown-myst
-print("Here's some python!")
+```{eval-rst}
+.. marimo:: getting_started.py
+   :height: 700px
+   :width: 100%
+   :click-to-load: false
+
 ```
+
 Assuming you have installed and configured the library, you are ready to start coding.
 Refer to the [Quick start guide](quickstart.md)) for setup instructions.
 
@@ -86,26 +85,14 @@ df = pl.DataFrame(
 ```
 -->
 
-{my_var}
-{{my_var}}
-
-
-{df}
-{{df}}
-
-This is known as "wide format" in Tiny terminology.
-We prefer it to the "long format" because of advantages with column oriented storage technologies.
-
 Example: Point in time data
 ---------------------------
 
 The `temporality = 'AT'` indicates that values are instantaneous, that is valid *at* an exact point in time.
+
 
 <!-- name: test_getting_started; case: completed
 ```python
 assert True
 ```
 -->
-
-
-And here I reference [](#markdown-myst).
