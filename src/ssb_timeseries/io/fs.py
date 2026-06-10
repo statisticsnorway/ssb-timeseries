@@ -449,7 +449,11 @@ def write_parquet(
         )
     else:
         # TODO: figure out how to do schema validation, then this would do:
-        narwhals.from_native(data).write_parquet(path)
+        # write_parquet only exist for DataFrame, need to collect first if LazyFrame
+        frame = narwhals.from_native(data)
+        if isinstance(frame, narwhals.LazyFrame):
+            frame = frame.collect()
+        frame.write_parquet(path)
     # to make schema validation work / keep IO pure pyarrow it may bew better to go back to this(?):
     # pyarrow.dataset.write_dataset(
     #     data,
