@@ -46,7 +46,7 @@ A working example for version 0.7.0 and above may look like this:
                 }
             },
             "directory": {
-                "handler": "simple-parquet",
+                "handler": "pyarrow-simple-parquet",
                 "options": {
                     "path": "/home/onyxia/work/timeseries/my_repo/data"
                 }
