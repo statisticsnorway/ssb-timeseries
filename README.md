@@ -1,3 +1,8 @@
+---
+title: Readme
+marimo-version: 0.23.1
+---
+
 # SSB Timeseries
 
 [![PyPI](https://img.shields.io/pypi/v/ssb-timeseries.svg)][pypi status]

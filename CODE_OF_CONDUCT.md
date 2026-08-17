@@ -1,3 +1,8 @@
+---
+title: Code Of Conduct
+marimo-version: 0.23.1
+---
+
 # Contributor Covenant Code of Conduct
 
 ## Our Pledge

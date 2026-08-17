@@ -1,3 +1,8 @@
+---
+title: Configure Io
+marimo-version: 0.23.1
+---
+
 # Configure I/O
 
 This guide provides detailed examples for configuring data repositories, metadata catalogs, and snapshot (persistence) behavior in `ssb-timeseries`.

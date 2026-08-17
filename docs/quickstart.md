@@ -1,3 +1,8 @@
+---
+title: Quickstart
+marimo-version: 0.23.1
+---
+
 # Quickstart Guide
 
 ## Installation

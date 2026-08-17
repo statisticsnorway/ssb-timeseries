@@ -1,3 +1,10 @@
+---
+title: Index
+marimo-version: 0.23.1
+---
+
+````python {.marimo hide_code="true"}
+mo.md(r"""
 ```{include} ../README.md
 ---
 relative-docs: docs/
@@ -44,3 +51,5 @@ end-before: <!-- github-only -->
    license
    changelog
 ```
+""")
+````

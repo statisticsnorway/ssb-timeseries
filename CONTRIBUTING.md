@@ -1,3 +1,8 @@
+---
+title: Contributing
+marimo-version: 0.23.1
+---
+
 # Contributor Guide
 
 Thank you for your interest in improving this project.

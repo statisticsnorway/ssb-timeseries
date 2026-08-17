@@ -367,7 +367,7 @@ class Dataset:
             **kwargs: Additional keyword arguments passed to underlying functions.
 
         Keyword Args:
-            allow providing parameters for initializing the copied set.
+            **kwargs: allow providing parameters for initializing the copied set.
         """
         if not new_name:
             new_name = f"COPY of {self.name}"

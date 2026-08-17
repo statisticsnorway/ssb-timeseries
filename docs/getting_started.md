@@ -1,3 +1,8 @@
+---
+title: Getting Started
+marimo-version: 0.23.1
+---
+
 Getting started
 ===============
 
