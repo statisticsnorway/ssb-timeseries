@@ -103,7 +103,8 @@ def _io_handler(**kwargs) -> protocols.DataReadWrite | protocols.MetadataReadWri
     handler_options = handler_config.get("options", {})
     if kwargs:
         handler_options.update(kwargs)
-        logger.warning("_IO_HANDLER() ... kwargs: %s", kwargs)
+        logger.debug("_IO_HANDLER() ... kwargs: %s", kwargs)
+        # set_name and type passed for DataIO is necessary because of incomplete IO handler refactoring --> TODO: complete
     instance = handler(repository=repo_cfg, **kwargs)
     return instance
 
@@ -148,6 +149,8 @@ class DataIO:
         return _io_handler(
             handler_type="data",
             repository=self.ds.repository,
+            # dataset information should not really be required to initiate handler
+            # ... omitted when refactoring to facade pattern?
             set_name=self.ds.name,
             set_type=self.ds.data_type,
             as_of_utc=date_utc(self.ds.as_of_utc),
