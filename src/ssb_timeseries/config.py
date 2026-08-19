@@ -239,7 +239,7 @@ PRESETS: dict[str, ConfigDict] = {
             DAPLA_TEAM: {
                 # "name": "home",
                 "directory": {
-                    "handler": "parquet",
+                    "handler": "simple-parquet",
                     "options": {"path": str(Path(HOME, ROOT_DIR_NAME))},
                 },
                 "catalog": {
