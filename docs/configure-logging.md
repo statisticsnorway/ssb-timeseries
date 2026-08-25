@@ -1,8 +1,3 @@
----
-title: Configure Logging
-marimo-version: 0.23.1
----
-
 # Configure Logging
 
 The timeseries library relies on the file identified by the environment variable `TIMESERIES_CONFIG` for configurations.

@@ -1,8 +1,3 @@
----
-title: Security
-marimo-version: 0.23.1
----
-
 # Security Policy
 
 SSB takes the security of our software products and services seriously, which

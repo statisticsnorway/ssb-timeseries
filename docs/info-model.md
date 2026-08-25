@@ -1,8 +1,3 @@
----
-title: Info Model
-marimo-version: 0.23.1
----
-
 # Core Concepts
 
 The time series library relies on an *information model*, where a set of core concepts get very specific technical meanings.

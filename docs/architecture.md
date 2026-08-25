@@ -1,8 +1,3 @@
----
-title: Architecture
-marimo-version: 0.23.1
----
-
 # Architecture
 
 This document provides a high-level overview of the `ssb-timeseries` library's internal architecture and its core design principles.

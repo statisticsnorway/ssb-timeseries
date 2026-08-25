@@ -110,7 +110,9 @@ def _(mo):
 
     from ssb_timeseries.types import SeriesType, Versioning, Temporality
 
-
+    POINT_IN_TIME = SeriesType(
+        Versioning.NONE,
+        Temporality.AT)
 
     PERIOD = SeriesType(
         Versioning.NONE,

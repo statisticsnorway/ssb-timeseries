@@ -1,8 +1,3 @@
----
-title: Workflow
-marimo-version: 0.23.1
----
-
 # Workflow
 
 Providing quality data in an efficient manner is the mission of Statistics Norway. Like any other organisation that processes significant amounts of data, we strive to streamline our processes for efficiency and maintainability.
