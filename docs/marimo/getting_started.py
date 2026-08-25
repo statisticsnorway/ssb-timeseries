@@ -143,6 +143,13 @@ def _(mo):
 @app.cell
 def test_true():
     assert True
+    assert (1 + 1 == 2)
+    return
+
+
+@app.cell
+def _(config):
+    assert config.active_file()
     return
 
 
