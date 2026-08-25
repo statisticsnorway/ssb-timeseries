@@ -64,6 +64,7 @@ def reset_config_after(buildup_and_teardown: config.Config):
     # TODO: make sure this also removes config if none existed before?
     yield buildup_and_teardown
     config_before_test.save()
+    config_before_test.activate()
     assert fs.exists(cfg_file)
     assert config.active_file() == cfg_file
 
@@ -203,7 +204,7 @@ def test_config_init_for_no_params_returns_same_as_preset_defaults(
     assert id(cfg_0) != id(cfg_1) != id(cfg_2)
     assert cfg_0.__dict__ == cfg_1.__dict__ == cfg_2
 
-    r = config.DAPLA_TEAM
+    r = config.constants.DAPLA_TEAM
     assert (
         cfg_0.repositories[r]["directory"]["options"]["path"]
         == cfg_1.repositories[r]["directory"]["options"]["path"]
@@ -219,10 +220,10 @@ def test_config_change_persists_after_save(
     cfg = reset_config_after
     old_value = cfg.repositories[REPO]["directory"]
     config_file = cfg.configuration_file
-    if old_value == config.DAPLALAB_FUSE:
-        new_value = config.SHARED_TEST
+    if old_value == config.constants.DAPLALAB_FUSE:
+        new_value = config.constants.SHARED_TEST
     else:
-        new_value = config.DAPLALAB_FUSE
+        new_value = config.constants.DAPLALAB_FUSE
     cfg.repositories[REPO]["directory"] = new_value
     cfg.save()
 
@@ -309,33 +310,27 @@ def test_init_w_only_config_file_param_pointing_to_file_not_exists_raises_error(
 def test_loading_deprecated_handler_path_issues_warning(
     caplog: pytest.LogCaptureFixture,
     tmp_path: Path,
-    monkeypatch,
+    reset_config_after,
 ) -> None:
-    """Verify that loading a config with the old handler path issues a DeprecationWarning."""
+    """The 'ssb_timeseries.io' module 'simple' has been renamed to 'pyarrow_simple'.
+
+    Loading a config with the old handler path should issue a DeprecationWarning.
+    """
     caplog.set_level("DEBUG")
-    deprecated_config_content = {
-        "io_handlers": {
-            "parquet": {
-                "handler": "ssb_timeseries.io.simple.FileSystem",
-                "options": {},
-            }
-        },
-        "repositories": {
-            "test_repo": {
-                "directory": {"path": str(tmp_path), "handler": "parquet"},
-                "catalog": {"path": str(tmp_path), "handler": "parquet"},
-            }
-        },
+    cfg = reset_config_after
+    cfg.io_handlers = {
+        "parquet": {
+            "handler": "ssb_timeseries.io.simple.FileSystem",  # DEPRECATED
+            "options": {},
+        }
     }
-    config_path = tmp_path / "deprecated_config.json"
-    deprecated_config_content["configuration_file"] = str(config_path)
-    import json
-
-    with open(config_path, "w") as f:
-        json.dump(deprecated_config_content, f)
-
-    monkeypatch.setenv("TIMESERIES_CONFIG", str(config_path))
-    config.Config()
+    cfg.repositories = {
+        "test_repo": {
+            "directory": {"path": str(tmp_path), "handler": "parquet"},
+            "catalog": {"path": str(tmp_path), "handler": "parquet"},
+        }
+    }
+    cfg.activate()
 
     with pytest.warns(
         DeprecationWarning,

@@ -119,6 +119,11 @@ disallow_untyped_calls = false      # OK to call functions that are not fully an
 ignore_errors = true              # Suppress ALL type errors from the tests directory.
 
 [[tool.mypy.overrides]]
+module = "docs.marimo.*"
+ignore_errors = true
+warn_unreachable = false
+
+[[tool.mypy.overrides]]
 module = "noxfile.py"
 ignore_errors = true
 warn_unreachable = false
@@ -139,7 +144,7 @@ extend-exclude = [
     ".ipynb_checkpoints",
     "noxfile.py",
     "docs/conf.py",
-    "docs/conftest.py",
+    "docs/marimo/*.py",
 ]
 
 # Ruff rules may be customized as desired: https://docs.astral.sh/ruff/rules/

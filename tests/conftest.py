@@ -27,6 +27,7 @@ TEST_LOG_CONFIG = deepcopy(config.LOGGING_PRESETS["console+file"])
 TEST_LOG_CONFIG["loggers"][TEST_LOGGER] = TEST_LOG_CONFIG["loggers"].pop(
     config.PACKAGE_NAME
 )
+ORIGINAL_LOGGER = logging.getLogger(config.PACKAGE_NAME)
 
 
 def pytest_configure(config):
@@ -187,7 +188,7 @@ def buildup_and_teardown(
     root_dir,
 ):
     """Reset config and logging between modules."""
-    before_tests = config.CONFIG
+    before_tests = config.Config.active()
     config_file_for_testing = str(
         fs.touch(root_dir / "config" / "config_for_tests.json")
     )
@@ -209,7 +210,8 @@ def buildup_and_teardown(
         logging=log_config,
         ignore_file=True,
     )
-    temp_configuration.save()
+    temp_configuration.save(config_file_for_testing)
+    temp_configuration.activate()
     assert fs.exists(temp_configuration.configuration_file)
 
     logger = set_up_logging_according_to_config(TEST_LOGGER, temp_configuration.logging)
@@ -218,14 +220,16 @@ def buildup_and_teardown(
     yield temp_configuration
     logging.getLogger(TEST_LOGGER).removeFilter(LogWarningFilter())
 
-    if before_tests.configuration_file:
+    if _ENV_VAR_VALUE_BEFORE_TESTS:
         before_tests.save()
+        before_tests.activate()
+        set_up_logging_according_to_config(config.PACKAGE_NAME, before_tests.logging)
     else:
         config.unset_env_var()
+        config.Config().refresh()
+        logging.getLogger(config.PACKAGE_NAME)
 
-    set_up_logging_according_to_config(config.PACKAGE_NAME, before_tests.logging)
-    active_config_after = config.active_file()
-    assert active_config_after == _ENV_VAR_VALUE_BEFORE_TESTS
+    assert config.active_file() == _ENV_VAR_VALUE_BEFORE_TESTS
 
 
 # -----------------------------------------------------------------------------
