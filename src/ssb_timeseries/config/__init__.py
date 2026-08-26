@@ -1,7 +1,7 @@
 """Configurations for the SSB timeseries library.
 
-An environment variable TIMESERIES_CONFIG is expected to point to a JSON file with configurations.
-If these exist, they will be loaded and put into a Config object CONFIG when the configuration module is loaded.
+An environment variable :py:const:`ENV_VAR_NAME` is expected to point to a JSON file with configurations.
+If these exist, they will be loaded and put into a Config object when the configuration module is loaded.
 
 In most cases, this would happen behind the scene when :py:mod:`ssb_timeseries.dataset` or :py:mod:`ssb_timeseries.catalog` are imported.
 
@@ -99,14 +99,14 @@ def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
 
 
 def unset_env_var() -> str:
-    """Unsets the environment variable :py:const:`ENV_VAR_NAME` and returns the value that was unset."""
+    """Unset the environment variable :py:const:`ENV_VAR_NAME` and return the value that was unset."""
     return os.environ.pop(ENV_VAR_NAME, "")
 
 
 def active_file(path: PathStr = "") -> str:
-    """If a path is provided, sets environment variable :py:const:`ENV_VAR_NAME` to specify the location of the configuration file.
+    """If a path is provided, sets environment variable :py:const:`ENV_VAR_NAME` to specify the location of the configuration file, and returns the value of the environment variable.
 
-    Returns the value of the environment variable.
+    If called without the `path` parameter, it just returns the environment variable value.
     """
     if path:
         os.environ[ENV_VAR_NAME] = str(path)
@@ -116,18 +116,16 @@ def active_file(path: PathStr = "") -> str:
 
 
 class Config:
-    """Configuration class; for reading and writing timeseries configurations.
+    """Configuration for reading, modifying, saving, and activating timeseries configurations.
 
-    If instantiated with no parameters, an existing configuration file is exepected to exist: either in a location specified by the environment variable TIMESERIES_CONFIG or in the default location in the user's home directory. If not, an error is returned.
+    A configuration can be loaded from a specified file,
+    from the file identified by :py:const:`ENV_VAR_NAME`,
+    or from the default configuration preset.
+    Configuration values can also be provided or overridden as keyword arguments.
 
-    If the :py:attr:`configuration_file` attribute is specified, configurations will be loaded from that file. No other parameters are required. A :py:exc:`FileNotFoundError` or :py:exc:`FileDoesNotExist` error will be returned if the file is not found. In this case, no attempt is made to load configurations from locations specified by environment variable or defaults.
-
-    If any additional parameters are provided, they will override values from the configuration file. If the result is not a valid configuration, a ValidationError is raised.
-
-    If one or more parameters are provided, but the `configuration_file` parameter is not among them, configurations are identified by the environment variable TIMESERIES_CONFIG or the default configuration file location (in that order of priority). Provided parameters override values from the configuration file. If the result is not a valid configuration, an error is raised.
-
-    The returned configuration will not be saved, but held in memory only till the :py:meth:`save` method is called. Then the configuration will be savedto a file and the environment variable TIMESERIES_CONFIG set to reflect the location of the file.
-
+    A newly created configuration exists only in memory.
+    Use :py:meth:`save` to persist it to a file and :py:meth:`activate` to make it the active configuration.
+    The active configuration can be retrieved with :py:meth:`active` or reloaded from its file with :py:meth:`refresh`.
     """
 
     _active: Self  # Config | None = None
@@ -149,7 +147,7 @@ class Config:
 
         Keyword Arguments:
             preset (str): Optional. Name of a preset configuration. If provided, the preset configuration is loaded, and no other parameters are considered.
-            configuration_file (str): Path to the configuration file. If the parameter is not provided, the environment variable TIMESERIES_CONFIG is used. If the environment variable is not set, the default configuration file location is used.
+            configuration_file (str): Path to the configuration file. If the parameter is not provided, the environment variable :py:const:`ENV_VAR_NAME` is used. If the environment variable is not set, the default configuration file location is used.
             repositories (list[FileBasedRepository]): New in version 0.5.0. Replaces bucket, timeseries_root and catalog.
             log_file (str): Path to the log file.
             bucket (str): Name of the GCS bucket.
@@ -158,7 +156,7 @@ class Config:
         Raises:
             :py:exc:`FileNotFoundError`: If the configuration file as implied by provided or not provided parameters does not exist.   # noqa: DAR402
             :py:exc:`ValidationError`: If the resulting configuration is not valid.   # noqa: DAR402
-            :py:exc:`EnvVarNotDefinedeError`: If the environment variable TIMESERIES_CONFIG is not defined.
+            :py:exc:`EnvVarNotDefinedeError`: If the environment variable :py:const:`ENV_VAR_NAME` is not defined.
 
         Examples:
             To load an existing preset configuration:
@@ -291,9 +289,10 @@ class Config:
         return json.dumps(self.__dict__, sort_keys=True, indent=2)
 
     def activate(self) -> Self:
-        """Caches configuration instance as the active in-memory one, update the environment variable :py:const:`ENV_VAR_NAME` and returns the configuration object.
+        """Update the process wide active in-memory configuration, and if its configuration file exists, update the environment variable :py:const:`ENV_VAR_NAME` to point to that file.
 
-        Note that this does NOT save.
+        Note that this does not save the file.
+        See `.save()`.
         """
         type(self)._active = self
 
@@ -307,9 +306,9 @@ class Config:
 
     @classmethod
     def active(cls) -> Config:
-        """Return the (in memory) active configuration.
+        """Return the (in-memory) active configuration.
 
-        This does not read from file. See `refresh()` for loading from file.
+        This does not read from file, use `.refresh()` to reload it.
         """
         if getattr(cls, "_active", None) is None:
             cls.refresh()
@@ -317,7 +316,7 @@ class Config:
 
     @classmethod
     def refresh(cls) -> Self:
-        """Force reload the file identified by :py:const:`ENV_VAR_NAME`, activate and return the configuration."""
+        """Reload the configuration from the file identified by :py:const:`ENV_VAR_NAME`, activate it and return it."""
         return cls(configuration_file=active_file()).activate()
 
     def save(self, path: PathStr = "") -> None:
@@ -325,11 +324,12 @@ class Config:
 
         If `path` is provided, it takes presence and :attr:`.configuration_file` will be updated accordingly.
 
-        Note that `.save()` itself does not update the active configuration.
-        An explicit call to `.activate()` or `.refresh()` is required.
+        Note that `.save()` does not activate the configuration instance.
+        Use `.activate()` to make it the active configuration,
+        or `.refresh()` to reload the active configuration from its file.
 
         Args:
-            path (PathStr): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable TIMESERIES_CONFIG before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
+            path (PathStr): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable :py:const:`ENV_VAR_NAME` before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
 
         Raises:
             ValueError: If `path` is not provided and :attr:`configuration_file` is not set.
@@ -351,7 +351,7 @@ class Config:
 
 
 class MissingEnvironmentVariableError(Exception):
-    """The environment variable TIMESERIES_CONFIG must be defined."""
+    """The environment variable :py:const:`ENV_VAR_NAME` must be defined."""
 
     ...
 
@@ -363,7 +363,7 @@ class ValidationError(Exception):
 
 
 def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
-    """Read configurations from a JSON file into a Config object."""
+    """Read configurations from a JSON file into a dictionary."""
     from ..io import fs
 
     if fs.exists(path):
@@ -393,7 +393,7 @@ class DictObject(object):  # noqa
 
 
 def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100
-    """Set configurations to predefined defaults.
+    """Retrieve a preset configuration dictionary.
 
     Raises:
         ValueError: If args is not 'home' | 'daplalab'.
