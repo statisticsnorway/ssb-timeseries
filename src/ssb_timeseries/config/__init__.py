@@ -67,37 +67,6 @@ from .types import Repository
 _config_logger = logging.getLogger(__name__)
 
 
-# class FileRepoConfig(TypedDict):
-#     """Links a path and a IO handler for a single file based repository."""
-#
-#     handler: Required[str]
-#     options: Required[dict[str, Any]]
-#
-#
-# class Repository(TypedDict):
-#     """Defines data and metadata handling for time series repositories."""
-#
-#     name: NotRequired[str]
-#     directory: Required[FileRepoConfig]
-#     catalog: NotRequired[FileRepoConfig]
-#     default: NotRequired[bool]
-#
-#
-# FileBasedRepository: TypeAlias = Repository
-#
-#
-# class ConfigDict(TypedDict):
-#     """Required attributes for configuration."""
-#
-#     configuration_file: Required[str]
-#     io_handlers: Required[dict[str, Any]]
-#     repositories: Required[dict[str, Repository]]
-#     snapshots: NotRequired[dict[str, Repository]]
-#     sharing: NotRequired[dict[str, Repository]]
-#     log_file: NotRequired[str]
-#     logging: Required[dict[str, Any]]
-
-
 def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
     """Check if a dictionary is a valid configuration :py:class:`ConfigDict`."""
     # The ConfigDict.__required_keys__ includes optional fields like 'snapshots' and 'sharing'
@@ -322,11 +291,18 @@ class Config:
         return json.dumps(self.__dict__, sort_keys=True, indent=2)
 
     def activate(self) -> Self:
-        """Set a configuration instance active one and return it.
+        """Caches configuration instance as the active in-memory one, update the environment variable :py:const:`ENV_VAR_NAME` and returns the configuration object.
 
         Note that this does NOT save.
         """
         type(self)._active = self
+
+        if fs.exists(self.configuration_file):
+            active_file(self.configuration_file)
+        else:
+            _config_logger.warning(
+                f"A new configuration was cached in memory, but the specified configuration file does not exist:'{self.configuration_file}'."
+            )
         return self
 
     @classmethod
@@ -347,7 +323,10 @@ class Config:
     def save(self, path: PathStr = "") -> None:
         """Saves configurations to the JSON file defined by `path` or :py:attr:`configuration_file`.
 
-        If `path` is set, it will take presence and :attr:`.configuration_file` will be set accordingly.
+        If `path` is provided, it takes presence and :attr:`.configuration_file` will be updated accordingly.
+
+        Note that `.save()` itself does not update the active configuration.
+        An explicit call to `.activate()` or `.refresh()` is required.
 
         Args:
             path (PathStr): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable TIMESERIES_CONFIG before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
@@ -370,11 +349,9 @@ class Config:
         if not fs.exists(self.log_file):
             fs.touch(self.log_file)
 
-        active_file(str(path))
-
 
 class MissingEnvironmentVariableError(Exception):
-    """The environment variable TIMESEREIS_CONFIG must be defined."""
+    """The environment variable TIMESERIES_CONFIG must be defined."""
 
     ...
 
