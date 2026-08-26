@@ -8,13 +8,20 @@ In most cases, this would happen behind the scene when :py:mod:`ssb_timeseries.d
 Directly accessing the configuration module should only be required when manipulating configurations from Python code.
 
 Example:
-    >>> # doctest: +SKIP
-    >>> from ssb_timeseries.config import CONFIG
-    >>> CONFIG.catalog = 'gs://{bucket}/timeseries/metadata/'
-    >>> CONFIG.save()
-    >>> # doctest: -SKIP
+    >>> from ssb_timeseries.config import Config
+    >>>
+    >>> cfg = Config.active()
 
-For switching between preset configurations, use the `timeseries-config` command::
+    ... modify, eg. disable library logging
+    (leave the responsibility to the application using it):
+    >>> cfg.logging = {}
+
+    >>> # doctest: +SKIP
+    >>> cfg.save()
+    >>> # doctest: -SKIP
+    >>> cfg.activate()
+
+For switching between preset configurations, use the `timeseries-config` command from a terminal::
 
     poetry run timeseries-config <option>
 
@@ -160,6 +167,11 @@ class Config:
 
         Examples:
             To load an existing preset configuration:
+
+                >>> from ssb_timeseries.config import Config
+                >>> config = Config(preset='defaults')
+
+            ... or (specific to Statistics Norway and Dapla):
 
                 >>> from ssb_timeseries.config import Config
                 >>> config = Config(preset='daplalab')
@@ -384,11 +396,11 @@ def load_json_file(path: PathStr, error_on_missing: bool = False) -> dict:
 class DictObject(object):  # noqa
     """Helper class to convert dict to object."""
 
-    def __init__(self, dict_: dict) -> None:  # noqa: D107
+    def __init__(self, dict_: dict) -> None:
         self.__dict__.update(dict_)
 
     @classmethod
-    def from_dict(cls, d: dict):  # noqa: ANN206, D102
+    def from_dict(cls, d: dict):  # noqa: ANN206
         return json.loads(json.dumps(d), object_hook=DictObject)
 
 
@@ -444,6 +456,11 @@ def path_str(*args) -> str:
     """Concatenate paths as string: str(Path(...))."""
     return str(Path(*args))
 
+
+__all__ = [
+    "Config",
+    "constants",
+]
 
 if __name__ == "__main__":
     """Execute when called directly, ie not via import statements."""
