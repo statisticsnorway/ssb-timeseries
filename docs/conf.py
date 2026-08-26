@@ -41,13 +41,13 @@ extensions = [
     "sphinx_togglebutton",
     "myst_parser",
     "sphinx_changelog",
-    "sphinx_marimo",
+    #"sphinx_marimo", # tested, but found it buggy and unmaintained
 ]
 
-# marimo configs ------------------------------------------------------------
-marimo_notebook_dir = 'marimo'  # Directory containing .py Marimo notebooks
-marimo_default_height = '600px'
-marimo_default_width = '100%'
+# marimo(-sphinx) configs ------------------------------------------------------------
+# marimo_notebook_dir = 'marimo'  # Directory containing .py Marimo notebooks
+# marimo_default_height = '600px'
+# marimo_default_width = '100%'
 
 # ---------------------------------------------------------------------------
 
