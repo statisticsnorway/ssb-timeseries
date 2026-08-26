@@ -14,6 +14,7 @@ from copy import deepcopy
 from typing import Any
 
 import pytest
+from _pytest.logging import LogCaptureHandler
 
 from ssb_timeseries.logging import set_up_logging_according_to_config
 
@@ -102,27 +103,63 @@ def test_logging_configuration_log_handlers_are_defined(
 
 
 def test_no_logging_configuration_is_empty_and_logger_has_nullhandler_only(
-    caplog: pytest.LogCaptureFixture,
+    # caplog: pytest.LogCaptureFixture,
     ts_without_logging: TestSetup,
 ) -> None:
     assert ts_without_logging.configuration == {}
-    assert len(ts_without_logging.logger.handlers) == 1
-    assert isinstance(ts_without_logging.logger.handlers[0], logging.NullHandler)
+
+    handlers = [
+        handler
+        for handler in ts_without_logging.logger.handlers
+        if not isinstance(handler, LogCaptureHandler)
+    ]
+    # debugging tests!
+    logger = ts_without_logging.logger
+    print("logger:", logger.handlers)
+    print("propagate:", logger.propagate)
+    print("root:", logging.getLogger().handlers)
+
+    assert len(handlers) == 1
+    assert isinstance(handlers[0], logging.NullHandler)
 
 
 @pytest.mark.filterwarnings(
     "ignore"
 )  # .warning here should not generate warning or error
+@pytest.mark.xfail(
+    reason="pytest 9.1.x logging capture interferes with this test; passes with pytest 9.0.3",
+    strict=True,
+)
 def test_no_configured_logging_does_not_log(
     caplog: pytest.LogCaptureFixture,
     ts_without_logging: TestSetup,
 ) -> None:
+    """Verify that an empty logging configuration does not emit log messages.
+
+    With no library logging configuration, the library installs only a
+    NullHandler and disables propagation, leaving logging decisions to the
+    surrounding application.
+
+    pytest 9.1 and later deliberately capture logs from non-propagating
+    loggers by attaching capture handlers to them. Consequently, this test
+    cannot observe the library's no-logging behaviour through ``caplog`` with
+    those pytest versions.
+    """
     message = "This message SHOULD NOT be found in captured logs."
     ts_without_logging.logger.warning(message)
+
+    # debugging tests!
+    logger = ts_without_logging.logger
+    print("logger:", logger.handlers)
+    print("propagate:", logger.propagate)
+    print("root:", logging.getLogger().handlers)
+
     assert message not in caplog.text
 
 
-# @pytest.mark.xfail  #'test is broken, but std out looks right!?!' (ok for logger = ssb_timeseries)
+# before upgrading from pytest 9.0.3 to 9.1.1:
+# @pytest.mark.xfail below, because test was broken, but std out looked right!?!
+# (ok for logger = ssb_timeseries)
 @pytest.mark.filterwarnings("ignore")
 @pytest.mark.parametrize(
     "level,message,expected",
@@ -132,13 +169,13 @@ def test_no_configured_logging_does_not_log(
             20,
             "INFO messages ARE logged per (library) defaults",
             True,
-            marks=pytest.mark.xfail,
+            # marks=pytest.mark.xfail, # works as expected upgrading from pytest 9.0.3 to 9.1.1
         ),
         pytest.param(
             30,
             "WARNING messages ARE logged by Python defaults",
             True,
-            marks=pytest.mark.xfail,
+            # marks=pytest.mark.xfail, # works as expected upgrading from pytest 9.0.3 to 9.1.1
         ),
     ],
 )
