@@ -135,7 +135,7 @@ class Config:
     The active configuration can be retrieved with :py:meth:`active` or reloaded from its file with :py:meth:`refresh`.
     """
 
-    _active: Self  # Config | None = None
+    _active: Self
     configuration_file: PathStr
     """The path to the configuRation file."""
     repositories: dict[str, Repository]
@@ -196,11 +196,14 @@ class Config:
             )
 
             if set(kwargs.keys()) == {"configuration_file"}:
-                # if config file is the only parameter, it is an error for it not to exist
+                # if the config file is the only parameter,
+                # it is an error when it does not exist
                 no_file_is_an_error = True
             else:
-                # if kwargs form a complete config, it is ok if the config file does not exist
-                # (otherwise it is needed to supplement the kwargs)
+                # If kwargs form a complete config,
+                # the config file location is by definition specified.
+                # It may be ok if the file does not exist,
+                # but consider if it should be created or raise warning if not?
                 no_file_is_an_error = not is_valid_config(kwargs)[0]
 
             if not ignore_file:
@@ -213,9 +216,7 @@ class Config:
 
             config_values = copy.deepcopy(PRESETS["default"])
             config_values.update(config_from_file)  # type: ignore [typeddict-item]
-            _config_logger.debug(f"FROM FILE: {config_values=}")
         elif active_file():
-            # if the path is specified by the environment variable, not finding it is an error
             _config_logger.debug(f"Loading configuration from {active_file()}")
             config_values = load_json_file(
                 path=active_file(),
@@ -234,7 +235,6 @@ class Config:
 
     def apply(self, configuration: dict) -> None:
         """Set configuration values from a dictionary."""
-        _config_logger.debug(f"APPLIES: {configuration=}")
         log_config = configuration.get("logging", {})
         if not log_config:
             configuration["logging"] = {}
