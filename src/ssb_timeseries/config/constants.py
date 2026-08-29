@@ -126,6 +126,10 @@ BUILTIN_IO_HANDLERS = {
         "handler": "ssb_timeseries.io.pyarrow_simple.FileSystem",
         "options": {},
     },
+    "hive-partitioned-parquet": {
+        "handler": "ssb_timeseries.io.pyarrow_hive.FileSystem",
+        "options": {},
+    },
     "json": {
         "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
         "options": {},
@@ -165,7 +169,7 @@ PRESETS: dict[str, ConfigDict] = {
             DAPLA_TEAM: {
                 "name": DAPLA_TEAM,
                 "directory": {
-                    "handler": "parquet",
+                    "handler": "simple-parquet",
                     "options": {"path": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME))},
                 },
                 "catalog": {

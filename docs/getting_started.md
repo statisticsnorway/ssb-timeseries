@@ -1,13 +1,6 @@
 Getting started
 ===============
 
-```{eval-rst}
-.. marimo:: getting_started.py
-   :height: 700px
-   :width: 100%
-   :click-to-load: false
-
-```
 
 Assuming you have installed and configured the library, you are ready to start coding.
 Refer to the [Quick start guide](quickstart.md)) for setup instructions.
@@ -27,7 +20,7 @@ pqr = Dataset("PQR")
 
 By default this will collect either all the data or the data corresponding to the latest version.
 If the dataset does not exist, the call will throw an error.
-To create a new dataset, we can specify additional parameters, notably .
+To create a new dataset, we can specify additional parameters, notably `data_type` and `data`.
 
 Data types
 ----------
@@ -57,7 +50,7 @@ PERIOD_ESTIMATE = SeriesType(
 ```
 
 These concepts impacts key behaviours and how the data is physically stored.
-Versioned data require a version marker.
+Versioned data require a version marker (a date or string interpreted as a date).
 
 <!-- name: test_getting_started -->
 ```python
@@ -90,9 +83,6 @@ Example: Point in time data
 
 The `temporality = 'AT'` indicates that values are instantaneous, that is valid *at* an exact point in time.
 
-
-<!-- name: test_getting_started; case: completed
-```python
-assert True
-```
--->
+Both the `as_of` version parameter and dates in `data` ideally provide timezone information.
+If not, a default is applied.
+Under the hood, everything is stored in UTC.

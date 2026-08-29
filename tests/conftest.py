@@ -21,13 +21,20 @@ from ssb_timeseries.types import SeriesType
 
 _ENV_VAR_VALUE_BEFORE_TESTS = config.active_file()
 
-# TEST_LOGGER = "ssb_timeseries"  # should it be ts package logger?
-TEST_LOGGER = "tests"  # ... no, 'tests' is necessary, BUT requires a entry in config:
-TEST_LOG_CONFIG = deepcopy(config.LOGGING_PRESETS["console+file"])
-TEST_LOG_CONFIG["loggers"][TEST_LOGGER] = TEST_LOG_CONFIG["loggers"].pop(
-    config.PACKAGE_NAME
-)
 ORIGINAL_LOGGER = logging.getLogger(config.PACKAGE_NAME)
+# TEST_LOGGER = "ssb_timeseries"  # should it be ts package logger?
+TEST_LOGGER = "tests"  # ... no, 'tests' is better,
+# ... BUT requires an entry in config:
+TEST_LOG_CONFIG = deepcopy(config.LOGGING_PRESETS["console+file"])
+# However:
+# TEST_LOG_CONFIG["loggers"][TEST_LOGGER] = TEST_LOG_CONFIG["loggers"].pop(
+#     config.PACKAGE_NAME
+# )
+# ... fails, because tests running marimo via subprocess gets 'ssb_timeseries' rather than 'tests' (even if copying env!)
+# --> add 'tests', rather than replace 'ssb_timeseries'
+TEST_LOG_CONFIG["loggers"][TEST_LOGGER] = deepcopy(
+    TEST_LOG_CONFIG["loggers"][config.PACKAGE_NAME]
+)
 
 
 def pytest_configure(config):

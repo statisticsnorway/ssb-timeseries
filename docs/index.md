@@ -20,6 +20,14 @@ end-before: <!-- github-only -->
 .. toctree::
    :includehidden:
    :hidden:
+   :maxdepth: 4
+   :caption: Getting started
+
+   tutorials/index
+
+.. toctree::
+   :includehidden:
+   :hidden:
    :caption: Background
 
    info-model
