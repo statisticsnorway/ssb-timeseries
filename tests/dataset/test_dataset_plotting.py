@@ -58,3 +58,21 @@ def test_dataset_plot_none_from_to_returns_axes(
     ts.logger.debug(f"p = dataset.plot(): {p}")
 
     assert isinstance(p, plt.Axes)
+
+
+def test_dataset_plot_none_from_to_with_interval_does_not_change_data(
+    new_dataset_none_from_to: Dataset,
+):
+    data_before_plot = new_dataset_none_from_to.data.copy()
+    new_dataset_none_from_to.plot(interval_handling="interval")
+
+    assert new_dataset_none_from_to.data.equals(data_before_plot)
+
+
+def test_dataset_plot_none_from_to_with_midpoint_does_not_change_data(
+    new_dataset_none_from_to: Dataset,
+):
+    data_before_plot = new_dataset_none_from_to.data.copy()
+    new_dataset_none_from_to.plot(interval_handling="midpoint")
+
+    assert new_dataset_none_from_to.data.equals(data_before_plot)
