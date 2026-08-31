@@ -4,18 +4,24 @@ This setup allows this module to choose which notebooks to test, but also depend
 For this to work, asserts must reside in cells named 'test_...'.
 """
 
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
+from typing import TYPE_CHECKING
 
 import pytest
 
 from ssb_timeseries.config import ENV_VAR_NAME
 
+if TYPE_CHECKING:
+    from ssb_timeseries.config import Config
+
 NOTEBOOK_DIR = "marimo"
 
 
-def subprocess_run_marimo_notebook(notebook_name, config):
+def subprocess_run_marimo_notebook(notebook_name: str, config: Config):
     """Helper to run notebook with config as other tests.
 
     Running as script via subprocess.
@@ -33,12 +39,16 @@ def subprocess_run_marimo_notebook(notebook_name, config):
     )
 
 
-def import_and_run_marimo_app(notebook, config):
+def import_and_run_marimo_app(notebook_name: str, config: Config):
     """Helper to run notebook with config as other tests.
 
     Import and run app directly.
     """
     # from ..marimo import getting_started as notebook
+    # from ..marimo import <notebook_name> as notebook
+    from importlib import import_module
+
+    notebook = import_module(f"marimo.{notebook_name}")
 
     outputs, definitions = notebook.app.run()
     print(outputs)
