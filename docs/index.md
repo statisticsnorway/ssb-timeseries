@@ -6,24 +6,24 @@ end-before: <!-- github-only -->
 ```
 
 ```{eval-rst}
-.. toctree::
-   :includehidden:
-   :hidden:
-   :maxdepth: 3
-   :caption: Practical Guides
-
-   quickstart
-   getting_started
-   configure-io
-   configure-logging
 
 .. toctree::
    :includehidden:
    :hidden:
    :maxdepth: 4
-   :caption: Getting started
+   :caption: Setup Guides
 
-   tutorials/index
+   quickstart
+   guides/quickstart
+   setup_guides/index
+
+.. toctree::
+   :includehidden:
+   :hidden:
+   :maxdepth: 4
+   :caption: User Guides
+
+   guides/index
 
 .. toctree::
    :includehidden:

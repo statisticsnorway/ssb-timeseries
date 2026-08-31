@@ -7,6 +7,7 @@ app = marimo.App(width="comnpact")
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
+    from tools import testing
 
     mo.Html(
         """
@@ -21,22 +22,14 @@ def _():
     )
     from ssb_timeseries.config import ENV_VAR_NAME
 
-    return ENV_VAR_NAME, mo
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
-    return
+    return ENV_VAR_NAME, mo, testing
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
+    # Quick Start Guide 2.0
+
     ## Installation
 
     Clone from [GitHub](https://github.com/statisticsnorway/ssb-timeseries/),
@@ -142,10 +135,10 @@ def _(Config, cfg):
 
 
 @app.function(hide_code=True)
-def handlers(config):
+def handlers(c):
     return {
         handler
-        for repo in config.repositories.values()
+        for repo in c.repositories.values()
         for handler in (
             repo["catalog"]["handler"],
             repo["directory"]["handler"],
@@ -209,12 +202,22 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(Config, true):
-    def test_cfg_is_valid_config(c):
-        assert isinstance(c, Config)
-        assert c.is_valid()
-        return true
+def _():
+    return
 
+
+@app.cell(hide_code=True)
+def _(Config, cfg):
+    def test_cfg_is_valid_config():
+        assert isinstance(cfg, Config)
+        assert cfg.is_valid
+
+    return (test_cfg_is_valid_config,)
+
+
+@app.cell(hide_code=True)
+def _(test_cfg_is_valid_config, testing):
+    testing.run_and_report([test_cfg_is_valid_config])
     return
 
 
@@ -223,11 +226,6 @@ def _(mo):
     mo.md(r"""
 
     """)
-    return
-
-
-@app.cell(hide_code=True)
-def tests_run_all():
     return
 
 

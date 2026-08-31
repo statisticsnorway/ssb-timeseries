@@ -7,6 +7,7 @@ app = marimo.App(width="comnpact")
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
+    from tools import testing
 
     mo.Html(
         """
@@ -19,12 +20,14 @@ def _():
         </style>
         """
     )
-    return (mo,)
+    return mo, testing
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    # Getting Started
+
     ## Introduction
 
     The time series library was created to operate in lieu of a fully blown time series system.
@@ -146,15 +149,6 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(Dataset, xyz):
-    def test_xyz_is_a_dataset():
-        assert isinstance(xyz, Dataset)
-        return True
-
-    return (test_xyz_is_a_dataset,)
-
-
 @app.cell
 def _(xyz):
     xyz.save()
@@ -234,68 +228,39 @@ def _(check_if_they_are_equal):
 
 
 @app.cell(hide_code=True)
+def _():
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    return
+
+
+@app.cell(hide_code=True)
+def _(Dataset, xyz):
+    def test_xyz_is_a_dataset():
+        assert isinstance(xyz, Dataset)
+
+    return (test_xyz_is_a_dataset,)
+
+
+@app.cell(hide_code=True)
 def _(check_if_they_are_equal):
     def test_xyz_is_equal_to_itself():
         assert check_if_they_are_equal.all()
-        return True
 
     return (test_xyz_is_equal_to_itself,)
 
 
 @app.cell(hide_code=True)
+def _(test_xyz_is_a_dataset, test_xyz_is_equal_to_itself, testing):
+    testing.run_and_report([test_xyz_is_a_dataset, test_xyz_is_equal_to_itself])
+    return
+
+
+@app.cell(hide_code=True)
 def _():
-    results = []
-    return (results,)
-
-
-@app.cell(hide_code=True)
-def _(Callable, results):
-    def run_test(test: Callable) -> bool:
-        try:
-            test_result = test()
-            report = (test.__name__, 'PASSED', None)
-        except AssertionError as exc:
-            report = (test.__name__, 'FAILED', exc)
-        else:
-            ...
-
-        results.append(report)
-        return test_result
-
-
-
-    return (run_test,)
-
-
-@app.cell
-def _(results):
-    for r in results:
-        print(f"Test {r[0]} {r[1]}")
-    return
-
-
-@app.cell
-def _(run_test, test_xyz_is_a_dataset, test_xyz_is_equal_to_itself):
-    tests = [test_xyz_is_a_dataset, test_xyz_is_equal_to_itself]
-    a_test_has_failed = False
-    for t in tests:
-        if not run_test(t):
-            a_test_has_failed = True
-    return (a_test_has_failed,)
-
-
-@app.cell(hide_code=True)
-def _(results):
-    def test_report():
-        return results
-
-    return
-
-
-@app.cell(hide_code=True)
-def _(a_test_has_failed):
-    if a_test_has_failed:
-        raise SystemExit(1)
     return
 
 
