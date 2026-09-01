@@ -1039,9 +1039,9 @@ class Dataset:
             interval_handling = kwargs.pop("interval_handling", "interval").lower()
             match interval_handling:
                 case "interval":
-                    from_data = df
-                    to_data = df
-                    from_data["valid_to"] = from_data["valid_from"]
+                    from_data = df.copy()
+                    to_data = df.copy()
+                    to_data["valid_from"] = to_data["valid_to"]
                     df = pandas.concat(
                         [from_data, to_data],
                         axis=0,
@@ -1050,6 +1050,7 @@ class Dataset:
                     df.drop(columns=["valid_to"], inplace=True)
                     xlabels = "valid_from"
                 case "midpoint":
+                    df = df.copy()
                     xlabels = "midpoint"
                     df["midpoint"] = df[self.datetime_columns].median(axis=1)
                     df.drop(columns=["valid_from", "valid_to"], inplace=True)
