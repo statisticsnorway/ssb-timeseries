@@ -13,9 +13,8 @@ end-before: <!-- github-only -->
    :maxdepth: 4
    :caption: Setup Guides
 
-   quickstart
    guides/quickstart
-   setup_guides/index
+   guides/setup_toc
 
 .. toctree::
    :includehidden:
@@ -23,7 +22,10 @@ end-before: <!-- github-only -->
    :maxdepth: 4
    :caption: User Guides
 
-   guides/index
+   guides/basic_usage
+   guides/calc_toc
+   guides/meta_toc
+   guides/other_toc
 
 .. toctree::
    :includehidden:

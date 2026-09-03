@@ -7,33 +7,39 @@ The detailed nature of how time is conceptualised matters.
 It affects technical implementation and functionality.
 It is the backbone of the [type system](type_system.md).
 
-Here we focus on how time makes it way into calculations.
+This guide focuses on how time can make its way into calculations.
+
+Topics
+------
 
 Up- and downsampling
---------------------
 
 - groupby
 
 Window functions
------------------
 
 - moving average
 
 
 Indexing and rebasing
----------------------
 
 ...
 
 Timezones and conversions
--------------------------
 
 ...
 
 Time series analysis
---------------------
 
 - Seasonal adjustment
 - Datasets to Series and External libraries
 
-...
+------
+
+```{include} issue.md
+```
+
+<html>
+  <iframe src="file:///home/bernhard/code/ssb-timeseries/notebooks/html/calculations.html"
+    width="100%" height=1000px style="border:none;display:block"></iframe>
+</html>

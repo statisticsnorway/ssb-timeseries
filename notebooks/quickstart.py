@@ -8,19 +8,35 @@ app = marimo.App(width="comnpact")
 def _():
     import marimo as mo
     from tools import testing
+    from ssb_timeseries.config import ENV_VAR_NAME
 
     mo.Html(
         """
         <style>
+        /*
         [data-testid="static-notebook-banner"],
         [data-testid="watermark"] {
             display: none !important;
         }
-        z-index: 10; /* Higher numbers sit on top of lower numbers */
+        */
+        z-index: -2; /* Higher numbers sit on top of lower numbers */
+
+        /* Hides the desktop sidebar table of contents */
+        div[class*="marimo-toc"],
+        aside[class*="sidebar"],
+        [data-testid="marimo-toc"] {
+            display: none !important;
+        }
+
+        /* Adjusts the main content margin to center it */
+        main {
+            margin-left: auto !important;
+            margin-right: auto !important;
+            max-width: 960px !important;
+        }
         </style>
         """
     )
-    from ssb_timeseries.config import ENV_VAR_NAME
 
     return ENV_VAR_NAME, mo, testing
 

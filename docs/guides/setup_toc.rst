@@ -7,12 +7,7 @@ The main topics:
    :name: basics
    :maxdepth: 1
 
-   Quickstart Guide 2.0 <../guides/quickstart>
-   Configure Features <../configure-features>
-   Default parameters and other configurable attributes controlling behaviour of functions.
-
    Configure Repositories <../configure-io>
-
    Configure Logging <../configure-logging>
 
 The most basic features are reading and writing data from one or more `repositories`.
