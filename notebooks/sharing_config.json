@@ -1,0 +1,54 @@
+{
+    "configuration_file": "/home/bernhard/.config/ssb_timeseries/timeseries_config.json",
+    "io_handlers": {
+        "hive-partitioned-parquet": {
+            "handler": "ssb_timeseries.io.pyarrow_hive.FileSystem",
+            "options": {}
+        },
+        "json": {
+            "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
+            "options": {}
+        },
+        "simple-parquet": {
+            "handler": "ssb_timeseries.io.pyarrow_simple.FileSystem",
+            "options": {}
+        },
+        "snapshots": {
+            "handler": "ssb_timeseries.io.snapshots.FileSystem",
+            "options": {}
+        }
+    },
+    "logging": {},
+    "repositories": {
+        "tutorials": {
+            "catalog": {
+                "handler": "json",
+                "options": {
+                    "path": "/home/bernhard/timeseries/metadata"
+                }
+            },
+            "directory": {
+                "handler": "simple-parquet",
+                "options": {
+                    "path": "/home/bernhard/timeseries"
+                }
+            }
+        }
+    },
+    "snapshots": {
+        "default": {
+            "directory": {
+                "options":{"path": "/home/bernhard/timeseries/snapshots"},
+                "handler": "my_snapshot_handler"
+            }
+        }
+    },
+    "sharing": {
+        "default": {
+            "directory": {
+                "options": {"path": "/home/bernhard/timeseries/shared/default"},
+                "handler": "my_snapshot_handler"
+            }
+        }
+    }
+}

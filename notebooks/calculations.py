@@ -4,7 +4,7 @@ __generated_with = "0.24.0"
 app = marimo.App()
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     import marimo as mo
     mo.Html(
@@ -29,24 +29,6 @@ def _():
     return (mo,)
 
 
-@app.cell
-def _():
-    from ssb_timeseries.dataset import Dataset
-    from ssb_timeseries.types import SeriesType, Versioning, Temporality
-    from ssb_timeseries.sample_data import create_df
-    from ssb_timeseries.dates import date_utc, now_utc
-
-    return Dataset, SeriesType, create_df
-
-
-@app.cell(hide_code=True)
-def _():
-    from itertools import product
-    from datetime import date
-
-    return date, product
-
-
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -58,23 +40,98 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    This guide introduces the basic calculation features in SSB Timeseries.
+    Scope
+    -----
+
+    This guide introduces the most basic calculation features in SSB Timeseries and explain some general principles for how calculations are supposed to work.
+
+    See the specific guides for *calculations with time* and *metadata centric calculations*.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Prerequisites
+
+    ``` {note}
+    The SSB Timeseries library must be installed and a working configuration is active.
+    See [the quickstart guide](quickstart) for instructions.
+    ```
+
+    The presented functionality relies on `dataset.Dataset`.
+    Other imports like`types.SeriesType` and a few external ones are used only for generating the sample data.
     """)
     return
 
 
 @app.cell
-def _(SeriesType, date, product):
-    set_name = "Prices and Volumes"
-    series_tags = {
-        "variable": ["price", "volume"],
-        "product": ["milk", "eggs", "bread", "juice", "ham", "cheese"],
-    }
-    set_tags = { "Country": "Norway" }
-    PERIOD_ESTIMATE = SeriesType('AS_OF', 'FROM_TO')
+def _():
+    from ssb_timeseries.dataset import Dataset
+    #from ssb_timeseries.dates import date_utc, now_ut
+    return (Dataset,)
 
-    as_of_dates = [date(*d) for d in product({2024,2025}, range(1,13), {1})]
-    return PERIOD_ESTIMATE, as_of_dates, series_tags, set_name, set_tags
+
+@app.cell
+def _():
+    from ssb_timeseries.types import SeriesType
+    from ssb_timeseries.sample_data import create_df
+    from itertools import product
+    from datetime import date
+
+    return SeriesType, create_df, date, product
+
+
+@app.cell
+def _(Dataset, SeriesType, create_df, date):
+    def create_some_example_data(
+        set_name: str,
+        as_of_dates: list[date],
+        series_tags: dict[str,list[str]],
+    ):
+        """Generate and save some sample data."""
+        set_tags = { "Country": "Norway" }
+        PERIOD_ESTIMATE = SeriesType('AS_OF', 'FROM_TO')
+        for d in as_of_dates:
+            df = create_df(
+                *[value for value in series_tags.values()],
+                temporality= 'FROM_TO',
+                start_date="2024-01-01",
+                end_date="2026-12-01",
+                freq="MS",
+            )
+            Dataset(
+                name=set_name,
+                data_type=PERIOD_ESTIMATE,
+                as_of_tz=str(d),
+                data=df,
+                tags = set_tags,
+                attributes = ["variable", "product"],
+            ).save()
+
+    return (create_some_example_data,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    We will generate random data for all permutations of some descriptive metadata,
+    """)
+    return
+
+
+@app.cell
+def _(create_some_example_data, date, product):
+    create_some_example_data(
+        set_name="Prices and Volumes",
+        as_of_dates = [date(*d) for d in product({2024,2025}, range(1,13), {1})],
+        series_tags = {
+            "variable": ["price", "volume"],
+            "product": ["milk", "eggs", "bread", "juice", "ham", "cheese"],
+        }
+    )
+    return
 
 
 @app.cell
@@ -82,39 +139,11 @@ def _():
     return
 
 
-@app.cell
-def _(
-    Dataset,
-    PERIOD_ESTIMATE,
-    as_of_dates,
-    create_df,
-    series_tags,
-    set_name,
-    set_tags,
-):
-    for d in as_of_dates:
-        df = create_df(
-            *[value for value in series_tags.values()],
-            temporality= 'FROM_TO',
-            start_date="2024-01-01",
-            end_date="2026-12-01",
-            freq="MS",
-        )
-        Dataset(
-            name=set_name,
-            data_type=PERIOD_ESTIMATE,
-            as_of_tz=str(d),
-            data=df,
-            tags = set_tags,
-            attributes = ["variable", "product"],
-        ).save()
-    return
-
-
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Algebra
+    Element-wise arithmetic
+    --------------------------------
     """)
     return
 
@@ -145,17 +174,18 @@ def _(jul_revenue):
 @app.cell(hide_code=True)
 def _(mo, rev_name):
     mo.md(f"""
-    The calculation returns a new dataset with a long and unwieldly name:
+    The calculation over the two slices from `jul` returns a new dataset with a long and unwieldly name:
 
     `{rev_name}`.
 
-    In fact, not only the final calculation, but also the two filter operations returned new dataset instances.
+    In fact, not only the final calculation, but also the two slices created by the filter operations returned new dataset instances, albeit only in memory.
     As they were not assigned to any variables, they were just not kept.
-    The copying rather behaviour is by design:
+
+    The copying behaviour is by design:
     The library seeks to avoid in place updates.
 
-    The new set inherits some of its metadata from the inputs,
-    and some attributes may be set by the functions that performs the calculations,
+    The new sets created by calculations will inherit some of their attributes (or "tags") from the inputs.
+    Others may be set by the functions that perform the calculations,
     but generally descriptive metadata for calculation outputs need to be updated manually:
     """)
     return
@@ -205,25 +235,99 @@ def _(mo):
     mo.md(r"""
     The above examples showed simple algebra with `*` and `-`.
     These and other *infix* operators for element-wise arithmetic and comparisons work for `Dataaset` objects because the class exposes "dunder" methods to [emulate numeric types](https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types) and [rich comparisons](https://docs.python.org/3/reference/datamodel.html#basic-customization).
-    Their implementation uses Numpy under the hood for the actual work and ["broadcasting rules"](https://numpy.org/doc/stable/user/basics.broadcasting.html), with a wrapper function for supported objects.
+
+    The mathematical operator implementation follows a pattern: a wrapper function that uses the [interoperability]() library [Narwhals]() to standardize input and pass on the actual work to Numpy.
+
+    This means that the arithmetic functions support operating not only on `dataset` objects, but on combinations of `Dataset` with a large number of other datatypes (scalars, Numpy arrays, dataframes, Arrow tables).
     """)
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
-    ### ... more algebra
+    Numpy for the implementation means that [Numpy "broadcasting rules"](https://numpy.org/doc/stable/user/basics.broadcasting.html) apply for operations on different size objects.
+    Broadcasting rules and dimensional conditions are avaluated only for the numeric parts.
+    The arithmetic ignores the date columns to allow calculations with mixed temporality.
+    Date alignment must be performed explicitly.
+
+    Narwhals also brings conversion to other libraries and their functionality within short reach. Note the shorthand properties `{type(x.pd)=}` and
+    and `{type(x.pl)=}`
+    Note that Arrow tables and Narwhals compatible dataframes are all conflated to 'df' in the lineage tracking.
     """)
     return
 
 
 @app.cell
 def _(feb, jul):
-    _x = jul * 10 - 123
+    jul - feb.pd
+    return
+
+
+@app.cell
+def _(feb, jul):
+    x = jul * 10 - 123
     y = feb - 3
-    z = _x * y + _x ** 2 - y.data + 2
-    z
+    x_pd = (x.pd).set_index(['valid_from', 'valid_to']) * 1.2
+    return x, x_pd, y
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+
+    """)
+    return
+
+
+@app.cell
+def _(x, x_pd, y):
+    x_pl = x - (x.pl *0.5) # polars
+    z = x - x_pd + x_pl * y + x ** 2 - y.data + 2
+    return (z,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(f"""
+
+    """)
+    return
+
+
+@app.cell
+def _(z):
+    z.name
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    At the time of writing, interval support and filtering by dates is an underdeveloped area of functionality at the time of writing.
+    """)
+    return
+
+
+@app.cell
+def _(z):
+    import polars as pl
+    one_period_from_z = z.pl.filter(
+        pl.col("valid_to").is_between(pl.date(2025, 5, 29), pl.date(2025, 6, 2))
+    )
+    one_period_from_z
+    return (one_period_from_z,)
+
+
+@app.cell
+def _():
+
+    return
+
+
+@app.cell
+def _(one_period_from_z, y):
+    one_period_from_z @ y
     return
 
 
@@ -355,7 +459,6 @@ def _(mo):
     ```
     """)
     return
-
 
 
 if __name__ == "__main__":

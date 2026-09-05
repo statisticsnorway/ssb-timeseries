@@ -100,7 +100,8 @@ show_missing = true
 fail_under = 50
 
 [tool.marimo.runtime]
-pythonpath = ["src/"]
+pythonpath = ["src/", "tools/"]
+dotenv=["notebooks/marimo.env"]
 
 [tool.mypy]
 # strict = true
