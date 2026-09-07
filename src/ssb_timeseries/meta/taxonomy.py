@@ -189,7 +189,7 @@ class Taxonomy:
                 subgraph_data.append({"parentCode": parent, "code": child})
         return Taxonomy(data=subgraph_data)
 
-    def print_tree(
+    def draw_graph(
         self,
         options: dict | None = None,
         figsize: tuple = (24, 12),
@@ -210,6 +210,18 @@ class Taxonomy:
             # pos=nx.bfs_layout(self.structure, start=self.leaf_nodes),
             **options,
         )
+
+    def print_tree(
+        self,
+        **options,
+    ) -> None:
+        """Textual representation of directed graph."""
+        opt = {"sources": ["0"], "vertical_chains": True}
+        if options:
+            opt.update(options)
+        if self.structure:
+            graph = self.structure.reverse()
+            nx.write_network_text(graph, **opt)  # type: ignore[misc]
 
     @property
     def all_nodes(self) -> list[str]:
