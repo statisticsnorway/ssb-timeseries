@@ -913,10 +913,9 @@ class Dataset:
                     new_name = f"COPY of({self.name} SELECTED by names {names}, pattern: {pattern}, regex: {regex} tags: {tags})"
                 out = self.copy(new_name, data=df, **kwargs)
                 out.rename(new_name)
+                numeric_columns = set(out.numeric_columns)
                 matching_series_tags = {
-                    k: v
-                    for k, v in out.tags["series"].items()
-                    if k in out.numeric_columns
+                    k: v for k, v in out.tags["series"].items() if k in numeric_columns
                 }
                 out.tags["series"] = matching_series_tags
             case _:
