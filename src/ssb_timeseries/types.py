@@ -27,7 +27,8 @@ TagValue: TypeAlias = str | list[str]
 TagDict: TypeAlias = dict[str, TagValue]
 """A dictionary of tags, where keys are tag names and values are TagValues."""
 
-SeriesTagDict: TypeAlias = dict[str, TagDict]
+# SeriesTagDict: TypeAlias = dict[str, TagDict]
+SeriesTagDict: TypeAlias = dict[str, TagValue]
 """A dictionary mapping series names to their TagDict."""
 
 

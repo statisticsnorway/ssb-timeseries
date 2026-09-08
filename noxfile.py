@@ -188,19 +188,9 @@ def lint(session: Session) -> None:
 def mypy(session: Session) -> None:
     """Type-check 'src' directory using mypy."""
     args = session.posargs or ["src"]
-    # Export deps to a requirements file
-    session.run(
-        "poetry",
-        "export",
-        "--with",
-        "dev",
-        "--format=requirements.txt",
-        "--output",
-        "requirements-dev.txt",
-        external=True,
-    )
-    session.install("-r", "requirements-dev.txt")
+    install_poetry_group(session, "dev")
     session.install(".")
+
     project_root = Path(__file__).parent
     pyproj_toml_file = str(project_root / "pyproject.toml")
     with session.chdir(project_root):
@@ -263,10 +253,10 @@ def coverage(session: Session) -> None:
     session.run("coverage", *args)
 
 
-@session(python=python_versions[0])
+@session(python=python_versions[-1])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
-    session.install("pytest", "typeguard", "pygments", "click",)
+    session.install("pytest", "typeguard", "pygments", "click","marimo")
     session.install(".")
     #session.run("pip", "install", "-e", ".") # RYE: editable is better practice? --> apply everywhere?
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
@@ -283,8 +273,9 @@ def xdoctest(session: Session) -> None:
         if "FORCE_COLOR" in os.environ:
             args.append("--colored=1")
 
+    install_poetry_group(session, "dev")
     session.install(".")
-    session.install("xdoctest[colors]")
+
     config_path = Path(session.create_tmp()) / "timeseries_config.json"
     config_path.write_text("{}")
     session.run(

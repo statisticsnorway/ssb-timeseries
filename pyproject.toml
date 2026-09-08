@@ -83,6 +83,7 @@ filterwarnings = [
     "error", "ignore::pytest.PytestUnraisableExceptionWarning",
     "ignore:.*return.*finally.*:SyntaxWarning",
     #"ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*", # Introduced with Pillow 13; await pandas update.
+    "ignore:Skipping type check against 'DataFrame\\[Any\\]'.*:typeguard.TypeHintWarning", # typeguard crash with Narwhals
 ]
 # log_cli = true # does NOT fix issues with configuring loggers for testing
 

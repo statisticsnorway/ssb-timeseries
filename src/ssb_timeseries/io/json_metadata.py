@@ -13,12 +13,10 @@ import json
 from pathlib import Path
 from typing import Any
 from typing import NamedTuple
-from typing import cast
 
 from ..config import FileBasedRepository
 from ..logging import logger
 from ..meta.tags import matches_criteria
-from ..types import DatasetTagDict
 from ..types import PathStr
 from ..types import TagDict
 from . import fs
@@ -302,7 +300,7 @@ def tags_from_json(
 
 def tags_from_json_file(
     file_or_files: PathStr | list[PathStr],
-) -> DatasetTagDict | list[DatasetTagDict]:
+) -> dict | list[dict]:  # DatasetTagDict | list[DatasetTagDict]:
     """Read and parse one or more metadata JSON files."""
     if isinstance(file_or_files, list):
         result = []
@@ -312,4 +310,4 @@ def tags_from_json_file(
         return result
     else:
         t = fs.read_json(file_or_files)
-        return cast(DatasetTagDict, t)
+        return t  # cast(DatasetTagDict, t)
