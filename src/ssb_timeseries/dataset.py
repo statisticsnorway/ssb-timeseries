@@ -67,8 +67,11 @@ from .dates import date_utc
 from .dates import period_index
 from .dates import utc_iso
 from .logging import logger
+from .types import DatasetTagDict
 from .types import F
 from .types import PathStr
+from .types import SeriesTagDict
+from .types import TagDict
 from .types import Temporality
 from .types import Versioning
 
@@ -510,11 +513,11 @@ class Dataset:
         return []
 
     @property
-    def series_tags(self) -> meta.SeriesTagDict:
+    def series_tags(self) -> SeriesTagDict:
         """Get series tags."""
         return self.tags["series"]  # type: ignore
 
-    def default_tags(self) -> meta.DatasetTagDict:
+    def default_tags(self) -> DatasetTagDict:
         """Return default tags for set and series."""
         return {
             "name": self.name,
@@ -526,7 +529,7 @@ class Dataset:
 
     def tag_dataset(
         self,
-        tags: meta.TagDict = None,
+        tags: TagDict = None,
         **kwargs: str | list[str] | set[str],
     ) -> None:
         """Tag the set.
@@ -887,10 +890,11 @@ class Dataset:
             expressions.append(ncs.matches(f".*{pattern}.*"))
 
         if tags:
-            if isinstance(tags, list):
-                matching_series = meta.search_by_tags(self.tags["series"], *tags)
-            else:
-                matching_series = meta.search_by_tags(self.tags["series"], tags)
+            # if isinstance(tags, list):
+            #     matching_series = meta.search_by_tags(self.tags["series"], *tags)
+            # else:
+            #     matching_series = meta.search_by_tags(self.tags["series"], tags)
+            matching_series = meta.search_by_tags(self.tags["series"], tags)
             logger.debug("DATASET.select(tags) found:\n%s ", matching_series)
             expressions.append(nw.col(matching_series))
 

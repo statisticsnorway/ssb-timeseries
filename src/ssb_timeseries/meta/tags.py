@@ -10,30 +10,20 @@ from __future__ import annotations
 
 from copy import deepcopy
 from typing import Any
-from typing import TypeAlias
+
+# from typing import TypeAlias
 from typing import no_type_check
 
 import ssb_timeseries as ts
+from ssb_timeseries.types import DatasetTagDict
+from ssb_timeseries.types import SeriesTagDict
+from ssb_timeseries.types import TagDict
+from ssb_timeseries.types import TagValue
 
 # mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-any-return"
 
-TagValue: TypeAlias = str | list[str]
-"""A tag value can be a single string or a list of strings."""
 
-TagDict: TypeAlias = dict[str, TagValue]
-"""A dictionary of tags, where keys are tag names and values are TagValues."""
-
-SeriesTagDict: TypeAlias = dict[str, TagDict]
-"""A dictionary mapping series names to their TagDict."""
-
-# The more specific type hint below is too restrictive for runtime type checkers like typeguard,
-# which fail on the complex, nested structure of the tag dictionaries.
-# DatasetTagDict: TypeAlias = dict[str, TagDict | SeriesTagDict]
-DatasetTagDict: TypeAlias = dict[str, Any]
-"""A dictionary representing the full dataset metadata, including 'series'."""
-
-
-def matches_criteria(tag: dict[str, Any], criteria: dict[str, str | list[str]]) -> bool:
+def matches_criteria(tag: TagDict, criteria: TagDict) -> bool:
     """Check if a tag matches the specified criteria.
 
     Args:
@@ -54,9 +44,7 @@ def matches_criteria(tag: dict[str, Any], criteria: dict[str, str | list[str]]) 
     return True
 
 
-def filter_tags(
-    tags: dict[str, dict[str, Any]], criteria: dict[str, str | list[str]]
-) -> dict[str, dict[str, Any]]:
+def filter_tags(tags: SeriesTagDict, criteria: TagDict) -> SeriesTagDict:
     """Filter tags based on the specified criteria.
 
     Args:
@@ -71,7 +59,8 @@ def filter_tags(
 
 
 def search_by_tags(
-    tags: dict[str, dict[str, Any]], criteria: dict[str, str | list[str]]
+    tags: SeriesTagDict,
+    criteria: TagDict | list[TagDict],
 ) -> list[str]:
     """Filter tags based on the specified criteria and return the keys.
 
@@ -83,26 +72,27 @@ def search_by_tags(
     Returns:
         A list of keys for tags that match the criteria.
     """
-    return list(filter_tags(tags, criteria).keys())
+    # return list(filter_tags(tags, criteria).keys())
+    if isinstance(criteria, list):
+        return [
+            key
+            for key, tag in tags.items()
+            if any(matches_criteria(tag, criterion) for criterion in criteria)
+        ]
+
+    return [key for key, tag in tags.items() if matches_criteria(tag, criteria)]
 
 
-def inherit_set_tags(
-    tags: DatasetTagDict | SeriesTagDict,
-) -> dict[str, Any]:  # -> TagDict:
-    """Return the tags that are inherited from the set."""
-    if "dataset" in tags:
-        tags["series"] = inherit_set_tags(tags)
-        return tags
-    else:
-        set_only_tags = ["series", "name"]
-        inherited_from_set_tags = deepcopy(
-            {
-                "dataset": tags["name"],
-                **tags,
-            }
-        )
-        [inherited_from_set_tags.pop(key) for key in set_only_tags]
-        return inherited_from_set_tags
+def inherit_set_tags(tags: DatasetTagDict) -> TagDict:
+    """Return the tags inherited from the dataset."""
+    inherited: TagDict = {}
+
+    for key in tags:
+        if key not in {"name", "series"}:
+            inherited[key] = tags[key]  # type: ignore[literal-required]
+
+    inherited["dataset"] = tags["name"]
+    return inherited
 
 
 def series_tag_dict_edit(
@@ -173,7 +163,6 @@ def add_tag_values(
     return new
 
 
-@no_type_check
 def rm_tag_values(
     existing: TagDict,
     tags_to_remove: TagDict,
@@ -181,33 +170,35 @@ def rm_tag_values(
 ) -> TagDict:
     """Remove tag value from tag dict.
 
-    Values to remove and in tags can be string or list of strings.
+    Values to remove in tags can be strings or lists of strings.
     """
     ts.logger.debug(
         "rm_tag - from tag:\n\t%s, \nremove value(s): %s.",
         existing,
         tags_to_remove,
     )
+
     new = deepcopy(existing)
+
     for attr, val in existing.items():
         for rm_key, rm_value in tags_to_remove.items():
-            if (rm_key, rm_value) == (attr, val):
+            if rm_key != attr:
+                continue
+
+            if rm_value is None:
                 new.pop(attr)
-            elif rm_key == attr and rm_value is None:
+            elif rm_value == val:
                 new.pop(attr)
             elif isinstance(val, list) and rm_value in val:
-                match len(val):
-                    case 2:
-                        new[attr].remove(rm_value)
-                        new[attr] = to_tag_value(new[attr])
-                    case 1:
-                        new.pop(attr)
-                    case _:
-                        new[attr].remove(rm_value)
+                remaining = [item for item in val if item != rm_value]
+                if remaining:
+                    new[attr] = to_tag_value(remaining)
+                else:
+                    new.pop(attr)
 
     if recursive and "series" in new:
         ts.logger.debug(
-            "rm_tag - from tag:\n\t%s, \nrecursively remove value(s): %s.",
+            "rm_tag - from tag:\n\t%s, \nremove value(s): %s.",
             existing,
             tags_to_remove,
         )
@@ -267,10 +258,10 @@ def delete_dataset_tags(
     **kwargs: SeriesTagDict | bool,
 ) -> DatasetTagDict:
     """Remove selected attributes from dataset tag dictionary."""
-    remove_all = kwargs.pop("all", False)
+    # remove_all = kwargs.pop("all", False)
     propagate = kwargs.pop("propagate", False)
-    if remove_all:
-        return inherit_set_tags(dictionary)
+    # if remove_all: # wrong semantics!
+    #    return inherit_set_tags(dictionary)
 
     out = deepcopy(dictionary)
     out = rm_tags(out, *args)
@@ -281,13 +272,13 @@ def delete_dataset_tags(
         out["series"] = delete_series_tags(
             out["series"],
             *args,
-            all=remove_all,
             **kwargs,
         )
 
     return out
 
 
+@no_type_check  # "comparison-overlap
 def delete_series_tags(
     dictionary: SeriesTagDict | DatasetTagDict,
     *args: str,
@@ -302,14 +293,17 @@ def delete_series_tags(
     output_tags = deepcopy(dictionary)
     if "series" in dictionary:
         output_tags["series"] = delete_series_tags(
-            output_tags["series"], *args, all=remove_all, **kwargs
+            output_tags["series"],
+            *args,
+            # all=remove_all,
+            **kwargs,
         )
         return output_tags
     else:
         for series_key, series_tags in output_tags.items():
-            if args:
+            if args:  # remove entiere attributes specified by args
                 series_tags.pop(*args)
-            if kwargs:
+            if kwargs:  # remove matching (attr, val) specified by kwarg pairs
                 for k, v in kwargs.items():
                     series_tags = rm_tag_values(series_tags, {k: v}, recursive=False)
             output_tags[series_key] = series_tags

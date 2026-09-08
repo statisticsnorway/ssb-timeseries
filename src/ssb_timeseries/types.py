@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from os import PathLike
 from typing import TypeAlias
+from typing import TypedDict
 
 PathStr: TypeAlias = str | PathLike[str]
 F: TypeAlias = Callable
@@ -18,6 +19,26 @@ except ImportError:
     from typing_extensions import Self  # noqa: UP035 #backport to 3.10
 
 # mypy: disable-error-code="type-arg, override"
+
+
+TagValue: TypeAlias = str | list[str]
+"""A tag value can be a single string or a list of strings."""
+
+TagDict: TypeAlias = dict[str, TagValue]
+"""A dictionary of tags, where keys are tag names and values are TagValues."""
+
+SeriesTagDict: TypeAlias = dict[str, TagDict]
+"""A dictionary mapping series names to their TagDict."""
+
+
+class DatasetTagDict(TypedDict):
+    """A dictionary representing the full dataset metadata, including 'series'."""
+
+    name: str
+    repository: str
+    versioning: Versioning | str
+    temporality: Temporality | str
+    series: dict[str, SeriesTagDict]
 
 
 class SuperEnum(Enum):

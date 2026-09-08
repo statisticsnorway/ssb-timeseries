@@ -13,13 +13,14 @@ import json
 from pathlib import Path
 from typing import Any
 from typing import NamedTuple
+from typing import cast
 
 from ..config import FileBasedRepository
 from ..logging import logger
-from ..meta import DatasetTagDict
-from ..meta import TagDict
 from ..meta.tags import matches_criteria
+from ..types import DatasetTagDict
 from ..types import PathStr
+from ..types import TagDict
 from . import fs
 from .json_helpers import sanitize_for_json
 
@@ -311,4 +312,4 @@ def tags_from_json_file(
         return result
     else:
         t = fs.read_json(file_or_files)
-        return DatasetTagDict(t)
+        return cast(DatasetTagDict, t)
