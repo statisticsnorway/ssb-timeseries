@@ -10,6 +10,7 @@ def _():
 
     from filetree import tree
     from ssb_timeseries import get_configuration
+    from profiling import profile_call
 
     CONFIG = get_configuration()
 
@@ -18,7 +19,7 @@ def _():
         root_dir = repositories['tutorials']['directory']['options']['path']
         print(tree(root_dir))
 
-    return mo, repository_tree
+    return mo, profile_call, repository_tree
 
 
 @app.cell(disabled=True, hide_code=True)
@@ -337,10 +338,21 @@ def _(az):
 
 
 @app.cell
+def _(az, profile_call):
+    prices = profile_call(func=az.select, tags={'variable': 'price'})
+    return (prices,)
+
+
+@app.cell
+def _(az, profile_call):
+    profile_call(az.select, regex='a_price_*_E')
+    return
+
+
+@app.cell
 def _(az):
-    prices = az[{'variable': 'price'}]
     volumes = az[{'variable':'volume'}]
-    return prices, volumes
+    return (volumes,)
 
 
 @app.cell

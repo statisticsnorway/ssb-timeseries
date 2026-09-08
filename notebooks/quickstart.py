@@ -13,12 +13,10 @@ def _():
     mo.Html(
         """
         <style>
-        /*
         [data-testid="static-notebook-banner"],
         [data-testid="watermark"] {
             display: none !important;
         }
-        */
         z-index: -2; /* Higher numbers sit on top of lower numbers */
 
         /* Hides the desktop sidebar table of contents */
