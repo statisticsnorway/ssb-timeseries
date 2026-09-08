@@ -160,6 +160,21 @@ def setup_windows_tzdata(session: Session) -> None:
 
     session.log(f"Successfully created timezone database at {target_dir}.")
 
+def install_poetry_group(session: Session, group: str) -> None:
+    """Install dependencies from a Poetry de1pendency group."""
+    requirements = Path(session.create_tmp()) / f"requirements-{group}.txt"
+
+    session.run(
+        "poetry",
+        "export",
+        "--with",
+        group,
+        "--format=requirements.txt",
+        "--output",
+        str(requirements),
+        external=True,
+    )
+    session.install("-r", str(requirements))
 
 @nox.session(python=python_versions[0])
 def lint(session: Session) -> None:
@@ -288,10 +303,8 @@ def docs_build(session: Session) -> None:
     if not session.posargs and "FORCE_COLOR" in os.environ:
         args.insert(0, "--color")
 
+    install_poetry_group(session, "docs")
     session.install(".")
-    session.install(
-        "sphinx", "sphinx-autodoc-typehints", "sphinx-click", "furo", "myst-parser", "sphinx-copybutton", "sphinx-togglebutton", "sphinx-changelog",
-    )
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
@@ -300,27 +313,18 @@ def docs_build(session: Session) -> None:
     session.run("sphinx-build", *args)
 
 
-@session(python=python_versions[0])
+@session(python=python_versions[-1])
 def docs(session: Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
-    #args = session.posargs or ["--open-browser", "docs", "docs/_build"]
     args = session.posargs or ["--open-browser"]
+    install_poetry_group(session, "docs")
     session.install(".")
-    session.install(
-        "sphinx",
-        "sphinx-autobuild",
-        "sphinx-autodoc-typehints",
-        "sphinx-click",
-        "furo",
-        "myst-parser", "sphinx-copybutton", "sphinx-togglebutton", "sphinx-changelog",
-    )
 
     source_dir = "docs"
     build_dir = Path("docs", "_build")
     if build_dir.exists():
         shutil.rmtree(build_dir)
 
-    #session.run("sphinx-autobuild", *args)
     # RYE: Always run sphinx-autobuild with the optional flags AND the mandatory directories
     session.run("sphinx-autobuild", *args, source_dir, str(build_dir))
 
