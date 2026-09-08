@@ -1,11 +1,6 @@
-```{include} ../README.md
----
-relative-docs: docs/
-end-before: <!-- github-only -->
----
-```
+.. include:: ../README.md
+    :end-before: <!-- github-only -->
 
-```{eval-rst}
 
 .. toctree::
    :includehidden:
@@ -13,7 +8,6 @@ end-before: <!-- github-only -->
    :maxdepth: 4
    :caption: Setup Guides
 
-   quickstart
    guides/quickstart
    guides/setup_toc
 
@@ -54,4 +48,3 @@ end-before: <!-- github-only -->
    codeofconduct
    license
    changelog
-```

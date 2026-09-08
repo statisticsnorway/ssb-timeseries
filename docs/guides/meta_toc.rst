@@ -7,6 +7,7 @@ The library functionality can be grouped in several areas.
    :name: basics
    :maxdepth: 1
 
-   Search and filtering <search_and_filtering>
-   Tag maintenance <tag_maintenance>
-   Calculations <metadata_calculations>
+   Basics <meta-basics>
+   Search and filtering <meta-search-and-filtering>
+   Tag maintenance <meta-tag-maintenance>
+   Calculations with metadata <calc-with-metadata>

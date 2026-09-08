@@ -40,6 +40,8 @@ Time series analysis
 ```
 
 <html>
-  <iframe src="file:///home/bernhard/code/ssb-timeseries/notebooks/html/calculations.html"
+  <iframe src="file:///home/bernhard/code/ssb-timeseries/notebooks/html/calc-with-time.html"
     width="100%" height=1000px style="border:none;display:block"></iframe>
 </html>
+
+[open in new window: calc with time](../../notebooks/html/calc-with-time.html)
