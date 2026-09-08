@@ -4595,15 +4595,15 @@ testing = ["covdefaults (>=2.3)", "coverage (>=7.13)", "defusedxml (>=0.7.1)", "
 
 [[package]]
 name = "sphinx-autodoc-typehints"
-version = "3.13.4"
+version = "3.13.5"
 description = "Type hints (PEP 484) support for the Sphinx autodoc extension"
 optional = false
 python-versions = ">=3.12"
 groups = ["dev"]
 markers = "python_version >= \"3.14\""
 files = [
-    {file = "sphinx_autodoc_typehints-3.13.4-py3-none-any.whl", hash = "sha256:05c9fa3bc312cb576a16a4b2e53459c170e540665687049a0d142a83736f5209"},
-    {file = "sphinx_autodoc_typehints-3.13.4.tar.gz", hash = "sha256:9429680faa192fec9797edb9575923177f9d2ab277481d561d4cbd4aeb9cd472"},
+    {file = "sphinx_autodoc_typehints-3.13.5-py3-none-any.whl", hash = "sha256:cc4537109cf0ace1c8a4ee9a1c4ea5151fcdf1137d8b529ed78952b3df22813f"},
+    {file = "sphinx_autodoc_typehints-3.13.5.tar.gz", hash = "sha256:d33a3651a2cec3e2562b456cd92de61d820922a7710eeb2081636696b7f80dd7"},
 ]
 
 [package.dependencies]

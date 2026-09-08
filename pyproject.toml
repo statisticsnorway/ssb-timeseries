@@ -211,6 +211,7 @@ classmethod-decorators = ["classmethod", "validator", "root_validator", "pydanti
     "D103",
     "S101",    # asserts are encouraged in pytest
 ]
+"docs/conf.py" = ["A001"]
 
 [tool.deptry.per_rule_ignores]
 DEP001 = ["ssb_timeseries", "nox", "nox_poetry"]  # packages available by default

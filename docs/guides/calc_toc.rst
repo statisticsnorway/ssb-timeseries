@@ -17,9 +17,7 @@ Here we will take look at the built in matematical support.
 .. include:: issue.md
    :parser: myst_parser.sphinx_
 
-.. include:: ../../notebooks/html/calc-basic-arithmetic.html
-
-:parser: html
+.. .. include:: ../../notebooks/html/calc-basic-arithmetic.html
 
 .. .. raw:: html
 ..   :file: ../../notebooks/html/calc-basic-arithmetic.html

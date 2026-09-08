@@ -7,4 +7,4 @@ Here comes an introduction to basic usage.
    :parser: myst_parser.sphinx_
 
 .. raw:: html
-   :file: ../../notebooks/htmel/basic_usage.html
+   :file: ../../notebooks/html/basic_usage.html

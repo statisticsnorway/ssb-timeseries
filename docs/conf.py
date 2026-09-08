@@ -41,13 +41,16 @@ extensions = [
     "sphinx_togglebutton",
     "myst_parser",
     "sphinx_changelog",
-    #"sphinx_marimo", # tested, but found it buggy and unmaintained
+    # "sphinx_marimo", # tested, but found it buggy and unmaintained
 ]
 
 # marimo(-sphinx) configs ------------------------------------------------------------
 # marimo_notebook_dir = 'marimo'  # Directory containing .py Marimo notebooks
 # marimo_default_height = '600px'
 # marimo_default_width = '100%'
+
+# because calc-with-metadata.md is in both calc and meta toctrees
+suppress_warnings = ["toc.duplicate"]
 
 # ---------------------------------------------------------------------------
 
@@ -203,19 +206,19 @@ rst_prolog = """
 # This mapping is used to resolve forward references in type annotations.
 # It maps the string name to the fully qualified object name.
 autodoc_typehint_aliases = {
-    'Dataset': 'ssb_timeseries.dataset.Dataset',
+    "Dataset": "ssb_timeseries.dataset.Dataset",
 }
 autodoc_typehints_format_aliases = True
 autodoc_type_aliases = {
-    'Any': 'typing.Any',
-    'DataFrame': 'narwhals.DataFrame',
-    'LazyFrame': 'narwhals.LazyFrame',
-    'Frame': 'narwhals.typing.Frame',
-    'FrameT': 'narwhals.typing.FrameT',
-    'IntoSeries': 'narwhals.typing.IntoDataFrame',
-    'IntoSeriesT': 'narwhals.typing.IntoDataFrame',
-    'IntoDataFrame': 'narwhals.typing.IntoDataFrame',
-    'IntoDataFrameT': 'narwhals.typing.IntoDataFrameT',
-    'IntoLazyFrame': 'narwhals.typing.IntoLazyFrame',
-    'IntoLazyFrameT': 'narwhals.typing.IntoLazyFrameT',
+    "Any": "typing.Any",
+    "DataFrame": "narwhals.DataFrame",
+    "LazyFrame": "narwhals.LazyFrame",
+    "Frame": "narwhals.typing.Frame",
+    "FrameT": "narwhals.typing.FrameT",
+    "IntoSeries": "narwhals.typing.IntoDataFrame",
+    "IntoSeriesT": "narwhals.typing.IntoDataFrame",
+    "IntoDataFrame": "narwhals.typing.IntoDataFrame",
+    "IntoDataFrameT": "narwhals.typing.IntoDataFrameT",
+    "IntoLazyFrame": "narwhals.typing.IntoLazyFrame",
+    "IntoLazyFrameT": "narwhals.typing.IntoLazyFrameT",
 }
