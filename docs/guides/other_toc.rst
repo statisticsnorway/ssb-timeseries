@@ -8,3 +8,4 @@ Notable behaviours and features that does not fit into the broad categories of *
    :maxdepth: 1
 
    Interoperability <interoperability>
+   Data types and storage <data-types-and-storage>

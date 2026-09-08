@@ -5,7 +5,7 @@ TIme is an essential aspect of time series.
 It is in the name, and by the simplest definitions, time series are just numeric values associated with time.
 The detailed nature of how time is conceptualised matters.
 It affects technical implementation and functionality.
-It is the backbone of the [type system](type_system.md).
+It is the backbone of the [type system](data-types-and-storage).
 
 This guide focuses on how time can make its way into calculations.
 
