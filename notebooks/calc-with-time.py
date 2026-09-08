@@ -53,8 +53,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Prerequisites
-    -------------
+    ## Prerequisites
 
     ``` {note}
     The guide assumes that the SSB Timeseries library is installed and that a working configuration is active.

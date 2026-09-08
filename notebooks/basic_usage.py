@@ -1,11 +1,8 @@
 import marimo
 
 __generated_with = "0.24.0"
-app = marimo.App(
-    width="comnpact",
-    title="My Report",
-    html_head_file="resources/custom.css" # Injects your CSS into the exported HTML
-)
+app = marimo.App(width="comnpact", html_head_file="resources/custom.css")
+
 
 @app.cell(hide_code=True)
 def _():
