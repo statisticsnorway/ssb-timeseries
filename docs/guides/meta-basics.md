@@ -3,8 +3,7 @@ Metadata Search and Filtering
 
 Metadata search and filtering tutorial coming soon!
 
-<iframe src="../../notebooks/html/meta-basics.html"
-width="100%" height=1000px style="border:none;display:block"></iframe>
-</html>
-
-[open in new window: meta basics](../../notebooks/html/meta-basics.html)
+``` {html}
+<iframe src="../marimo-exports/meta-basics.html" style="height: 85vh; width: 100vw; border: none;"></iframe>
+```
+[open in new window: meta basics](../marimo-exports/meta-basics.html)

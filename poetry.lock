@@ -4874,6 +4874,21 @@ typing-extensions = {version = ">=4.10.0", markers = "python_version < \"3.13\""
 full = ["httpx (>=0.27.0,<0.29.0)", "httpx2 (>=2.0.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
 
 [[package]]
+name = "tabulate"
+version = "0.10.0"
+description = "Pretty-print tabular data"
+optional = false
+python-versions = ">=3.10"
+groups = ["docs"]
+files = [
+    {file = "tabulate-0.10.0-py3-none-any.whl", hash = "sha256:f0b0622e567335c8fabaaa659f1b33bcb6ddfe2e496071b743aa113f8774f2d3"},
+    {file = "tabulate-0.10.0.tar.gz", hash = "sha256:e2cfde8f79420f6deeffdeda9aaec3b6bc5abce947655d17ac662b126e48a60d"},
+]
+
+[package.extras]
+widechars = ["wcwidth"]
+
+[[package]]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -5554,4 +5569,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11, <4.0, !=3.14.1"
-content-hash = "aa20067d11448c2133df16cccf24d3b0e4c11835d0512512c76061c1bb3df036"
+content-hash = "33b18530a021a1c1d02ae3be088ac3e133e730ebe7f440c580112520599af0fc"

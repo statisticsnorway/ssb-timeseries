@@ -23,10 +23,10 @@ end-before: <!-- github-only -->
    :maxdepth: 4
    :caption: User Guides
 
-   guides/basic_usage
-   guides/calc_toc
-   guides/meta_toc
-   guides/other_toc
+   guides/basic-usage
+   guides/toc-calc
+   guides/toc-meta
+   guides/toc-other
 
 .. toctree::
    :includehidden:

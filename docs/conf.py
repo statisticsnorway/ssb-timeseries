@@ -44,6 +44,10 @@ extensions = [
     # "sphinx_marimo", # tested, but found it buggy and unmaintained
 ]
 
+myst_enable_extensions = [
+    "colon_fence",
+]
+
 # marimo(-sphinx) configs ------------------------------------------------------------
 # marimo_notebook_dir = 'marimo'  # Directory containing .py Marimo notebooks
 # marimo_default_height = '600px'
@@ -70,56 +74,90 @@ pygments_dark_style = "zenburn"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-color_ssb_dark_5 = "#274247"
-color_ssb_dark_2 = "#C3DCDC"
-color_ssb_dark_1 = "#F0F8F9"
-color_ssb_green_4 = "#00824D"
-color_ssb_green_2 = "#B6E8B8"
-color_ssb_green_1 = "#ECFEED"
-color_ssb_white = "#ffffff"
+
+ssb_green_1 = "#ecfeed"
+ssb_green_2 = "#b6e8b8"
+ssb_green_3 = "#1a9d49"
+ssb_green_4 = "#00824d"
+ssb_green_5 = "#075745"
+
+ssb_dark_1 = "#f0f8f9"
+ssb_dark_2 = "#c3dcdc"
+ssb_dark_3 = "#62919a"
+ssb_dark_4 = "#2d6975"
+ssb_dark_5 = "#274247"
+ssb_dark_6 = "#162327"
+
+ssb_purple_1 = "#f2f0ff"
+ssb_purple_2 = "#D2CEFF"
+ssb_purple_3 = "#9272fc"
+
+ssb_red_1 = "#fdede7"
+ssb_red_2 = "#ff896b"
+ssb_red_3 = "#dc3400"
+ssb_red_4 = "#cb3713"
+
+ssb_white = "#ffffff"
+ssb_blue_3 = "#3396d2"
+negative_red = "#f8a67d"
 
 html_theme = "furo"
 html_theme_options = {
     # pick from https://profil.ssb.no/ after identifying which options to use
     "light_logo": "SSB_logo_black.svg",
     "light_css_variables": {
-        "color-sidebar-background": color_ssb_dark_1,
-        "color-sidebar-background-border": color_ssb_dark_5,
-        "color-sidebar-search-background": color_ssb_dark_2,
-        "color-sidebar-search-background--focus": color_ssb_green_1,
-        "color-brand-primary": color_ssb_dark_5,  # menu text level 1
-        "color-background-hover": color_ssb_dark_2,
-        "color-foreground-primary": color_ssb_dark_5,
-        "color-background-primary": color_ssb_white,
-        # TO DO: fix background colours for second level menu
+        "color-sidebar-background": ssb_dark_1,
+        "color-sidebar-background-border": ssb_dark_5,
+        "color-sidebar-search-background": "transparent",
+        "color-sidebar-search-background--focus": ssb_dark_2,
+        "color-brand-primary": ssb_dark_5,  # menu text level 1
+        "color-foreground-primary": ssb_dark_6,  # menu text level 1
+        "color-background-hover": ssb_green_2,
+        "color-background--hover": ssb_green_2,  # RYEsource experiments
+        "color-foreground--hover": "blue",  # RYE experiments
+        "color-foreground-primary--focus": ssb_dark_5,
         # ...
-        "color-background-secondary": color_ssb_white,  # kind of works, but on both sidebar second level AND content keywords
-        # "color-toc-background": "white", # = -bakcground-primary
+        "color-background-secondary": ssb_white,  # kind of works, but on both sidebar second level AND content keywords
+        "color-toc-background": "transparent",
         "color-guilabel-background": "red",
         "color-background-item": "orange",
-        "color-card-item": "orange",
+        "color-card-item": "blue",
         # ...
-        "color-sidebar-item-expander-background": color_ssb_dark_1,
-        "color-sidebar-item-expander-background--hover": color_ssb_green_1,
-        "color-admonition-background": color_ssb_white,
-        "color-admonition-title-background": color_ssb_green_4,
-        "color-admonition-title-background-border": color_ssb_green_4,
+        # expand/collapse at menu border
+        "color-sidebar-item-expander-background": ssb_dark_1,
+        "color-sidebar-item-expander-background--hover": ssb_green_1,
+        "color-admonition-background": ssb_white,
+        "color-admonition-title-background": ssb_green_4,
+        "color-admonition-title-background-border": ssb_green_4,
     },
     "dark_logo": "SSB_logo_white.svg",
     "dark_css_variables": {
         "color-sidebar-background": "black",
-        "color-sidebar-background-border": "white",
-        "color-brand-primary": color_ssb_dark_1,  # menu text level 1
-        "color-foreground-secondary": color_ssb_dark_1,
-        "color-background-hover": color_ssb_dark_5,
-        "color-sidebar-search-background": color_ssb_dark_5,
-        # "color-sidebar-search-background--focus": color_ssb_green_4,
-        "color-sidebar-search-text": "yellow",  # does not take effect
-        "color_content_background": "orange",
-        # "color-background-primary":color_ssb_dark_5,  # (attempt) menu background "ssb dark 5"
-        # "color-background-secondary":color_ssb_dark_5,  # (attempt) menu background "ssb dark 5"
-        "color-sidebar-item-expander-background": "black",  # color_ssb_dark_5,
-        "color-sidebar-item-expander-background--hover": color_ssb_dark_5,
+        "color-sidebar-background-border": ssb_white,
+        "color-sidebar-text": ssb_white,
+        "color-sidebar-text--focus": "orange",
+        "color-brand-primary": ssb_dark_1,  # menu text level 1
+        "color-brand-secondary": "yellow",  # menu text level ..?
+        "color-foreground-primary": ssb_green_1,  #
+        "color-foreground-secondary": ssb_dark_5,
+        "color-foreground-secondary--focus": ssb_dark_6,
+        "color-foreground-secondary--hover": ssb_dark_6,
+        # "color-foreground-secondary--focus": ssb_green_2,  # ssb_dark_1,
+        "color-foreground-secondary--current": ssb_dark_1,
+        "color-background--hover": ssb_green_2,
+        "color-foreground--hover": ssb_dark_6,
+        "color-sidebar-search-background": ssb_dark_3,
+        "color-sidebar-search-foreground": ssb_dark_6,
+        "color-sidebar-search-background--focus": ssb_dark_3,  # on click
+        "color-sidebar-search-background-hover": "yellow",
+        "color-sidebar-search-background--current": ssb_green_4,
+        # "color-sidebar-search-text": ssb_dark_6,  # does not take effect
+        # "color-sidebar-search-text--focus": ssb_dark_6,  # does not take effect
+        # "color-content-background": "orange",
+        # "color-background-primary": ssb_dark_5,  # (attempt) menu background "ssb dark 5"
+        # "color-background-secondary":ssb_dark_5,  # (attempt) menu background "ssb dark 5"
+        "color-sidebar-item-expander-background": ssb_dark_5,
+        "color-sidebar-item-expander-background--hover": ssb_dark_4,
         # TO DO: Changelog icon is too dark. Fix.
         # TO DO: Blue reference headers / links are ugly/hard to read. Fix?
     },

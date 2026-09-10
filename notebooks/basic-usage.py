@@ -7,34 +7,47 @@ app = marimo.App(width="comnpact", html_head_file="resources/custom.css")
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
-    #from tools import testing
+    import testing
 
-    mo.Html(
-        """
-        <style>
-        [data-testid="static-notebook-banner"],
-        [data-testid="watermark"] {
-            display: none !important;
-        }
-        z-index: 10; /* Higher numbers sit on top of lower numbers */
-        mo.Html(
-        /* Hides the desktop sidebar table of contents */
-        div[class*="marimo-toc"],
-        aside[class*="sidebar"],
-        [data-testid="marimo-toc"] {
-            display: none !important;
-        }
+    import inspect
+    import textwrap
+    from collections.abc import Callable
+    from typing import Any, TypeVar
 
-        /* Adjusts the main content margin to center it */
-        main {
-            margin-left: auto !important;
-            margin-right: auto !important;
-            max-width: 960px !important;
-        }
-        </style>
-        """
-    )
-    return (mo,)
+    F = TypeVar("F", bound=Callable[..., Any])
+
+    def prompt(cmd, str=''):
+        """print a prompt with command before output str"""
+        if cmd:
+            return f"\n```\n>>> {cmd}\n\n{str}\n```\n"
+        else:
+            return  f"\n```\n{str}\n```\n"
+
+    from tabulate import tabulate
+    _tbl_format = 'simple'
+    _float_format=".2f"
+    def tbl(df, cmd=''):
+        """print a str formatted table"""
+        tbl_str = tabulate(
+            df,
+            headers = df.columns,
+            tablefmt = _tbl_format,
+            floatfmt =_float_format,
+            showindex=False,
+        )
+        return prompt(cmd, tbl_str)
+
+    from ssb_timeseries.types import Versioning, Temporality
+
+    return Temporality, Versioning, mo, prompt, tbl, testing
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    BEGIN
+    """)
+    return
 
 
 @app.cell(hide_code=True)
@@ -61,11 +74,9 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    /// note | Configuration depencency
-
+    Configuration depencency:
     The code below assumes access to a working configuration.
     See the [Quick start guide](quickstart.md) for how to prepare it.
-    ///
     """)
     return
 
@@ -108,10 +119,20 @@ def _(mo):
 def _():
     from ssb_timeseries import sample_data
     df = sample_data.xyz_at()
-
-    print(type(df))
-    print(df)
     return (df,)
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _(df, mo, tbl):
+    mo.md(f"""
+    Now we have a `df` as follows {tbl(df, 'df')}
+    """)
+    return
 
 
 @app.cell(hide_code=True)
@@ -132,14 +153,7 @@ def _():
     return POINT_IN_TIME, SeriesType
 
 
-@app.cell(hide_code=True)
-def _():
-    from ssb_timeseries.types import Versioning, Temporality
-
-    return Temporality, Versioning
-
-
-@app.cell(hide_code=True)
+@app.cell
 def _(SeriesType, Temporality, Versioning, mo):
     mo.md(f"""
     `SeriesType('NONE', 'AT')` is a shorthand that resolves to `{repr(SeriesType(Versioning.NONE, Temporality.AT))}`.
@@ -161,15 +175,16 @@ def _(mo):
 def _(POINT_IN_TIME, df):
     from ssb_timeseries.dataset import Dataset
     xyz = Dataset("XYZ", data_type=POINT_IN_TIME, data=df,)
-    xyz
     return Dataset, xyz
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
+def _(mo, prompt, xyz):
+    mo.md(f"""
     We now have a `Dataset` object with name "XYZ" assigned to the variable `xyz`.
     The object lives in memory only untill we save it.
+
+    {prompt('xyz',repr(xyz))}
     """)
     return
 
@@ -206,30 +221,36 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _(mo, prompt):
     mo.md(f"""
-    The data can be inspected through the `.data` attribute:
+    Inspect the data: {prompt('xyz.data')}
     """)
     return
 
 
 @app.cell
-def _(xyz):
-    xyz.data
+def _(mo, xyz):
+    mo.md(f"""
+    {xyz.pd.to_markdown()}
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo, prompt, xyz):
+    mo.md(f"""
+    ... and the tags: {prompt('xyz.tags','')}
+
+    {mo.tree(xyz.tags)}
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    And metadata through the `.tags` attribute. For this sample set, we have only a minimal set of technical attributes:
+    For this sample set, we have only a minimal set of technical attributes.
     """)
-    return
-
-
-@app.cell
-def _(xyz):
-    xyz.tags
     return
 
 
@@ -284,14 +305,15 @@ def _(mo):
     mo.md(f"""
     ### Deriving new datasets
 
-    The library has calculation functionality in the following main groups:
+    The library has built in funcitonality for basic arithmetics and linear algebra, calculations with time and calculations with metadata.
+    """)
+    return
 
-    - Basic mathematics and linear algebra
-    - Calculations with time
-    - Calculations with metadata
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(f"""
     Other groups have limited or no functionality at the time of writing, but may be added later:
-
     - Logical functions
     - Set functions
     - Unit conversion
@@ -303,48 +325,44 @@ def _(mo):
 
 @app.cell
 def _(read_xyz_back, xyz):
-    check_if_they_are_equal = xyz == read_xyz_back
-    type(check_if_they_are_equal)
-    return (check_if_they_are_equal,)
+    check_equality = (xyz == read_xyz_back)
+    return (check_equality,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""
-    The equality check for the data that we wrote and the data that we read are equal returns a new dataset.
-    We inspect the `.data` property of to verify that all values are equal:
+    mo.md(f"""
+    The calculation returns a new `Dataset` object.
+    Inspect the data to very that all values are equal:
     """)
     return
 
 
-@app.cell
-def _(check_if_they_are_equal):
-    check_if_they_are_equal.data
+@app.cell(hide_code=True)
+def _(check_equality, mo):
+    mo.md(f"""
+    {check_equality.pd.to_markdown()}
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    The boolean return type is semi-supported for now: It is good for some intermediate calculations, but most functionality will fail and the storage model will require casting to numbers.
+    The boolean return type is semi-supported for now:
+    That is sufficient for intermediate calculations, but most functionality will fail and the storage model will require casting to numbers.
 
     A more direct check for the test above is `Dataset.all()` to check if all the values for the series (ie. not the dates) evaluate to `True`.
     """)
     return
 
 
-@app.cell
-def _(check_if_they_are_equal):
-    check_if_they_are_equal.all()
-    return
-
-
 @app.cell(hide_code=True)
-def _(Dataset, xyz):
-    def test_xyz_is_a_dataset():
-        assert isinstance(xyz, Dataset)
-
-    return (test_xyz_is_a_dataset,)
+def _(check_equality, mo, prompt):
+    mo.md(f"""
+    {prompt('check_equality.all()',check_equality.all())}
+    """)
+    return
 
 
 @app.cell(hide_code=True)
@@ -370,12 +388,31 @@ def _(xyz):
     return
 
 
-@app.cell(disabled=True)
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
+    Planned: Iterators
+    ------------------
+
     While many of the most used calculation features are implemented for the `Dataset` objects, iterating over `Series` ... --> TODO.
     """)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(rf"""
+    END
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(Dataset, xyz):
+    def test_xyz_is_a_dataset():
+        assert isinstance(xyz, Dataset)
+
+    return (test_xyz_is_a_dataset,)
 
 
 @app.cell(hide_code=True)
