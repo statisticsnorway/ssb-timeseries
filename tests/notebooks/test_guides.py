@@ -31,7 +31,7 @@ def subprocess_run_marimo_notebook(notebook_name: str, config: Config):
     environment = os.environ.copy()
     environment[ENV_VAR_NAME] = str(config.configuration_file)
     environment["PYTHONPATH"] = os.pathsep.join(
-        [str(PROJECT_ROOT), environment.get("PYTHONPATH", "")]
+        [str(PROJECT_ROOT / "tools"), environment.get("PYTHONPATH", "")]
     )
     return subprocess.run(
         [

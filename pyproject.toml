@@ -5,7 +5,7 @@ description = "SSB Timeseries"
 authors = [{ name = "Bernhard Ryeng", email = "bernhard.ryeng@ssb.no" }]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.11, <4.0, !=3.14.1"
+requires-python = ">=3.12, <4.0, !=3.14.1"
 dynamic = ["classifiers"]
 dependencies = [
     "click>=8.1.7",
@@ -62,6 +62,7 @@ marimo = "^0.24.0"
 
 
 [tool.poetry.group.docs.dependencies]
+python = "^3.12"
 sphinx = ">=6.2.1"
 sphinx-autobuild = ">=2021.3.14"
 sphinx-autodoc-typehints = ">=1.24.0"
@@ -72,6 +73,7 @@ furo = ">=2021.11.12"
 myst-parser = ">=0.16.1"
 sphinx-changelog = "^1.6.0"
 tabulate = "^0.10.0"
+marimo-md-export = "^0.10.0"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.9"
@@ -85,6 +87,7 @@ filterwarnings = [
     "ignore:.*return.*finally.*:SyntaxWarning",
     #"ignore:'mode' parameter is deprecated:DeprecationWarning:PIL.*", # Introduced with Pillow 13; await pandas update.
     "ignore:Skipping type check against 'DataFrame\\[Any\\]'.*:typeguard.TypeHintWarning", # typeguard crash with Narwhals
+    "ignore:Module already imported so cannot be rewritten:pytest.PytestAssertRewriteWarning", #anyio when running marimo
 ]
 # log_cli = true # does NOT fix issues with configuring loggers for testing
 

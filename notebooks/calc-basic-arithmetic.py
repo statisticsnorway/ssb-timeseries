@@ -273,7 +273,7 @@ def _(mo):
     The above examples showed simple arithemetic with `*` and `-`.
     These and other *infix* operators for element-wise arithmetic and comparisons work for `Dataaset` objects because the class exposes "dunder" methods to [emulate numeric types](https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types) and [rich comparisons](https://docs.python.org/3/reference/datamodel.html#basic-customization).
 
-    The implementation of all mathematical operators follows a pattern: a wrapper function that uses the [interoperability]() library [Narwhals]() to standardize input and pass on the actual work to Numpy.
+    The implementation of all mathematical operators follows a pattern: a wrapper function that uses the [interoperability](nteroperability) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
 
     There are several points to unpack.
     """)

@@ -2,6 +2,10 @@
 
 """Export Marimo notebooks to Markdown.
 
+The export relies on the community package marimo-md-export,
+so that both code and code output are included.
+Any imagery is placed in a <exported>_resources/ directory next to the export file.
+
 Usage:
 
 poetry run python tools/marimo_to_md.py \
@@ -27,15 +31,22 @@ def export_notebook(notebook: Path, output: Path) -> None:
     """Export one Marimo notebook to a Markdown file."""
     output.parent.mkdir(parents=True, exist_ok=True)
 
+    # subprocess.run(
+    #     [
+    #         "marimo", "export", "md",
+    #         str(notebook),
+    #         "-o",
+    #         str(output),
+    #         "-f",
+    #     ],
+    #     check=True,
+    # )
+
     subprocess.run(
         [
-            "marimo",
-            "export",
-            "md",
+            "marimo-md-export",
             str(notebook),
-            "-o",
             str(output),
-            "-f",
         ],
         check=True,
     )

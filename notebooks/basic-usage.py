@@ -39,13 +39,13 @@ def _():
 
     from ssb_timeseries.types import Versioning, Temporality
 
-    return Temporality, Versioning, mo, prompt, tbl, testing
+    return Temporality, Versioning, mo, prompt, testing
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    BEGIN
+    BEGIN GUIDE
     """)
     return
 
@@ -110,7 +110,7 @@ def _(mo):
 
     To create our first `Dataset` we need some data.
     Let us generate a dataframe `df` with some random data for three series.
-    The library used to create the dataframe (here: Pandas) does not matter, [any Narwhals compatible library will do](compatibility.md).
+    The library used to create the dataframe (here: Pandas) does not matter, [any Narwhals compatible library will do](interoperability.md).
     """)
     return
 
@@ -123,15 +123,8 @@ def _():
 
 
 @app.cell
-def _():
-    return
-
-
-@app.cell
-def _(df, mo, tbl):
-    mo.md(f"""
-    Now we have a `df` as follows {tbl(df, 'df')}
-    """)
+def _(df):
+    df
     return
 
 
@@ -153,12 +146,12 @@ def _():
     return POINT_IN_TIME, SeriesType
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(SeriesType, Temporality, Versioning, mo):
     mo.md(f"""
     `SeriesType('NONE', 'AT')` is a shorthand that resolves to `{repr(SeriesType(Versioning.NONE, Temporality.AT))}`.
 
-    See the [core concepts](..info-model) and [the datatypes tutorial]() for more about data types.
+    See the [core concepts](..info-model) and [the datatypes tutorial]()-types-and-storage for more about data types.
     """)
     return
 
@@ -179,13 +172,22 @@ def _(POINT_IN_TIME, df):
 
 
 @app.cell(hide_code=True)
-def _(mo, prompt, xyz):
+def _(mo):
     mo.md(f"""
     We now have a `Dataset` object with name "XYZ" assigned to the variable `xyz`.
-    The object lives in memory only untill we save it.
-
-    {prompt('xyz',repr(xyz))}
     """)
+    return
+
+
+@app.cell
+def _(xyz):
+    repr(xyz)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo, xyz):
+    mo.tree(xyz.__dict__)
     return
 
 
@@ -193,6 +195,15 @@ def _(mo, prompt, xyz):
 def _(mo):
     mo.md(r"""
     ### Write a dataset
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(f"""
+    The object lives in memory only untill we save it.
+    Saving relies on configuration to tell which *repositories* it can go into.
     """)
     return
 
@@ -221,14 +232,14 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo, prompt):
+def _(mo):
     mo.md(f"""
-    Inspect the data: {prompt('xyz.data')}
+    We find `df` as `Dataset.data`.
     """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, xyz):
     mo.md(f"""
     {xyz.pd.to_markdown()}
@@ -237,11 +248,34 @@ def _(mo, xyz):
 
 
 @app.cell(hide_code=True)
-def _(mo, prompt, xyz):
+def _(mo):
     mo.md(f"""
-    ... and the tags: {prompt('xyz.tags','')}
+    Note that the original type of `.data` is not persisted over saving and reading back, or calculations.
+    That should not matter for operations on the dataset itself,
+    and interoperability shorthands like `pa`, `pd` and `pl` are available to request a specific implemewntation.
+    """)
+    return
 
-    {mo.tree(xyz.tags)}
+
+@app.cell
+def _(mo):
+    mo.md(f"""
+    The `.tags` attribute package a dictionary of metadata:
+    """)
+    return
+
+
+@app.cell
+def _(mo, xyz):
+    mo.tree(xyz.tags)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    For our sample set, we have not made any effort to descrtibe our data, so only a minimal set of technical attributes are applied.
+    Descriptive attributes, or "tags" can be specified as well. See [tag maintenance](tag-maintenance).
     """)
     return
 
@@ -249,19 +283,17 @@ def _(mo, prompt, xyz):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    For this sample set, we have only a minimal set of technical attributes.
+
     """)
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
-    The metadata captures selected technical attributes, but also any number of descriptive attributes, or "tags".
     Tags apply at both the `Dataset` and `Series` levels.
     The technical implementation for the tags is a key-value structure in the form of a Python `dictionary`.
-    Some rules and conventions that apply are described in the [core concepts](info-model), and other guides go deeper into [search and filtering](), [tag maintenance]() and [calculations with metadata]().
-    Beyond the mandatory technical attributes, the library
+    Some rules and conventions that apply are described in the [core concepts](..info-model), and other guides go deeper into [search and filtering](meta-search-and-filtering), [tag maintenance](meta-tag-maintenance) and [calculations with metadata](calc-with-metadata).
     """)
     return
 
@@ -292,10 +324,9 @@ def _(Dataset):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(f"""
-    Note the `std_out`.
-    Both reading and writing was logged.
+    You may see several lines of text written to `std_out` for both reading and writing.
     The logging behaviour can be modified in the configuration.
-    This can be leveraged for orchestration: adding a queue or API logger allows even driven workflows.
+    The logging of reading and writing provides data lineage, and can be leveraged for orchestration: adding a queue or API logger allows even driven workflows.
     """)
     return
 
@@ -357,6 +388,12 @@ def _(mo):
     return
 
 
+@app.cell
+def _(check_equality):
+    check_equality.all()
+    return
+
+
 @app.cell(hide_code=True)
 def _(check_equality, mo, prompt):
     mo.md(f"""
@@ -400,37 +437,26 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    mo.md(rf"""
-    END
-    """)
-    return
+def _(Dataset, check_equality, xyz):
+    #@suppress
 
-
-@app.cell(hide_code=True)
-def _(Dataset, xyz):
     def test_xyz_is_a_dataset():
         assert isinstance(xyz, Dataset)
 
-    return (test_xyz_is_a_dataset,)
-
-
-@app.cell(hide_code=True)
-def _(check_if_they_are_equal):
     def test_xyz_is_equal_to_itself():
-        assert check_if_they_are_equal.all()
+        assert check_equality.all()
 
-    return (test_xyz_is_equal_to_itself,)
-
-
-@app.cell(hide_code=True)
-def _(test_xyz_is_a_dataset, test_xyz_is_equal_to_itself, testing):
-    testing.run_and_report([test_xyz_is_a_dataset, test_xyz_is_equal_to_itself])
-    return
+    return test_xyz_is_a_dataset, test_xyz_is_equal_to_itself
 
 
 @app.cell(hide_code=True)
 def _():
+    return
+
+
+@app.cell(hide_code=True)
+def test_run_all(test_xyz_is_a_dataset, test_xyz_is_equal_to_itself, testing):
+    testing.run_and_report([test_xyz_is_a_dataset, test_xyz_is_equal_to_itself])
     return
 
 

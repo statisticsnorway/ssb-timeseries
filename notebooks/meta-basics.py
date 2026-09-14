@@ -19,7 +19,7 @@ def _():
         root_dir = repositories['tutorials']['directory']['options']['path']
         print(tree(root_dir))
 
-    return mo, profile_call, repository_tree
+    return mo, repository_tree
 
 
 @app.cell(disabled=True, hide_code=True)
@@ -245,9 +245,9 @@ def _(x):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Filtering
+    ## Selecting series
 
-    Names can be used to filter the data.
+    Series can be selected from the dataset by name, regex patterns or tags.
     """)
     return
 
@@ -275,7 +275,8 @@ def _(x):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Selection by tags becomes very powerful for bigger datasets.
+    With the simple "XYZ" dataset this is not so exciting.
+    However, selection by tags becomes very powerful for bigger datasets.
     """)
     return
 
@@ -325,9 +326,17 @@ def _(az, mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(az):
     az.tags
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    At this scale, it is not longer practical to refer to individual series:
+    """)
     return
 
 
@@ -337,22 +346,36 @@ def _(az):
     return
 
 
-@app.cell
-def _(az, profile_call):
-    prices = profile_call(func=az.select, tags={'variable': 'price'})
-    return (prices,)
-
-
-@app.cell
-def _(az, profile_call):
-    profile_call(az.select, regex='a_price_*_E')
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Organising the data in subsets identified by tags is much more practical:
+    """)
     return
 
 
 @app.cell
 def _(az):
+    prices = az[{'variable':'price'}]
     volumes = az[{'variable':'volume'}]
-    return (volumes,)
+    return prices, volumes
+
+
+@app.cell
+def _(prices):
+    prices.series
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    The selection returns new datasets for which both the data and the metadata have been filtered to match the criteria.
+    Note that the retrieved data is sorted.
+    The sorting allows calculations to be performed without complicated matching.
+    (Note that explicit matching may still be required in some corner cases.)
+    """)
+    return
 
 
 @app.cell
@@ -362,10 +385,26 @@ def _(prices, volumes):
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    After the calculations, the original metadata will no logner be accurate. Tags need to be updated.
+    """)
+    return
+
+
+@app.cell
 def _(revenue):
     revenue.rename('AZ_drinks', ('prices', 'volumes'))
     revenue.replace_tags(({'variable':'price'},{'variable':'revenue'}))
     revenue.plot()
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    More in [tag maintenance](meta-tag-maintenance).
+    """)
     return
 
 

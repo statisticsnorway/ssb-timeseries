@@ -1,11 +1,11879 @@
-Calculations with metadata
-==========================
+---
+title: Calc With Metadata
+marimo-version: 0.24.0
+---
 
-This guide demonstrates how metadata is supporting calculations.
+<!-- @output:Hbol -->
+
+    <style>
+    /* Hides the desktop sidebar table of contents */
+    div&#91;class*="marimo-toc"&#93;,
+    aside&#91;class*="sidebar"&#93;,
+    &#91;data-testid="marimo-toc"&#93; {
+        display: none !important;
+    }
+
+    /* Adjusts the main content margin to center it */
+    main {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        max-width: 960px !important;
+    }
+    </style>
 
 
-<iframe src="../../notebooks/html/calc-with-metadata.html"
-    width="100%" height=1000px style="border:none;display:block"></iframe>
-</html>
+# Calculations with metadata
+<!---->
+Scope
+-----
 
-[open in new window: calc with meta](../../notebooks/html/calc-with-metadata.html)
+This guide illustrates how the role of metadata in calculations extends beyond simple filtering.
+<!---->
+## Prerequisites
+
+``` {note}
+The guide assumes that the SSB Timeseries library is installed and that a working configuration is active.
+See [the quickstart guide](quickstart) for instructions to that.
+```
+
+The presented functionality relies on `dataset.Dataset` and `meta.taxonomy.Taxonomy`.
+Other imports like`types.SeriesType` and external libraries are used only for generating the sample data.
+
+```python {.marimo}
+from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.meta.taxonomy import Taxonomy
+```
+
+```python {.marimo}
+
+```
+
+```python {.marimo}
+from ssb_timeseries.types import SeriesType
+from ssb_timeseries.sample_data import create_df
+from itertools import product
+from datetime import date
+```
+
+Generate some test data
+
+```python {.marimo}
+def create_some_example_data(
+    set_name: str,
+    series_tags: dict[str,list[str]],
+):
+    """Generate and save some sample data."""
+    set_tags = { "Country": "Norway" }
+    df = create_df(
+        *[value for value in series_tags.values()],
+        temporality= 'FROM_TO',
+        start_date="2024-01-01",
+        end_date="2026-12-01",
+        freq="MS",
+    )
+    Dataset(
+        name=set_name,
+        data_type=SeriesType('NONE', 'FROM_TO'),
+        data=df,
+        tags = set_tags,
+        attributes = series_tags.keys(),
+    ).save()
+```
+
+We will generate random data for all permutations of some descriptive metadata tags.
+This time we include a real classification that we will simply name "taxonomy", and use completely out of context.
+(It just happens to have a suitable shape and size.)
+
+```python {.marimo}
+taxonomy = Taxonomy(klass_id=157)
+taxonomy.print_tree()
+```
+
+<!-- @output:Kclp -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">╙── 0
+    ├─╼ 1
+    │   ├─╼ 1.1
+    │   │   ├─╼ 1.1.1
+    │   │   ├─╼ 1.1.2
+    │   │   └─╼ 1.1.3
+    │   └─╼ 1.2
+    ├─╼ 11
+    │   ├─╼ 11.1
+    │   └─╼ 11.2
+    ├─╼ 12
+    │   ├─╼ 12.1
+    │   │   ├─╼ 12.1.1
+    │   │   ├─╼ 12.1.10
+    │   │   ├─╼ 12.1.11
+    │   │   ├─╼ 12.1.12
+    │   │   ├─╼ 12.1.13
+    │   │   ├─╼ 12.1.2
+    │   │   ├─╼ 12.1.3
+    │   │   ├─╼ 12.1.4
+    │   │   ├─╼ 12.1.5
+    │   │   ├─╼ 12.1.6
+    │   │   ├─╼ 12.1.7
+    │   │   ├─╼ 12.1.8
+    │   │   └─╼ 12.1.9
+    │   ├─╼ 12.2
+    │   │   ├─╼ 12.2.1
+    │   │   ├─╼ 12.2.2
+    │   │   ├─╼ 12.2.3
+    │   │   ├─╼ 12.2.4
+    │   │   └─╼ 12.2.5
+    │   └─╼ 12.3
+    │       ├─╼ 12.3.1
+    │       ├─╼ 12.3.2
+    │       ├─╼ 12.3.3
+    │       └─╼ 12.3.4
+    ├─╼ 13
+    ├─╼ 14
+    ├─╼ 15
+    ├─╼ 2
+    ├─╼ 3
+    ├─╼ 4
+    │   ├─╼ 4.1
+    │   └─╼ 4.2
+    ├─╼ 5
+    ├─╼ 6
+    ├─╼ 7
+    │   ├─╼ 7.1
+    │   ├─╼ 7.2
+    │   ├─╼ 7.3
+    │   ├─╼ 7.4
+    │   ├─╼ 7.5
+    │   └─╼ 7.6
+    ├─╼ 8
+    │   ├─╼ 8.1
+    │   ├─╼ 8.2
+    │   ├─╼ 8.3
+    │   ├─╼ 8.4
+    │   ├─╼ 8.5
+    │   ├─╼ 8.6
+    │   ├─╼ 8.7
+    │   ├─╼ 8.8
+    │   └─╼ 8.9
+    └─╼ 9
+</pre>
+
+```python {.marimo}
+create_some_example_data(
+    set_name="More Prices and Volumes",
+    series_tags = {
+        "variable": ["price", "volume"],
+        "product": ["milk", "eggs", "bread", "juice", "ham", "cheese"],
+        "category": taxonomy.leaf_nodes,
+    }
+)
+```
+
+<!-- @output:Hstk -->
+
+Here we use the 53 `taxonomy.leaf_nodes` to populate a `category` attribute.
+
+Filtering datasets by tags
+--------------------------
+<!---->
+The most typical use of descriptive metadata, aka `Dataset.tags`, is to extract subsets of datasets for specific purposes.
+A simple "example with Prices and Volumes" extracts *prices* and *volumes* for a number of *products* into separate variables and calculate revenues by multiplying them:
+
+```python {.marimo}
+prices_and_volumes = Dataset(name="More Prices and Volumes")
+prices = prices_and_volumes[{'variable': 'price'}]
+volumes = prices_and_volumes[{'variable': 'volume'}]
+revenue = prices * volumes
+```
+
+The name and tags of the returned dataset need to be updated to make sense:
+
+```python {.marimo}
+revenue.rename("More Revenues", ('price', 'revenue'))
+revenue.replace_tags(({'variable':'price'}, {'variable': 'revenue'}))
+```
+
+<!-- @output:TqIu -->
+
+So from 53 taxonomy entities times 6 products we get 318 revenue series.
+
+Group by behaviour
+------------------
+
+Group by can be configured to run in "auto" mode: using metadata attributes to select whether to calculate sums or averages.
+
+(The functionality was hard coded for the PoC phase. It is now disabled, but a functionality skeleton is still there. The missing link for working properly is configuration interaction.)
+
+## Aggregates
+<!---->
+Since we now happen to have a properly tagged dataset containing all the leaf nodes in such a tree, we can calculate the aggregates for the rest of the taxonomy structure, that is for the "parent" nodes of the hierarchy:
+
+```python {.marimo}
+taxonomy.parent_nodes
+```
+
+<!-- @output:Pvdt -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;1&#x27;, &#x27;0&#x27;, &#x27;1.1&#x27;, &#x27;11&#x27;, &#x27;12&#x27;, &#x27;12.1&#x27;, &#x27;12.2&#x27;, &#x27;12.3&#x27;, &#x27;4&#x27;, &#x27;7&#x27;, &#x27;8&#x27;&#93;</pre>
+
+```python {.marimo}
+list_of_functions = ['sum'] # there are more options --> see the reference
+
+aggregated_revenue = revenue.aggregate(
+    attributes=["category"],  # lengths must match ↓
+    taxonomies=[taxonomy],    # lengths must match ↑
+    functions=list_of_functions
+)
+aggregated_revenue.pl.schema.to_python()
+```
+
+<!-- @output:aLJB -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;sum(0)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;sum(1)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;sum(1.1)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;sum(11)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;sum(12)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;sum(12.1)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;sum(12.2)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;sum(12.3)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;sum(4)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;sum(7)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;sum(8)&#x27;: &quot;&lt;class &#x27;float&#x27;&gt;&quot;,
+ &#x27;valid_from&#x27;: &quot;&lt;class &#x27;datetime.datetime&#x27;&gt;&quot;,
+ &#x27;valid_to&#x27;: &quot;&lt;class &#x27;datetime.datetime&#x27;&gt;&quot;}</pre>
+
+```python {.marimo}
+aggregated_revenue.tags
+```
+
+<!-- @output:nHfw -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;calculations&#x27;: {&#x27;sum(0)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;1.1.1&#x27;,
+                                                       &#x27;1.1.2&#x27;,
+                                                       &#x27;1.1.3&#x27;,
+                                                       &#x27;1.2&#x27;,
+                                                       &#x27;11.1&#x27;,
+                                                       &#x27;11.2&#x27;,
+                                                       &#x27;12.1.1&#x27;,
+                                                       &#x27;12.1.10&#x27;,
+                                                       &#x27;12.1.11&#x27;,
+                                                       &#x27;12.1.12&#x27;,
+                                                       &#x27;12.1.13&#x27;,
+                                                       &#x27;12.1.2&#x27;,
+                                                       &#x27;12.1.3&#x27;,
+                                                       &#x27;12.1.4&#x27;,
+                                                       &#x27;12.1.5&#x27;,
+                                                       &#x27;12.1.6&#x27;,
+                                                       &#x27;12.1.7&#x27;,
+                                                       &#x27;12.1.8&#x27;,
+                                                       &#x27;12.1.9&#x27;,
+                                                       &#x27;12.2.1&#x27;,
+                                                       &#x27;12.2.2&#x27;,
+                                                       &#x27;12.2.3&#x27;,
+                                                       &#x27;12.2.4&#x27;,
+                                                       &#x27;12.2.5&#x27;,
+                                                       &#x27;12.3.1&#x27;,
+                                                       &#x27;12.3.2&#x27;,
+                                                       &#x27;12.3.3&#x27;,
+                                                       &#x27;12.3.4&#x27;,
+                                                       &#x27;13&#x27;,
+                                                       &#x27;14&#x27;,
+                                                       &#x27;15&#x27;,
+                                                       &#x27;2&#x27;,
+                                                       &#x27;3&#x27;,
+                                                       &#x27;4.1&#x27;,
+                                                       &#x27;4.2&#x27;,
+                                                       &#x27;5&#x27;,
+                                                       &#x27;6&#x27;,
+                                                       &#x27;7.1&#x27;,
+                                                       &#x27;7.2&#x27;,
+                                                       &#x27;7.3&#x27;,
+                                                       &#x27;7.4&#x27;,
+                                                       &#x27;7.5&#x27;,
+                                                       &#x27;7.6&#x27;,
+                                                       &#x27;8.1&#x27;,
+                                                       &#x27;8.2&#x27;,
+                                                       &#x27;8.3&#x27;,
+                                                       &#x27;8.4&#x27;,
+                                                       &#x27;8.5&#x27;,
+                                                       &#x27;8.6&#x27;,
+                                                       &#x27;8.7&#x27;,
+                                                       &#x27;8.8&#x27;,
+                                                       &#x27;8.9&#x27;,
+                                                       &#x27;9&#x27;&#93;},
+                             &#x27;function&#x27;: &#x27;sum&#x27;,
+                             &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    2023-12-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    2026-07-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-05-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-11-30 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    7700,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8400,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11700,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8400,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    5600,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10400,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    15600,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    6300\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8400,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11700,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7700,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    5600\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11700,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    14000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11700,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    14300,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    14300,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    7700,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    14400\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8400,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11700,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    14300,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    15600,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    5600,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8400,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9600\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11700,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    15600,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7700\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9600\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    13000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    4900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7700,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    14300,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    7700,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11700,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10400,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    14300,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    15600,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;&#93;,
+                             &#x27;output&#x27;: &#x27;sum(0)&#x27;},
+                  &#x27;sum(1)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;1.1.1&#x27;,
+                                                       &#x27;1.1.2&#x27;,
+                                                       &#x27;1.1.3&#x27;,
+                                                       &#x27;1.2&#x27;&#93;},
+                             &#x27;function&#x27;: &#x27;sum&#x27;,
+                             &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    2023-12-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    2026-07-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-05-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-11-30 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    7700,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7700,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;&#93;,
+                             &#x27;output&#x27;: &#x27;sum(1)&#x27;},
+                  &#x27;sum(1.1)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;1.1.1&#x27;,
+                                                         &#x27;1.1.2&#x27;,
+                                                         &#x27;1.1.3&#x27;&#93;},
+                               &#x27;function&#x27;: &#x27;sum&#x27;,
+                               &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    2023-12-31 23:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    2026-07-31 22:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2024-05-31 22:00:00.000000000Z,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2026-11-30 23:00:00.000000000Z,\n&#x27;
+                                         &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    8000,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    8800,\n&#x27;
+                                         &#x27;    8100,\n&#x27;
+                                         &#x27;    8800,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    9900\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    12100,\n&#x27;
+                                         &#x27;    8000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    12000,\n&#x27;
+                                         &#x27;    7700,\n&#x27;
+                                         &#x27;    12100,\n&#x27;
+                                         &#x27;    13200,\n&#x27;
+                                         &#x27;    8100\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    10800,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    12000,\n&#x27;
+                                         &#x27;    10800,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    10000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    8100,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    7200,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    12100,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9900\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    7200,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    8100,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    12100,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    11000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    12100,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    10000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    7200,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    12000,\n&#x27;
+                                         &#x27;    9000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    7200,\n&#x27;
+                                         &#x27;    8800,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    8800,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    6300,\n&#x27;
+                                         &#x27;    10000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    12100,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    8000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9600,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    9000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    8000,\n&#x27;
+                                         &#x27;    8800,\n&#x27;
+                                         &#x27;    7200,\n&#x27;
+                                         &#x27;    8100,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    7200,\n&#x27;
+                                         &#x27;    9900\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    13200,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    8100,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    11000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    10800,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    13200,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    12000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    12000,\n&#x27;
+                                         &#x27;    12000,\n&#x27;
+                                         &#x27;    12000,\n&#x27;
+                                         &#x27;    9900\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    7200,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    10800,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    12000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    12100,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    11000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    10800,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    12000,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    8100,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    13200\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    12100,\n&#x27;
+                                         &#x27;    8100,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    12100,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    9900\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    7200,\n&#x27;
+                                         &#x27;    8000,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    6400,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    8800,\n&#x27;
+                                         &#x27;    11000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    8800,\n&#x27;
+                                         &#x27;    12100,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    8800,\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    8100,\n&#x27;
+                                         &#x27;    13200,\n&#x27;
+                                         &#x27;    10000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;,
+                                         &#x27;&#91;\n&#x27;
+                                         &#x27;  &#91;\n&#x27;
+                                         &#x27;    10000,\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    7700,\n&#x27;
+                                         &#x27;    9000,\n&#x27;
+                                         &#x27;    8800,\n&#x27;
+                                         &#x27;    ...\n&#x27;
+                                         &#x27;    11000,\n&#x27;
+                                         &#x27;    10800,\n&#x27;
+                                         &#x27;    10800,\n&#x27;
+                                         &#x27;    9900,\n&#x27;
+                                         &#x27;    10000\n&#x27;
+                                         &#x27;  &#93;\n&#x27;
+                                         &#x27;&#93;&#x27;&#93;,
+                               &#x27;output&#x27;: &#x27;sum(1.1)&#x27;},
+                  &#x27;sum(11)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;11.1&#x27;, &#x27;11.2&#x27;&#93;},
+                              &#x27;function&#x27;: &#x27;sum&#x27;,
+                              &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    2023-12-31 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    2026-07-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-05-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-11-30 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    13000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    15600,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    6300\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    7200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    15600,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    9900\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;&#93;,
+                              &#x27;output&#x27;: &#x27;sum(11)&#x27;},
+                  &#x27;sum(12)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;12.1.1&#x27;,
+                                                        &#x27;12.1.10&#x27;,
+                                                        &#x27;12.1.11&#x27;,
+                                                        &#x27;12.1.12&#x27;,
+                                                        &#x27;12.1.13&#x27;,
+                                                        &#x27;12.1.2&#x27;,
+                                                        &#x27;12.1.3&#x27;,
+                                                        &#x27;12.1.4&#x27;,
+                                                        &#x27;12.1.5&#x27;,
+                                                        &#x27;12.1.6&#x27;,
+                                                        &#x27;12.1.7&#x27;,
+                                                        &#x27;12.1.8&#x27;,
+                                                        &#x27;12.1.9&#x27;,
+                                                        &#x27;12.2.1&#x27;,
+                                                        &#x27;12.2.2&#x27;,
+                                                        &#x27;12.2.3&#x27;,
+                                                        &#x27;12.2.4&#x27;,
+                                                        &#x27;12.2.5&#x27;,
+                                                        &#x27;12.3.1&#x27;,
+                                                        &#x27;12.3.2&#x27;,
+                                                        &#x27;12.3.3&#x27;,
+                                                        &#x27;12.3.4&#x27;&#93;},
+                              &#x27;function&#x27;: &#x27;sum&#x27;,
+                              &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    2023-12-31 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    2026-07-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2024-05-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-11-30 23:00:00.000000000Z,\n&#x27;
+                                        &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9900\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8400,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    13200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    13200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    7000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11700,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    7200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    6300,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8400,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    7200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    13000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    8100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    14400,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    6300,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9900\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    7200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    6400,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8400,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11700,\n&#x27;
+                                        &#x27;    12100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    7700,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    14400,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    12000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    13000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    5600\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    13000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11700,\n&#x27;
+                                        &#x27;    7200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    6400,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    14300,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    13000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    14300,\n&#x27;
+                                        &#x27;    12000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    7200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    7000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    13200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    8800\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    14400,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    7700,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    8000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    6300,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    14400\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    7200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    7000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    14400,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    13200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    14300,\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    7200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    15600,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10800\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    7000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9900\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    8100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    7700\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8800\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    7200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    14400,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    6400,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9600\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    6300,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    6400,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    6400,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    8000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    13000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10800\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    13200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    4900,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    9900\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    7000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    12000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    14300,\n&#x27;
+                                        &#x27;    8100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    7700,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9600,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11700,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    12100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    8800,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    12000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9900\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    7200,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    12100,\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    10800,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    13000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    13200,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    10000,\n&#x27;
+                                        &#x27;    12100\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;,
+                                        &#x27;&#91;\n&#x27;
+                                        &#x27;  &#91;\n&#x27;
+                                        &#x27;    9900,\n&#x27;
+                                        &#x27;    8000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    ...\n&#x27;
+                                        &#x27;    9000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    11000,\n&#x27;
+                                        &#x27;    8100,\n&#x27;
+                                        &#x27;    13200\n&#x27;
+                                        &#x27;  &#93;\n&#x27;
+                                        &#x27;&#93;&#x27;&#93;,
+                              &#x27;output&#x27;: &#x27;sum(12)&#x27;},
+                  &#x27;sum(12.1)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;12.1.1&#x27;,
+                                                          &#x27;12.1.10&#x27;,
+                                                          &#x27;12.1.11&#x27;,
+                                                          &#x27;12.1.12&#x27;,
+                                                          &#x27;12.1.13&#x27;,
+                                                          &#x27;12.1.2&#x27;,
+                                                          &#x27;12.1.3&#x27;,
+                                                          &#x27;12.1.4&#x27;,
+                                                          &#x27;12.1.5&#x27;,
+                                                          &#x27;12.1.6&#x27;,
+                                                          &#x27;12.1.7&#x27;,
+                                                          &#x27;12.1.8&#x27;,
+                                                          &#x27;12.1.9&#x27;&#93;},
+                                &#x27;function&#x27;: &#x27;sum&#x27;,
+                                &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    2023-12-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-01-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-02-29 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-03-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-04-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    2026-07-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-08-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-09-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-10-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    2024-01-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-02-29 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-03-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-04-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-05-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    2026-08-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-09-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-10-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-11-30 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9900\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8400,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    13200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    13200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    7000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11700,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    14400,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    6300,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9900\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    7200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    6400,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9600,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8400,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11700,\n&#x27;
+                                          &#x27;    12100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    7700,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    14400,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    6400,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    14300,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    13000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    14300,\n&#x27;
+                                          &#x27;    12000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9600,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    7200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    7000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    13200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    8800\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    14400,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9600,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    7700,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    8000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    7200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    7000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    14400,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    13200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    14300,\n&#x27;
+                                          &#x27;    9600,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    7200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    15600,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    7700\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    8800\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    7200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    14400,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    6400,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9600\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9600,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    6300,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    6400,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    6400,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    8000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    13000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    12000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    14300,\n&#x27;
+                                          &#x27;    8100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    7700,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;&#93;,
+                                &#x27;output&#x27;: &#x27;sum(12.1)&#x27;},
+                  &#x27;sum(12.2)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;12.2.1&#x27;,
+                                                          &#x27;12.2.2&#x27;,
+                                                          &#x27;12.2.3&#x27;,
+                                                          &#x27;12.2.4&#x27;,
+                                                          &#x27;12.2.5&#x27;&#93;},
+                                &#x27;function&#x27;: &#x27;sum&#x27;,
+                                &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    2023-12-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-01-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-02-29 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-03-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-04-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    2026-07-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-08-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-09-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-10-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    2024-01-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-02-29 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-03-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-04-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-05-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    2026-08-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-09-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-10-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-11-30 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    7200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    6300,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8400,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    7200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    13000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    12000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    13000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    5600\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9600,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    6300,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9600,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10800\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10800\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9600,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11700,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;&#93;,
+                                &#x27;output&#x27;: &#x27;sum(12.2)&#x27;},
+                  &#x27;sum(12.3)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;12.3.1&#x27;,
+                                                          &#x27;12.3.2&#x27;,
+                                                          &#x27;12.3.3&#x27;,
+                                                          &#x27;12.3.4&#x27;&#93;},
+                                &#x27;function&#x27;: &#x27;sum&#x27;,
+                                &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    2023-12-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-01-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-02-29 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-03-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-04-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    2026-07-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-08-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-09-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-10-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    2024-01-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-02-29 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-03-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-04-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2024-05-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    2026-08-31 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-09-30 &#x27;
+                                          &#x27;22:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-10-31 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-11-30 &#x27;
+                                          &#x27;23:00:00.000000000Z,\n&#x27;
+                                          &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    8100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    13000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11700,\n&#x27;
+                                          &#x27;    7200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    8000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    14400\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    7000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9900\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    8100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9600,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9600,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    13200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    4900,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    9900\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    12000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    7000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    8800,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    12000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9900\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    7200,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    12100,\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    10800,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    13000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    13200,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    10000,\n&#x27;
+                                          &#x27;    12100\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;,
+                                          &#x27;&#91;\n&#x27;
+                                          &#x27;  &#91;\n&#x27;
+                                          &#x27;    9900,\n&#x27;
+                                          &#x27;    8000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    ...\n&#x27;
+                                          &#x27;    9000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    11000,\n&#x27;
+                                          &#x27;    8100,\n&#x27;
+                                          &#x27;    13200\n&#x27;
+                                          &#x27;  &#93;\n&#x27;
+                                          &#x27;&#93;&#x27;&#93;,
+                                &#x27;output&#x27;: &#x27;sum(12.3)&#x27;},
+                  &#x27;sum(4)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;4.1&#x27;, &#x27;4.2&#x27;&#93;},
+                             &#x27;function&#x27;: &#x27;sum&#x27;,
+                             &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    2023-12-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    2026-07-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-05-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-11-30 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8400,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;&#93;,
+                             &#x27;output&#x27;: &#x27;sum(4)&#x27;},
+                  &#x27;sum(7)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;7.1&#x27;,
+                                                       &#x27;7.2&#x27;,
+                                                       &#x27;7.3&#x27;,
+                                                       &#x27;7.4&#x27;,
+                                                       &#x27;7.5&#x27;,
+                                                       &#x27;7.6&#x27;&#93;},
+                             &#x27;function&#x27;: &#x27;sum&#x27;,
+                             &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    2023-12-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    2026-07-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-05-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-11-30 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    5600,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10400,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    14000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11700,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10400,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    14300,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    15600,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;&#93;,
+                             &#x27;output&#x27;: &#x27;sum(7)&#x27;},
+                  &#x27;sum(8)&#x27;: {&#x27;criteria&#x27;: {&#x27;category&#x27;: &#91;&#x27;8.1&#x27;,
+                                                       &#x27;8.2&#x27;,
+                                                       &#x27;8.3&#x27;,
+                                                       &#x27;8.4&#x27;,
+                                                       &#x27;8.5&#x27;,
+                                                       &#x27;8.6&#x27;,
+                                                       &#x27;8.7&#x27;,
+                                                       &#x27;8.8&#x27;,
+                                                       &#x27;8.9&#x27;&#93;},
+                             &#x27;function&#x27;: &#x27;sum&#x27;,
+                             &#x27;input&#x27;: &#91;&#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    2023-12-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    2026-07-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-11-30 23:00:00.000000000Z\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    2024-01-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-02-29 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-03-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-04-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2024-05-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    2026-08-31 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-09-30 22:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-10-31 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-11-30 23:00:00.000000000Z,\n&#x27;
+                                       &#x27;    2026-12-31 23:00:00.000000000Z\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11700,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    14400,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9600,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9600\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11700,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    6300,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    7000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    13000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    8000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    6400,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    9000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    13200,\n&#x27;
+                                       &#x27;    8100\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    7200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12100,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8100,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    10000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    9900,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    12000,\n&#x27;
+                                       &#x27;    8000\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;,
+                                       &#x27;&#91;\n&#x27;
+                                       &#x27;  &#91;\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    7200,\n&#x27;
+                                       &#x27;    8800,\n&#x27;
+                                       &#x27;    11000,\n&#x27;
+                                       &#x27;    ...\n&#x27;
+                                       &#x27;    9000,\n&#x27;
+                                       &#x27;    10800,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    10000,\n&#x27;
+                                       &#x27;    13200\n&#x27;
+                                       &#x27;  &#93;\n&#x27;
+                                       &#x27;&#93;&#x27;&#93;,
+                             &#x27;output&#x27;: &#x27;sum(8)&#x27;}},
+ &#x27;name&#x27;: &quot;More Revenues.&#91;&#x27;sum&#x27;&#93;&quot;,
+ &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+ &#x27;series&#x27;: {},
+ &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+ &#x27;variable&#x27;: &#x27;revenue&#x27;,
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
+
+Here we can observe a bug: "input" lists data, not series names.
+Including input data could be OK elsewhere, but it inflates `.tags` in a way that is not scalable.
+(Tags are included in parquet metadata fields, so including data may limit the maximum size of datasets / cause other problems.)
+
+```python {.marimo}
+
+```
+
+Planned: Canonic datasets
+-----------------------
+
+Calculations with canonic datasets are sets where a few specific datasets play a key role.
+The datasets can reside in local repositories or accessed through API.
+
+Examples:
+ - Currency conversion.
+ - Inflation adjustment.
+
+For such features to work, canonic sets and critical attributes must be specified.
+Hard coded would work, but configurations would be better.
+<!---->
+Planned: Unit conversion
+----------------------
+
+Automatic unit conversions based on tags require configurations to identify the name of the unit attribute.

@@ -294,17 +294,6 @@ def _():
     return
 
 
-@app.cell
-def _(klass157, leaves_157):
-    aggregates_157 = leaves_157.aggregate(
-        attributes=["k157"],
-        taxonomies=[klass157],
-        functions=["sum","mean"]
-    )
-    aggregates_157.data
-    return
-
-
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""

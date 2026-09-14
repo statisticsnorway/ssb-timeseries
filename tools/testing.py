@@ -26,7 +26,7 @@ def run_and_report(tests: list[Callable]) -> SystemExit:
     for _, status, exc in results:
         if status != "PASSED":
             sys.exit(1)
-    sys.exit(0)
+    #sys.exit(0)
 
 
 def run_test(test: Callable) -> TestResult:

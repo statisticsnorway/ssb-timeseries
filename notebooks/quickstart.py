@@ -7,34 +7,8 @@ app = marimo.App(width="comnpact")
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
-    from tools import testing
+    import testing
     from ssb_timeseries.config import ENV_VAR_NAME
-
-    mo.Html(
-        """
-        <style>
-        [data-testid="static-notebook-banner"],
-        [data-testid="watermark"] {
-            display: none !important;
-        }
-        z-index: -2; /* Higher numbers sit on top of lower numbers */
-
-        /* Hides the desktop sidebar table of contents */
-        div[class*="marimo-toc"],
-        aside[class*="sidebar"],
-        [data-testid="marimo-toc"] {
-            display: none !important;
-        }
-
-        /* Adjusts the main content margin to center it */
-        main {
-            margin-left: auto !important;
-            margin-right: auto !important;
-            max-width: 960px !important;
-        }
-        </style>
-        """
-    )
 
     return ENV_VAR_NAME, mo, testing
 
@@ -42,9 +16,11 @@ def _():
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    # Quick Start Guide 2.0
+    Quickstart Guide 2.0
+    ====================
 
-    ## Installation
+    Installation
+    ------------
 
     Clone from [GitHub](https://github.com/statisticsnorway/ssb-timeseries/),
     or install from [PyPi](https://pypi.org/project/ssb-timeseries/):
@@ -59,7 +35,8 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## Configuration
+    Configuration
+    --------------
     """)
     return
 
@@ -113,7 +90,8 @@ def _(ENV_VAR_NAME, mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## Inspecting the Configuration
+    Inspecting the Configuration
+    ----------------------------
 
     To inspect the active configuration, either open the JSON file, or access it via `.active()`:
     """)
@@ -173,15 +151,22 @@ def minimal(c):
 
 
 @app.cell(hide_code=True)
-def _(cfg, mo):
+def _(mo):
     mo.md(f"""
     ## Configuration Values Explained
 
     The most important role of the configuration is to specify one or more "repositories" where data and meta data are stored, and associated with the "handlers" that implement the read and write functionality.
 
-    This is explained in more detail in the [Configure IO](configure-io) guide.
+    This is explained in more detail in the [Configure IO](..configure-io) guide.
 
     A minimal working example for version 0.7.0 and above may look like this:
+    """)
+    return
+
+
+@app.cell
+def _(cfg, mo):
+    mo.md(f"""
     ```json
     {minimal(cfg)}
     ```
@@ -196,11 +181,15 @@ def _(mo):
 
     The library exposes some configuration management features in a helper CLI.
     The command `poetry run timeseries-config <OPTION>` can be run from a terminal in order to shift between defaults.
+    """)
+    return
 
-    ## We welcome questions and feedback.
 
-    For users at Statistics Norway, feel free to contact the maintainers directly.
-    For any external users, the best channel for discussion is through the project's [GitHub Issues](https://github.com/statisticsnorway/ssb-timeseries/issues).
+@app.cell
+def _(mo):
+    mo.md("""
+    Happy coding!
+    -------------
     """)
     return
 
@@ -208,20 +197,28 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    With the library installed and configured, we are ready to start coding.
+    With the library installed and configured all is set.
+    The guide to [basic usage](basic-usage) is a good place to go next.
+    """)
+    return
 
-    See the [Getting Started Guide](getting_started.md) for an introduction to basic features.
+
+@app.cell
+def _(mo):
+    mo.md("""
+    Issues or questions
+    -------------------
+
+    Users in Statistics Norway will know where to contact the maintainers directly.
+    For any external users, the best channel for discussion is through the project's [GitHub Issues](https://github.com/statisticsnorway/ssb-timeseries/issues).
     """)
     return
 
 
 @app.cell(hide_code=True)
-def _():
-    return
-
-
-@app.cell(hide_code=True)
 def _(Config, cfg):
+    # @suppress
+
     def test_cfg_is_valid_config():
         assert isinstance(cfg, Config)
         assert cfg.is_valid
@@ -230,7 +227,8 @@ def _(Config, cfg):
 
 
 @app.cell(hide_code=True)
-def _(test_cfg_is_valid_config, testing):
+def test_run_and_report(test_cfg_is_valid_config, testing):
+    # @supress
     testing.run_and_report([test_cfg_is_valid_config])
     return
 
