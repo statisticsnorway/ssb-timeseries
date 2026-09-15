@@ -38,7 +38,7 @@ from typing import Any
 
 from narwhals.typing import IntoFrame
 
-from ..config import FileBasedRepository
+from ..config.types import FileBasedRepository
 from ..dataset import Dataset
 from ..dates import date_utc
 from ..dates import datelike_to_utc

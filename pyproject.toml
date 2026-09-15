@@ -32,8 +32,8 @@ documentation = "https://statisticsnorway.github.io/ssb-timeseries"
 Changelog = "https://github.com/statisticsnorway/ssb-timeseries/releases"
 
 [project.scripts]
-ssb-timeseries = "ssb_timeseries.__main__:main"
-timeseries-config = "ssb_timeseries.config:main"
+ssb-timeseries = "ssb_timeseries.cli.main:main"
+ts = "ssb_timeseries.cli.main:main"
 
 [tool.poetry]
 classifiers = ["Development Status :: 4 - Beta"]

@@ -157,7 +157,7 @@ PRESETS: dict[str, ConfigDict] = {
                 },
             }
         },
-        "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
+        # "log_file": str(Path(HOME, ROOT_DIR_NAME, LOGDIR, LOGFILE)),
         "logging": LOGGING_PRESETS["simple"],
     },
     "daplalab": {
@@ -180,7 +180,7 @@ PRESETS: dict[str, ConfigDict] = {
                 },
             }
         },
-        "log_file": str(Path(DAPLALAB_FUSE, SSB_LOGDIR, LOGFILE)),
+        # "log_file": str(Path(DAPLALAB_FUSE, SSB_LOGDIR, LOGFILE)),
         "logging": LOGGING_PRESETS["simple"],
     },
 }

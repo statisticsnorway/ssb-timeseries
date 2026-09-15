@@ -208,7 +208,7 @@ def buildup_and_teardown(
     config.active_file(config_file_for_testing)
     temp_configuration = config.Config(
         configuration_file=str(config_file_for_testing),
-        log_file=str(log_file_for_testing),
+        # log_file=str(log_file_for_testing),
         io_handlers=config.BUILTIN_IO_HANDLERS,
         repositories=_repository_test_config(root_dir),
         snapshots=_snapshot_test_config(root_dir),

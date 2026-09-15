@@ -13,7 +13,6 @@ end-before: <!-- github-only -->
    :maxdepth: 4
    :caption: Setup Guides
 
-   quickstart
    guides/quickstart
    guides/setup_toc
 

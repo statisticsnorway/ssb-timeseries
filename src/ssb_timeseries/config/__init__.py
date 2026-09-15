@@ -222,12 +222,13 @@ class Config:
                 path=active_file(),
                 error_on_missing=True,
             )
-        # elif not active_file():
+            # elif not active_file():
         #    raise MissingEnvironmentVariableError
         else:
-            _config_logger.warning(
-                f"The environment variable {ENV_VAR_NAME} did not exist and no configuration file parameter was provided. Loading default configuration."
-            )
+            ...
+            # _config_logger.warning(
+            #    f"The environment variable {ENV_VAR_NAME} did not exist and no configuration file parameter was provided. Loading default configuration."
+            # )
             config_values = copy.deepcopy(PRESETS["defaults"])
 
         config_values.update(kwargs)  # type: ignore [typeddict-item]
@@ -251,11 +252,11 @@ class Config:
             raise ValidationError(f"Invalid configuration:\n{configuration}\n{reason}.")
 
         logfile = configuration.pop("log_file", "")
-        if logfile and not logging:
-            # TODO: filehandler should be configured as dictConfig
-            # .. and we should not enter this block?
-            # --> TODO: Check / remove OR add dictConfig for the following:
-            configuration["logging"] = {"logfile": logfile}
+        if logfile:  # and not logging:
+            # configuration["logging"] = {"logfile": logfile}
+            _config_logger.warning(
+                "The config option 'log_file' has been deprecated. Use dictConfig instead."
+            )
         else:
             ...
             # --- if logging is valid logging.dictConfig -->
@@ -306,6 +307,8 @@ class Config:
         Note that this does not save the file.
         See `.save()`.
         """
+        from ..io import fs
+
         type(self)._active = self
 
         if fs.exists(self.configuration_file):
@@ -412,7 +415,7 @@ def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100
     """
     if named_config in PRESETS:
         cfg = PRESETS[named_config]
-        cfg["logging"]["handlers"]["file"]["filename"] = cfg.pop("log_file", "")
+        # cfg["logging"]["handlers"]["file"]["filename"] = cfg.pop("log_file", "")
         return cfg
     else:
         raise ValueError(
@@ -433,28 +436,69 @@ def main(*args: str | PathStr) -> None:
         ```
 
     Args:
-        *args (str): 'home' | 'gcs' | 'daplalab'.
+        *args (str): 'home' | 'default' | 'daplalab'.
 
     Raises:
-        ValueError: If args is not 'home' | 'gcs' | 'daplalab'. # noqa: DAR402
+        ValueError: If args is not 'home' | 'default' | 'daplalab'. # noqa: DAR402
 
     """
     if args:
-        config_identifier: PathStr = args[0]
-    else:
+        config_identifier = str(args[0])
+    elif len(sys.argv) > 1:
         config_identifier = sys.argv[1]
+    else:
+        raise ValueError(
+            "A configuration preset must be specified. "
+            f"Available options are: {', '.join(PRESETS)}"
+        )
 
     cfg = Config(preset=config_identifier)
-    cfg.save(path=cfg.configuration_file)
+    cfg.save()
+    cfg.activate()
 
-    _config_logger.debug(
-        f"Preset configuration '{config_identifier}' was applied:\n\t{cfg.__dict__}\nSaved to file: {cfg.configuration_file}.\nEnvironment variable set: {os.getenv('TIMESERIES_CONFIG')=}"
+    _config_logger.info(
+        "Activated configuration preset %r:\n... saved to file %s",
+        config_identifier,
+        cfg.configuration_file,
     )
 
 
 def path_str(*args) -> str:
     """Concatenate paths as string: str(Path(...))."""
     return str(Path(*args))
+
+
+def activate_discovered_config(fail_on_no_config: bool = False) -> None:
+    """Try to find the config.
+
+    And take appropriate action if it can not be found.
+    """
+    from ..io import fs
+
+    _config_file = active_file()
+    if _config_file and fs.exists(_config_file):
+        _cfg = Config(configuration_file=_config_file)
+        _cfg.activate()
+        fs.touch(_cfg.log_file)
+
+    elif fail_on_no_config:
+        raise MissingEnvironmentVariableError(
+            f"Environment variable {ENV_VAR_NAME} must be defined."
+        )
+    elif _config_file and not fs.exists(_config_file):
+        raise FileNotFoundError(
+            f"The configuration file {_config_file} was identified by {ENV_VAR_NAME}, but could not be found."
+        )
+
+    # elif DAPLALAB: ... # it may be OK that the config file does not exist
+    elif DAPLA_TEAM_CONTEXT and fs.is_gcs(_config_file):
+        # """On DAPLA we consider it more severe if configs are missing."""
+
+        _config_logger.warning(
+            "%s: No configuration file was found at %s.",
+            DAPLA_TEAM_CONTEXT,
+            _config_file,
+        )
 
 
 __all__ = [
@@ -464,51 +508,10 @@ __all__ = [
 
 if __name__ == "__main__":
     """Execute when called directly, ie not via import statements."""
-    # ??? `poetry run timeseries-config <option>` does not appear to go this route.
-    # --> not obvious that this is a good idea.
-    print(f"Name of the script      : {sys.argv[0]=}")
-    print(f"Arguments of the script : {sys.argv[1:]=}")
-    main(sys.argv[1])
+    ...
 else:
-    from ..io import fs
+    import traceback
 
-    CONFIG_FILE = active_file()
-    # if CONFIG_FILE := active_file():
-    #     if fs.exists(active_file()):
-    #         CONFIGFILE = active_file()
-    #     elif DAPLA_TEAM_CONTEXT:
-    #         raise MissingEnvironmentVariableError(
-    #             f"Environment variable {ENV_VAR_NAME} must be defined and point to a configuration file."
-    #         )
-    #     else:
-    #         _config_logger.warning(
-    #             f"No configuration file was found at {active_file()}.\nOther locations may be tried. Files found will be copied to the default location and the first candidate will be set to active, ie copied once more to {DEFAULTS['configuration_file']}"
-    #         )
-    #         if not fs.exists(CONFIGFILE):
-    #             raise FileNotFoundError(
-    #                 f"No configuration file was found at {active_file()}."
-    #             )
-    # else:
-    #     CONFIGFILE = ""  # PRESETS["defaults"]["configuration_file"]
+    traceback.print_stack()
 
-    # active_file(CONFIGFILE)
-    if CONFIG_FILE and fs.exists(CONFIG_FILE):
-        _cfg = Config(configuration_file=CONFIG_FILE).activate()
-        """A Config object."""
-        fs.touch(_cfg.log_file)
-    elif not CONFIG_FILE:
-        # raise MissingEnvironmentVariableError(
-        #     f"The environment variable {ENV_VAR_NAME} returned an empty string."
-        # )
-        _config_logger.warning(f"No configuration file was found at '{active_file()}'.")
-    elif not fs.exists(CONFIG_FILE):
-        raise FileNotFoundError(
-            f"The configuration file {CONFIG_FILE} was identified by {ENV_VAR_NAME}, but could not be found."
-        )
-
-        # if not Config.active() and DAPLA_TEAM_CONTEXT:
-        #     raise MissingEnvironmentVariableError(
-        #         f"Environment variable {ENV_VAR_NAME} must be defined and point to a configuration file."
-        #     )
-        # else:
-        #     _config_logger.warning(f"No configuration file was found at '{active_file()}'.")
+    activate_discovered_config()

@@ -7,8 +7,6 @@ from click.testing import CliRunner
 
 from ssb_timeseries import __main__
 
-# mypy: ignore-errors
-
 
 @pytest.fixture
 def runner() -> CliRunner:
@@ -16,11 +14,13 @@ def runner() -> CliRunner:
     return CliRunner()
 
 
-def test_main_succeeds(
-    runner: CliRunner, monkeypatch: pytest.MonkeyPatch, buildup_and_teardown
+def test_main_with_no_args_is_help(
+    runner: CliRunner,  # monkeypatch: pytest.MonkeyPatch, buildup_and_teardown
 ) -> None:
     """It exits with a status code of zero."""
-    monkeypatch.setenv("TIMESERIES_CONFIG", buildup_and_teardown.configuration_file)
-    result = runner.invoke(__main__.main)
-    assert '"repositories"' in result.output
-    assert result.exit_code == 0
+    # monkeypatch.setenv("TIMESERIES_CONFIG", buildup_and_teardown.configuration_file)
+    result_no_arg = runner.invoke(__main__.main)
+    result_help = runner.invoke(__main__.main, ["--help"])
+    assert result_no_arg.exit_code == 2
+    assert result_help.exit_code == 0
+    assert result_no_arg.output == result_help.output
