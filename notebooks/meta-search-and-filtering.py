@@ -87,10 +87,17 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _():
+    from mdtools import catalog_item_list_to_df
+
+    return (catalog_item_list_to_df,)
+
+
 @app.cell
-def _(timeseries_catalog):
+def _(catalog_item_list_to_df, timeseries_catalog):
     all_sets = timeseries_catalog.datasets()
-    all_sets
+    catalog_item_list_to_df(all_sets)
     return (all_sets,)
 
 
@@ -205,21 +212,9 @@ def _(timeseries_catalog):
     return
 
 
-@app.cell(hide_code=True)
-def _(everything):
-    import pandas as pd
-
-    def dict_placeholder(val, max_keys=0):
-        if isinstance(val, dict):
-            series_in_set = val.get('series', [])
-            if len(series_in_set) > max_keys:
-                return f"{{{len(val)-1} set tags\n+{len(series_in_set)} series}}"
-            else:
-                return f"{{{len(val)} series tags}}"
-        return val
-
-    pd.DataFrame(everything).style.format(dict_placeholder, subset=["object_tags"])
-
+@app.cell
+def _(catalog_item_list_to_df, everything):
+    catalog_item_list_to_df(everything)
     return
 
 

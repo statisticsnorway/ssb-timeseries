@@ -7,6 +7,7 @@ app = marimo.App()
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
+    import testing
 
     from filetree import tree
     from ssb_timeseries import get_configuration
@@ -19,13 +20,7 @@ def _():
         root_dir = repositories['tutorials']['directory']['options']['path']
         print(tree(root_dir))
 
-    return mo, repository_tree
-
-
-@app.cell(disabled=True, hide_code=True)
-def _(repository_tree):
-    repository_tree()
-    return
+    return mo, repository_tree, testing
 
 
 @app.cell(hide_code=True)
@@ -42,14 +37,14 @@ def _(mo):
     Scope
     -----
 
-    This guide explains how metadata works in SSB Timeseries:
+    This guide explains how metadata works in SSB Timeseries.
+    It covers key concepts like:
 
-    - key technical concepts:
-      - repository -> dataset -> series
-      - the type system
-      - tags inheritance from `Dataset` to `Series` objects
+    - [Repositories, Datasets and Series](#)
+    - the type system
+    - tag inheritance from `Dataset` to `Series` objects
 
-    Some topics will be covered in more depth in dedicated guides:
+    It also touches ever so lightly some topics that deserve being covered in more depth:
 
     - [search and filtering](meta-search-and-filtering) with tags
     - [tag maintenance](meta-tag-maintenance)
@@ -73,11 +68,68 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    from ssb_timeseries.config import Config
+
+    Config.active().is_valid
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Technical metadata - the type system
-    ------------------------------------
+    Repositories, Datasets and Series
+    ---------------------------------
+
+    Repositories, Datasets and Series are the building blocks of a hierarchy.
+    `Repositories` are unique within the universe held within a [configuration](..configuring-io).
+    Repositories contain `Datasets`.
+    Datasets must be uniquely identified within their repository.
+    Similarly, `Series` must be uniquely identified within the Datasets they are part of.
+
+    Their *names* are unique identifiers within the scope of their parent.
+    That means that it is possible to have:
+
+    ```
+    Repository A
+        Dataset PQR
+          Series P
+          Series Q
+          Series R
+        Dataset XYZ-1
+            Series X
+            Series Y
+            Series Z
+        Dataset XYZ-2
+            Series X
+            Series Y
+            Series Z
+    Repository B
+        Dataset PQR
+            Series P
+            Series Q
+            Series R
+    ```
+
+    This scoping provides flexibility.
+    It allows the same logic for different datasets.
+    Creating a new dataset with *almost* identical content makes sense and allows easy transitions and comparisons in cases of changing methodologies or classifications.
+    It also creates a potential for confusion.
+
+    `Datasets` and `Series` are also associated with both technical and purely descriptive metadata via `tags`.
+    While the "long name" `Repository/Dataset/Series` carries the identity of an individual series, its `tags` defines its meaning.
+    If two complete sets of descriptions (tags) are identical, that implies identity.
+    If there is a "real" difference (as opposed to merely a copy existing) it should show up in the metadata.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The type system
+    ---------------
     """)
     return
 
@@ -87,8 +139,8 @@ def _(SeriesType, Temporality, Versioning, mo):
     mo.md(f"""
     {SeriesType.__doc__}
 
-    - {Versioning.__doc__}
-    - {Temporality.__doc__}
+     - {Versioning.__doc__}
+     - {Temporality.__doc__}
     """)
     return
 
@@ -99,6 +151,15 @@ def _():
     from ssb_timeseries.types import SeriesType, Versioning, Temporality
 
     return Dataset, SeriesType, Temporality, Versioning
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Creating a Dataset
+    ------------------
+    """)
+    return
 
 
 @app.cell(hide_code=True)
@@ -143,10 +204,7 @@ def _(mo):
     When creating a `Dataset` for the first time, a `name`, a `type` and some data are required.
 
     Specifying a `repository` is optional.
-    If not specified, a default will be applied based on configurations.
-    Names are assumed to be unique identifiers:
-    The dataset name must be unique within the repository.
-    Series names must be unique within the dataset.
+    If not specified, the configuration will determine which one is used, if there is more than one.
     """)
     return
 
@@ -174,8 +232,8 @@ def _(mo):
     These attributes are technically significant.
     If any of them are changed, it changes *where* or *how* the data is stored, and how it may be used.
 
-    Dataset creation will apply a minimal amount of mandatory metadata as `Dataset.tags`.
-    The technical attributes are both technical `Dataset` properties and reflected in its `.tags`:
+
+    The technical attributes are both object properties and reflected in `Dataset.tags`. This minimal amount of mandatory metadata is applied creation time and can not be changed without running the risk of breaking functionality.
     """)
     return
 
@@ -213,9 +271,9 @@ def _(mo):
 def _(sample_set):
     sample_set.tag_dataset(tags={'variable': 'price','product group': 'essential'})
 
-    sample_set.tag_series('p',tags={'product': 'coffee'})
-    sample_set.tag_series('q',tags={'product': 'crispbread'})
-    sample_set.tag_series('r',tags={'product': 'brown cheese'})
+    sample_set.tag_series('x',tags={'product': 'coffee'})
+    sample_set.tag_series('y',tags={'product': 'crispbread'})
+    sample_set.tag_series('z',tags={'product': 'brown cheese'})
 
     sample_set.save()
     sample_set.tags
@@ -232,13 +290,13 @@ def _(mo):
 
 @app.cell
 def _(Dataset):
-    x = Dataset('Sample Data')
-    return (x,)
+    xyz = Dataset('Sample Data')
+    return (xyz,)
 
 
 @app.cell
-def _(x):
-    x.tags
+def _(xyz):
+    xyz.tags
     return
 
 
@@ -253,8 +311,8 @@ def _(mo):
 
 
 @app.cell
-def _(x):
-    x['q','p'].plot()
+def _(xyz):
+    xyz['x','y'].plot()
     return
 
 
@@ -267,8 +325,8 @@ def _(mo):
 
 
 @app.cell
-def _(x):
-    x[{'product': 'crispbread'}].plot()
+def _(xyz):
+    xyz[{'area': 'z'}].plot()
     return
 
 
@@ -314,7 +372,7 @@ def _(Dataset, SeriesType, bigger_data):
         data = bigger_data,
         attributes=['store','variable','product', 'region'],
     )
-    az.save()
+    #az.save()
     return (az,)
 
 
@@ -327,15 +385,15 @@ def _(az, mo):
 
 
 @app.cell(hide_code=True)
-def _(az):
-    az.tags
+def _():
+    #az.tags
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    At this scale, it is not longer practical to refer to individual series:
+    At this scale, it is not longer practical to deal with individual series:
     """)
     return
 
@@ -349,7 +407,7 @@ def _(az):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Organising the data in subsets identified by tags is much more practical:
+    While one could do something like looping over name patterns, organising the data in subsets identified by tags is much more practical:
     """)
     return
 
@@ -361,19 +419,28 @@ def _(az):
     return prices, volumes
 
 
-@app.cell
-def _(prices):
-    prices.series
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Series in `prices`:
+    """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
+def _(prices):
+    print( *prices.series[1:3], '...', *prices.series[-3:], '\n\n', f"{len(prices.series)=}",)
+    return
+
+
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    The selection returns new datasets for which both the data and the metadata have been filtered to match the criteria.
-    Note that the retrieved data is sorted.
-    The sorting allows calculations to be performed without complicated matching.
-    (Note that explicit matching may still be required in some corner cases.)
+    New objects and tag maintenance
+    -------------------------------
+
+    The selection returns new dataset instnances for which both the data and the metadata have been filtered to match the criteria.
+    The retrieved data is sorted to allow calculations to be performed without complicated matching.
     """)
     return
 
@@ -384,10 +451,12 @@ def _(prices, volumes):
     return (revenue,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    After the calculations, the original metadata will no logner be accurate. Tags need to be updated.
+    (Explicit matching may still be required in some corner cases.)
+
+    After a calculations, the original metadata will rarely be accurate anymore. Some functions update the metadata automatically, but in general tags need to be updated after calculations.
     """)
     return
 
@@ -403,8 +472,137 @@ def _(revenue):
 @app.cell
 def _(mo):
     mo.md(r"""
-    More in [tag maintenance](meta-tag-maintenance).
+    See [tag maintenance](meta-tag-maintenance) or [calculations with metadata](calc-with-metadata) for more about either topic.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Formal taxonomies
+    -----------------
+
+    As seen in the code above, the SSB Timeseries library implements tags as key value pairs and handles them through Python dictionaries.
+    This is a very lightweight approach that provides a lot of flexibility.
+    Just about anything that fits into the key value structure goes.
+
+    A more formal approach will put some governance and standardisation on which attributes to use, how to name them, and which values are allowed.
+
+    Integrating with such formal structures - and metadata systems - through the `meta` module is in the shaping.
+    The design philosophy is to keep the integration lightweight and configurable.
+    At the core is the idea that `attributes` take their `values` defined in a `Taxonomy`.
+
+    The code snippet below shows how a taxonomy may be consumed from Statistics Norway's taxonomy system KLASS.
+    """)
+    return
+
+
+@app.cell
+def _():
+    from ssb_timeseries.meta import Taxonomy
+
+    klass157 = Taxonomy(klass_id=157)
+    klass157.print_tree()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    In this example the taxonomy has a hierarcical structure.
+    Hierarchical (or even graph) structures may be used for [calculations](calc-with-metadata), as long as the tag values match a taxonomy.
+
+    While features for [tag mainatenance](meta-tag-maintenance) allow fixing some mistakes after the fact,
+    attribute structures are important considerations that should not be taken lightly.
+    They are, after all, a subset of ["naming things"](https://martinfowler.com/bliki/TwoHardThings.html).
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Data catalog
+    ------------
+
+    The SSB Timeseries library can be configured to deal with the metadata in more than one way.
+    The library configuration allows setting up metadata repositories independent of the data storage.
+    That allows multiple data repositories to share a single metadata repository.
+    At the most technical level, storage comes down to IO implementation, but the separate configurations allow the metadata to be stored more than once. It can be stored both near the actual data, say in header or footer fields of file based storage, and in a sentral repository accessed through an API.
+
+    Regardless of setup, multiple metadata repositories in a configuration can be treated as a single catalog.
+    Collecting structured metadata in one place makes it easier to search.
+    """)
+    return
+
+
+@app.cell
+def _():
+    from ssb_timeseries import get_catalog
+
+    our_timeseries_database = get_catalog()
+    all_the_datasets = our_timeseries_database.datasets()
+    return (all_the_datasets,)
+
+
+@app.cell
+def _(all_the_datasets):
+    type(all_the_datasets)
+    return
+
+
+@app.cell
+def _(all_the_datasets):
+    type(all_the_datasets[0])
+    return
+
+
+@app.cell
+def _(all_the_datasets):
+    [catalog_item.object_name for catalog_item in all_the_datasets]
+    return
+
+
+@app.cell(disabled=True)
+def _(all_the_datasets):
+    import pandas as pd
+    pd.DataFrame(all_the_datasets )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The list above should correspond to what we find in our file based repository:
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(repository_tree):
+    repository_tree()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    See the guide to [search and filtering](meta-search-and-filtering) for more details on the `Catalog`.
+    """)
+    return
+
+
+@app.function
+# @supress
+
+def test_success():
+    assert True
+
+
+@app.cell
+def _(testing):
+    testing.run_and_report([test_success])
     return
 
 
