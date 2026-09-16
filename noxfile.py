@@ -214,6 +214,7 @@ def mypy(session: Session) -> None:
 @session(python=python_versions_for_test)
 def tests(session: Session) -> None:
     """Run the test suite."""
+    session.env["PYTHONUTF8"] = "1"
     session.install(".")
     session.install(*NOTEBOOK_DEPENDENCIES)
     session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata", "typeguard")
