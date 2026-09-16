@@ -20,17 +20,58 @@ poetry add ssb-timeseries
 Configuration
 --------------
 
-```python {.marimo}
-from ssb_timeseries.config import Config
-```
-
-<!-- @output:lEQa -->
+<!-- @output:bkHC -->
 
 On first use, the library is likely to warn that it is not properly configured.
 The library expects an environment variable TIMESERIES_CONFIG to identify a valid configuration file.
-Unless you are in a pre-configured environment, none of these conditions are likely to be satisfied.
+Neither name nor location of the file matters as long as the file is identified correctly, accessible and complies with the JSON schema for the library version,
+but unless you are working in a pre-configured environment, none of these conditions are likely to be satisfied.
 
-Neither name nor location of the file matters as long as the file is identified correctly, accessible and complies with the JSON schema for the library version.
+There are a few different approaches to maintain the configuration:
+- Editing by hand
+- Using the `config` module
+- Using the command line interface (CLI)
+
+The CLI
+-------
+
+The library provides a helper CLI with features that are mainly for inspection.
+The CLI is accessible in a terminal shell where the library is installed.
+This sounds obvious, but means that there are som subtle differences depending on how the library was installed and how Python virtual environments are managed in your working environment.
+
+If `poetry` was used for installation, the commands below will need to be prefixed with `poetry run`.
+
+From a terminal, the main entry point is `ssb-timeseries` or the shorthand `ts`:
+
+`ts --help` will provide an overview of the CLI, whereas `ts config --help` will do the same for the configuration features.
+
+``` bash
+ts config path
+```
+will show the value of the TIMESERIES_CONFIG environment variable, if it is set.
+
+``` bash
+ts config show [option]
+```
+will show the entire active configuration, or a named preset.
+This gives us a way to create or replace a configuration file:
+
+``` bash
+ts config show defaults > ~/.config/ssb-timeseries/default-config.json
+```
+
+Valid presets can be listed with
+
+``` bash
+ts config list
+```
+<!---->
+Using the `config` module
+-------------------------
+
+```python {.marimo}
+from ssb_timeseries.config import Config
+```
 
 The following Python code will apply and save default settings.
 
@@ -40,9 +81,36 @@ cfg.activate()
 cfg.save()
 ```
 
-<!-- @output:Xref -->
-
 The defaults may be OK for local use or testing.
+
+```python {.marimo unparsable="true"}
+The activation will set the environment variable, but only in the current shell.
+That means, the effect is local and not permanent.
+It will be lost after the shell session that Python runs inside ends.
+```
+
+<!-- @output:Kclp -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">syntax: line 1
+    The activation will set the environment variable, but only in the current shell.
+        ^^^^^^^^^^
+SyntaxError: invalid syntax
+</pre>
+
+````python {.marimo}
+mo.md(f"""
+Note that while `.activate()` will set the environment variable, it wil not do so permanently.
+The variable will be gone when the active shell session that Python runs within ends.
+
+On a linux-like system, setting it permanently may look like:
+
+```bash
+echo 'export {ENV_VAR_NAME}="~/.config/ssb_timeseries/config.json"' >> .bashrc
+```
+""")
+````
+
+<!-- @output:emfo -->
 
 Note that while `.activate()` will set the environment variable, it wil not do so permanently.
 The variable will be gone when the active shell session that Python runs within ends.
@@ -62,9 +130,9 @@ To inspect the active configuration, either open the JSON file, or access it via
 Config.active()
 ```
 
-<!-- @output:BYtC -->
+<!-- @output:nWHF -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f9c784eae90&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fa3bbf33ed0&gt;</pre>
 
 An alternative way is:
 
@@ -74,15 +142,15 @@ import ssb_timeseries as ts
 ts.get_configuration()
 ```
 
-<!-- @output:Kclp -->
+<!-- @output:ZHCJ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f9c784eae90&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fa3bbf33ed0&gt;</pre>
 
 ```python {.marimo}
 cfg is Config.active()
 ```
 
-<!-- @output:emfo -->
+<!-- @output:ROlb -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">True</pre>
 
@@ -102,7 +170,7 @@ mo.md(f"""
 """)
 ````
 
-<!-- @output:ZHCJ -->
+<!-- @output:DnEU -->
 
 ```json
 {
@@ -119,7 +187,7 @@ mo.md(f"""
   },
   "logging": {},
   "repositories": {
-    "tutorials": {
+    "<teamname>": {
       "catalog": {
         "handler": "json",
         "options": {
@@ -137,11 +205,6 @@ mo.md(f"""
 }
 ```
 
-## Helper CLI
-
-The library exposes some configuration management features in a helper CLI.
-The command `poetry run timeseries-config <OPTION>` can be run from a terminal in order to shift between defaults.
-<!---->
 Happy coding!
 -------------
 <!---->
@@ -153,8 +216,3 @@ Issues or questions
 
 Users in Statistics Norway will know where to contact the maintainers directly.
 For any external users, the best channel for discussion is through the project's [GitHub Issues](https://github.com/statisticsnorway/ssb-timeseries/issues).
-
-<!-- @output:ulZA -->
-
-<pre class="stderr" style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;W 260914 19:28:43 compiler:353&#93; pytest is not installed, skipping assertion rewriting
-</pre>

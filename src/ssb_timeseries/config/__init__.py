@@ -510,8 +510,4 @@ if __name__ == "__main__":
     """Execute when called directly, ie not via import statements."""
     ...
 else:
-    import traceback
-
-    traceback.print_stack()
-
     activate_discovered_config()

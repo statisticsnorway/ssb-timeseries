@@ -41,6 +41,71 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(ENV_VAR_NAME, mo):
+    mo.md(f"""
+    On first use, the library is likely to warn that it is not properly configured.
+    The library expects an environment variable {ENV_VAR_NAME} to identify a valid configuration file.
+    Neither name nor location of the file matters as long as the file is identified correctly, accessible and complies with the JSON schema for the library version,
+    but unless you are working in a pre-configured environment, none of these conditions are likely to be satisfied.
+
+    There are a few different approaches to maintain the configuration:
+    - Editing by hand
+    - Using the `config` module
+    - Using the command line interface (CLI)
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    The CLI
+    -------
+
+    The library provides a helper CLI with features that are mainly for inspection.
+    The CLI is accessible in a terminal shell where the library is installed.
+    This sounds obvious, but means that there are som subtle differences depending on how the library was installed and how Python virtual environments are managed in your working environment.
+
+    If `poetry` was used for installation, the commands below will need to be prefixed with `poetry run`.
+
+    From a terminal, the main entry point is `ssb-timeseries` or the shorthand `ts`:
+
+    `ts --help` will provide an overview of the CLI, whereas `ts config --help` will do the same for the configuration features.
+
+    ``` bash
+    ts config path
+    ```
+    will show the value of the TIMESERIES_CONFIG environment variable, if it is set.
+
+    ``` bash
+    ts config show [option]
+    ```
+    will show the entire active configuration, or a named preset.
+    This gives us a way to create or replace a configuration file:
+
+    ``` bash
+    ts config show defaults > ~/.config/ssb-timeseries/default-config.json
+    ```
+
+    Valid presets can be listed with
+
+    ``` bash
+    ts config list
+    ```
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    Using the `config` module
+    -------------------------
+    """)
+    return
+
+
 @app.cell
 def _():
     from ssb_timeseries.config import Config
@@ -48,15 +113,9 @@ def _():
     return (Config,)
 
 
-@app.cell(hide_code=True)
-def _(ENV_VAR_NAME, mo):
+@app.cell
+def _(mo):
     mo.md(f"""
-    On first use, the library is likely to warn that it is not properly configured.
-    The library expects an environment variable {ENV_VAR_NAME} to identify a valid configuration file.
-    Unless you are in a pre-configured environment, none of these conditions are likely to be satisfied.
-
-    Neither name nor location of the file matters as long as the file is identified correctly, accessible and complies with the JSON schema for the library version.
-
     The following Python code will apply and save default settings.
     """)
     return
@@ -65,16 +124,32 @@ def _(ENV_VAR_NAME, mo):
 @app.cell
 def _(Config):
     cfg = Config(preset='default')
-    cfg.activate()
     cfg.save()
+    cfg.activate()
     return (cfg,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(f"""
+    The defaults may be OK for local use or testing.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The activation will set the environment variable, but only in the current shell.
+    That means, the effect is local and not permanent.
+    It will be lost after the shell session that Python runs inside ends.
+    """)
+    return
 
 
 @app.cell(hide_code=True)
 def _(ENV_VAR_NAME, mo):
     mo.md(f"""
-    The defaults may be OK for local use or testing.
-
     Note that while `.activate()` will set the environment variable, it wil not do so permanently.
     The variable will be gone when the active shell session that Python runs within ends.
 
@@ -90,9 +165,6 @@ def _(ENV_VAR_NAME, mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    Inspecting the Configuration
-    ----------------------------
-
     To inspect the active configuration, either open the JSON file, or access it via `.active()`:
     """)
     return
@@ -170,17 +242,6 @@ def _(cfg, mo):
     ```json
     {minimal(cfg)}
     ```
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md("""
-    ## Helper CLI
-
-    The library exposes some configuration management features in a helper CLI.
-    The command `poetry run timeseries-config <OPTION>` can be run from a terminal in order to shift between defaults.
     """)
     return
 
