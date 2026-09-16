@@ -59,22 +59,7 @@ def import_and_run_marimo_app(notebook_name: str, config: Config):
     return outputs
 
 
-def test_marimo_quickstart(buildup_and_teardown):
-    result = subprocess_run_marimo_notebook(
-        "quickstart.py",
-        buildup_and_teardown,
-    )
-
-    assert result.returncode == 0
-
-
-def test_marimo_getting_started(buildup_and_teardown):
-    result = subprocess_run_marimo_notebook(
-        "getting_started.py",
-        buildup_and_teardown,
-    )
-
-    assert result.returncode == 0
+# ------------------------------------
 
 
 @pytest.mark.xfail(reason="Relative import from ../marimo fails.")
@@ -84,3 +69,69 @@ def test_marimo_tutorial_getting_started_experimental(buildup_and_teardown):
         buildup_and_teardown,
     )
     assert result
+
+
+# ------------------------------------
+
+
+def test_marimo_quickstart(buildup_and_teardown):
+    result = subprocess_run_marimo_notebook(
+        "quickstart.py",
+        buildup_and_teardown,
+    )
+
+    assert result.returncode == 0
+
+
+def test_marimo_basic_usage(buildup_and_teardown):
+    result = subprocess_run_marimo_notebook(
+        "basic-usage.py",
+        buildup_and_teardown,
+    )
+
+    assert result.returncode == 0
+
+
+def test_marimo_calc_basic_arithmetic(buildup_and_teardown):
+    result = subprocess_run_marimo_notebook(
+        "calc-basic-arithmetic.py",
+        buildup_and_teardown,
+    )
+
+    assert result.returncode == 0
+
+
+def test_marimo_calc_with_time(buildup_and_teardown):
+    result = subprocess_run_marimo_notebook(
+        "calc-with-time.py",
+        buildup_and_teardown,
+    )
+
+    assert result.returncode == 0
+
+
+def test_marimo_calc_with_metadata(buildup_and_teardown):
+    result = subprocess_run_marimo_notebook(
+        "calc-with-metadata.py",
+        buildup_and_teardown,
+    )
+
+    assert result.returncode == 0
+
+
+def test_marimo_meta_search_and_filtering(buildup_and_teardown):
+    result = subprocess_run_marimo_notebook(
+        "meta-search-and-filtering.py",
+        buildup_and_teardown,
+    )
+
+    assert result.returncode == 0
+
+
+def test_marimo_meta_tag_maintenance(buildup_and_teardown):
+    result = subprocess_run_marimo_notebook(
+        "meta-tag-maintenance.py",
+        buildup_and_teardown,
+    )
+
+    assert result.returncode == 0

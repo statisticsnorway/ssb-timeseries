@@ -7,20 +7,9 @@ app = marimo.App()
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
+    import testing
 
-    from filetree import tree
-    from ssb_timeseries import get_configuration
-
-    return (mo,)
-
-
-@app.cell(hide_code=True)
-def _():
-    from ssb_timeseries.dataset import Dataset
-    from ssb_timeseries.sample_data import create_df
-    from ssb_timeseries.types import SeriesType
-
-    return Dataset, SeriesType, create_df
+    return mo, testing
 
 
 @app.cell(hide_code=True)
@@ -56,6 +45,14 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    from ssb_timeseries import get_catalog
+    from ssb_timeseries.dataset import Dataset
+
+    return Dataset, get_catalog
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -77,13 +74,6 @@ def _(mo):
 
 
 @app.cell
-def _():
-    from ssb_timeseries import get_catalog
-
-    return (get_catalog,)
-
-
-@app.cell
 def _(get_catalog):
     timeseries_catalog = get_catalog()
     return (timeseries_catalog,)
@@ -100,6 +90,7 @@ def _(mo):
 @app.cell
 def _(timeseries_catalog):
     all_sets = timeseries_catalog.datasets()
+    all_sets
     return (all_sets,)
 
 
@@ -139,7 +130,13 @@ def _(mo):
 
 @app.cell
 def _(timeseries_catalog):
-    timeseries_catalog.items()
+    everything = timeseries_catalog.items()
+    return (everything,)
+
+
+@app.cell(hide_code=True)
+def _(everything):
+    len(everything)
     return
 
 
@@ -208,80 +205,79 @@ def _(timeseries_catalog):
     return
 
 
-@app.cell
-def _(our_timeseries_database):
+@app.cell(hide_code=True)
+def _(everything):
     import pandas as pd
-    everything = our_timeseries_database.items()
-    pd.DataFrame(everything)
+
+    def dict_placeholder(val, max_keys=0):
+        if isinstance(val, dict):
+            series_in_set = val.get('series', [])
+            if len(series_in_set) > max_keys:
+                return f"{{{len(val)-1} set tags\n+{len(series_in_set)} series}}"
+            else:
+                return f"{{{len(val)} series tags}}"
+        return val
+
+    pd.DataFrame(everything).style.format(dict_placeholder, subset=["object_tags"])
+
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Filtering
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Initialising a variable for an existing `Dataset`, we retrieve the previously stored metadata.
+    Filtering: column selection
+    ----------------------------
     """)
     return
 
 
 @app.cell
 def _(Dataset):
-    x = Dataset('Sample Data')
-    return (x,)
+    xyz = Dataset('Sample Data')
+    return (xyz,)
 
 
-@app.cell
-def _(x):
-    x.tags
-    return
-
-
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Names can be used to filter the data.
+    When initialising a variable for an existing `Dataset`, we automatically retrieve the previously stored metadata.
     """)
     return
 
 
 @app.cell
-def _(x):
-    x['q','p'].plot()
+def _(xyz):
+    xyz.tags
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    And tags as well:
+    `Dataset.select()` picks columns.
+    Column selection may be done by names, simple patterns or regexes.
     """)
     return
 
 
-app._unparsable_cell(
-    r"""
-    x.tag_series('x','product','
-    """,
-    name="_"
-)
-
-
 @app.cell
-def _():
+def _(xyz):
+    xyz['x','y'].plot()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Or by metadata tags:
+    """)
     return
 
 
 @app.cell
-def _(x):
-    x[{'product': 'crispbread'}].plot()
+def _(xyz):
+    xyz[{'area':'z'}].plot()
     return
 
 
@@ -295,14 +291,8 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _():
-    from ssb_timeseries.datasert import Dataset
     from ssb_timeseries.sample_data import create_df
 
-    return Dataset, create_df
-
-
-@app.cell
-def _(create_df):
     def mock_interval_data_from_file_or_query(start, end):
         a_to_z = [chr(i) for i in range(ord('a'), ord('z') + 1)]
         variables = ['volume', 'price']
@@ -327,6 +317,13 @@ def _(mock_interval_data_from_file_or_query):
 
 
 @app.cell
+def _():
+    from ssb_timeseries.types import SeriesType
+
+    return (SeriesType,)
+
+
+@app.cell
 def _(Dataset, SeriesType, bigger_data):
     az = Dataset(
         name = 'AZ_drinks',
@@ -341,67 +338,32 @@ def _(Dataset, SeriesType, bigger_data):
 @app.cell(hide_code=True)
 def _(az, mo):
     mo.md(f"""
-    The `az` set has {len(az.series)} series.
+    The `az` set has {len(az.series)} series. Let us zoom in:
     """)
     return
+
+
+@app.cell
+def _(az):
+    criteria = {
+        'region':['NE','NW'],
+        'variable': 'price',
+        'store': 'q',}
+    az_selection = az[criteria]
+    return (az_selection,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Eksempel: momentane data, *med* versjonering
+    THe criteria reads like
     """)
     return
 
 
 @app.cell
-def _(SeriesType):
-    estimated_point_in_time = SeriesType('AS_OF', 'AT')
-    return (estimated_point_in_time,)
-
-
-@app.cell
-def _(create_df, ensure_datetime, timedelta):
-    def data_for_n_days_prior(as_of, n):
-        start = ensure_datetime(as_of) - timedelta(days=n)
-        end = ensure_datetime(as_of) - timedelta(days=1)
-        return create_df(['x','y','z'], start_date=start,end_date=end, freq='D')
-
-    return (data_for_n_days_prior,)
-
-
-@app.cell
-def _(data_for_n_days_prior):
-    n = 7
-    data_for_n_days_prior('2024-03-15', n)
-    return (n,)
-
-
-@app.cell
-def _():
-    as_of_dates = ['2025-05-01','2025-06-01','2025-08-03','2025-08-04','2025-08-05','2025-08-06','2025-08-07']
-    return (as_of_dates,)
-
-
-@app.cell
-def _(
-    Dataset,
-    as_of_dates,
-    data_for_n_days_prior,
-    date_utc,
-    estimated_point_in_time,
-    n,
-):
-    # update the data for several as of dates
-    # --> simulates running the production process for several periods
-    for as_of in as_of_dates:
-        xyz_df = data_for_n_days_prior(as_of,n)
-        Dataset(
-            name = 'XYZ',
-            data_type = estimated_point_in_time,
-            as_of_tz=date_utc(as_of),
-            data = xyz_df,
-        ).save()
+def _(az_selection):
+    az_selection.series
     return
 
 
@@ -410,6 +372,18 @@ def _(mo):
     mo.md(r"""
     ...
     """)
+    return
+
+
+@app.function(hide_code=True)
+# @supress
+def test_true():
+    assert True
+
+
+@app.cell(hide_code=True)
+def test_run_all(testing):
+    testing.run_and_report([test_true])
     return
 
 

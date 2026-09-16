@@ -7,25 +7,8 @@ app = marimo.App()
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
-    mo.Html(
-        """
-        <style>
-        /* Hides the desktop sidebar table of contents */
-        div[class*="marimo-toc"],
-        aside[class*="sidebar"],
-        [data-testid="marimo-toc"] {
-            display: none !important;
-        }
 
-        /* Adjusts the main content margin to center it */
-        main {
-            margin-left: auto !important;
-            margin-right: auto !important;
-            max-width: 960px !important;
-        }
-        </style>
-        """
-    )
+
     return (mo,)
 
 
@@ -72,8 +55,12 @@ def _():
     return Dataset, Taxonomy
 
 
-@app.cell
-def _():
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Generate sample data
+    --------------------
+    """)
     return
 
 
@@ -183,7 +170,7 @@ def _(Dataset):
     prices = prices_and_volumes[{'variable': 'price'}]
     volumes = prices_and_volumes[{'variable': 'volume'}]
     revenue = prices * volumes
-    return (revenue,)
+    return revenue, volumes
 
 
 @app.cell(hide_code=True)
@@ -219,6 +206,13 @@ def _(mo):
 
     (The functionality was hard coded for the PoC phase. It is now disabled, but a functionality skeleton is still there. The missing link for working properly is configuration interaction.)
     """)
+    return
+
+
+@app.cell
+def _(volumes):
+    volumes.data = volumes.pd # a workaround for BUG
+    # q = volumes.groupby('Q', 'auto')  # --> another bug!
     return
 
 
@@ -270,12 +264,12 @@ def _(revenue, taxonomy):
         functions=list_of_functions
     )
     aggregated_revenue.pl.schema.to_python()
-    return (aggregated_revenue,)
+    return
 
 
 @app.cell
-def _(aggregated_revenue):
-    aggregated_revenue.tags
+def _():
+    # aggregated_revenue.tags
     return
 
 

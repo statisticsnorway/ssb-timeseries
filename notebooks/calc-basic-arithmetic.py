@@ -7,32 +7,16 @@ app = marimo.App()
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
-    mo.Html(
-        """
-        <style>
-        /* Hides the desktop sidebar table of contents */
-        div[class*="marimo-toc"],
-        aside[class*="sidebar"],
-        [data-testid="marimo-toc"] {
-            display: none !important;
-        }
+    import testing
 
-        /* Adjusts the main content margin to center it */
-        main {
-            margin-left: auto !important;
-            margin-right: auto !important;
-            max-width: 960px !important;
-        }
-        </style>
-        """
-    )
-    return (mo,)
+    return mo, testing
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Calculations
+    Basic arithmetic
+    ================
     """)
     return
 
@@ -43,9 +27,9 @@ def _(mo):
     Scope
     -----
 
-    This guide show cases support for basic arithmetic and explains some of the general principles for calculations with the SSB Timeseries library.
+    This guide illustrates some basic arithmetics and explains some of the general principles for calculations, and touches upon some ways to leverage other libraries.
 
-    More specific guides are provided for topics like *calculations with time* and *metadata centric calculations*.
+    More specific guides are provided for topics like [calculations with time](calc-with-time) and [metadata centric calculations](calc-with-metadata).
     """)
     return
 
@@ -61,8 +45,7 @@ def _(mo):
     See [the quickstart guide](quickstart) for instructions to that.
     ```
 
-    The presented functionality relies on `dataset.Dataset`.
-    Other imports like`types.SeriesType` and external libraries are used only for generating the sample data.
+    The presented functionality itself relies on `dataset.Dataset`.
     """)
     return
 
@@ -74,7 +57,7 @@ def _():
     return (Dataset,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     from ssb_timeseries.types import SeriesType
     from ssb_timeseries.sample_data import create_df
@@ -92,7 +75,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(Dataset, SeriesType, create_df, date):
     def create_some_example_data(
         set_name: str,
@@ -151,8 +134,8 @@ def _():
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Element-wise arithmetic
-    --------------------------------
+    Element-wise calculations
+    -------------------------
     """)
     return
 
@@ -175,7 +158,7 @@ def _(Dataset):
 @app.cell
 def _(mo):
     mo.md(r"""
-    ... and filter by metadata tags to separate prices from volumes, and calculate revenues by multiplying them:
+    ... and separate *prices* from *volumes* by selecting series with tags, and calculate *revenues* by multiplying them element-wise:
     """)
     return
 
@@ -184,6 +167,7 @@ def _(mo):
 def _(jul):
     jul_prices = jul[{'variable': 'price'}]
     jul_volumes = jul[{'variable': 'volume'}]
+
     jul_revenue = jul_prices * jul_volumes
     return (jul_revenue,)
 
@@ -204,7 +188,7 @@ def _(jul_revenue):
 @app.cell(hide_code=True)
 def _(mo, rev_name):
     mo.md(f"""
-    The calculation returns a new dataset with a long and unwieldly name:
+    It returns a new dataset with a long and unwieldly name:
 
     `{rev_name}`
 
@@ -220,7 +204,7 @@ def _(jul_revenue):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(f"""
     Not only the final calculation, but also the two slices created by the filter operations are new dataset instances.
@@ -232,15 +216,15 @@ def _(mo):
 @app.cell
 def _(Dataset):
     feb = Dataset(name="Prices and Volumes", as_of_tz="2025-02-01")
-    feb_revenue = feb[{'variable': 'price'}] * feb[{'variable': 'volume'}]
-    return feb, feb_revenue
+    return (feb,)
 
 
 @app.cell
-def _(feb_revenue):
+def _(feb):
+    feb_revenue = feb[{'variable': 'price'}] * feb[{'variable': 'volume'}]
     feb_revenue.rename("Revenues", ('price', 'revenue'))
     feb_revenue.replace_tags(({'variable':'price'}, {'variable': 'revenue'}))
-    return
+    return (feb_revenue,)
 
 
 @app.cell
@@ -272,8 +256,22 @@ def _(mo):
     mo.md(r"""
     The above examples showed simple arithemetic with `*` and `-`.
     These and other *infix* operators for element-wise arithmetic and comparisons work for `Dataaset` objects because the class exposes "dunder" methods to [emulate numeric types](https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types) and [rich comparisons](https://docs.python.org/3/reference/datamodel.html#basic-customization).
+    """)
+    return
 
-    The implementation of all mathematical operators follows a pattern: a wrapper function that uses the [interoperability](nteroperability) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The behaviour for all of them is element-wise, corresponding to the Numpy defaults.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The implementations for the mathematical operators follows a pattern: a wrapper function that uses the [interoperability](nteroperability) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
 
     There are several points to unpack.
     """)
@@ -283,9 +281,10 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    The Numpy implementation means that element-wise calculation is the default, with [Numpy "broadcasting rules"](https://numpy.org/doc/stable/user/basics.broadcasting.html) for different size objects.
+    [Numpy "broadcasting rules"](https://numpy.org/doc/stable/user/basics.broadcasting.html) apply for different size objects of supported types.
     Broadcasting rules and dimensional conditions are avaluated only for the numeric parts - the math functions will ignore the date columns.
-    Date alignment must be performed explicitly prior to the calculation.
+    Whereas the  multiplication example above had matching dates, the  subtraction had the same size data but different dates.
+    This means that any required date alignment must be performed explicitly prior to the arithmetic calculations.
     """)
     return
 
@@ -293,8 +292,8 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Narwhals under the hood first and foremost allow the arithmetic functions support operating not only on `Dataset` objects, but on combinations of datasets with a large number of other datatypes (scalars, Numpy arrays, dataframes, Arrow tables).
-    Note that the "dataframe like" objects are all conflated to 'df' in the lineage tracking.
+    Narwhals under the hood allow the arithmetic functions to support operating not only on `Dataset` objects, but on combinations of datasets with a large number of other datatypes (scalars, Numpy arrays, dataframes, Arrow tables).
+    Note that the "dataframe like" objects (including Arrow tables) are all conflated to 'df' in the lineage tracking.
     """)
     return
 
@@ -328,7 +327,7 @@ def _(feb):
     try:
         feb.pd**2
     except  TypeError:
-        print("`__pow__`  fails for date columns")
+        print("With Pandas `__pow__` and fails for date columns (unless index is set).")
     return
 
 
@@ -359,8 +358,21 @@ def _(feb):
     x_tbl = feb.pa
     x_pd = feb.pd
     x_pl = feb.pl
+    return x, x_pd, x_pl
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Or, entriely meaninglesss, but it gets be point across:
+    """)
+    return
+
+
+@app.cell
+def _(x, x_pd, x_pl):
     do_stuff = x**2 / x.pa + x_pd + x_pl - x**2 - 100 + x.data
-    return do_stuff, x
+    return (do_stuff,)
 
 
 @app.cell(hide_code=True)
@@ -380,7 +392,7 @@ def _(do_stuff):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    This means that for any functionality that is missing in SSB Timeseries, it is easy to fill in the blanks.
+    The interoperability also means that for any functionality that is missing in SSB Timeseries, it is easy to fill in the blanks with Pandas, Polars or Arrow.
     For example, at the time of writing, interval support and filtering by dates is an underdeveloped area of functionality.
     """)
     return
@@ -410,6 +422,9 @@ def _(x_row):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    Broadcasting
+    ------------
+
     The difference between broadcasted and element-wise:
     """)
     return
@@ -442,13 +457,14 @@ def _(broadcast, elementwise):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    (For the second row, matching `x_row` all values of the comparison are `True`.)
+    (Note how for the second row, matching `x_row` all values of the comparison are `True`.)
     """)
     return
 
 
 @app.cell(disabled=True, hide_code=True)
 def _(x, x_row):
+    # TO DO: proper matrix multiplication
     matrix = (x @ x_row)
     print(matrix.name)
     print(type(matrix))
@@ -621,8 +637,16 @@ def _(mo):
     return
 
 
-@app.cell
-def _():
+@app.function
+# @supress
+
+def test_true():
+    assert True
+
+
+@app.cell(hide_code=True)
+def test_run_all(testing):
+    testing.run_and_report([test_true])
     return
 
 

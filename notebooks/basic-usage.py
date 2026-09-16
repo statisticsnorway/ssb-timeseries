@@ -8,34 +8,7 @@ app = marimo.App(width="comnpact", html_head_file="resources/custom.css")
 def _():
     import marimo as mo
     import testing
-
-    import inspect
-    import textwrap
-    from collections.abc import Callable
-    from typing import Any, TypeVar
-
-    F = TypeVar("F", bound=Callable[..., Any])
-
-    def prompt(cmd, str=''):
-        """print a prompt with command before output str"""
-        if cmd:
-            return f"\n```\n>>> {cmd}\n\n{str}\n```\n"
-        else:
-            return  f"\n```\n{str}\n```\n"
-
-    from tabulate import tabulate
-    _tbl_format = 'simple'
-    _float_format=".2f"
-    def tbl(df, cmd=''):
-        """print a str formatted table"""
-        tbl_str = tabulate(
-            df,
-            headers = df.columns,
-            tablefmt = _tbl_format,
-            floatfmt =_float_format,
-            showindex=False,
-        )
-        return prompt(cmd, tbl_str)
+    from mdtools import prompt, tbl
 
     from ssb_timeseries.types import Versioning, Temporality
 
@@ -438,7 +411,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(Dataset, check_equality, xyz):
-    #@suppress
+    # @suppress
 
     def test_xyz_is_a_dataset():
         assert isinstance(xyz, Dataset)
