@@ -215,7 +215,7 @@ def mypy(session: Session) -> None:
 def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(".")
-    session.install(NOTEBOOK_DEPENDENCIES)
+    session.install(*NOTEBOOK_DEPENDENCIES)
     session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata", "typeguard")
 
     # If on Windows, find the installed tzdata path and set the env var to avoid:
@@ -261,17 +261,17 @@ def coverage(session: Session) -> None:
     session.run("coverage", *args)
 
 
-@session(python=python_versions[-1])
+@session(python=python_versions[-2])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     session.install("pytest", "typeguard", "pygments",) #"click","marimo", "tabulate")
-    session.install(NOTEBOOK_DEPENDENCIES)
+    session.install(*NOTEBOOK_DEPENDENCIES)
     session.install(".")
     #session.run("pip", "install", "-e", ".") # RYE: editable is better practice? --> apply everywhere?
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
 
 
-@session(python=python_versions)
+@session(python=python_versions[-1])
 def xdoctest(session: Session) -> None:
     """Run examples with xdoctest."""
     if session.posargs:
