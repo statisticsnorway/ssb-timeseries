@@ -176,13 +176,12 @@ def install_poetry_group(session: Session, group: str) -> None:
     )
     session.install("-r", str(requirements))
 
-def install_notebook_dependencies(session: Session) -> None:
-    session.install(
+NOTEBOOK_DEPENDENCIES = [
         "marimo",
         "tabulate",
         "jinja2",
         # Other notebook-specific dependencies
-    )
+]
 
 @nox.session(python=python_versions[0])
 def lint(session: Session) -> None:
@@ -216,6 +215,7 @@ def mypy(session: Session) -> None:
 def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(".")
+    session.install(NOTEBOOK_DEPENDENCIES)
     session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata", "typeguard")
 
     # If on Windows, find the installed tzdata path and set the env var to avoid:
@@ -265,7 +265,7 @@ def coverage(session: Session) -> None:
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     session.install("pytest", "typeguard", "pygments",) #"click","marimo", "tabulate")
-    install_notebook_dependencies(session)
+    session.install(NOTEBOOK_DEPENDENCIES)
     session.install(".")
     #session.run("pip", "install", "-e", ".") # RYE: editable is better practice? --> apply everywhere?
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
