@@ -158,6 +158,9 @@ def test_config_validation(
         ("defaults", "", ""),
         ("home", "", ""),
         ("daplalab", "", ""),
+        ("DEFAULTS", "", ""),
+        ("HOME", "", ""),
+        ("DAPLALAB", "", ""),
     ],
 )
 def test_config_presets_returns_valid_config_with_expected_value(
@@ -175,6 +178,7 @@ def test_config_presets_returns_valid_config_with_expected_value(
     assert cfg.is_valid
     if attr:
         assert cfg.__getattribute__(attr) == value
+    assert cfg == config.PRESETS[preset_name.lower()]  # tests implementation :(
 
 
 def test_init_config_without_params_returns_existing_config_specified_by_env_var(

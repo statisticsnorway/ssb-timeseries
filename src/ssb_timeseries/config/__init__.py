@@ -182,9 +182,9 @@ class Config:
 
         kwargs_are_complete_config = is_valid_config(kwargs)[0]
 
-        if preset_name := kwargs.pop("preset", ""):
+        if preset_name:
             _config_logger.debug(f"Loading preset configuration {preset_name}.")
-            self.apply(copy.deepcopy(PRESETS[preset_name]))
+            self.apply(presets(preset_name))
             return
         elif kwargs_are_complete_config:
             _config_logger.debug("Complete configuration in parameters.\n%s", kwargs)
@@ -214,7 +214,7 @@ class Config:
             else:
                 config_from_file = {}
 
-            config_values = copy.deepcopy(PRESETS["default"])
+            config_values = presets("default")
             config_values.update(config_from_file)  # type: ignore [typeddict-item]
         elif active_file():
             _config_logger.debug(f"Loading configuration from {active_file()}")
@@ -229,7 +229,7 @@ class Config:
             # _config_logger.warning(
             #    f"The environment variable {ENV_VAR_NAME} did not exist and no configuration file parameter was provided. Loading default configuration."
             # )
-            config_values = copy.deepcopy(PRESETS["defaults"])
+            config_values = presets("defaults")
 
         config_values.update(kwargs)  # type: ignore [typeddict-item]
         self.apply(config_values)
@@ -413,12 +413,12 @@ def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100
     Raises:
         ValueError: If args is not 'home' | 'daplalab'.
     """
-    if named_config in PRESETS:
-        cfg = PRESETS[named_config]
+    p = named_config.lower()
+    if p in PRESETS:
         # cfg["logging"]["handlers"]["file"]["filename"] = cfg.pop("log_file", "")
-        return cfg
+        return copy.deepcopy(PRESETS[p])
     else:
-        raise ValueError(
+        raise KeyError(
             f"Named configuration preset '{named_config}' was not recognized."
         )
 
