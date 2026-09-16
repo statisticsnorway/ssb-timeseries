@@ -248,8 +248,9 @@ class Config:
         config_ok, reason = is_valid_config(configuration=configuration)
 
         if not config_ok:
-            _config_logger.error(f"Invalid configuration {configuration}\n{reason}.")
-            raise ValidationError(f"Invalid configuration:\n{configuration}\n{reason}.")
+            message = f"Invalid configuration: {str(reason)!r}"
+            _config_logger.error(message)
+            raise ValidationError(message)
 
         logfile = configuration.pop("log_file", "")
         if logfile:  # and not logging:

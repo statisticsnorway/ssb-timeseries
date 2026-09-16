@@ -32,10 +32,6 @@ from pathlib import Path
 
 from .types import ConfigDict
 
-# from .types import FileBasedRepository
-# from .types import FileRepoConfig
-# from .types import Repository
-
 # mypy: disable-error-code="assignment, arg-type, override,call-arg,has-type,no-untyped-def,attr-defined,import-untyped,"
 
 PACKAGE_NAME = "ssb_timeseries"
