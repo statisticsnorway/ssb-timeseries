@@ -17,10 +17,10 @@ from narwhals.typing import IntoFrameT
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
-from .dates import standardize_dates
-from .types import SeriesType
-from .types import Temporality
-from .types import Versioning
+from ..dates import standardize_dates
+from ..types import SeriesType
+from ..types import Temporality
+from ..types import Versioning
 
 # mypy: disable-error-code="union-attr"
 

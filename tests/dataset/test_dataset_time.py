@@ -6,14 +6,12 @@ import pytest
 import ssb_timeseries as ts
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.logging import log_start_stop
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.types import SeriesType
 
 # mypy: ignore-errors
 
 
-@log_start_stop
 def test_correct_datetime_columns_valid_at(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
@@ -28,7 +26,6 @@ def test_correct_datetime_columns_valid_at(caplog) -> None:
     assert a.datetime_columns == ["valid_at"]
 
 
-@log_start_stop
 def test_correct_datetime_columns_valid_from_to(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
@@ -48,7 +45,6 @@ def test_correct_datetime_columns_valid_from_to(caplog) -> None:
     assert a.datetime_columns.sort() == ["valid_from", "valid_to"].sort()
 
 
-@log_start_stop
 def test_dataset_groupby_sum(caplog):
     caplog.set_level(logging.DEBUG)
 
@@ -64,7 +60,6 @@ def test_dataset_groupby_sum(caplog):
     assert y.data.shape == (14, 3)
 
 
-@log_start_stop
 def test_dataset_groupby_mean(caplog):
     caplog.set_level(logging.DEBUG)
 
@@ -83,7 +78,6 @@ def test_dataset_groupby_mean(caplog):
 
 
 @pytest.mark.skip(reason="Not ready yet.")
-@log_start_stop
 def test_dataset_groupby_auto(caplog):
     caplog.set_level(logging.DEBUG)
 
@@ -106,7 +100,6 @@ def test_dataset_groupby_auto(caplog):
     assert ~all(df == df_sum)
 
 
-@log_start_stop
 def test_dataset_resample_upsampling_ffil(caplog):
     caplog.set_level(logging.DEBUG)
 
@@ -130,7 +123,6 @@ def test_dataset_resample_upsampling_ffil(caplog):
     assert y.data.shape == (335, 3)
 
 
-@log_start_stop
 def test_dataset_resample_downsampling_w_mean(caplog):
     caplog.set_level(logging.DEBUG)
 
