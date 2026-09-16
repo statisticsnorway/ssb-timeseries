@@ -25,7 +25,7 @@ from .conftest import LogWarningFilter
 # mypy: ignore-errors
 
 
-####################### FIXTURES TO ENSURE RIGHT CONFIG ########################
+# ===== FIXTURES TO ENSURE RIGHT CONFIG ==============================
 class TestSetup:
     """Package logger and configuration for each test case."""
 
@@ -43,7 +43,7 @@ class TestSetup:
         self.configuration = config
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture
 def ts_with_logging(buildup_and_teardown) -> Generator:
     """For test cases WITH logging, we can use the default test configurations as is."""
     log_config_before = buildup_and_teardown.logging
@@ -60,7 +60,7 @@ def ts_with_logging(buildup_and_teardown) -> Generator:
     buildup_and_teardown.save()
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture
 def ts_without_logging(buildup_and_teardown) -> Generator:
     """For test cases WITHOUT logging, we ned to empty logging configurations and remove any previously added loggers."""
     log_config_before = deepcopy(buildup_and_teardown.logging)
@@ -73,7 +73,7 @@ def ts_without_logging(buildup_and_teardown) -> Generator:
     buildup_and_teardown.save()
 
 
-#################################### TESTS #####################################
+# ===== TESTS ===========================================================
 
 
 def test_logging_configuration_default_log_level_is_info(
