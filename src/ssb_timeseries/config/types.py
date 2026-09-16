@@ -48,37 +48,6 @@ class ConfigDict(TypedDict):
     logging: Required[dict[str, Any]]
 
 
-def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
-    """Check if a dictionary is a valid configuration :py:class:`ConfigDict`."""
-    # The ConfigDict.__required_keys__ includes optional fields like 'snapshots' and 'sharing'
-    # which causes a ValidationError when the default configuration is loaded.
-    # To fix this, we explicitly define the required keys.
-    # missing_required = ConfigDict.__required_keys__ - set(configuration.keys())
-    required_keys = {"configuration_file", "io_handlers", "repositories", "logging"}
-    missing_required = required_keys - set(configuration.keys())
-    if missing_required:
-        msg = f"Configuration is missing required fields: {list(missing_required)}\n{configuration}"
-        return (False, msg)
-
-    wrong_type = []
-    for (
-        cfg_key,
-        cfg_expected_type,
-    ) in ConfigDict().items():  # type: ignore [typeddict-item]
-        config_item = configuration.get(cfg_key, None)
-        cfg_got_type = type(config_item)
-        if cfg_got_type is type(cfg_expected_type):
-            wrong_type.append(
-                f"{cfg_key} - got {cfg_got_type} - expected {cfg_expected_type}"
-            )
-
-    if wrong_type:
-        msg = f"Configuration fields have wrong type: {wrong_type}"
-        return (False, msg)
-
-    return (True, None)
-
-
 class MissingEnvironmentVariableError(Exception):
     """The environment variable TIMESEREIS_CONFIG must be defined."""
 

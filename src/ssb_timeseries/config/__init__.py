@@ -83,7 +83,7 @@ def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
     required_keys = {"configuration_file", "io_handlers", "repositories", "logging"}
     missing_required = required_keys - set(configuration.keys())
     if missing_required:
-        msg = f"Configuration is missing required fields: {list(missing_required)}\n{configuration}"
+        msg = f"Configuration is missing required fields: {list(missing_required)}"
         return (False, msg)
 
     wrong_type = []
