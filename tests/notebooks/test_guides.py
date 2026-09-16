@@ -38,6 +38,7 @@ def subprocess_run_marimo_notebook(notebook_name: str, config: Config):
             sys.executable,  # use same Python environment and virtual environment
             f"{NOTEBOOK_DIR}/{notebook_name}",
         ],
+        encoding="utf-8",
         env=environment,
         capture_output=True,
         text=True,
