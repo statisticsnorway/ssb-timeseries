@@ -183,7 +183,7 @@ NOTEBOOK_DEPENDENCIES = [
         # Other notebook-specific dependencies
 ]
 
-@nox.session(python=python_versions[0])
+@nox.session(python=python_versions[-1])
 def lint(session: Session) -> None:
     """Ruff format check."""
     # We install ruff directly.
@@ -261,7 +261,7 @@ def coverage(session: Session) -> None:
     session.run("coverage", *args)
 
 
-@session(python=python_versions[-2])
+@session(python=python_versions[-1])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     session.install("pytest", "typeguard", "pygments",) #"click","marimo", "tabulate")
@@ -296,7 +296,7 @@ def xdoctest(session: Session) -> None:
     )
 
 
-@session(name="docs-build", python=python_versions[-1])
+@session(name="docs-build", python=python_versions[1])
 def docs_build(session: Session) -> None:
     """Build the documentation."""
     args = session.posargs or ["docs", "docs/_build"]
