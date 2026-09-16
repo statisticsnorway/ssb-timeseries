@@ -51,7 +51,6 @@ ruff = ">=0.0.284"
 typeguard = ">=2.13.3"
 xdoctest = { extras = ["colors"], version = ">=0.15.10" }
 deptry = ">=0.16.1"
-click = ">=8.1.7"
 pandas-stubs = "^2.3.2.250926"
 pyarrow-stubs = "^20.0.0.20250928"
 types-python-dateutil = "^2.9.0.20251008"

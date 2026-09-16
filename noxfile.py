@@ -24,7 +24,7 @@ except ImportError:
 
 package = "ssb_timeseries"
 python_versions = ["3.11", "3.12", "3.13", "3.14"]
-python_versions_for_test = python_versions #+ ["3.10"]
+python_versions_for_test = python_versions #+ [older_versions[0]]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "lint",
@@ -176,6 +176,14 @@ def install_poetry_group(session: Session, group: str) -> None:
     )
     session.install("-r", str(requirements))
 
+def install_notebook_dependencies(session: Session) -> None:
+    session.install(
+        "marimo",
+        "tabulate",
+        "jinja2",
+        # Other notebook-specific dependencies
+    )
+
 @nox.session(python=python_versions[0])
 def lint(session: Session) -> None:
     """Ruff format check."""
@@ -208,7 +216,7 @@ def mypy(session: Session) -> None:
 def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(".")
-    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata")
+    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata", "typeguard")
 
     # If on Windows, find the installed tzdata path and set the env var to avoid:
     #  E  pyarrow.lib.ArrowInvalid: Cannot locate timezone 'Europe/Oslo':
@@ -240,7 +248,7 @@ def tests(session: Session) -> None:
             session.notify("coverage", posargs=[])
 
 
-@session(python=python_versions[0])
+@session(python=python_versions[-1])
 def coverage(session: Session) -> None:
     """Produce the coverage report."""
     args = session.posargs or ["report", "--skip-empty"]
@@ -256,7 +264,8 @@ def coverage(session: Session) -> None:
 @session(python=python_versions[-1])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
-    session.install("pytest", "typeguard", "pygments", "click","marimo")
+    session.install("pytest", "typeguard", "pygments",) #"click","marimo", "tabulate")
+    install_notebook_dependencies(session)
     session.install(".")
     #session.run("pip", "install", "-e", ".") # RYE: editable is better practice? --> apply everywhere?
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
