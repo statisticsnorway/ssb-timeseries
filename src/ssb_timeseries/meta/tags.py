@@ -10,8 +10,6 @@ from __future__ import annotations
 
 from copy import deepcopy
 from typing import Any
-
-# from typing import TypeAlias
 from typing import no_type_check
 
 import ssb_timeseries as ts
@@ -72,7 +70,6 @@ def search_by_tags(
     Returns:
         A list of keys for tags that match the criteria.
     """
-    # return list(filter_tags(tags, criteria).keys())
     if isinstance(criteria, list):
         return [
             key
@@ -258,10 +255,7 @@ def delete_dataset_tags(
     **kwargs: SeriesTagDict | bool,
 ) -> DatasetTagDict:
     """Remove selected attributes from dataset tag dictionary."""
-    # remove_all = kwargs.pop("all", False)
     propagate = kwargs.pop("propagate", False)
-    # if remove_all: # wrong semantics!
-    #    return inherit_set_tags(dictionary)
 
     out = deepcopy(dictionary)
     out = rm_tags(out, *args)
@@ -295,13 +289,12 @@ def delete_series_tags(
         output_tags["series"] = delete_series_tags(
             output_tags["series"],
             *args,
-            # all=remove_all,
             **kwargs,
         )
         return output_tags
     else:
         for series_key, series_tags in output_tags.items():
-            if args:  # remove entiere attributes specified by args
+            if args:  # remove entire attributes specified by args
                 series_tags.pop(*args)
             if kwargs:  # remove matching (attr, val) specified by kwarg pairs
                 for k, v in kwargs.items():
@@ -310,7 +303,6 @@ def delete_series_tags(
         return output_tags
 
 
-# helpers:
 def to_tag_value(tag: TagValue | set) -> TagValue:
     """If input is a list of unique strings."""
     if isinstance(tag, str):

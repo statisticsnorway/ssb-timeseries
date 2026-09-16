@@ -226,9 +226,6 @@ class Config:
         #    raise MissingEnvironmentVariableError
         else:
             ...
-            # _config_logger.warning(
-            #    f"The environment variable {ENV_VAR_NAME} did not exist and no configuration file parameter was provided. Loading default configuration."
-            # )
             config_values = presets("defaults")
 
         config_values.update(kwargs)  # type: ignore [typeddict-item]
@@ -253,19 +250,10 @@ class Config:
             raise ValidationError(message)
 
         logfile = configuration.pop("log_file", "")
-        if logfile:  # and not logging:
-            # configuration["logging"] = {"logfile": logfile}
+        if logfile:
             _config_logger.warning(
                 "The config option 'log_file' has been deprecated. Use dictConfig instead."
             )
-        else:
-            ...
-            # --- if logging is valid logging.dictConfig -->
-            # (add file handler first?)
-            # handlers = configuration['logging'].get('handlers',{})
-            # filehandler =  handlers.get('file',{})
-            # if logfile and filehandler:
-            #     configuration['logging']['handlers']['file']['filename'] = logfile
 
         for key, value in configuration.items():
             setattr(self, key, value)
@@ -416,7 +404,6 @@ def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100
     """
     p = named_config.lower()
     if p in PRESETS:
-        # cfg["logging"]["handlers"]["file"]["filename"] = cfg.pop("log_file", "")
         return copy.deepcopy(PRESETS[p])
     else:
         raise KeyError(
