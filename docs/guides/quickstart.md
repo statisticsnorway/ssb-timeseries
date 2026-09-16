@@ -77,38 +77,19 @@ The following Python code will apply and save default settings.
 
 ```python {.marimo}
 cfg = Config(preset='default')
-cfg.activate()
 cfg.save()
+cfg.activate()
 ```
 
-The defaults may be OK for local use or testing.
+<!-- @output:BYtC -->
 
-```python {.marimo unparsable="true"}
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fcf4d9b7ed0&gt;</pre>
+
+The defaults may be OK for local use or testing.
+<!---->
 The activation will set the environment variable, but only in the current shell.
 That means, the effect is local and not permanent.
 It will be lost after the shell session that Python runs inside ends.
-```
-
-<!-- @output:Kclp -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">syntax: line 1
-    The activation will set the environment variable, but only in the current shell.
-        ^^^^^^^^^^
-SyntaxError: invalid syntax
-</pre>
-
-````python {.marimo}
-mo.md(f"""
-Note that while `.activate()` will set the environment variable, it wil not do so permanently.
-The variable will be gone when the active shell session that Python runs within ends.
-
-On a linux-like system, setting it permanently may look like:
-
-```bash
-echo 'export {ENV_VAR_NAME}="~/.config/ssb_timeseries/config.json"' >> .bashrc
-```
-""")
-````
 
 <!-- @output:emfo -->
 
@@ -121,9 +102,6 @@ On a linux-like system, setting it permanently may look like:
 echo 'export TIMESERIES_CONFIG="~/.config/ssb_timeseries/config.json"' >> .bashrc
 ```
 
-Inspecting the Configuration
-----------------------------
-
 To inspect the active configuration, either open the JSON file, or access it via `.active()`:
 
 ```python {.marimo}
@@ -132,7 +110,7 @@ Config.active()
 
 <!-- @output:nWHF -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fa3bbf33ed0&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fcf4d9b7ed0&gt;</pre>
 
 An alternative way is:
 
@@ -144,7 +122,7 @@ ts.get_configuration()
 
 <!-- @output:ZHCJ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fa3bbf33ed0&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fcf4d9b7ed0&gt;</pre>
 
 ```python {.marimo}
 cfg is Config.active()

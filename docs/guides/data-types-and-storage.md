@@ -43,6 +43,31 @@ print(tree(data_path))
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
+│   ├── Sample Data/
+│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -79,6 +104,7 @@ print(tree(data_path))
 │       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
+│   ├── AZ Drinks-metadata.json
 │   ├── AZ_drikkevarer-metadata.json
 │   ├── AZ_drinks-metadata.json
 │   ├── AZ_omsetning-metadata.json
@@ -92,11 +118,11 @@ print(tree(data_path))
 │   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
-│   ├── Sample Data/
-│   │   └── Sample Data-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 └── NONE_FROM_TO/
+    ├── AZ Drinks/
+    │   └── AZ Drinks-latest-data.parquet
     ├── AZ_drikkevarer/
     │   └── AZ_drikkevarer-latest-data.parquet
     ├── AZ_drinks/
@@ -151,17 +177,17 @@ pqr_df
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2020-01-01 | 80.0 | 110.0 | 110.0 |
-| 2020-01-02 | 80.0 | 100.0 | 90.0 |
-| 2020-01-03 | 110.0 | 120.0 | 70.0 |
-| 2020-01-04 | 110.0 | 100.0 | 90.0 |
-| 2020-01-05 | 100.0 | 100.0 | 100.0 |
+| 2020-01-01 | 90.0 | 100.0 | 110.0 |
+| 2020-01-02 | 90.0 | 100.0 | 100.0 |
+| 2020-01-03 | 90.0 | 100.0 | 90.0 |
+| 2020-01-04 | 120.0 | 100.0 | 80.0 |
+| 2020-01-05 | 100.0 | 110.0 | 110.0 |
 | ... | ... | ... | ... |
-| 2025-05-28 | 90.0 | 80.0 | 90.0 |
-| 2025-05-29 | 100.0 | 100.0 | 90.0 |
-| 2025-05-30 | 110.0 | 100.0 | 110.0 |
-| 2025-05-31 | 90.0 | 90.0 | 100.0 |
-| 2025-06-01 | 100.0 | 120.0 | 100.0 |
+| 2025-05-28 | 80.0 | 100.0 | 120.0 |
+| 2025-05-29 | 100.0 | 90.0 | 100.0 |
+| 2025-05-30 | 110.0 | 90.0 | 100.0 |
+| 2025-05-31 | 130.0 | 100.0 | 90.0 |
+| 2025-06-01 | 110.0 | 90.0 | 90.0 |
 
 ```python {.marimo}
 pqr = Dataset(
@@ -187,17 +213,17 @@ pqr.data
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2020-01-01 | 80.0 | 110.0 | 110.0 |
-| 2020-01-02 | 80.0 | 100.0 | 90.0 |
-| 2020-01-03 | 110.0 | 120.0 | 70.0 |
-| 2020-01-04 | 110.0 | 100.0 | 90.0 |
-| 2020-01-05 | 100.0 | 100.0 | 100.0 |
+| 2020-01-01 | 90.0 | 100.0 | 110.0 |
+| 2020-01-02 | 90.0 | 100.0 | 100.0 |
+| 2020-01-03 | 90.0 | 100.0 | 90.0 |
+| 2020-01-04 | 120.0 | 100.0 | 80.0 |
+| 2020-01-05 | 100.0 | 110.0 | 110.0 |
 | ... | ... | ... | ... |
-| 2025-05-28 | 90.0 | 80.0 | 90.0 |
-| 2025-05-29 | 100.0 | 100.0 | 90.0 |
-| 2025-05-30 | 110.0 | 100.0 | 110.0 |
-| 2025-05-31 | 90.0 | 90.0 | 100.0 |
-| 2025-06-01 | 100.0 | 120.0 | 100.0 |
+| 2025-05-28 | 80.0 | 100.0 | 120.0 |
+| 2025-05-29 | 100.0 | 90.0 | 100.0 |
+| 2025-05-30 | 110.0 | 90.0 | 100.0 |
+| 2025-05-31 | 130.0 | 100.0 | 90.0 |
+| 2025-06-01 | 110.0 | 90.0 | 90.0 |
 
 ```python {.marimo}
 pqr.tags
@@ -290,7 +316,7 @@ pqr.io.data_dir
 <!-- @output:ulZA -->
 
 <pre class="stderr" style="white-space: pre-wrap; overflow-wrap: break-word;">Traceback (most recent call last):
-  File &quot;/home/bernhard/code/ssb-timeseries/.nox/docs/tmp/marimo_141697/__marimo__cell_ulZA_.py&quot;, line 1, in
+  File &quot;/tmp/marimo_516146/__marimo__cell_ulZA_.py&quot;, line 1, in
     pqr.io.data_dir
     ^^^^^^
 AttributeError: &#x27;Dataset&#x27; object has no attribute &#x27;io&#x27;
@@ -307,6 +333,31 @@ print(tree(data_path))
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
+│   ├── Sample Data/
+│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -343,6 +394,7 @@ print(tree(data_path))
 │       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
+│   ├── AZ Drinks-metadata.json
 │   ├── AZ_drikkevarer-metadata.json
 │   ├── AZ_drinks-metadata.json
 │   ├── AZ_omsetning-metadata.json
@@ -356,11 +408,11 @@ print(tree(data_path))
 │   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
-│   ├── Sample Data/
-│   │   └── Sample Data-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 └── NONE_FROM_TO/
+    ├── AZ Drinks/
+    │   └── AZ Drinks-latest-data.parquet
     ├── AZ_drikkevarer/
     │   └── AZ_drikkevarer-latest-data.parquet
     ├── AZ_drinks/
@@ -376,6 +428,31 @@ print(tree(data_path))
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
+│   ├── Sample Data/
+│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -412,6 +489,7 @@ print(tree(data_path))
 │       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
+│   ├── AZ Drinks-metadata.json
 │   ├── AZ_drikkevarer-metadata.json
 │   ├── AZ_drinks-metadata.json
 │   ├── AZ_omsetning-metadata.json
@@ -425,11 +503,11 @@ print(tree(data_path))
 │   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
-│   ├── Sample Data/
-│   │   └── Sample Data-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 └── NONE_FROM_TO/
+    ├── AZ Drinks/
+    │   └── AZ Drinks-latest-data.parquet
     ├── AZ_drikkevarer/
     │   └── AZ_drikkevarer-latest-data.parquet
     ├── AZ_drinks/
@@ -445,6 +523,31 @@ print(tree(data_path))
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
+│   ├── Sample Data/
+│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -481,6 +584,7 @@ print(tree(data_path))
 │       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
+│   ├── AZ Drinks-metadata.json
 │   ├── AZ_drikkevarer-metadata.json
 │   ├── AZ_drinks-metadata.json
 │   ├── AZ_omsetning-metadata.json
@@ -494,11 +598,11 @@ print(tree(data_path))
 │   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
-│   ├── Sample Data/
-│   │   └── Sample Data-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 └── NONE_FROM_TO/
+    ├── AZ Drinks/
+    │   └── AZ Drinks-latest-data.parquet
     ├── AZ_drikkevarer/
     │   └── AZ_drikkevarer-latest-data.parquet
     ├── AZ_drinks/
@@ -514,6 +618,31 @@ print(tree(data_path))
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
+│   ├── Sample Data/
+│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -550,6 +679,7 @@ print(tree(data_path))
 │       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
+│   ├── AZ Drinks-metadata.json
 │   ├── AZ_drikkevarer-metadata.json
 │   ├── AZ_drinks-metadata.json
 │   ├── AZ_omsetning-metadata.json
@@ -563,11 +693,11 @@ print(tree(data_path))
 │   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
-│   ├── Sample Data/
-│   │   └── Sample Data-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 └── NONE_FROM_TO/
+    ├── AZ Drinks/
+    │   └── AZ Drinks-latest-data.parquet
     ├── AZ_drikkevarer/
     │   └── AZ_drikkevarer-latest-data.parquet
     ├── AZ_drinks/
@@ -583,6 +713,31 @@ print(tree(data_path))
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
+│   ├── Sample Data/
+│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -619,6 +774,7 @@ print(tree(data_path))
 │       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
+│   ├── AZ Drinks-metadata.json
 │   ├── AZ_drikkevarer-metadata.json
 │   ├── AZ_drinks-metadata.json
 │   ├── AZ_omsetning-metadata.json
@@ -632,11 +788,11 @@ print(tree(data_path))
 │   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
-│   ├── Sample Data/
-│   │   └── Sample Data-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 └── NONE_FROM_TO/
+    ├── AZ Drinks/
+    │   └── AZ Drinks-latest-data.parquet
     ├── AZ_drikkevarer/
     │   └── AZ_drikkevarer-latest-data.parquet
     ├── AZ_drinks/
@@ -663,9 +819,9 @@ q: double
 r: double
 ----
 valid_at: &#91;&#91;2019-12-31 23:00:00.000000000Z,2020-01-01 23:00:00.000000000Z,2020-01-02 23:00:00.000000000Z,2020-01-03 23:00:00.000000000Z,2020-01-04 23:00:00.000000000Z,...,2025-05-27 22:00:00.000000000Z,2025-05-28 22:00:00.000000000Z,2025-05-29 22:00:00.000000000Z,2025-05-30 22:00:00.000000000Z,2025-05-31 22:00:00.000000000Z&#93;&#93;
-p: &#91;&#91;80,80,110,110,100,...,90,100,110,90,100&#93;&#93;
-q: &#91;&#91;110,100,120,100,100,...,80,100,100,90,120&#93;&#93;
-r: &#91;&#91;110,90,70,90,100,...,90,90,110,100,100&#93;&#93;</pre>
+p: &#91;&#91;90,90,90,120,100,...,80,100,110,130,110&#93;&#93;
+q: &#91;&#91;100,100,100,100,110,...,100,90,90,100,90&#93;&#93;
+r: &#91;&#91;110,100,90,80,110,...,120,100,100,90,90&#93;&#93;</pre>
 
 ```python {.marimo}
 x.nw.to_pandas()
@@ -675,17 +831,17 @@ x.nw.to_pandas()
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2019-12-31 23:00:00+00:00 | 80.0 | 110.0 | 110.0 |
-| 2020-01-01 23:00:00+00:00 | 80.0 | 100.0 | 90.0 |
-| 2020-01-02 23:00:00+00:00 | 110.0 | 120.0 | 70.0 |
-| 2020-01-03 23:00:00+00:00 | 110.0 | 100.0 | 90.0 |
-| 2020-01-04 23:00:00+00:00 | 100.0 | 100.0 | 100.0 |
+| 2019-12-31 23:00:00+00:00 | 90.0 | 100.0 | 110.0 |
+| 2020-01-01 23:00:00+00:00 | 90.0 | 100.0 | 100.0 |
+| 2020-01-02 23:00:00+00:00 | 90.0 | 100.0 | 90.0 |
+| 2020-01-03 23:00:00+00:00 | 120.0 | 100.0 | 80.0 |
+| 2020-01-04 23:00:00+00:00 | 100.0 | 110.0 | 110.0 |
 | ... | ... | ... | ... |
-| 2025-05-27 22:00:00+00:00 | 90.0 | 80.0 | 90.0 |
-| 2025-05-28 22:00:00+00:00 | 100.0 | 100.0 | 90.0 |
-| 2025-05-29 22:00:00+00:00 | 110.0 | 100.0 | 110.0 |
-| 2025-05-30 22:00:00+00:00 | 90.0 | 90.0 | 100.0 |
-| 2025-05-31 22:00:00+00:00 | 100.0 | 120.0 | 100.0 |
+| 2025-05-27 22:00:00+00:00 | 80.0 | 100.0 | 120.0 |
+| 2025-05-28 22:00:00+00:00 | 100.0 | 90.0 | 100.0 |
+| 2025-05-29 22:00:00+00:00 | 110.0 | 90.0 | 100.0 |
+| 2025-05-30 22:00:00+00:00 | 130.0 | 100.0 | 90.0 |
+| 2025-05-31 22:00:00+00:00 | 110.0 | 90.0 | 90.0 |
 
 ```python {.marimo}
 x.plot()
@@ -704,16 +860,16 @@ more_pqr_data
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2025-05-29 | 100.0 | 100.0 | 100.0 |
-| 2025-05-30 | 90.0 | 100.0 | 100.0 |
-| 2025-05-31 | 80.0 | 110.0 | 90.0 |
+| 2025-05-29 | 100.0 | 100.0 | 90.0 |
+| 2025-05-30 | 110.0 | 120.0 | 100.0 |
+| 2025-05-31 | 110.0 | 100.0 | 80.0 |
 | 2025-06-01 | 100.0 | 100.0 | 90.0 |
-| 2025-06-02 | 100.0 | 80.0 | 110.0 |
+| 2025-06-02 | 100.0 | 90.0 | 100.0 |
 | ... | ... | ... | ... |
-| 2025-08-11 | 100.0 | 90.0 | 110.0 |
-| 2025-08-12 | 120.0 | 110.0 | 100.0 |
-| 2025-08-13 | 90.0 | 120.0 | 110.0 |
-| 2025-08-14 | 90.0 | 100.0 | 90.0 |
+| 2025-08-11 | 100.0 | 110.0 | 100.0 |
+| 2025-08-12 | 100.0 | 100.0 | 100.0 |
+| 2025-08-13 | 100.0 | 110.0 | 90.0 |
+| 2025-08-14 | 100.0 | 80.0 | 110.0 |
 | 2025-08-15 | 90.0 | 100.0 | 90.0 |
 
 ```python {.marimo}
@@ -743,30 +899,30 @@ print(pqr_second_write.data)
 <!-- @output:pHFh -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">       valid_at      p      q      r
-0    2020-01-01   80.0  110.0  110.0
-1    2020-01-02   80.0  100.0   90.0
-2    2020-01-03  110.0  120.0   70.0
-3    2020-01-04  110.0  100.0   90.0
-4    2020-01-05  100.0  100.0  100.0
+0    2020-01-01   90.0  100.0  110.0
+1    2020-01-02   90.0  100.0  100.0
+2    2020-01-03   90.0  100.0   90.0
+3    2020-01-04  120.0  100.0   80.0
+4    2020-01-05  100.0  110.0  110.0
 ...         ...    ...    ...    ...
-1974 2025-05-28   90.0   80.0   90.0
-1975 2025-05-29  100.0  100.0   90.0
-1976 2025-05-30  110.0  100.0  110.0
-1977 2025-05-31   90.0   90.0  100.0
-1978 2025-06-01  100.0  120.0  100.0
+1974 2025-05-28   80.0  100.0  120.0
+1975 2025-05-29  100.0   90.0  100.0
+1976 2025-05-30  110.0   90.0  100.0
+1977 2025-05-31  130.0  100.0   90.0
+1978 2025-06-01  110.0   90.0   90.0
 
 &#91;1979 rows x 4 columns&#93;
      valid_at      p      q      r
-0  2025-05-29  100.0  100.0  100.0
-1  2025-05-30   90.0  100.0  100.0
-2  2025-05-31   80.0  110.0   90.0
+0  2025-05-29  100.0  100.0   90.0
+1  2025-05-30  110.0  120.0  100.0
+2  2025-05-31  110.0  100.0   80.0
 3  2025-06-01  100.0  100.0   90.0
-4  2025-06-02  100.0   80.0  110.0
+4  2025-06-02  100.0   90.0  100.0
 ..        ...    ...    ...    ...
-74 2025-08-11  100.0   90.0  110.0
-75 2025-08-12  120.0  110.0  100.0
-76 2025-08-13   90.0  120.0  110.0
-77 2025-08-14   90.0  100.0   90.0
+74 2025-08-11  100.0  110.0  100.0
+75 2025-08-12  100.0  100.0  100.0
+76 2025-08-13  100.0  110.0   90.0
+77 2025-08-14  100.0   80.0  110.0
 78 2025-08-15   90.0  100.0   90.0
 
 &#91;79 rows x 4 columns&#93;
@@ -782,17 +938,17 @@ y.nw.to_polars()
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
 | datetime[ns, UTC] | f64 | f64 | f64 |
-| 2019-12-31 23:00:00 UTC | 80.0 | 110.0 | 110.0 |
-| 2020-01-01 23:00:00 UTC | 80.0 | 100.0 | 90.0 |
-| 2020-01-02 23:00:00 UTC | 110.0 | 120.0 | 70.0 |
-| 2020-01-03 23:00:00 UTC | 110.0 | 100.0 | 90.0 |
-| 2020-01-04 23:00:00 UTC | 100.0 | 100.0 | 100.0 |
+| 2019-12-31 23:00:00 UTC | 90.0 | 100.0 | 110.0 |
+| 2020-01-01 23:00:00 UTC | 90.0 | 100.0 | 100.0 |
+| 2020-01-02 23:00:00 UTC | 90.0 | 100.0 | 90.0 |
+| 2020-01-03 23:00:00 UTC | 120.0 | 100.0 | 80.0 |
+| 2020-01-04 23:00:00 UTC | 100.0 | 110.0 | 110.0 |
 | … | … | … | … |
-| 2025-05-27 22:00:00 UTC | 90.0 | 80.0 | 90.0 |
-| 2025-05-28 22:00:00 UTC | 100.0 | 100.0 | 90.0 |
-| 2025-05-29 22:00:00 UTC | 110.0 | 100.0 | 110.0 |
-| 2025-05-30 22:00:00 UTC | 90.0 | 90.0 | 100.0 |
-| 2025-05-31 22:00:00 UTC | 100.0 | 120.0 | 100.0 |
+| 2025-05-27 22:00:00 UTC | 80.0 | 100.0 | 120.0 |
+| 2025-05-28 22:00:00 UTC | 100.0 | 90.0 | 100.0 |
+| 2025-05-29 22:00:00 UTC | 110.0 | 90.0 | 100.0 |
+| 2025-05-30 22:00:00 UTC | 130.0 | 100.0 | 90.0 |
+| 2025-05-31 22:00:00 UTC | 110.0 | 90.0 | 90.0 |
 
 ```python {.marimo}
 # ... but the data file has been overwritten:
@@ -806,9 +962,9 @@ y.nw.to_polars().filter(
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
 | datetime[ns, UTC] | f64 | f64 | f64 |
-| 2025-05-29 22:00:00 UTC | 110.0 | 100.0 | 110.0 |
-| 2025-05-30 22:00:00 UTC | 90.0 | 90.0 | 100.0 |
-| 2025-05-31 22:00:00 UTC | 100.0 | 120.0 | 100.0 |
+| 2025-05-29 22:00:00 UTC | 110.0 | 90.0 | 100.0 |
+| 2025-05-30 22:00:00 UTC | 130.0 | 100.0 | 90.0 |
+| 2025-05-31 22:00:00 UTC | 110.0 | 90.0 | 90.0 |
 
 ```python {.marimo}
 # note that for unversioned type: we operate on the same files all the way
@@ -819,6 +975,31 @@ print(tree(data_path))
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
+│   ├── Sample Data/
+│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -855,6 +1036,7 @@ print(tree(data_path))
 │       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
+│   ├── AZ Drinks-metadata.json
 │   ├── AZ_drikkevarer-metadata.json
 │   ├── AZ_drinks-metadata.json
 │   ├── AZ_omsetning-metadata.json
@@ -868,11 +1050,11 @@ print(tree(data_path))
 │   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
-│   ├── Sample Data/
-│   │   └── Sample Data-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 └── NONE_FROM_TO/
+    ├── AZ Drinks/
+    │   └── AZ Drinks-latest-data.parquet
     ├── AZ_drikkevarer/
     │   └── AZ_drikkevarer-latest-data.parquet
     ├── AZ_drinks/
@@ -909,17 +1091,17 @@ xx.data
 | p | q | r |
 | --- | --- | --- |
 |  |  |  |
-| 80.0 | 110.0 | 110.0 |
-| 9120.0 | 9210.0 | 9020.0 |
-| 9170.0 | 9220.0 | 9150.0 |
-| 9180.0 | 9240.0 | 9250.0 |
-| 9110.0 | 8980.0 | 9150.0 |
+| 90.0 | 100.0 | 110.0 |
+| 9200.0 | 9180.0 | 9010.0 |
+| 9240.0 | 9150.0 | 9110.0 |
+| 9170.0 | 9200.0 | 9120.0 |
+| 9320.0 | 9290.0 | 9340.0 |
 | ... | ... | ... |
-| 9190.0 | 9150.0 | 9220.0 |
-| 9390.0 | 9310.0 | 9190.0 |
-| 9130.0 | 9140.0 | 9020.0 |
-| 9100.0 | 9240.0 | 9100.0 |
-| 6070.0 | 6180.0 | 6160.0 |
+| 9150.0 | 9110.0 | 9010.0 |
+| 9380.0 | 9090.0 | 9230.0 |
+| 9180.0 | 9170.0 | 9270.0 |
+| 9060.0 | 9150.0 | 9040.0 |
+| 6100.0 | 6120.0 | 6090.0 |
 
 ### Eksempel: data for periode / intervall
 
@@ -960,12 +1142,12 @@ bigger_data
 | valid_from | valid_to | a_antall_kaffe | a_antall_te | a_antall_brus | a_antall_øl | a_antall_vin | a_pris_kaffe | a_pris_te | a_pris_brus | a_pris_øl | a_pris_vin | b_antall_kaffe | b_antall_te | b_antall_brus | b_antall_øl | b_antall_vin | b_pris_kaffe | b_pris_te | b_pris_brus | b_pris_øl | b_pris_vin | c_antall_kaffe | c_antall_te | c_antall_brus | c_antall_øl | c_antall_vin | c_pris_kaffe | c_pris_te | c_pris_brus | c_pris_øl | c_pris_vin | d_antall_kaffe | d_antall_te | d_antall_brus | d_antall_øl | d_antall_vin | … | w_antall_øl | w_antall_vin | w_pris_kaffe | w_pris_te | w_pris_brus | w_pris_øl | w_pris_vin | x_antall_kaffe | x_antall_te | x_antall_brus | x_antall_øl | x_antall_vin | x_pris_kaffe | x_pris_te | x_pris_brus | x_pris_øl | x_pris_vin | y_antall_kaffe | y_antall_te | y_antall_brus | y_antall_øl | y_antall_vin | y_pris_kaffe | y_pris_te | y_pris_brus | y_pris_øl | y_pris_vin | z_antall_kaffe | z_antall_te | z_antall_brus | z_antall_øl | z_antall_vin | z_pris_kaffe | z_pris_te | z_pris_brus | z_pris_øl | z_pris_vin |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | datetime[μs] | datetime[μs] | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | … | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 |
-| 2025-01-01 00:00:00 | 2025-02-01 00:00:00 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 90.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 120.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | … | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 120.0 | 80.0 | 90.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 120.0 | 110.0 | 100.0 | 80.0 | 110.0 | 80.0 | 120.0 | 100.0 | 100.0 | 90.0 | 120.0 | 110.0 | 100.0 | 90.0 | 100.0 | 120.0 | 110.0 | 110.0 | 110.0 |
-| 2025-02-01 00:00:00 | 2025-03-01 00:00:00 | 100.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 90.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 | 100.0 | 120.0 | 100.0 | 90.0 | 80.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 80.0 | 90.0 | 90.0 | 100.0 | 90.0 | … | 90.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 80.0 | 100.0 | 90.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 | 110.0 | 100.0 | 100.0 | 100.0 | 130.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 |
-| 2025-03-01 00:00:00 | 2025-04-01 00:00:00 | 100.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 120.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 90.0 | 100.0 | 90.0 | 100.0 | 90.0 | 90.0 | 110.0 | 80.0 | 110.0 | 100.0 | 100.0 | 90.0 | 90.0 | 110.0 | 90.0 | 80.0 | 90.0 | … | 100.0 | 90.0 | 90.0 | 110.0 | 100.0 | 90.0 | 90.0 | 100.0 | 100.0 | 80.0 | 100.0 | 80.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 120.0 | 90.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 120.0 | 80.0 | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 90.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 |
-| 2025-04-01 00:00:00 | 2025-05-01 00:00:00 | 80.0 | 100.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 90.0 | 90.0 | 70.0 | 100.0 | 100.0 | 110.0 | 90.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 90.0 | 100.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 80.0 | 90.0 | 100.0 | … | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 90.0 | 110.0 | 80.0 | 80.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 130.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 120.0 | 80.0 | 100.0 | 110.0 | 80.0 | 100.0 | 100.0 | 80.0 | 100.0 | 110.0 | 100.0 | 80.0 |
-| 2025-05-01 00:00:00 | 2025-06-01 00:00:00 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 120.0 | 80.0 | 110.0 | 90.0 | … | 110.0 | 90.0 | 110.0 | 110.0 | 100.0 | 90.0 | 100.0 | 90.0 | 90.0 | 100.0 | 90.0 | 120.0 | 90.0 | 100.0 | 90.0 | 100.0 | 100.0 | 80.0 | 120.0 | 90.0 | 110.0 | 110.0 | 100.0 | 100.0 | 110.0 | 80.0 | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 120.0 |
-| 2025-06-01 00:00:00 | 2025-07-01 00:00:00 | 100.0 | 100.0 | 100.0 | 90.0 | 110.0 | 90.0 | 110.0 | 110.0 | 110.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 110.0 | 110.0 | 100.0 | 100.0 | 110.0 | 80.0 | 70.0 | 110.0 | 90.0 | 80.0 | 80.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 90.0 | … | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 90.0 | 90.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 110.0 | 120.0 | 90.0 | 80.0 | 100.0 | 110.0 | 100.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 120.0 | 120.0 | 100.0 | 100.0 | 120.0 | 100.0 | 90.0 | 100.0 |
+| 2025-01-01 00:00:00 | 2025-02-01 00:00:00 | 110.0 | 90.0 | 80.0 | 100.0 | 90.0 | 120.0 | 120.0 | 90.0 | 130.0 | 90.0 | 80.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 110.0 | 110.0 | 90.0 | 80.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 120.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 100.0 | 100.0 | … | 110.0 | 90.0 | 80.0 | 100.0 | 100.0 | 80.0 | 110.0 | 110.0 | 100.0 | 90.0 | 90.0 | 80.0 | 130.0 | 90.0 | 110.0 | 90.0 | 90.0 | 110.0 | 100.0 | 90.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 | 90.0 | 110.0 | 80.0 | 110.0 |
+| 2025-02-01 00:00:00 | 2025-03-01 00:00:00 | 80.0 | 120.0 | 100.0 | 100.0 | 90.0 | 90.0 | 80.0 | 120.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 80.0 | 90.0 | 90.0 | 110.0 | 100.0 | 80.0 | 110.0 | 90.0 | 90.0 | 90.0 | 90.0 | 100.0 | 100.0 | 90.0 | 80.0 | 80.0 | 100.0 | 110.0 | 100.0 | 110.0 | … | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 120.0 | 110.0 | 110.0 | 110.0 | 120.0 | 80.0 | 100.0 | 80.0 | 90.0 | 120.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 120.0 |
+| 2025-03-01 00:00:00 | 2025-04-01 00:00:00 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 80.0 | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 80.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 120.0 | 110.0 | 110.0 | 80.0 | 110.0 | 110.0 | 100.0 | 90.0 | 100.0 | … | 100.0 | 80.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 110.0 | 110.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 90.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 |
+| 2025-04-01 00:00:00 | 2025-05-01 00:00:00 | 90.0 | 120.0 | 90.0 | 80.0 | 110.0 | 90.0 | 120.0 | 110.0 | 80.0 | 110.0 | 110.0 | 110.0 | 80.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 110.0 | 90.0 | 130.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 120.0 | 110.0 | 100.0 | 110.0 | 80.0 | 100.0 | 90.0 | 120.0 | 110.0 | … | 120.0 | 120.0 | 100.0 | 110.0 | 80.0 | 110.0 | 100.0 | 110.0 | 90.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 110.0 | 110.0 | 110.0 | 90.0 | 110.0 | 110.0 | 80.0 | 100.0 | 90.0 | 80.0 | 110.0 | 110.0 | 90.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 | 110.0 | 100.0 | 110.0 | 90.0 | 90.0 |
+| 2025-05-01 00:00:00 | 2025-06-01 00:00:00 | 80.0 | 90.0 | 110.0 | 90.0 | 90.0 | 100.0 | 70.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 80.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 120.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 110.0 | … | 80.0 | 90.0 | 100.0 | 80.0 | 100.0 | 120.0 | 100.0 | 110.0 | 90.0 | 100.0 | 100.0 | 70.0 | 100.0 | 90.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 120.0 | 110.0 | 110.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 110.0 | 120.0 | 110.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 90.0 |
+| 2025-06-01 00:00:00 | 2025-07-01 00:00:00 | 90.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 110.0 | 110.0 | 80.0 | 100.0 | 120.0 | 90.0 | 120.0 | 100.0 | 90.0 | 120.0 | 90.0 | 100.0 | 110.0 | 90.0 | 110.0 | 110.0 | 110.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 110.0 | 110.0 | 120.0 | 110.0 | 100.0 | … | 120.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 110.0 | 90.0 | 120.0 | 100.0 | 100.0 | 110.0 | 90.0 | 100.0 | 110.0 | 110.0 | 90.0 | 90.0 | 100.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 100.0 | 110.0 | 90.0 | 100.0 |
 
 ```python {.marimo}
 az = Dataset(
@@ -5167,6 +5349,31 @@ print(tree(data_path))
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
+│   ├── Sample Data/
+│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -5203,6 +5410,7 @@ print(tree(data_path))
 │       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
+│   ├── AZ Drinks-metadata.json
 │   ├── AZ_drikkevarer-metadata.json
 │   ├── AZ_drinks-metadata.json
 │   ├── AZ_omsetning-metadata.json
@@ -5216,11 +5424,11 @@ print(tree(data_path))
 │   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
-│   ├── Sample Data/
-│   │   └── Sample Data-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 └── NONE_FROM_TO/
+    ├── AZ Drinks/
+    │   └── AZ Drinks-latest-data.parquet
     ├── AZ_drikkevarer/
     │   └── AZ_drikkevarer-latest-data.parquet
     ├── AZ_drinks/
@@ -5264,12 +5472,12 @@ omsetning.nw.to_pandas()
 
 | valid_from | valid_to | a_pris_brus | a_pris_kaffe | a_pris_te | a_pris_vin | a_pris_øl | b_pris_brus | b_pris_kaffe | b_pris_te | ... | y_pris_brus | y_pris_kaffe | y_pris_te | y_pris_vin | y_pris_øl | z_pris_brus | z_pris_kaffe | z_pris_te | z_pris_vin | z_pris_øl |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-01-01 | 2025-02-01 | 10000.0 | 10000.0 | 11000.0 | 11000.0 | 9000.0 | 9000.0 | 10000.0 | 9000.0 | ... | 13200.0 | 12100.0 | 9600.0 | 8000.0 | 10000.0 | 12100.0 | 9000.0 | 14400.0 | 9900.0 | 11000.0 |
-| 2025-02-01 | 2025-03-01 | 9900.0 | 10000.0 | 11000.0 | 12100.0 | 9000.0 | 13200.0 | 13200.0 | 9000.0 | ... | 9000.0 | 8800.0 | 10000.0 | 9900.0 | 13200.0 | 10000.0 | 10000.0 | 10000.0 | 11000.0 | 13000.0 |
-| 2025-03-01 | 2025-04-01 | 9000.0 | 9000.0 | 10000.0 | 9900.0 | 10000.0 | 9900.0 | 10800.0 | 9000.0 | ... | 12000.0 | 10800.0 | 9000.0 | 10000.0 | 8800.0 | 10000.0 | 9000.0 | 9900.0 | 9000.0 | 12100.0 |
-| 2025-04-01 | 2025-05-01 | 10000.0 | 8000.0 | 11000.0 | 9000.0 | 8100.0 | 11000.0 | 7700.0 | 10000.0 | ... | 11000.0 | 12100.0 | 13000.0 | 8800.0 | 13200.0 | 8800.0 | 8000.0 | 11000.0 | 8000.0 | 10000.0 |
-| 2025-05-01 | 2025-06-01 | 10000.0 | 11000.0 | 10000.0 | 11000.0 | 8100.0 | 8100.0 | 11000.0 | 12100.0 | ... | 9900.0 | 8000.0 | 12000.0 | 11000.0 | 8800.0 | 10000.0 | 10000.0 | 8800.0 | 12000.0 | 11000.0 |
-| 2025-06-01 | 2025-07-01 | 11000.0 | 9000.0 | 11000.0 | 11000.0 | 9900.0 | 9000.0 | 9900.0 | 11000.0 | ... | 9900.0 | 12100.0 | 12000.0 | 11000.0 | 7200.0 | 12000.0 | 9000.0 | 12000.0 | 10000.0 | 10800.0 |
+| 2025-01-01 | 2025-02-01 | 7200.0 | 13200.0 | 10800.0 | 8100.0 | 13000.0 | 12100.0 | 7200.0 | 11000.0 | ... | 9000.0 | 11000.0 | 10000.0 | 11000.0 | 11000.0 | 9900.0 | 11000.0 | 8100.0 | 12100.0 | 8000.0 |
+| 2025-02-01 | 2025-03-01 | 12000.0 | 7200.0 | 9600.0 | 9000.0 | 10000.0 | 9900.0 | 8800.0 | 8100.0 | ... | 11000.0 | 11000.0 | 11000.0 | 9600.0 | 12000.0 | 9900.0 | 10000.0 | 8800.0 | 12000.0 | 10800.0 |
+| 2025-03-01 | 2025-04-01 | 10000.0 | 11000.0 | 11000.0 | 9900.0 | 10000.0 | 8000.0 | 10000.0 | 8800.0 | ... | 12100.0 | 9000.0 | 12100.0 | 10000.0 | 10000.0 | 11000.0 | 9000.0 | 11000.0 | 12000.0 | 10000.0 |
+| 2025-04-01 | 2025-05-01 | 9900.0 | 8100.0 | 14400.0 | 12100.0 | 6400.0 | 8800.0 | 11000.0 | 9900.0 | ... | 12100.0 | 8100.0 | 8800.0 | 9000.0 | 8800.0 | 11000.0 | 9900.0 | 11000.0 | 10800.0 | 9000.0 |
+| 2025-05-01 | 2025-06-01 | 11000.0 | 8000.0 | 6300.0 | 9000.0 | 9900.0 | 8000.0 | 10000.0 | 12100.0 | ... | 13200.0 | 11000.0 | 9000.0 | 9900.0 | 12100.0 | 11000.0 | 12100.0 | 13200.0 | 9000.0 | 9000.0 |
+| 2025-06-01 | 2025-07-01 | 12100.0 | 8100.0 | 9900.0 | 11000.0 | 8000.0 | 12000.0 | 14400.0 | 8100.0 | ... | 8100.0 | 11000.0 | 9900.0 | 9900.0 | 10000.0 | 11000.0 | 8100.0 | 10000.0 | 11000.0 | 9000.0 |
 
 ```python {.marimo}
 omsetning.rename('AZ_omsetning', ('pris', 'omsetning'))
@@ -5291,6 +5499,31 @@ print(tree(data_path))
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
+│   ├── Sample Data/
+│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -5327,6 +5560,7 @@ print(tree(data_path))
 │       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
+│   ├── AZ Drinks-metadata.json
 │   ├── AZ_drikkevarer-metadata.json
 │   ├── AZ_drinks-metadata.json
 │   ├── AZ_omsetning-metadata.json
@@ -5340,11 +5574,11 @@ print(tree(data_path))
 │   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
-│   ├── Sample Data/
-│   │   └── Sample Data-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 └── NONE_FROM_TO/
+    ├── AZ Drinks/
+    │   └── AZ Drinks-latest-data.parquet
     ├── AZ_drikkevarer/
     │   └── AZ_drikkevarer-latest-data.parquet
     ├── AZ_drinks/
@@ -5373,22 +5607,22 @@ print(str(omsetning))
 │ datetime&#91; ┆ μs&#93;       ┆ f64       ┆ f64       ┆   ┆ f64       ┆           ┆ f64       ┆ f64      │
 │ μs&#93;       ┆           ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 ╞═══════════╪═══════════╪═══════════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪══════════╡
-│ 2025-01-0 ┆ 2025-02-0 ┆ 100.0     ┆ 100.0     ┆ … ┆ 100.0     ┆ 120.0     ┆ 110.0     ┆ 110.0    │
+│ 2025-01-0 ┆ 2025-02-0 ┆ 90.0      ┆ 120.0     ┆ … ┆ 100.0     ┆ 90.0      ┆ 110.0     ┆ 80.0     │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-02-0 ┆ 2025-03-0 ┆ 90.0      ┆ 100.0     ┆ … ┆ 100.0     ┆ 100.0     ┆ 100.0     ┆ 100.0    │
+│ 2025-02-0 ┆ 2025-03-0 ┆ 120.0     ┆ 90.0      ┆ … ┆ 100.0     ┆ 110.0     ┆ 120.0     ┆ 90.0     │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-03-0 ┆ 2025-04-0 ┆ 90.0      ┆ 90.0      ┆ … ┆ 90.0      ┆ 90.0      ┆ 100.0     ┆ 110.0    │
+│ 2025-03-0 ┆ 2025-04-0 ┆ 100.0     ┆ 110.0     ┆ … ┆ 90.0      ┆ 110.0     ┆ 120.0     ┆ 100.0    │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-04-0 ┆ 2025-05-0 ┆ 100.0     ┆ 100.0     ┆ … ┆ 80.0      ┆ 100.0     ┆ 80.0      ┆ 100.0    │
+│ 2025-04-0 ┆ 2025-05-0 ┆ 110.0     ┆ 90.0      ┆ … ┆ 110.0     ┆ 100.0     ┆ 90.0      ┆ 90.0     │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-05-0 ┆ 2025-06-0 ┆ 100.0     ┆ 100.0     ┆ … ┆ 100.0     ┆ 80.0      ┆ 120.0     ┆ 100.0    │
+│ 2025-05-0 ┆ 2025-06-0 ┆ 100.0     ┆ 100.0     ┆ … ┆ 110.0     ┆ 110.0     ┆ 90.0      ┆ 90.0     │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-06-0 ┆ 2025-07-0 ┆ 110.0     ┆ 90.0      ┆ … ┆ 100.0     ┆ 120.0     ┆ 100.0     ┆ 90.0     │
+│ 2025-06-0 ┆ 2025-07-0 ┆ 110.0     ┆ 90.0      ┆ … ┆ 90.0      ┆ 100.0     ┆ 100.0     ┆ 90.0     │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 └───────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴──────────┘
@@ -5400,22 +5634,22 @@ shape: (6, 132)
 │ datetime&#91; ┆ μs&#93;       ┆ f64       ┆ f64       ┆   ┆ f64       ┆ f64       ┆ f64       ┆ f64      │
 │ μs&#93;       ┆           ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 ╞═══════════╪═══════════╪═══════════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪══════════╡
-│ 2025-01-0 ┆ 2025-02-0 ┆ 100.0     ┆ 100.0     ┆ … ┆ 90.0      ┆ 120.0     ┆ 90.0      ┆ 100.0    │
+│ 2025-01-0 ┆ 2025-02-0 ┆ 80.0      ┆ 110.0     ┆ … ┆ 110.0     ┆ 90.0      ┆ 110.0     ┆ 100.0    │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-02-0 ┆ 2025-03-0 ┆ 110.0     ┆ 100.0     ┆ … ┆ 100.0     ┆ 100.0     ┆ 110.0     ┆ 130.0    │
+│ 2025-02-0 ┆ 2025-03-0 ┆ 100.0     ┆ 80.0      ┆ … ┆ 100.0     ┆ 80.0      ┆ 100.0     ┆ 120.0    │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-03-0 ┆ 2025-04-0 ┆ 100.0     ┆ 100.0     ┆ … ┆ 100.0     ┆ 110.0     ┆ 90.0      ┆ 110.0    │
+│ 2025-03-0 ┆ 2025-04-0 ┆ 100.0     ┆ 100.0     ┆ … ┆ 100.0     ┆ 100.0     ┆ 100.0     ┆ 100.0    │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-04-0 ┆ 2025-05-0 ┆ 100.0     ┆ 80.0      ┆ … ┆ 100.0     ┆ 110.0     ┆ 100.0     ┆ 100.0    │
+│ 2025-04-0 ┆ 2025-05-0 ┆ 90.0      ┆ 90.0      ┆ … ┆ 90.0      ┆ 110.0     ┆ 120.0     ┆ 100.0    │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-05-0 ┆ 2025-06-0 ┆ 100.0     ┆ 110.0     ┆ … ┆ 100.0     ┆ 110.0     ┆ 100.0     ┆ 110.0    │
+│ 2025-05-0 ┆ 2025-06-0 ┆ 110.0     ┆ 80.0      ┆ … ┆ 110.0     ┆ 120.0     ┆ 100.0     ┆ 100.0    │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-06-0 ┆ 2025-07-0 ┆ 100.0     ┆ 100.0     ┆ … ┆ 90.0      ┆ 100.0     ┆ 100.0     ┆ 120.0    │
+│ 2025-06-0 ┆ 2025-07-0 ┆ 110.0     ┆ 90.0      ┆ … ┆ 90.0      ┆ 100.0     ┆ 110.0     ┆ 100.0    │
 │ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 │ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
 └───────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴──────────┘
@@ -5448,13 +5682,13 @@ data_for_n_days_prior('2024-03-15', n)
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2024-03-08 | 100.0 | 100.0 | 110.0 |
-| 2024-03-09 | 100.0 | 80.0 | 100.0 |
-| 2024-03-10 | 100.0 | 90.0 | 110.0 |
-| 2024-03-11 | 80.0 | 100.0 | 100.0 |
-| 2024-03-12 | 90.0 | 110.0 | 90.0 |
+| 2024-03-08 | 90.0 | 90.0 | 100.0 |
+| 2024-03-09 | 90.0 | 90.0 | 100.0 |
+| 2024-03-10 | 90.0 | 120.0 | 100.0 |
+| 2024-03-11 | 110.0 | 100.0 | 100.0 |
+| 2024-03-12 | 100.0 | 110.0 | 100.0 |
 | 2024-03-13 | 100.0 | 100.0 | 100.0 |
-| 2024-03-14 | 100.0 | 120.0 | 100.0 |
+| 2024-03-14 | 110.0 | 90.0 | 110.0 |
 
 ```python {.marimo}
 as_of_dates = ['2025-05-01','2025-06-01','2025-08-03','2025-08-04','2025-08-05','2025-08-06','2025-08-07']
@@ -5507,17 +5741,17 @@ first.nw.to_pandas()
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2021-12-31 23:00:00+00:00 | 110.0 | 110.0 | 100.0 |
-| 2022-01-31 23:00:00+00:00 | 100.0 | 90.0 | 100.0 |
-| 2022-02-28 23:00:00+00:00 | 100.0 | 110.0 | 100.0 |
-| 2022-03-31 22:00:00+00:00 | 100.0 | 90.0 | 80.0 |
-| 2022-04-30 22:00:00+00:00 | 90.0 | 100.0 | 80.0 |
+| 2021-12-31 23:00:00+00:00 | 90.0 | 110.0 | 120.0 |
+| 2022-01-31 23:00:00+00:00 | 90.0 | 100.0 | 90.0 |
+| 2022-02-28 23:00:00+00:00 | 130.0 | 100.0 | 90.0 |
+| 2022-03-31 22:00:00+00:00 | 100.0 | 80.0 | 110.0 |
+| 2022-04-30 22:00:00+00:00 | 100.0 | 100.0 | 90.0 |
 | ... | ... | ... | ... |
-| 2022-07-31 22:00:00+00:00 | 80.0 | 100.0 | 100.0 |
-| 2022-08-31 22:00:00+00:00 | 110.0 | 100.0 | 110.0 |
-| 2022-09-30 22:00:00+00:00 | 90.0 | 100.0 | 110.0 |
-| 2022-10-31 23:00:00+00:00 | 110.0 | 110.0 | 110.0 |
-| 2022-11-30 23:00:00+00:00 | 110.0 | 110.0 | 100.0 |
+| 2022-07-31 22:00:00+00:00 | 90.0 | 90.0 | 90.0 |
+| 2022-08-31 22:00:00+00:00 | 100.0 | 110.0 | 100.0 |
+| 2022-09-30 22:00:00+00:00 | 100.0 | 110.0 | 100.0 |
+| 2022-10-31 23:00:00+00:00 | 100.0 | 120.0 | 90.0 |
+| 2022-11-30 23:00:00+00:00 | 90.0 | 100.0 | 120.0 |
 
 ```python {.marimo}
 last.nw.to_pandas()
@@ -5527,17 +5761,17 @@ last.nw.to_pandas()
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2021-12-31 23:00:00+00:00 | 110.0 | 110.0 | 100.0 |
-| 2022-01-31 23:00:00+00:00 | 100.0 | 90.0 | 100.0 |
-| 2022-02-28 23:00:00+00:00 | 100.0 | 110.0 | 100.0 |
-| 2022-03-31 22:00:00+00:00 | 100.0 | 90.0 | 80.0 |
-| 2022-04-30 22:00:00+00:00 | 90.0 | 100.0 | 80.0 |
+| 2021-12-31 23:00:00+00:00 | 90.0 | 110.0 | 120.0 |
+| 2022-01-31 23:00:00+00:00 | 90.0 | 100.0 | 90.0 |
+| 2022-02-28 23:00:00+00:00 | 130.0 | 100.0 | 90.0 |
+| 2022-03-31 22:00:00+00:00 | 100.0 | 80.0 | 110.0 |
+| 2022-04-30 22:00:00+00:00 | 100.0 | 100.0 | 90.0 |
 | ... | ... | ... | ... |
-| 2022-07-31 22:00:00+00:00 | 80.0 | 100.0 | 100.0 |
-| 2022-08-31 22:00:00+00:00 | 110.0 | 100.0 | 110.0 |
-| 2022-09-30 22:00:00+00:00 | 90.0 | 100.0 | 110.0 |
-| 2022-10-31 23:00:00+00:00 | 110.0 | 110.0 | 110.0 |
-| 2022-11-30 23:00:00+00:00 | 110.0 | 110.0 | 100.0 |
+| 2022-07-31 22:00:00+00:00 | 90.0 | 90.0 | 90.0 |
+| 2022-08-31 22:00:00+00:00 | 100.0 | 110.0 | 100.0 |
+| 2022-09-30 22:00:00+00:00 | 100.0 | 110.0 | 100.0 |
+| 2022-10-31 23:00:00+00:00 | 100.0 | 120.0 | 90.0 |
+| 2022-11-30 23:00:00+00:00 | 90.0 | 100.0 | 120.0 |
 
 ```python {.marimo}
 diff = last - first

@@ -3,15 +3,21 @@ title: Meta Tag Maintenance
 marimo-version: 0.24.0
 ---
 
-```python {.marimo}
+Tag maintentance
+================
+<!---->
+Scope
+-----
 
-```
+As shown in the basics, a dataset gets a few mandatory technical attributes on creation.
 
-```python {.marimo}
+Additional descriptive metadata may be provided, that is the dataset and its series may be tagged.
+The tagging is a one time operation that neeed should not need to be repeated.
+That is, unless mistakes or omissions have been made, or new series are added to the set.
 
-```
-
-# Meta data
+For calculations that derive new data.
+Some functions will automaticly update the metadata.
+Others will require that to be handled by the user.
 <!---->
 ## Setup
 
@@ -65,6 +71,8 @@ pqr = Dataset(
     data = pqr_df,
 )
 ```
+
+The technical metadata is added at creation time.
 
 ```python {.marimo}
 pqr.tags
@@ -146,13 +154,30 @@ pqr.tags
  &#x27;variabel&#x27;: &#x27;pris&#x27;,
  &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
-```python {.marimo}
-pqr.save()
-```
+Tags can be used immediately.
 
 ```python {.marimo}
-# reading the data back:
-x = Dataset('PQR')
+pqr[{'vare': 'kaffe'}].data
+```
+
+<!-- @output:ROlb -->
+
+| valid_at | p |
+| --- | --- |
+| 2020-01-01 | 90.0 |
+| 2020-01-02 | 90.0 |
+| 2020-01-03 | 110.0 |
+| 2020-01-04 | 110.0 |
+| 2020-01-05 | 100.0 |
+| ... | ... |
+| 2025-05-28 | 90.0 |
+| 2025-05-29 | 90.0 |
+| 2025-05-30 | 100.0 |
+| 2025-05-31 | 110.0 |
+| 2025-06-01 | 90.0 |
+
+```python {.marimo}
+pqr.save()
 ```
 
 Autotagging
@@ -165,8 +190,8 @@ interval_data = SeriesType('NONE', 'FROM_TO')
 ```python {.marimo}
 def mock_interval_data_from_file_or_query(start, end):
     a_to_z = [chr(i) for i in range(ord('a'), ord('z') + 1)]
-    variables = ['antall', 'pris']
-    goods = ['kaffe', 'te', 'brus', 'øl', 'vin']
+    variables = ['volume', 'price']
+    goods = ['coffe', 'tea', 'softdrinks', 'beer', 'wine']
     return create_df(
         a_to_z, variables, goods,
         start_date=start,
@@ -185,203 +210,224 @@ bigger_data = mock_interval_data_from_file_or_query(start='2025-01-01', end='202
 bigger_data
 ```
 
-<!-- @output:ulZA -->
+<!-- @output:ecfG -->
 
-| valid_from | valid_to | a_antall_kaffe | a_antall_te | a_antall_brus | a_antall_øl | a_antall_vin | a_pris_kaffe | a_pris_te | a_pris_brus | a_pris_øl | a_pris_vin | b_antall_kaffe | b_antall_te | b_antall_brus | b_antall_øl | b_antall_vin | b_pris_kaffe | b_pris_te | b_pris_brus | b_pris_øl | b_pris_vin | c_antall_kaffe | c_antall_te | c_antall_brus | c_antall_øl | c_antall_vin | c_pris_kaffe | c_pris_te | c_pris_brus | c_pris_øl | c_pris_vin | d_antall_kaffe | d_antall_te | d_antall_brus | d_antall_øl | d_antall_vin | … | w_antall_øl | w_antall_vin | w_pris_kaffe | w_pris_te | w_pris_brus | w_pris_øl | w_pris_vin | x_antall_kaffe | x_antall_te | x_antall_brus | x_antall_øl | x_antall_vin | x_pris_kaffe | x_pris_te | x_pris_brus | x_pris_øl | x_pris_vin | y_antall_kaffe | y_antall_te | y_antall_brus | y_antall_øl | y_antall_vin | y_pris_kaffe | y_pris_te | y_pris_brus | y_pris_øl | y_pris_vin | z_antall_kaffe | z_antall_te | z_antall_brus | z_antall_øl | z_antall_vin | z_pris_kaffe | z_pris_te | z_pris_brus | z_pris_øl | z_pris_vin |
+| valid_from | valid_to | a_volume_coffe | a_volume_tea | a_volume_softdrinks | a_volume_beer | a_volume_wine | a_price_coffe | a_price_tea | a_price_softdrinks | a_price_beer | a_price_wine | b_volume_coffe | b_volume_tea | b_volume_softdrinks | b_volume_beer | b_volume_wine | b_price_coffe | b_price_tea | b_price_softdrinks | b_price_beer | b_price_wine | c_volume_coffe | c_volume_tea | c_volume_softdrinks | c_volume_beer | c_volume_wine | c_price_coffe | c_price_tea | c_price_softdrinks | c_price_beer | c_price_wine | d_volume_coffe | d_volume_tea | d_volume_softdrinks | d_volume_beer | d_volume_wine | … | w_volume_beer | w_volume_wine | w_price_coffe | w_price_tea | w_price_softdrinks | w_price_beer | w_price_wine | x_volume_coffe | x_volume_tea | x_volume_softdrinks | x_volume_beer | x_volume_wine | x_price_coffe | x_price_tea | x_price_softdrinks | x_price_beer | x_price_wine | y_volume_coffe | y_volume_tea | y_volume_softdrinks | y_volume_beer | y_volume_wine | y_price_coffe | y_price_tea | y_price_softdrinks | y_price_beer | y_price_wine | z_volume_coffe | z_volume_tea | z_volume_softdrinks | z_volume_beer | z_volume_wine | z_price_coffe | z_price_tea | z_price_softdrinks | z_price_beer | z_price_wine |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | datetime[μs] | datetime[μs] | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | … | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 |
-| 2025-01-01 00:00:00 | 2025-02-01 00:00:00 | 100.0 | 90.0 | 120.0 | 90.0 | 90.0 | 90.0 | 110.0 | 100.0 | 110.0 | 110.0 | 110.0 | 90.0 | 100.0 | 100.0 | 120.0 | 80.0 | 110.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 120.0 | 80.0 | 100.0 | 110.0 | 100.0 | 90.0 | 90.0 | 100.0 | 80.0 | 90.0 | 100.0 | … | 110.0 | 110.0 | 90.0 | 120.0 | 100.0 | 120.0 | 90.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 90.0 | 110.0 | 80.0 | 90.0 | 80.0 | 100.0 | 100.0 | 110.0 | 90.0 | 100.0 | 110.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 | 90.0 | 90.0 | 90.0 | 110.0 |
-| 2025-02-01 00:00:00 | 2025-03-01 00:00:00 | 110.0 | 110.0 | 100.0 | 110.0 | 80.0 | 100.0 | 120.0 | 90.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 90.0 | 90.0 | 100.0 | 90.0 | 100.0 | 80.0 | 90.0 | 90.0 | 80.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 90.0 | 110.0 | 80.0 | 90.0 | 110.0 | 90.0 | 120.0 | … | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 80.0 | 90.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 80.0 | 110.0 | 100.0 | 120.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 |
-| 2025-03-01 00:00:00 | 2025-04-01 00:00:00 | 120.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 80.0 | 100.0 | 100.0 | 110.0 | 120.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 110.0 | 110.0 | 90.0 | 90.0 | 100.0 | 90.0 | 120.0 | 110.0 | … | 100.0 | 110.0 | 100.0 | 110.0 | 70.0 | 90.0 | 110.0 | 80.0 | 90.0 | 90.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 90.0 | 100.0 | 120.0 | 90.0 | 90.0 | 110.0 | 80.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 110.0 | 120.0 | 80.0 | 100.0 | 90.0 |
-| 2025-04-01 00:00:00 | 2025-05-01 00:00:00 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 80.0 | 110.0 | 100.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 90.0 | 90.0 | … | 110.0 | 100.0 | 120.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 70.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 120.0 | 90.0 | 80.0 | 80.0 | 100.0 | 110.0 | 100.0 | 90.0 | 90.0 | 100.0 | 90.0 | 90.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 110.0 |
-| 2025-05-01 00:00:00 | 2025-06-01 00:00:00 | 90.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 | 80.0 | 100.0 | 90.0 | 100.0 | 80.0 | 110.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 120.0 | 110.0 | 100.0 | 110.0 | 120.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 80.0 | 110.0 | 90.0 | … | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 80.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 90.0 | 90.0 | 100.0 | 80.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | 90.0 | 80.0 | 80.0 | 90.0 | 120.0 | 100.0 | 120.0 | 120.0 | 90.0 | 100.0 | 120.0 | 110.0 | 90.0 | 100.0 | 110.0 | 90.0 |
-| 2025-06-01 00:00:00 | 2025-07-01 00:00:00 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 130.0 | 100.0 | 90.0 | 100.0 | 110.0 | 120.0 | 110.0 | 120.0 | 100.0 | 100.0 | 80.0 | 80.0 | 100.0 | 130.0 | 80.0 | 100.0 | 110.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 110.0 | … | 90.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 100.0 | 110.0 | 110.0 | 100.0 | 80.0 | 110.0 | 80.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 90.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 |
+| 2025-01-01 00:00:00 | 2025-02-01 00:00:00 | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 90.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 120.0 | 100.0 | 110.0 | 80.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | 110.0 | 90.0 | 100.0 | … | 100.0 | 110.0 | 90.0 | 100.0 | 110.0 | 90.0 | 100.0 | 100.0 | 80.0 | 110.0 | 100.0 | 80.0 | 120.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 80.0 | 120.0 | 110.0 | 100.0 | 80.0 | 90.0 | 100.0 | 90.0 | 100.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 100.0 | 80.0 | 100.0 | 90.0 | 110.0 |
+| 2025-02-01 00:00:00 | 2025-03-01 00:00:00 | 100.0 | 90.0 | 80.0 | 120.0 | 100.0 | 80.0 | 110.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 120.0 | 70.0 | 110.0 | 80.0 | 90.0 | 120.0 | 90.0 | 100.0 | 110.0 | 70.0 | 110.0 | 90.0 | 90.0 | 100.0 | 100.0 | … | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 120.0 | 90.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 110.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 80.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 80.0 | 110.0 |
+| 2025-03-01 00:00:00 | 2025-04-01 00:00:00 | 100.0 | 100.0 | 100.0 | 80.0 | 90.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 110.0 | 80.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 80.0 | 130.0 | 110.0 | 80.0 | 100.0 | 110.0 | … | 100.0 | 100.0 | 100.0 | 110.0 | 80.0 | 90.0 | 120.0 | 80.0 | 90.0 | 100.0 | 100.0 | 110.0 | 70.0 | 90.0 | 120.0 | 90.0 | 90.0 | 110.0 | 110.0 | 110.0 | 100.0 | 90.0 | 70.0 | 100.0 | 100.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 |
+| 2025-04-01 00:00:00 | 2025-05-01 00:00:00 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 80.0 | 120.0 | 90.0 | 90.0 | 100.0 | 80.0 | 90.0 | 110.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 90.0 | 110.0 | 90.0 | 120.0 | 110.0 | … | 120.0 | 130.0 | 100.0 | 80.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 100.0 | 120.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 90.0 |
+| 2025-05-01 00:00:00 | 2025-06-01 00:00:00 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 80.0 | 110.0 | 110.0 | 100.0 | 120.0 | 100.0 | 100.0 | 80.0 | 80.0 | 90.0 | 110.0 | 90.0 | 90.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 120.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | … | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | 90.0 | 100.0 | 90.0 | 100.0 | 90.0 | 100.0 | 90.0 | 90.0 | 90.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 120.0 | 100.0 | 110.0 | 100.0 | 90.0 | 120.0 | 90.0 | 100.0 | 120.0 | 90.0 |
+| 2025-06-01 00:00:00 | 2025-07-01 00:00:00 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 90.0 | 110.0 | 90.0 | 110.0 | 70.0 | 100.0 | 110.0 | 110.0 | 80.0 | 110.0 | 120.0 | 90.0 | 110.0 | 90.0 | 100.0 | 120.0 | 80.0 | 90.0 | 80.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 100.0 | … | 100.0 | 100.0 | 110.0 | 120.0 | 90.0 | 90.0 | 110.0 | 110.0 | 100.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | 80.0 | 100.0 | 110.0 | 120.0 | 90.0 | 110.0 | 90.0 | 90.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 100.0 | 110.0 | 80.0 | 110.0 |
 
 ```python {.marimo}
 az = Dataset(
-    name = 'AZ_drikkevarer',
+    name = 'AZ Drinks',
     data_type = interval_data,
     data = bigger_data,
-    attributes=['butikk','variabel','vare'], # <-- this is the clever part
+    attributes=['store','variable','product'], # <-- this is the clever part
 )
-```
-
-```python {.marimo}
 az.save()
 ```
 
-Updating tags after calculations
---------------------------------
+```python {.marimo}
+len(az.series)
+```
+
+<!-- @output:ZBYS -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">260</pre>
 
 ```python {.marimo}
-priser = Dataset('AZ_drikkevarer')[{'variabel':'pris'}]
-antall = Dataset('AZ_drikkevarer')[{'variabel':'antall'}]
-omsetning = (priser * antall)
-print(omsetning.name)
-type(omsetning)
+az_selection = az[{'product': 'tea', 'variable': 'price'}]
+az_selection.data
 ```
 
 <!-- @output:aLJB -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">(COPY of(AZ_drikkevarer SELECTED by names (), pattern: , regex:  tags: &#91;{&#x27;variabel&#x27;: &#x27;pris&#x27;}&#93;).multiply.COPY of(AZ_drikkevarer SELECTED by names (), pattern: , regex:  tags: &#91;{&#x27;variabel&#x27;: &#x27;antall&#x27;}&#93;))
-</pre>
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;class &#x27;ssb_timeseries.dataset.Dataset&#x27;&gt;</pre>
+| valid_from | valid_to | a_price_tea | b_price_tea | c_price_tea | d_price_tea | e_price_tea | f_price_tea | g_price_tea | h_price_tea | i_price_tea | j_price_tea | k_price_tea | l_price_tea | m_price_tea | n_price_tea | o_price_tea | p_price_tea | q_price_tea | r_price_tea | s_price_tea | t_price_tea | u_price_tea | v_price_tea | w_price_tea | x_price_tea | y_price_tea | z_price_tea |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| datetime[μs] | datetime[μs] | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 |
+| 2025-01-01 00:00:00 | 2025-02-01 00:00:00 | 100.0 | 100.0 | 110.0 | 110.0 | 80.0 | 100.0 | 120.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 90.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 80.0 |
+| 2025-02-01 00:00:00 | 2025-03-01 00:00:00 | 110.0 | 110.0 | 90.0 | 110.0 | 110.0 | 100.0 | 130.0 | 90.0 | 110.0 | 100.0 | 90.0 | 80.0 | 100.0 | 110.0 | 120.0 | 90.0 | 110.0 | 100.0 | 100.0 | 80.0 | 90.0 | 120.0 | 100.0 | 90.0 | 100.0 | 110.0 |
+| 2025-03-01 00:00:00 | 2025-04-01 00:00:00 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 80.0 | 100.0 | 110.0 | 90.0 | 100.0 | 100.0 | 120.0 | 110.0 | 110.0 | 110.0 | 90.0 | 100.0 | 110.0 |
+| 2025-04-01 00:00:00 | 2025-05-01 00:00:00 | 100.0 | 120.0 | 90.0 | 100.0 | 100.0 | 120.0 | 110.0 | 100.0 | 100.0 | 120.0 | 120.0 | 110.0 | 90.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 80.0 | 90.0 | 110.0 | 100.0 | 80.0 | 90.0 | 120.0 | 100.0 |
+| 2025-05-01 00:00:00 | 2025-06-01 00:00:00 | 80.0 | 110.0 | 110.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 120.0 | 100.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 90.0 | 90.0 | 100.0 | 80.0 | 80.0 | 90.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 |
+| 2025-06-01 00:00:00 | 2025-07-01 00:00:00 | 110.0 | 110.0 | 80.0 | 90.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | 90.0 | 110.0 | 110.0 | 110.0 | 80.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 90.0 | 90.0 | 120.0 | 100.0 | 90.0 | 100.0 |
 
 ```python {.marimo}
-omsetning.nw.to_pandas()
+len(az_selection.series)
 ```
 
-<!-- @output:AjVT -->
+<!-- @output:nHfw -->
 
-| valid_from | valid_to | a_omsetning_brus | a_omsetning_kaffe | a_omsetning_te | a_omsetning_vin | a_omsetning_øl | b_omsetning_brus | b_omsetning_kaffe | b_omsetning_te | ... | y_omsetning_brus | y_omsetning_kaffe | y_omsetning_te | y_omsetning_vin | y_omsetning_øl | z_omsetning_brus | z_omsetning_kaffe | z_omsetning_te | z_omsetning_vin | z_omsetning_øl |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2024-12-31 23:00:00+00:00 | 2025-01-31 23:00:00+00:00 | 12000.0 | 9000.0 | 9900.0 | 9900.0 | 9900.0 | 9000.0 | 8800.0 | 9900.0 | ... | 12100.0 | 11000.0 | 9000.0 | 9000.0 | 9000.0 | 9900.0 | 12000.0 | 8100.0 | 11000.0 | 9000.0 |
-| 2025-01-31 23:00:00+00:00 | 2025-02-28 23:00:00+00:00 | 9000.0 | 11000.0 | 13200.0 | 8000.0 | 11000.0 | 10000.0 | 10000.0 | 8100.0 | ... | 11000.0 | 10000.0 | 8800.0 | 12000.0 | 9000.0 | 10000.0 | 9900.0 | 10000.0 | 11000.0 | 9000.0 |
-| 2025-02-28 23:00:00+00:00 | 2025-03-31 22:00:00+00:00 | 11000.0 | 12000.0 | 12100.0 | 10000.0 | 8000.0 | 13200.0 | 11000.0 | 11000.0 | ... | 9000.0 | 12000.0 | 8100.0 | 8000.0 | 9900.0 | 7200.0 | 11000.0 | 13200.0 | 9000.0 | 9000.0 |
-| 2025-03-31 22:00:00+00:00 | 2025-04-30 22:00:00+00:00 | 10000.0 | 9000.0 | 9000.0 | 11000.0 | 10000.0 | 10000.0 | 7200.0 | 11000.0 | ... | 9000.0 | 11000.0 | 13200.0 | 7200.0 | 7200.0 | 9000.0 | 11000.0 | 9000.0 | 11000.0 | 12100.0 |
-| 2025-04-30 22:00:00+00:00 | 2025-05-31 22:00:00+00:00 | 9000.0 | 9000.0 | 7200.0 | 11000.0 | 9000.0 | 11000.0 | 7200.0 | 11000.0 | ... | 8100.0 | 8000.0 | 8000.0 | 9000.0 | 10800.0 | 9000.0 | 13200.0 | 10800.0 | 10800.0 | 11000.0 |
-| 2025-05-31 22:00:00+00:00 | 2025-06-30 22:00:00+00:00 | 13000.0 | 9000.0 | 8000.0 | 9000.0 | 11000.0 | 9600.0 | 10000.0 | 11000.0 | ... | 8800.0 | 8800.0 | 11000.0 | 9000.0 | 11000.0 | 11000.0 | 11000.0 | 11000.0 | 11000.0 | 9000.0 |
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">26</pre>
 
-<!-- @output:AjVT -->
+By supplying the `attributes` parameter, we utilised the fact that names were structured as underscore separated strings.
+This way, we managed to tag 26 * 2 * 5 attributes across 260 series.
 
-| valid_from | valid_to | a_omsetning_brus | a_omsetning_kaffe | a_omsetning_te | a_omsetning_vin | a_omsetning_øl | b_omsetning_brus | b_omsetning_kaffe | b_omsetning_te | ... | y_omsetning_brus | y_omsetning_kaffe | y_omsetning_te | y_omsetning_vin | y_omsetning_øl | z_omsetning_brus | z_omsetning_kaffe | z_omsetning_te | z_omsetning_vin | z_omsetning_øl |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2024-12-31 23:00:00+00:00 | 2025-01-31 23:00:00+00:00 | 12000.0 | 9000.0 | 9900.0 | 9900.0 | 9900.0 | 9000.0 | 8800.0 | 9900.0 | ... | 12100.0 | 11000.0 | 9000.0 | 9000.0 | 9000.0 | 9900.0 | 12000.0 | 8100.0 | 11000.0 | 9000.0 |
-| 2025-01-31 23:00:00+00:00 | 2025-02-28 23:00:00+00:00 | 9000.0 | 11000.0 | 13200.0 | 8000.0 | 11000.0 | 10000.0 | 10000.0 | 8100.0 | ... | 11000.0 | 10000.0 | 8800.0 | 12000.0 | 9000.0 | 10000.0 | 9900.0 | 10000.0 | 11000.0 | 9000.0 |
-| 2025-02-28 23:00:00+00:00 | 2025-03-31 22:00:00+00:00 | 11000.0 | 12000.0 | 12100.0 | 10000.0 | 8000.0 | 13200.0 | 11000.0 | 11000.0 | ... | 9000.0 | 12000.0 | 8100.0 | 8000.0 | 9900.0 | 7200.0 | 11000.0 | 13200.0 | 9000.0 | 9000.0 |
-| 2025-03-31 22:00:00+00:00 | 2025-04-30 22:00:00+00:00 | 10000.0 | 9000.0 | 9000.0 | 11000.0 | 10000.0 | 10000.0 | 7200.0 | 11000.0 | ... | 9000.0 | 11000.0 | 13200.0 | 7200.0 | 7200.0 | 9000.0 | 11000.0 | 9000.0 | 11000.0 | 12100.0 |
-| 2025-04-30 22:00:00+00:00 | 2025-05-31 22:00:00+00:00 | 9000.0 | 9000.0 | 7200.0 | 11000.0 | 9000.0 | 11000.0 | 7200.0 | 11000.0 | ... | 8100.0 | 8000.0 | 8000.0 | 9000.0 | 10800.0 | 9000.0 | 13200.0 | 10800.0 | 10800.0 | 11000.0 |
-| 2025-05-31 22:00:00+00:00 | 2025-06-30 22:00:00+00:00 | 13000.0 | 9000.0 | 8000.0 | 9000.0 | 11000.0 | 9600.0 | 10000.0 | 11000.0 | ... | 8800.0 | 8800.0 | 11000.0 | 9000.0 | 11000.0 | 11000.0 | 11000.0 | 11000.0 | 11000.0 | 9000.0 |
+The autotagging is quite powerful.
+Additional parameters may be supplied to specify other separators, substitutions, or more complex patterns with regexes.
+<!---->
+Updating tags after calculations
+--------------------------------
 
 ```python {.marimo}
-omsetning.rename('AZ_omsetning', ('pris', 'omsetning'))
-print(omsetning)
+prices = Dataset('AZ Drinks')[{'variable':'price'}]
+volumes = Dataset('AZ Drinks')[{'variable':'volume'}]
+revenues = prices * volumes
 ```
 
-<!-- @output:xXTn -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;AZ_omsetning&#x27;, &#x27;data_type&#x27;: &#x27;NONE_FROM_TO&#x27;, &#x27;as_of_utc&#x27;: None, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;series&#x27;: &quot;&#91;&#x27;a_omsetning_brus&#x27;, &#x27;a_omsetning_kaffe&#x27;, &#x27;a_omsetning_te&#x27;, &#x27;a_omsetning_vin&#x27;, &#x27;a_omsetning_øl&#x27;, &#x27;b_omsetning_brus&#x27;, &#x27;b_omsetning_kaffe&#x27;, &#x27;b_omsetning_te&#x27;, &#x27;b_omsetning_vin&#x27;, &#x27;b_omsetning_øl&#x27;, &#x27;c_omsetning_brus&#x27;, &#x27;c_omsetning_kaffe&#x27;, &#x27;c_omsetning_te&#x27;, &#x27;c_omsetning_vin&#x27;, &#x27;c_omsetning_øl&#x27;, &#x27;d_omsetning_brus&#x27;, &#x27;d_omsetning_kaffe&#x27;, &#x27;d_omsetning_te&#x27;, &#x27;d_omsetning_vin&#x27;, &#x27;d_omsetning_øl&#x27;, &#x27;e_omsetning_brus&#x27;, &#x27;e_omsetning_kaffe&#x27;, &#x27;e_omsetning_te&#x27;, &#x27;e_omsetning_vin&#x27;, &#x27;e_omsetning_øl&#x27;, &#x27;f_omsetning_brus&#x27;, &#x27;f_omsetning_kaffe&#x27;, &#x27;f_omsetning_te&#x27;, &#x27;f_omsetning_vin&#x27;, &#x27;f_omsetning_øl&#x27;, &#x27;g_omsetning_brus&#x27;, &#x27;g_omsetning_kaffe&#x27;, &#x27;g_omsetning_te&#x27;, &#x27;g_omsetning_vin&#x27;, &#x27;g_omsetning_øl&#x27;, &#x27;h_omsetning_brus&#x27;, &#x27;h_omsetning_kaffe&#x27;, &#x27;h_omsetning_te&#x27;, &#x27;h_omsetning_vin&#x27;, &#x27;h_omsetning_øl&#x27;, &#x27;i_omsetning_brus&#x27;, &#x27;i_omsetning_kaffe&#x27;, &#x27;i_omsetning_te&#x27;, &#x27;i_omsetning_vin&#x27;, &#x27;i_omsetning_øl&#x27;, &#x27;j_omsetning_brus&#x27;, &#x27;j_omsetning_kaffe&#x27;, &#x27;j_omsetning_te&#x27;, &#x27;j_omsetning_vin&#x27;, &#x27;j_omsetning_øl&#x27;, &#x27;k_omsetning_brus&#x27;, &#x27;k_omsetning_kaffe&#x27;, &#x27;k_omsetning_te&#x27;, &#x27;k_omsetning_vin&#x27;, &#x27;k_omsetning_øl&#x27;, &#x27;l_omsetning_brus&#x27;, &#x27;l_omsetning_kaffe&#x27;, &#x27;l_omsetning_te&#x27;, &#x27;l_omsetning_vin&#x27;, &#x27;l_omsetning_øl&#x27;, &#x27;m_omsetning_brus&#x27;, &#x27;m_omsetning_kaffe&#x27;, &#x27;m_omsetning_te&#x27;, &#x27;m_omsetning_vin&#x27;, &#x27;m_omsetning_øl&#x27;, &#x27;n_omsetning_brus&#x27;, &#x27;n_omsetning_kaffe&#x27;, &#x27;n_omsetning_te&#x27;, &#x27;n_omsetning_vin&#x27;, &#x27;n_omsetning_øl&#x27;, &#x27;o_omsetning_brus&#x27;, &#x27;o_omsetning_kaffe&#x27;, &#x27;o_omsetning_te&#x27;, &#x27;o_omsetning_vin&#x27;, &#x27;o_omsetning_øl&#x27;, &#x27;p_omsetning_brus&#x27;, &#x27;p_omsetning_kaffe&#x27;, &#x27;p_omsetning_te&#x27;, &#x27;p_omsetning_vin&#x27;, &#x27;p_omsetning_øl&#x27;, &#x27;q_omsetning_brus&#x27;, &#x27;q_omsetning_kaffe&#x27;, &#x27;q_omsetning_te&#x27;, &#x27;q_omsetning_vin&#x27;, &#x27;q_omsetning_øl&#x27;, &#x27;r_omsetning_brus&#x27;, &#x27;r_omsetning_kaffe&#x27;, &#x27;r_omsetning_te&#x27;, &#x27;r_omsetning_vin&#x27;, &#x27;r_omsetning_øl&#x27;, &#x27;s_omsetning_brus&#x27;, &#x27;s_omsetning_kaffe&#x27;, &#x27;s_omsetning_te&#x27;, &#x27;s_omsetning_vin&#x27;, &#x27;s_omsetning_øl&#x27;, &#x27;t_omsetning_brus&#x27;, &#x27;t_omsetning_kaffe&#x27;, &#x27;t_omsetning_te&#x27;, &#x27;t_omsetning_vin&#x27;, &#x27;t_omsetning_øl&#x27;, &#x27;u_omsetning_brus&#x27;, &#x27;u_omsetning_kaffe&#x27;, &#x27;u_omsetning_te&#x27;, &#x27;u_omsetning_vin&#x27;, &#x27;u_omsetning_øl&#x27;, &#x27;v_omsetning_brus&#x27;, &#x27;v_omsetning_kaffe&#x27;, &#x27;v_omsetning_te&#x27;, &#x27;v_omsetning_vin&#x27;, &#x27;v_omsetning_øl&#x27;, &#x27;w_omsetning_brus&#x27;, &#x27;w_omsetning_kaffe&#x27;, &#x27;w_omsetning_te&#x27;, &#x27;w_omsetning_vin&#x27;, &#x27;w_omsetning_øl&#x27;, &#x27;x_omsetning_brus&#x27;, &#x27;x_omsetning_kaffe&#x27;, &#x27;x_omsetning_te&#x27;, &#x27;x_omsetning_vin&#x27;, &#x27;x_omsetning_øl&#x27;, &#x27;y_omsetning_brus&#x27;, &#x27;y_omsetning_kaffe&#x27;, &#x27;y_omsetning_te&#x27;, &#x27;y_omsetning_vin&#x27;, &#x27;y_omsetning_øl&#x27;, &#x27;z_omsetning_brus&#x27;, &#x27;z_omsetning_kaffe&#x27;, &#x27;z_omsetning_te&#x27;, &#x27;z_omsetning_vin&#x27;, &#x27;z_omsetning_øl&#x27;&#93;&quot;, &#x27;data&#x27;: (6, 132)}
-</pre>
+The new `Dataset` instance `revenues` gets an autogenerated name.
+The series names are also inherited from the inputs to the calculation.
 
 ```python {.marimo}
-omsetning.nw.to_pandas()
-```
-
-```python {.marimo}
-# DEBUG: tags are lost in selects above, hence not flowing through
-omsetning.tags["series"]["a_omsetning_brus"]
-```
-
-<!-- @output:pHFh -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;butikk&#x27;: &#x27;a&#x27;,
- &#x27;dataset&#x27;: &#x27;AZ_omsetning&#x27;,
- &#x27;name&#x27;: &#x27;a_omsetning_brus&#x27;,
- &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
- &#x27;vare&#x27;: &#x27;brus&#x27;,
- &#x27;variabel&#x27;: &#x27;pris&#x27;,
- &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
-
-```python {.marimo}
-# ... tag maintenance is likely to be necessary after calculations:
-omsetning.replace_tags(({'variabel':'pris'},{'variabel':'omsetning'}))
-omsetning.tags["series"]["a_omsetning_brus"]
-```
-
-<!-- @output:NCOB -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;butikk&#x27;: &#x27;a&#x27;,
- &#x27;dataset&#x27;: &#x27;AZ_omsetning&#x27;,
- &#x27;name&#x27;: &#x27;a_omsetning_brus&#x27;,
- &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
- &#x27;vare&#x27;: &#x27;brus&#x27;,
- &#x27;variabel&#x27;: &#x27;omsetning&#x27;,
- &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
-
-```python {.marimo}
-# review the data
-display(priser.data)
-display(antall.data)
-display(omsetning.nw.to_pandas())
+print(revenues.name)
+print(revenues.series)
 ```
 
 <!-- @output:aqbW -->
 
-<pre class="stderr" style="white-space: pre-wrap; overflow-wrap: break-word;">Traceback (most recent call last):
-  File &quot;/home/bernhard/code/ssb-timeseries/.nox/docs/tmp/marimo_140685/__marimo__cell_aqbW_.py&quot;, line 2, in
-    display(priser.data)
-    ^^^^^^^
-NameError: name &#x27;display&#x27; is not defined
-
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">(COPY of(AZ Drinks SELECTED by names (), pattern: , regex:  tags: &#91;{&#x27;variable&#x27;: &#x27;price&#x27;}&#93;).multiply.COPY of(AZ Drinks SELECTED by names (), pattern: , regex:  tags: &#91;{&#x27;variable&#x27;: &#x27;volume&#x27;}&#93;))
+&#91;&#x27;a_price_beer&#x27;, &#x27;a_price_coffe&#x27;, &#x27;a_price_softdrinks&#x27;, &#x27;a_price_tea&#x27;, &#x27;a_price_wine&#x27;, &#x27;b_price_beer&#x27;, &#x27;b_price_coffe&#x27;, &#x27;b_price_softdrinks&#x27;, &#x27;b_price_tea&#x27;, &#x27;b_price_wine&#x27;, &#x27;c_price_beer&#x27;, &#x27;c_price_coffe&#x27;, &#x27;c_price_softdrinks&#x27;, &#x27;c_price_tea&#x27;, &#x27;c_price_wine&#x27;, &#x27;d_price_beer&#x27;, &#x27;d_price_coffe&#x27;, &#x27;d_price_softdrinks&#x27;, &#x27;d_price_tea&#x27;, &#x27;d_price_wine&#x27;, &#x27;e_price_beer&#x27;, &#x27;e_price_coffe&#x27;, &#x27;e_price_softdrinks&#x27;, &#x27;e_price_tea&#x27;, &#x27;e_price_wine&#x27;, &#x27;f_price_beer&#x27;, &#x27;f_price_coffe&#x27;, &#x27;f_price_softdrinks&#x27;, &#x27;f_price_tea&#x27;, &#x27;f_price_wine&#x27;, &#x27;g_price_beer&#x27;, &#x27;g_price_coffe&#x27;, &#x27;g_price_softdrinks&#x27;, &#x27;g_price_tea&#x27;, &#x27;g_price_wine&#x27;, &#x27;h_price_beer&#x27;, &#x27;h_price_coffe&#x27;, &#x27;h_price_softdrinks&#x27;, &#x27;h_price_tea&#x27;, &#x27;h_price_wine&#x27;, &#x27;i_price_beer&#x27;, &#x27;i_price_coffe&#x27;, &#x27;i_price_softdrinks&#x27;, &#x27;i_price_tea&#x27;, &#x27;i_price_wine&#x27;, &#x27;j_price_beer&#x27;, &#x27;j_price_coffe&#x27;, &#x27;j_price_softdrinks&#x27;, &#x27;j_price_tea&#x27;, &#x27;j_price_wine&#x27;, &#x27;k_price_beer&#x27;, &#x27;k_price_coffe&#x27;, &#x27;k_price_softdrinks&#x27;, &#x27;k_price_tea&#x27;, &#x27;k_price_wine&#x27;, &#x27;l_price_beer&#x27;, &#x27;l_price_coffe&#x27;, &#x27;l_price_softdrinks&#x27;, &#x27;l_price_tea&#x27;, &#x27;l_price_wine&#x27;, &#x27;m_price_beer&#x27;, &#x27;m_price_coffe&#x27;, &#x27;m_price_softdrinks&#x27;, &#x27;m_price_tea&#x27;, &#x27;m_price_wine&#x27;, &#x27;n_price_beer&#x27;, &#x27;n_price_coffe&#x27;, &#x27;n_price_softdrinks&#x27;, &#x27;n_price_tea&#x27;, &#x27;n_price_wine&#x27;, &#x27;o_price_beer&#x27;, &#x27;o_price_coffe&#x27;, &#x27;o_price_softdrinks&#x27;, &#x27;o_price_tea&#x27;, &#x27;o_price_wine&#x27;, &#x27;p_price_beer&#x27;, &#x27;p_price_coffe&#x27;, &#x27;p_price_softdrinks&#x27;, &#x27;p_price_tea&#x27;, &#x27;p_price_wine&#x27;, &#x27;q_price_beer&#x27;, &#x27;q_price_coffe&#x27;, &#x27;q_price_softdrinks&#x27;, &#x27;q_price_tea&#x27;, &#x27;q_price_wine&#x27;, &#x27;r_price_beer&#x27;, &#x27;r_price_coffe&#x27;, &#x27;r_price_softdrinks&#x27;, &#x27;r_price_tea&#x27;, &#x27;r_price_wine&#x27;, &#x27;s_price_beer&#x27;, &#x27;s_price_coffe&#x27;, &#x27;s_price_softdrinks&#x27;, &#x27;s_price_tea&#x27;, &#x27;s_price_wine&#x27;, &#x27;t_price_beer&#x27;, &#x27;t_price_coffe&#x27;, &#x27;t_price_softdrinks&#x27;, &#x27;t_price_tea&#x27;, &#x27;t_price_wine&#x27;, &#x27;u_price_beer&#x27;, &#x27;u_price_coffe&#x27;, &#x27;u_price_softdrinks&#x27;, &#x27;u_price_tea&#x27;, &#x27;u_price_wine&#x27;, &#x27;v_price_beer&#x27;, &#x27;v_price_coffe&#x27;, &#x27;v_price_softdrinks&#x27;, &#x27;v_price_tea&#x27;, &#x27;v_price_wine&#x27;, &#x27;w_price_beer&#x27;, &#x27;w_price_coffe&#x27;, &#x27;w_price_softdrinks&#x27;, &#x27;w_price_tea&#x27;, &#x27;w_price_wine&#x27;, &#x27;x_price_beer&#x27;, &#x27;x_price_coffe&#x27;, &#x27;x_price_softdrinks&#x27;, &#x27;x_price_tea&#x27;, &#x27;x_price_wine&#x27;, &#x27;y_price_beer&#x27;, &#x27;y_price_coffe&#x27;, &#x27;y_price_softdrinks&#x27;, &#x27;y_price_tea&#x27;, &#x27;y_price_wine&#x27;, &#x27;z_price_beer&#x27;, &#x27;z_price_coffe&#x27;, &#x27;z_price_softdrinks&#x27;, &#x27;z_price_tea&#x27;, &#x27;z_price_wine&#x27;&#93;
 </pre>
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">exception: name &#x27;display&#x27; is not defined</pre>
-
-Detagging
----------
-
 ```python {.marimo}
-estimated_point_in_time = SeriesType('AS_OF', 'AT')
+
 ```
 
 ```python {.marimo}
-tree(repository)
+revenues.rename('AZ Revenue', ('price', 'revenue'))
+print(revenues.name)
+print(revenues.series)
 ```
 
-<!-- @output:dNNg -->
+<!-- @output:TXez -->
 
-<pre class="stderr" style="white-space: pre-wrap; overflow-wrap: break-word;">Traceback (most recent call last):
-  File &quot;/home/bernhard/code/ssb-timeseries/.nox/docs/tmp/marimo_140685/__marimo__cell_dNNg_.py&quot;, line 1, in
-    tree(repository)
-    ^^^^
-NameError: name &#x27;tree&#x27; is not defined. Did you mean: &#x27;True&#x27;?
-
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">AZ Revenue
+&#91;&#x27;a_revenue_beer&#x27;, &#x27;a_revenue_coffe&#x27;, &#x27;a_revenue_softdrinks&#x27;, &#x27;a_revenue_tea&#x27;, &#x27;a_revenue_wine&#x27;, &#x27;b_revenue_beer&#x27;, &#x27;b_revenue_coffe&#x27;, &#x27;b_revenue_softdrinks&#x27;, &#x27;b_revenue_tea&#x27;, &#x27;b_revenue_wine&#x27;, &#x27;c_revenue_beer&#x27;, &#x27;c_revenue_coffe&#x27;, &#x27;c_revenue_softdrinks&#x27;, &#x27;c_revenue_tea&#x27;, &#x27;c_revenue_wine&#x27;, &#x27;d_revenue_beer&#x27;, &#x27;d_revenue_coffe&#x27;, &#x27;d_revenue_softdrinks&#x27;, &#x27;d_revenue_tea&#x27;, &#x27;d_revenue_wine&#x27;, &#x27;e_revenue_beer&#x27;, &#x27;e_revenue_coffe&#x27;, &#x27;e_revenue_softdrinks&#x27;, &#x27;e_revenue_tea&#x27;, &#x27;e_revenue_wine&#x27;, &#x27;f_revenue_beer&#x27;, &#x27;f_revenue_coffe&#x27;, &#x27;f_revenue_softdrinks&#x27;, &#x27;f_revenue_tea&#x27;, &#x27;f_revenue_wine&#x27;, &#x27;g_revenue_beer&#x27;, &#x27;g_revenue_coffe&#x27;, &#x27;g_revenue_softdrinks&#x27;, &#x27;g_revenue_tea&#x27;, &#x27;g_revenue_wine&#x27;, &#x27;h_revenue_beer&#x27;, &#x27;h_revenue_coffe&#x27;, &#x27;h_revenue_softdrinks&#x27;, &#x27;h_revenue_tea&#x27;, &#x27;h_revenue_wine&#x27;, &#x27;i_revenue_beer&#x27;, &#x27;i_revenue_coffe&#x27;, &#x27;i_revenue_softdrinks&#x27;, &#x27;i_revenue_tea&#x27;, &#x27;i_revenue_wine&#x27;, &#x27;j_revenue_beer&#x27;, &#x27;j_revenue_coffe&#x27;, &#x27;j_revenue_softdrinks&#x27;, &#x27;j_revenue_tea&#x27;, &#x27;j_revenue_wine&#x27;, &#x27;k_revenue_beer&#x27;, &#x27;k_revenue_coffe&#x27;, &#x27;k_revenue_softdrinks&#x27;, &#x27;k_revenue_tea&#x27;, &#x27;k_revenue_wine&#x27;, &#x27;l_revenue_beer&#x27;, &#x27;l_revenue_coffe&#x27;, &#x27;l_revenue_softdrinks&#x27;, &#x27;l_revenue_tea&#x27;, &#x27;l_revenue_wine&#x27;, &#x27;m_revenue_beer&#x27;, &#x27;m_revenue_coffe&#x27;, &#x27;m_revenue_softdrinks&#x27;, &#x27;m_revenue_tea&#x27;, &#x27;m_revenue_wine&#x27;, &#x27;n_revenue_beer&#x27;, &#x27;n_revenue_coffe&#x27;, &#x27;n_revenue_softdrinks&#x27;, &#x27;n_revenue_tea&#x27;, &#x27;n_revenue_wine&#x27;, &#x27;o_revenue_beer&#x27;, &#x27;o_revenue_coffe&#x27;, &#x27;o_revenue_softdrinks&#x27;, &#x27;o_revenue_tea&#x27;, &#x27;o_revenue_wine&#x27;, &#x27;p_revenue_beer&#x27;, &#x27;p_revenue_coffe&#x27;, &#x27;p_revenue_softdrinks&#x27;, &#x27;p_revenue_tea&#x27;, &#x27;p_revenue_wine&#x27;, &#x27;q_revenue_beer&#x27;, &#x27;q_revenue_coffe&#x27;, &#x27;q_revenue_softdrinks&#x27;, &#x27;q_revenue_tea&#x27;, &#x27;q_revenue_wine&#x27;, &#x27;r_revenue_beer&#x27;, &#x27;r_revenue_coffe&#x27;, &#x27;r_revenue_softdrinks&#x27;, &#x27;r_revenue_tea&#x27;, &#x27;r_revenue_wine&#x27;, &#x27;s_revenue_beer&#x27;, &#x27;s_revenue_coffe&#x27;, &#x27;s_revenue_softdrinks&#x27;, &#x27;s_revenue_tea&#x27;, &#x27;s_revenue_wine&#x27;, &#x27;t_revenue_beer&#x27;, &#x27;t_revenue_coffe&#x27;, &#x27;t_revenue_softdrinks&#x27;, &#x27;t_revenue_tea&#x27;, &#x27;t_revenue_wine&#x27;, &#x27;u_revenue_beer&#x27;, &#x27;u_revenue_coffe&#x27;, &#x27;u_revenue_softdrinks&#x27;, &#x27;u_revenue_tea&#x27;, &#x27;u_revenue_wine&#x27;, &#x27;v_revenue_beer&#x27;, &#x27;v_revenue_coffe&#x27;, &#x27;v_revenue_softdrinks&#x27;, &#x27;v_revenue_tea&#x27;, &#x27;v_revenue_wine&#x27;, &#x27;w_revenue_beer&#x27;, &#x27;w_revenue_coffe&#x27;, &#x27;w_revenue_softdrinks&#x27;, &#x27;w_revenue_tea&#x27;, &#x27;w_revenue_wine&#x27;, &#x27;x_revenue_beer&#x27;, &#x27;x_revenue_coffe&#x27;, &#x27;x_revenue_softdrinks&#x27;, &#x27;x_revenue_tea&#x27;, &#x27;x_revenue_wine&#x27;, &#x27;y_revenue_beer&#x27;, &#x27;y_revenue_coffe&#x27;, &#x27;y_revenue_softdrinks&#x27;, &#x27;y_revenue_tea&#x27;, &#x27;y_revenue_wine&#x27;, &#x27;z_revenue_beer&#x27;, &#x27;z_revenue_coffe&#x27;, &#x27;z_revenue_softdrinks&#x27;, &#x27;z_revenue_tea&#x27;, &#x27;z_revenue_wine&#x27;&#93;
 </pre>
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">exception: name &#x27;tree&#x27; is not defined. Did you mean: &#x27;True&#x27;?</pre>
+A similar operation is required for tags:
 
 ```python {.marimo}
-def data_for_n_days_prior(as_of, n):
-    start = ensure_datetime(as_of) - timedelta(days=n)
-    end = ensure_datetime(as_of) - timedelta(days=1)
-    return create_df(['x','y','z'], start_date=start,end_date=end, freq='D')
+# DEBUG: tags are lost in selects above, hence not flowing through
+revenues.tags["series"]["a_revenue_beer"]
 ```
 
+<!-- @output:yCnT -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;dataset&#x27;: &#x27;AZ Revenue&#x27;,
+ &#x27;name&#x27;: &#x27;a_revenue_beer&#x27;,
+ &#x27;product&#x27;: &#x27;beer&#x27;,
+ &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+ &#x27;store&#x27;: &#x27;a&#x27;,
+ &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+ &#x27;variable&#x27;: &#x27;price&#x27;,
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
+
 ```python {.marimo}
-n = 7
-data_for_n_days_prior('2024-03-15', n)
+# ... tag maintenance is likely to be necessary after calculations:
+revenues.replace_tags(({'variable':'price'},{'variable':'revenue'}))
+revenues.tags["series"]["a_revenue_beer"]
 ```
 
 <!-- @output:wlCL -->
 
-| valid_at | x | y | z |
-| --- | --- | --- | --- |
-| 2024-03-08 | 90.0 | 110.0 | 120.0 |
-| 2024-03-09 | 120.0 | 110.0 | 80.0 |
-| 2024-03-10 | 90.0 | 100.0 | 100.0 |
-| 2024-03-11 | 100.0 | 100.0 | 100.0 |
-| 2024-03-12 | 110.0 | 90.0 | 100.0 |
-| 2024-03-13 | 90.0 | 110.0 | 100.0 |
-| 2024-03-14 | 90.0 | 110.0 | 100.0 |
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;dataset&#x27;: &#x27;AZ Revenue&#x27;,
+ &#x27;name&#x27;: &#x27;a_revenue_beer&#x27;,
+ &#x27;product&#x27;: &#x27;beer&#x27;,
+ &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+ &#x27;store&#x27;: &#x27;a&#x27;,
+ &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+ &#x27;variable&#x27;: &#x27;revenue&#x27;,
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
+
+Detagging
+---------
+<!---->
+If mistakes have been made, it may be necessary to remove tags.
 
 ```python {.marimo}
-as_of_dates = ['2025-05-01','2025-06-01','2025-08-03','2025-08-04','2025-08-05','2025-08-06','2025-08-07']
+from copy import deepcopy
+deepcopy(pqr.tags)
+```
+
+<!-- @output:rEll -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
+ &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+ &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;p&#x27;,
+                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;q&#x27;,
+                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;r&#x27;,
+                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
+ &#x27;temporality&#x27;: &#x27;AT&#x27;,
+ &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+ &#x27;variabel&#x27;: &#x27;pris&#x27;,
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
+
+```python {.marimo}
+pqr.detag_series('varegruppe', vare='knekkebrød')
 ```
 
 ```python {.marimo}
-# update the data for several as of dates
-# --> simulates running the production process for several periods
-for as_of in as_of_dates:
-    xyz_df = data_for_n_days_prior(as_of,n)
-    Dataset(
-        name = 'XYZ',
-        data_type = estimated_point_in_time,
-        as_of_tz=date_utc(as_of),
-        data = xyz_df,
-    ).save()
+pqr.detag_series( vare='knekkebrød' )
+pqr.tags
+```
+
+<!-- @output:SdmI -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
+ &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+ &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;p&#x27;,
+                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;q&#x27;,
+                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;r&#x27;,
+                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
+ &#x27;temporality&#x27;: &#x27;AT&#x27;,
+ &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+ &#x27;variabel&#x27;: &#x27;pris&#x27;,
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
+
+```python {.marimo}
+
 ```
 
 The catalog
@@ -403,13 +449,14 @@ all_sets = our_timeseries_database.datasets()
 [s.object_name for s in all_sets]
 ```
 
-<!-- @output:lgWD -->
+<!-- @output:urSm -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;AZ_drikkevarer&#x27;,
  &#x27;Prices and Volumes&#x27;,
  &#x27;A Sample Dataset&#x27;,
  &#x27;PQR&#x27;,
  &#x27;Sample Data&#x27;,
+ &#x27;AZ Drinks&#x27;,
  &#x27;XYZ&#x27;,
  &#x27;More Prices and Volumes&#x27;,
  &#x27;AZ_omsetning&#x27;,
@@ -420,7 +467,7 @@ series_in_xyz = our_timeseries_database.series(tags={'dataset': 'XYZ'})
 [s.object_name for s in series_in_xyz]
 ```
 
-<!-- @output:yOPj -->
+<!-- @output:jxvo -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;x&#x27;, &#x27;y&#x27;, &#x27;z&#x27;&#93;</pre>
 
@@ -430,7 +477,7 @@ everything = our_timeseries_database.items()
 pd.DataFrame(everything)
 ```
 
-<!-- @output:fwwy -->
+<!-- @output:mWxS -->
 
 | repository_name | object_name | object_type | object_tags | parent | children |
 | --- | --- | --- | --- | --- | --- |
@@ -447,6 +494,9 @@ pd.DataFrame(everything)
 | tutorials | z_volume_wine_W | series | {'dataset': 'AZ_drinks', 'name': 'z_volume_wine_W', 'versioning': 'NONE', 'temporality': 'FROM_TO', 'repository': 'tutorials', 'store': 'z', 'variable': 'volume', 'product': 'wine', 'region': 'W'} | AZ_drinks | None |
 
 ### Consuming KLASS
+<!---->
+The `Dataset` and `Series` attributes are *technically* just key-value pairs.
+It is, however, possible (even recommended) to rely on more formal taxonomies top structure these.
 
 ```python {.marimo}
 from klass import get_classification
@@ -457,7 +507,7 @@ from klass import KlassClassification # Import the class for KlassClassification
 print(get_classification(157))
 ```
 
-<!-- @output:jxvo -->
+<!-- @output:tZnO -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">Classification 157: Standard for klassifisering av energibalanseposter
         Owning Section: 425 - Seksjon for energi-, miljø- og ​transportstatistikk
@@ -484,7 +534,7 @@ klass157 = Taxonomy(klass_id=157)
 klass157.entities # <-- arrow table, with an extra row 0
 ```
 
-<!-- @output:CcZR -->
+<!-- @output:CLip -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&quot;Energy balance posts&quot; - KLASS 157 is an example of a taxonomy with hierarchical structure.
 </pre>
@@ -515,7 +565,7 @@ notes: &#91;&#91;&quot;&quot;,&quot;Produksjon av primære energiprodukter omfat
 klass157.print_tree()
 ```
 
-<!-- @output:YWSi -->
+<!-- @output:YECM -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">╙── 0
     ├─╼ 1
@@ -587,7 +637,7 @@ klass157.print_tree()
 print(klass157.leaf_nodes)
 ```
 
-<!-- @output:zlud -->
+<!-- @output:cEAS -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;1.1.1&#x27;, &#x27;1.1.2&#x27;, &#x27;1.1.3&#x27;, &#x27;1.2&#x27;, &#x27;11.1&#x27;, &#x27;11.2&#x27;, &#x27;12.1.1&#x27;, &#x27;12.1.10&#x27;, &#x27;12.1.11&#x27;, &#x27;12.1.12&#x27;, &#x27;12.1.13&#x27;, &#x27;12.1.2&#x27;, &#x27;12.1.3&#x27;, &#x27;12.1.4&#x27;, &#x27;12.1.5&#x27;, &#x27;12.1.6&#x27;, &#x27;12.1.7&#x27;, &#x27;12.1.8&#x27;, &#x27;12.1.9&#x27;, &#x27;12.2.1&#x27;, &#x27;12.2.2&#x27;, &#x27;12.2.3&#x27;, &#x27;12.2.4&#x27;, &#x27;12.2.5&#x27;, &#x27;12.3.1&#x27;, &#x27;12.3.2&#x27;, &#x27;12.3.3&#x27;, &#x27;12.3.4&#x27;, &#x27;13&#x27;, &#x27;14&#x27;, &#x27;15&#x27;, &#x27;2&#x27;, &#x27;3&#x27;, &#x27;4.1&#x27;, &#x27;4.2&#x27;, &#x27;5&#x27;, &#x27;6&#x27;, &#x27;7.1&#x27;, &#x27;7.2&#x27;, &#x27;7.3&#x27;, &#x27;7.4&#x27;, &#x27;7.5&#x27;, &#x27;7.6&#x27;, &#x27;8.1&#x27;, &#x27;8.2&#x27;, &#x27;8.3&#x27;, &#x27;8.4&#x27;, &#x27;8.5&#x27;, &#x27;8.6&#x27;, &#x27;8.7&#x27;, &#x27;8.8&#x27;, &#x27;8.9&#x27;, &#x27;9&#x27;&#93;
 </pre>
@@ -596,21 +646,17 @@ print(klass157.leaf_nodes)
 print(klass157.parent_nodes)
 ```
 
-<!-- @output:tZnO -->
+<!-- @output:iXej -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;1&#x27;, &#x27;0&#x27;, &#x27;1.1&#x27;, &#x27;11&#x27;, &#x27;12&#x27;, &#x27;12.1&#x27;, &#x27;12.2&#x27;, &#x27;12.3&#x27;, &#x27;4&#x27;, &#x27;7&#x27;, &#x27;8&#x27;&#93;
 </pre>
 
 ```python {.marimo}
 # read/write to file -> taxonomies can be defined outside KLASS
-klass157.save('klass157.json')
-file157 = Taxonomy(path='klass157.json')
+#klass157.save('klass157.json')
+#file157 = Taxonomy(path='klass157.json')
 ```
 
 ```python {.marimo}
-klass157 == file157
+#klass157 == file157
 ```
-
-<!-- @output:CLip -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">True</pre>

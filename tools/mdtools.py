@@ -65,7 +65,7 @@ def catalog_item_list_to_df(cat_item_list):
         if isinstance(val, dict):
             series_in_set = val.get('series', [])
             if len(series_in_set) > max_keys:
-                return f"{{{len(val)-1} set tags\n+{len(series_in_set)} series}}"
+                return f"{{{len(val)-1} set tags + {len(series_in_set)} series}}"
             else:
                 return f"{{{len(val)} series tags}}"
         return val

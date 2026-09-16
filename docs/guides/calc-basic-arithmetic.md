@@ -3,33 +3,15 @@ title: Calc Basic Arithmetic
 marimo-version: 0.24.0
 ---
 
-<!-- @output:Hbol -->
-
-    <style>
-    /* Hides the desktop sidebar table of contents */
-    div&#91;class*="marimo-toc"&#93;,
-    aside&#91;class*="sidebar"&#93;,
-    &#91;data-testid="marimo-toc"&#93; {
-        display: none !important;
-    }
-
-    /* Adjusts the main content margin to center it */
-    main {
-        margin-left: auto !important;
-        margin-right: auto !important;
-        max-width: 960px !important;
-    }
-    </style>
-
-
-# Calculations
+Basic arithmetic
+================
 <!---->
 Scope
 -----
 
-This guide show cases support for basic arithmetic and explains some of the general principles for calculations with the SSB Timeseries library.
+This guide illustrates some basic arithmetics and explains some of the general principles for calculations, and touches upon some ways to leverage other libraries.
 
-More specific guides are provided for topics like *calculations with time* and *metadata centric calculations*.
+More specific guides are provided for topics like [calculations with time](calc-with-time) and [metadata centric calculations](calc-with-metadata).
 <!---->
 Prerequisites
 -------------
@@ -39,48 +21,13 @@ The guide assumes that the SSB Timeseries library is installed and that a workin
 See [the quickstart guide](quickstart) for instructions to that.
 ```
 
-The presented functionality relies on `dataset.Dataset`.
-Other imports like`types.SeriesType` and external libraries are used only for generating the sample data.
+The presented functionality itself relies on `dataset.Dataset`.
 
 ```python {.marimo}
 from ssb_timeseries.dataset import Dataset
 ```
 
-```python {.marimo}
-from ssb_timeseries.types import SeriesType
-from ssb_timeseries.sample_data import create_df
-from itertools import product
-from datetime import date
-```
-
 Generate some test data
-
-```python {.marimo}
-def create_some_example_data(
-    set_name: str,
-    as_of_dates: list[date],
-    series_tags: dict[str,list[str]],
-):
-    """Generate and save some sample data."""
-    set_tags = { "Country": "Norway" }
-    PERIOD_ESTIMATE = SeriesType('AS_OF', 'FROM_TO')
-    for d in as_of_dates:
-        df = create_df(
-            *[value for value in series_tags.values()],
-            temporality= 'FROM_TO',
-            start_date="2024-01-01",
-            end_date="2026-12-01",
-            freq="MS",
-        )
-        Dataset(
-            name=set_name,
-            data_type=PERIOD_ESTIMATE,
-            as_of_tz=str(d),
-            data=df,
-            tags = set_tags,
-            attributes = ["variable", "product"],
-        ).save()
-```
 
 We will generate random data for all permutations of some descriptive metadata,
 
@@ -99,8 +46,8 @@ create_some_example_data(
 
 ```
 
-Element-wise arithmetic
---------------------------------
+Element-wise calculations
+-------------------------
 <!---->
 Our dataset "Prices and Volumes" contain *prices* and *volumes* for a number of *products*.
 Let us retrieve it for a single version identfied by the `as_of` date:
@@ -109,11 +56,12 @@ Let us retrieve it for a single version identfied by the `as_of` date:
 jul = Dataset(name="Prices and Volumes", as_of_tz="2025-07-01")
 ```
 
-... and filter by metadata tags to separate prices from volumes, and calculate revenues by multiplying them:
+... and separate *prices* from *volumes* by selecting series with tags, and calculate *revenues* by multiplying them element-wise:
 
 ```python {.marimo}
 jul_prices = jul[{'variable': 'price'}]
 jul_volumes = jul[{'variable': 'volume'}]
+
 jul_revenue = jul_prices * jul_volumes
 ```
 
@@ -127,7 +75,7 @@ jul_revenue.plot()
 
 <!-- @output:TqIu -->
 
-The calculation returns a new dataset with a long and unwieldly name:
+It returns a new dataset with a long and unwieldly name:
 
 `(COPY of(Prices and Volumes SELECTED by names (), pattern: , regex:  tags: [{'variable': 'price'}]).multiply.COPY of(Prices and Volumes SELECTED by names (), pattern: , regex:  tags: [{'variable': 'volume'}]))`
 
@@ -143,10 +91,10 @@ The same holds if we do not assign the intermediate variables:
 
 ```python {.marimo}
 feb = Dataset(name="Prices and Volumes", as_of_tz="2025-02-01")
-feb_revenue = feb[{'variable': 'price'}] * feb[{'variable': 'volume'}]
 ```
 
 ```python {.marimo}
+feb_revenue = feb[{'variable': 'price'}] * feb[{'variable': 'volume'}]
 feb_revenue.rename("Revenues", ('price', 'revenue'))
 feb_revenue.replace_tags(({'variable':'price'}, {'variable': 'revenue'}))
 ```
@@ -165,17 +113,20 @@ change_in_revenue.plot()
 
 The above examples showed simple arithemetic with `*` and `-`.
 These and other *infix* operators for element-wise arithmetic and comparisons work for `Dataaset` objects because the class exposes "dunder" methods to [emulate numeric types](https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types) and [rich comparisons](https://docs.python.org/3/reference/datamodel.html#basic-customization).
-
-The implementation of all mathematical operators follows a pattern: a wrapper function that uses the [interoperability](nteroperability) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
+<!---->
+The behaviour for all of them is element-wise, corresponding to the Numpy defaults.
+<!---->
+The implementations for the mathematical operators follows a pattern: a wrapper function that uses the [interoperability](nteroperability) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
 
 There are several points to unpack.
 <!---->
-The Numpy implementation means that element-wise calculation is the default, with [Numpy "broadcasting rules"](https://numpy.org/doc/stable/user/basics.broadcasting.html) for different size objects.
+[Numpy "broadcasting rules"](https://numpy.org/doc/stable/user/basics.broadcasting.html) apply for different size objects of supported types.
 Broadcasting rules and dimensional conditions are avaluated only for the numeric parts - the math functions will ignore the date columns.
-Date alignment must be performed explicitly prior to the calculation.
+Whereas the  multiplication example above had matching dates, the  subtraction had the same size data but different dates.
+This means that any required date alignment must be performed explicitly prior to the arithmetic calculations.
 <!---->
-Narwhals under the hood first and foremost allow the arithmetic functions support operating not only on `Dataset` objects, but on combinations of datasets with a large number of other datatypes (scalars, Numpy arrays, dataframes, Arrow tables).
-Note that the "dataframe like" objects are all conflated to 'df' in the lineage tracking.
+Narwhals under the hood allow the arithmetic functions to support operating not only on `Dataset` objects, but on combinations of datasets with a large number of other datatypes (scalars, Numpy arrays, dataframes, Arrow tables).
+Note that the "dataframe like" objects (including Arrow tables) are all conflated to 'df' in the lineage tracking.
 <!---->
 Narwhals also brings conversion of `Dataset.data` to other libraries and their functionality within short reach.
 Shorthand properties `Dataset.pa`, `.nw`, `.pd`, and `.pl` will return Arrow tables, and Narwhals, Pandas and Polars dataframes.
@@ -187,7 +138,7 @@ Some meaningless calculation examples just to illustrate possible combinations o
 ((jul - feb.pd) / feb.pl).name
 ```
 
-<!-- @output:NCOB -->
+<!-- @output:TRpd -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">((Prices and Volumes.subtract.df).divide.df)</pre>
 
@@ -195,7 +146,7 @@ Some meaningless calculation examples just to illustrate possible combinations o
 ((jul - feb.pa)/ feb.nw).name
 ```
 
-<!-- @output:aqbW -->
+<!-- @output:TXez -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">((Prices and Volumes.subtract.df).divide.df)</pre>
 
@@ -203,19 +154,19 @@ Some meaningless calculation examples just to illustrate possible combinations o
 try:
     feb.pd**2
 except  TypeError:
-    print("`__pow__`  fails for date columns")
+    print("With Pandas `__pow__` and fails for date columns (unless index is set).")
 ```
 
-<!-- @output:TRpd -->
+<!-- @output:dNNg -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">`__pow__`  fails for date columns
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">With Pandas `__pow__` and fails for date columns (unless index is set).
 </pre>
 
 ```python {.marimo}
 type(feb.pd.set_index(['valid_from','valid_to'])**2)
 ```
 
-<!-- @output:TXez -->
+<!-- @output:yCnT -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;class &#x27;pandas.DataFrame&#x27;&gt;</pre>
 
@@ -224,27 +175,32 @@ feb.pd.iloc[0,:]
 #.set_index(['valid_from', 'valid_to']) * 1.2
 ```
 
-<!-- @output:dNNg -->
+<!-- @output:wlCL -->
 
 | 0 |
 | --- |
 | 2023-12-31 23:00:00+00:00 |
 | 2024-01-31 23:00:00+00:00 |
-| 90.0 |
 | 100.0 |
-| 70.0 |
+| 120.0 |
+| 90.0 |
 | ... |
 | 100.0 |
-| 80.0 |
 | 110.0 |
-| 120.0 |
 | 100.0 |
+| 110.0 |
+| 90.0 |
 
 ```python {.marimo}
 x = feb
 x_tbl = feb.pa
 x_pd = feb.pd
 x_pl = feb.pl
+```
+
+Or, entriely meaninglesss, but it gets be point across:
+
+```python {.marimo}
 do_stuff = x**2 / x.pa + x_pd + x_pl - x**2 - 100 + x.data
 ```
 
@@ -252,11 +208,11 @@ do_stuff = x**2 / x.pa + x_pd + x_pl - x**2 - 100 + x.data
 do_stuff.name
 ```
 
-<!-- @output:wAgl -->
+<!-- @output:lgWD -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">(((((((Prices and Volumes.power.2).divide.df).add.df).add.df).subtract.(Prices and Volumes.power.2)).subtract.100).add.df)</pre>
 
-This means that for any functionality that is missing in SSB Timeseries, it is easy to fill in the blanks.
+The interoperability also means that for any functionality that is missing in SSB Timeseries, it is easy to fill in the blanks with Pandas, Polars or Arrow.
 For example, at the time of writing, interval support and filtering by dates is an underdeveloped area of functionality.
 
 ```python {.marimo}
@@ -274,12 +230,15 @@ x_row = x.pl.filter( pl.col("valid_to").is_between(d_from, d_to) )
 x_row
 ```
 
-<!-- @output:lgWD -->
+<!-- @output:urSm -->
 
 | valid_from | valid_to | price_bread | price_cheese | price_eggs | price_ham | price_juice | price_milk | volume_bread | volume_cheese | volume_eggs | volume_ham | volume_juice | volume_milk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | datetime[ns, UTC] | datetime[ns, UTC] | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 |
-| 2024-01-31 23:00:00 UTC | 2024-02-29 23:00:00 UTC | 100.0 | 80.0 | 90.0 | 100.0 | 90.0 | 90.0 | 110.0 | 100.0 | 90.0 | 90.0 | 90.0 | 110.0 |
+| 2024-01-31 23:00:00 UTC | 2024-02-29 23:00:00 UTC | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 90.0 | 90.0 |
+
+Broadcasting
+------------
 
 The difference between broadcasted and element-wise:
 
@@ -290,7 +249,7 @@ print(type(elementwise))
 print(elementwise.data.shape)
 ```
 
-<!-- @output:fwwy -->
+<!-- @output:mWxS -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">(Prices and Volumes.multiply.Prices and Volumes)
 &lt;class &#x27;ssb_timeseries.dataset.Dataset&#x27;&gt;
@@ -304,7 +263,7 @@ print(type(broadcast))
 print(broadcast.data.shape)
 ```
 
-<!-- @output:LJZf -->
+<!-- @output:CcZR -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">(Prices and Volumes.multiply.df)
 &lt;class &#x27;ssb_timeseries.dataset.Dataset&#x27;&gt;
@@ -315,7 +274,7 @@ print(broadcast.data.shape)
 (broadcast == elementwise).data
 ```
 
-<!-- @output:urSm -->
+<!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">pyarrow.Table
 valid_from: timestamp&#91;ns, tz=UTC&#93; not null
@@ -335,17 +294,17 @@ volume_milk: bool
 ----
 valid_from: &#91;&#91;2023-12-31 23:00:00.000000000Z,2024-01-31 23:00:00.000000000Z,2024-02-29 23:00:00.000000000Z,2024-03-31 22:00:00.000000000Z,2024-04-30 22:00:00.000000000Z,...,2026-07-31 22:00:00.000000000Z,2026-08-31 22:00:00.000000000Z,2026-09-30 22:00:00.000000000Z,2026-10-31 23:00:00.000000000Z,2026-11-30 23:00:00.000000000Z&#93;&#93;
 valid_to: &#91;&#91;2024-01-31 23:00:00.000000000Z,2024-02-29 23:00:00.000000000Z,2024-03-31 22:00:00.000000000Z,2024-04-30 22:00:00.000000000Z,2024-05-31 22:00:00.000000000Z,...,2026-08-31 22:00:00.000000000Z,2026-09-30 22:00:00.000000000Z,2026-10-31 23:00:00.000000000Z,2026-11-30 23:00:00.000000000Z,2026-12-31 23:00:00.000000000Z&#93;&#93;
-price_bread: &#91;&#91;false,true,true,false,false,...,false,true,false,false,false&#93;&#93;
-price_cheese: &#91;&#91;false,true,false,true,false,...,false,false,false,false,false&#93;&#93;
-price_eggs: &#91;&#91;false,true,true,true,false,...,false,false,false,false,false&#93;&#93;
-price_ham: &#91;&#91;false,true,false,false,false,...,false,false,false,true,false&#93;&#93;
-price_juice: &#91;&#91;false,true,true,false,false,...,false,false,true,true,false&#93;&#93;
-price_milk: &#91;&#91;false,true,false,false,false,...,false,false,false,false,false&#93;&#93;
-volume_bread: &#91;&#91;true,true,false,false,true,...,false,true,true,false,false&#93;&#93;
-volume_cheese: &#91;&#91;true,true,false,false,false,...,false,false,false,true,false&#93;&#93;
+price_bread: &#91;&#91;false,true,false,true,false,...,false,false,true,false,false&#93;&#93;
+price_cheese: &#91;&#91;false,true,false,true,false,...,false,false,false,true,true&#93;&#93;
+price_eggs: &#91;&#91;false,true,true,true,false,...,false,true,false,false,true&#93;&#93;
+price_ham: &#91;&#91;true,true,false,false,false,...,false,false,false,false,false&#93;&#93;
+price_juice: &#91;&#91;false,true,false,false,false,...,false,true,false,false,false&#93;&#93;
+price_milk: &#91;&#91;false,true,false,false,false,...,true,true,false,false,true&#93;&#93;
+volume_bread: &#91;&#91;false,true,false,false,false,...,false,false,false,false,false&#93;&#93;
+volume_cheese: &#91;&#91;true,true,false,false,false,...,false,true,false,true,false&#93;&#93;
 ...</pre>
 
-(For the second row, matching `x_row` all values of the comparison are `True`.)
+(Note how for the second row, matching `x_row` all values of the comparison are `True`.)
 
 \# bigger example - not needed?
 tags = {"Var": ["price", "volume"], \
@@ -363,7 +322,7 @@ some_data.info()
 <!---->
 ### Vectors
 
-<!-- @output:zlud -->
+<!-- @output:YECM -->
 
 We can also get a vector (or more precisely, a Narwhals series) per series in the set. For the `jul_revenue` set from above:
 
@@ -390,11 +349,11 @@ newly_created  = set(locals())-variables_in_memory - {'variables_in_mamory'}
 newly_created
 ```
 
-<!-- @output:iXej -->
+<!-- @output:kLmu -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;valid_to&#x27;, &#x27;revenue_juice&#x27;, &#x27;revenue_milk&#x27;, &#x27;revenue_ham&#x27;, &#x27;variables_in_memory&#x27;, &#x27;revenue_bread&#x27;, &#x27;revenue_eggs&#x27;, &#x27;valid_from&#x27;, &#x27;revenue_cheese&#x27;}</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;revenue_ham&#x27;, &#x27;revenue_eggs&#x27;, &#x27;revenue_juice&#x27;, &#x27;revenue_bread&#x27;, &#x27;revenue_cheese&#x27;, &#x27;variables_in_memory&#x27;, &#x27;revenue_milk&#x27;, &#x27;valid_to&#x27;, &#x27;valid_from&#x27;}</pre>
 
-<!-- @output:EJmg -->
+<!-- @output:IpqN -->
 
 ``` <class 'Warning'>
 Be careful!
@@ -412,9 +371,9 @@ jul.vectors('eggs')
 set(locals()) - variables_in_memory - newly_created
 ```
 
-<!-- @output:kLmu -->
+<!-- @output:TTti -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;volume_eggs&#x27;, &#x27;price_eggs&#x27;, &#x27;newly_created&#x27;}</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;price_eggs&#x27;, &#x27;newly_created&#x27;, &#x27;volume_eggs&#x27;}</pre>
 
 The vector variables may be used for calculations directly, using Narwhals functionality:
 
@@ -422,11 +381,11 @@ The vector variables may be used for calculations directly, using Narwhals funct
 (price_eggs * volume_eggs).mean()
 ```
 
-<!-- @output:dxZZ -->
+<!-- @output:IaQp -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">9905.555555555555</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">10144.444444444445</pre>
 
-<!-- @output:dlnW -->
+<!-- @output:IWgg -->
 
 ``` <class 'Warning'>
 Caveats:
@@ -440,15 +399,29 @@ Or, convert with `.to_list()` or `.to_numpy()`.
 price_eggs.to_numpy()
 ```
 
-<!-- @output:RKFZ -->
+<!-- @output:LkGn -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">array(&#91; 90., 100., 100., 100., 100., 110., 110., 120., 100.,  90.,  90.,
-       120., 110., 110., 100., 100., 100., 110.,  90., 110., 100.,  80.,
-        90., 120., 120., 110., 110., 100., 110., 100., 100., 100., 100.,
-       100.,  90., 110.&#93;)</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">array(&#91; 80., 110., 100., 100.,  90.,  90.,  90.,  90., 110., 110., 100.,
+       100.,  90., 110.,  90., 110.,  90., 110., 100., 100.,  80., 110.,
+       120., 110., 100., 110., 110.,  90., 110., 120.,  90., 100.,  90.,
+       100.,  90.,  90.&#93;)</pre>
 
 See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-meta-tags).
 
-```python {.marimo}
+```python {.marimo name="test_true"}
+# @supress
 
+def test_true():
+    assert True
 ```
+
+<!-- @output:woaO -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;32m.&#91;0m&#91;32m                                                                        &#91;100%&#93;&#91;0m
+=================================== Overview ===================================
+Passed Tests:
+&#91;1m&#91;32m&#91;22m✓&#91;0m&#91;0m notebooks/calc-basic-arithmetic.py::test_true
+
+Summary:
+Total: 1, Passed: 1, Failed: 0, Errors: 0, Skipped: 0
+</pre>
