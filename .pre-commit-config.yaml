@@ -37,8 +37,9 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.3
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix]
+        stages: ["pre-commit",]
       - id: ruff-format
         args: [--diff,]
         stages: ["pre-commit",]
@@ -52,7 +53,7 @@ repos:
         entry: poetry run mypy src
         language: system
         types: [python]
-        stages: ["pre-commit",]
+        stages: ["pre-push",]
         pass_filenames: false
         exclude: ^noxfile\.py$
         # not for 'system' hooks:
@@ -63,9 +64,9 @@ repos:
     rev: v1.10.1 # Aligned with pyproject.toml
     hooks:
       - id: mypy
-        name: mypy-tests
+        name: mypy-tests-and-docs
         entry: poetry run mypy tests docs
         language: system
         types: [python]
+        stages: ["pre-push",]
         pass_filenames: false
-        stages: ["pre-commit",]

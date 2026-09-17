@@ -167,3 +167,28 @@ def test_snapshot_and_sharing_increases_file_count_in_configured_locations(
     assert count_after_persisted == count_before_persisted + n
     assert count_after_123 == count_before_123 + n
     assert count_after_234 == count_before_234 + n
+
+
+@pytest.mark.xfail(reason="Working on it!")
+def test_reproduce_bug_in_issue_249(
+    caplog,
+):
+    """Reproducing https://github.com/statisticsnorway/ssb-timeseries/issues/249."""
+    import pandas as pd
+
+    from ssb_timeseries.dataset import Dataset
+
+    caplog.set_level(logging.DEBUG)
+
+    # dates = [date("2026-01-01"), date("2026-01-01"), date("2026-01-01")]
+    dates = ["2026-01-01", "2026-01-01", "2026-01-01"]
+    df_a = pd.DataFrame({"valid_at": dates, "a": [1.1, 1.3, 1.4]})
+    df_b = pd.DataFrame({"valid_at": dates, "a": [2.5, 2.6, 2.7]})
+
+    ds_a = Dataset(name="ds_a", data=df_a, data_type="simple")
+    ds_b = Dataset(name="ds_b", data=df_b, data_type="simple")
+
+    ds_c = ds_a + ds_b
+    assert isinstance(ds_c, Dataset)
+
+    ds_c.snapshot()
