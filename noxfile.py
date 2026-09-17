@@ -26,14 +26,14 @@ package = "ssb_timeseries"
 python_versions = ["3.11", "3.12", "3.13", "3.14"]
 python_versions_for_test = python_versions #+ [older_versions[0]]
 nox.needs_version = ">= 2021.6.6"
-nox.options.sessions = (
+nox.options.sessions = [
     "lint",
     "mypy",
     "tests",
     "typeguard",
     "xdoctest",
     "docs-build",
-)
+]
 
 
 def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
