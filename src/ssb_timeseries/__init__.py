@@ -33,14 +33,19 @@ The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether da
 
 from __future__ import annotations
 
+from ssb_timeseries import config
 from ssb_timeseries.catalog import get_catalog
-from ssb_timeseries.config import Config
 from ssb_timeseries.logging import set_up_logging_according_to_config
 
-get_configuration = Config.active
-"""Return the active configuration."""
 
-logger = set_up_logging_according_to_config(__name__, get_configuration().logging)
+def get_configuration() -> config.Config:
+    """Return the active configuration."""
+    return config.Config.active()
+
+
+logger = set_up_logging_according_to_config(
+    config.PACKAGE_NAME, get_configuration().logging
+)
 
 
 __all__ = [

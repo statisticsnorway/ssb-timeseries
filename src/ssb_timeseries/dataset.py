@@ -67,8 +67,11 @@ from .dates import date_utc
 from .dates import period_index
 from .dates import utc_iso
 from .logging import logger
+from .types import DatasetTagDict
 from .types import F
 from .types import PathStr
+from .types import SeriesTagDict
+from .types import TagDict
 from .types import Temporality
 from .types import Versioning
 
@@ -367,7 +370,7 @@ class Dataset:
             **kwargs: Additional keyword arguments passed to underlying functions.
 
         Keyword Args:
-            allow providing parameters for initializing the copied set.
+            **kwargs: allow providing parameters for initializing the copied set.
         """
         if not new_name:
             new_name = f"COPY of {self.name}"
@@ -510,11 +513,11 @@ class Dataset:
         return []
 
     @property
-    def series_tags(self) -> meta.SeriesTagDict:
+    def series_tags(self) -> SeriesTagDict:
         """Get series tags."""
         return self.tags["series"]  # type: ignore
 
-    def default_tags(self) -> meta.DatasetTagDict:
+    def default_tags(self) -> DatasetTagDict:
         """Return default tags for set and series."""
         return {
             "name": self.name,
@@ -526,7 +529,7 @@ class Dataset:
 
     def tag_dataset(
         self,
-        tags: meta.TagDict = None,
+        tags: TagDict = None,
         **kwargs: str | list[str] | set[str],
     ) -> None:
         """Tag the set.
@@ -887,10 +890,11 @@ class Dataset:
             expressions.append(ncs.matches(f".*{pattern}.*"))
 
         if tags:
-            if isinstance(tags, list):
-                matching_series = meta.search_by_tags(self.tags["series"], *tags)
-            else:
-                matching_series = meta.search_by_tags(self.tags["series"], tags)
+            # if isinstance(tags, list):
+            #     matching_series = meta.search_by_tags(self.tags["series"], *tags)
+            # else:
+            #     matching_series = meta.search_by_tags(self.tags["series"], tags)
+            matching_series = meta.search_by_tags(self.tags["series"], tags)
             logger.debug("DATASET.select(tags) found:\n%s ", matching_series)
             expressions.append(nw.col(matching_series))
 
@@ -909,10 +913,9 @@ class Dataset:
                     new_name = f"COPY of({self.name} SELECTED by names {names}, pattern: {pattern}, regex: {regex} tags: {tags})"
                 out = self.copy(new_name, data=df, **kwargs)
                 out.rename(new_name)
+                numeric_columns = set(out.numeric_columns)
                 matching_series_tags = {
-                    k: v
-                    for k, v in out.tags["series"].items()
-                    if k in out.numeric_columns
+                    k: v for k, v in out.tags["series"].items() if k in numeric_columns
                 }
                 out.tags["series"] = matching_series_tags
             case _:

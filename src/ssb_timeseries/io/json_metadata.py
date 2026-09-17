@@ -16,10 +16,9 @@ from typing import NamedTuple
 
 from ..config import FileBasedRepository
 from ..logging import logger
-from ..meta import DatasetTagDict
-from ..meta import TagDict
 from ..meta.tags import matches_criteria
 from ..types import PathStr
+from ..types import TagDict
 from . import fs
 from .json_helpers import sanitize_for_json
 
@@ -301,7 +300,7 @@ def tags_from_json(
 
 def tags_from_json_file(
     file_or_files: PathStr | list[PathStr],
-) -> DatasetTagDict | list[DatasetTagDict]:
+) -> dict | list[dict]:  # DatasetTagDict | list[DatasetTagDict]:
     """Read and parse one or more metadata JSON files."""
     if isinstance(file_or_files, list):
         result = []
@@ -311,4 +310,4 @@ def tags_from_json_file(
         return result
     else:
         t = fs.read_json(file_or_files)
-        return DatasetTagDict(t)
+        return t  # cast(DatasetTagDict, t)

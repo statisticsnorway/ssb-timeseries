@@ -24,7 +24,7 @@ except ImportError:
 
 package = "ssb_timeseries"
 python_versions = ["3.11", "3.12", "3.13", "3.14"]
-python_versions_for_test = python_versions #+ ["3.10"]
+python_versions_for_test = python_versions #+ [older_versions[0]]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "lint",
@@ -160,8 +160,30 @@ def setup_windows_tzdata(session: Session) -> None:
 
     session.log(f"Successfully created timezone database at {target_dir}.")
 
+def install_poetry_group(session: Session, group: str) -> None:
+    """Install dependencies from a Poetry de1pendency group."""
+    requirements = Path(session.create_tmp()) / f"requirements-{group}.txt"
 
-@nox.session(python=python_versions[0])
+    session.run(
+        "poetry",
+        "export",
+        "--with",
+        group,
+        "--format=requirements.txt",
+        "--output",
+        str(requirements),
+        external=True,
+    )
+    session.install("-r", str(requirements))
+
+NOTEBOOK_DEPENDENCIES = [
+        "marimo",
+        "tabulate",
+        "jinja2",
+        # Other notebook-specific dependencies
+]
+
+@nox.session(python=python_versions[-1])
 def lint(session: Session) -> None:
     """Ruff format check."""
     # We install ruff directly.
@@ -173,19 +195,9 @@ def lint(session: Session) -> None:
 def mypy(session: Session) -> None:
     """Type-check 'src' directory using mypy."""
     args = session.posargs or ["src"]
-    # Export deps to a requirements file
-    session.run(
-        "poetry",
-        "export",
-        "--with",
-        "dev",
-        "--format=requirements.txt",
-        "--output",
-        "requirements-dev.txt",
-        external=True,
-    )
-    session.install("-r", "requirements-dev.txt")
+    install_poetry_group(session, "dev")
     session.install(".")
+
     project_root = Path(__file__).parent
     pyproj_toml_file = str(project_root / "pyproject.toml")
     with session.chdir(project_root):
@@ -202,8 +214,10 @@ def mypy(session: Session) -> None:
 @session(python=python_versions_for_test)
 def tests(session: Session) -> None:
     """Run the test suite."""
+    session.env["PYTHONUTF8"] = "1"
     session.install(".")
-    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata")
+    session.install(*NOTEBOOK_DEPENDENCIES)
+    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata", "typeguard")
 
     # If on Windows, find the installed tzdata path and set the env var to avoid:
     #  E  pyarrow.lib.ArrowInvalid: Cannot locate timezone 'Europe/Oslo':
@@ -235,7 +249,7 @@ def tests(session: Session) -> None:
             session.notify("coverage", posargs=[])
 
 
-@session(python=python_versions[0])
+@session(python=python_versions[-1])
 def coverage(session: Session) -> None:
     """Produce the coverage report."""
     args = session.posargs or ["report", "--skip-empty"]
@@ -248,16 +262,17 @@ def coverage(session: Session) -> None:
     session.run("coverage", *args)
 
 
-@session(python=python_versions[0])
+@session(python=python_versions[-1])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
-    session.install("pytest", "typeguard", "pygments", "click",)
+    session.install("pytest", "typeguard", "pygments",) #"click","marimo", "tabulate")
+    session.install(*NOTEBOOK_DEPENDENCIES)
     session.install(".")
     #session.run("pip", "install", "-e", ".") # RYE: editable is better practice? --> apply everywhere?
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
 
 
-@session(python=python_versions)
+@session(python=python_versions[-1])
 def xdoctest(session: Session) -> None:
     """Run examples with xdoctest."""
     if session.posargs:
@@ -268,8 +283,9 @@ def xdoctest(session: Session) -> None:
         if "FORCE_COLOR" in os.environ:
             args.append("--colored=1")
 
+    install_poetry_group(session, "dev")
     session.install(".")
-    session.install("xdoctest[colors]")
+
     config_path = Path(session.create_tmp()) / "timeseries_config.json"
     config_path.write_text("{}")
     session.run(
@@ -281,17 +297,15 @@ def xdoctest(session: Session) -> None:
     )
 
 
-@session(name="docs-build", python=python_versions[0])
+@session(name="docs-build", python=python_versions[1])
 def docs_build(session: Session) -> None:
     """Build the documentation."""
     args = session.posargs or ["docs", "docs/_build"]
     if not session.posargs and "FORCE_COLOR" in os.environ:
         args.insert(0, "--color")
 
+    install_poetry_group(session, "docs")
     session.install(".")
-    session.install(
-        "sphinx", "sphinx-autodoc-typehints", "sphinx-click", "furo", "myst-parser", "sphinx-copybutton", "sphinx-togglebutton", "sphinx-changelog",
-    )
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
@@ -300,26 +314,28 @@ def docs_build(session: Session) -> None:
     session.run("sphinx-build", *args)
 
 
-@session(python=python_versions[0])
+@session(python=python_versions[-1])
 def docs(session: Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
-    #args = session.posargs or ["--open-browser", "docs", "docs/_build"]
     args = session.posargs or ["--open-browser"]
+    install_poetry_group(session, "docs")
     session.install(".")
-    session.install(
-        "sphinx",
-        "sphinx-autobuild",
-        "sphinx-autodoc-typehints",
-        "sphinx-click",
-        "furo",
-        "myst-parser", "sphinx-copybutton", "sphinx-togglebutton", "sphinx-changelog",
-    )
 
     source_dir = "docs"
     build_dir = Path("docs", "_build")
     if build_dir.exists():
         shutil.rmtree(build_dir)
 
-    #session.run("sphinx-autobuild", *args)
     # RYE: Always run sphinx-autobuild with the optional flags AND the mandatory directories
     session.run("sphinx-autobuild", *args, source_dir, str(build_dir))
+
+@session(name="deptry", python=python_versions[0])
+def deptry(session: Session) -> None:
+    """Checks dependencies."""
+    session.install(".")
+    session.install(
+        "deptry"
+    )
+
+    args = session.posargs or []
+    session.run("deptry", *args, ".")

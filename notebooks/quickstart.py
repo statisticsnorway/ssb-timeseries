@@ -1,0 +1,306 @@
+import marimo
+
+__generated_with = "0.24.0"
+app = marimo.App(width="comnpact")
+
+
+@app.cell(hide_code=True)
+def _():
+    import marimo as mo
+    import testing
+    from ssb_timeseries.config import ENV_VAR_NAME
+
+    return ENV_VAR_NAME, mo, testing
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    Quickstart Guide 2.0
+    ====================
+
+    Installation
+    ------------
+
+    Clone from [GitHub](https://github.com/statisticsnorway/ssb-timeseries/),
+    or install from [PyPi](https://pypi.org/project/ssb-timeseries/):
+
+    ```bash
+    poetry add ssb-timeseries
+    ```
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    Configuration
+    --------------
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(ENV_VAR_NAME, mo):
+    mo.md(f"""
+    On first use, the library is likely to warn that it is not properly configured.
+    The library expects an environment variable {ENV_VAR_NAME} to identify a valid configuration file.
+    Neither name nor location of the file matters as long as the file is identified correctly, accessible and complies with the JSON schema for the library version,
+    but unless you are working in a pre-configured environment, none of these conditions are likely to be satisfied.
+
+    There are a few different approaches to maintain the configuration:
+    - Editing by hand
+    - Using the `config` module
+    - Using the command line interface (CLI)
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    The CLI
+    -------
+
+    The library provides a helper CLI with features that are mainly for inspection.
+    The CLI is accessible in a terminal shell where the library is installed.
+    This sounds obvious, but means that there are som subtle differences depending on how the library was installed and how Python virtual environments are managed in your working environment.
+
+    If `poetry` was used for installation, the commands below will need to be prefixed with `poetry run`.
+
+    From a terminal, the main entry point is `ssb-timeseries` or the shorthand `ts`:
+
+    `ts --help` will provide an overview of the CLI, whereas `ts config --help` will do the same for the configuration features.
+
+    ``` bash
+    ts config path
+    ```
+    will show the value of the TIMESERIES_CONFIG environment variable, if it is set.
+
+    ``` bash
+    ts config show [option]
+    ```
+    will show the entire active configuration, or a named preset.
+    This gives us a way to create or replace a configuration file:
+
+    ``` bash
+    ts config show defaults > ~/.config/ssb-timeseries/default-config.json
+    ```
+
+    Valid presets can be listed with
+
+    ``` bash
+    ts config list
+    ```
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    Using the `config` module
+    -------------------------
+    """)
+    return
+
+
+@app.cell
+def _():
+    from ssb_timeseries.config import Config
+
+    return (Config,)
+
+
+@app.cell
+def _(mo):
+    mo.md(f"""
+    The following Python code will apply and save default settings.
+    """)
+    return
+
+
+@app.cell
+def _(Config):
+    cfg = Config(preset='default')
+    cfg.save()
+    cfg.activate()
+    return (cfg,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(f"""
+    The defaults may be OK for local use or testing.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The activation will set the environment variable, but only in the current shell.
+    That means, the effect is local and not permanent.
+    It will be lost after the shell session that Python runs inside ends.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(ENV_VAR_NAME, mo):
+    mo.md(f"""
+    Note that while `.activate()` will set the environment variable, it wil not do so permanently.
+    The variable will be gone when the active shell session that Python runs within ends.
+
+    On a linux-like system, setting it permanently may look like:
+
+    ```bash
+    echo 'export {ENV_VAR_NAME}="~/.config/ssb_timeseries/config.json"' >> .bashrc
+    ```
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    To inspect the active configuration, either open the JSON file, or access it via `.active()`:
+    """)
+    return
+
+
+@app.cell
+def _(Config):
+    Config.active()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    An alternative way is:
+    """)
+    return
+
+
+@app.cell
+def _():
+    import ssb_timeseries as ts
+
+    ts.get_configuration()
+    return
+
+
+@app.cell
+def _(Config, cfg):
+    cfg is Config.active()
+    return
+
+
+@app.function(hide_code=True)
+def handlers(c):
+    return {
+        handler
+        for repo in c.repositories.values()
+        for handler in (
+            repo["catalog"]["handler"],
+            repo["directory"]["handler"],
+        )
+    }
+
+
+@app.function(hide_code=True)
+def minimal(c):
+    active_handlers = handlers(c)
+    used = {}
+    for k,v in c.io_handlers.items():
+        if k in active_handlers: used[k]=v
+
+    c.io_handlers = used
+    c.logging = {}
+    return c
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(f"""
+    ## Configuration Values Explained
+
+    The most important role of the configuration is to specify one or more "repositories" where data and meta data are stored, and associated with the "handlers" that implement the read and write functionality.
+
+    This is explained in more detail in the [Configure IO](..configure-io) guide.
+
+    A minimal working example for version 0.7.0 and above may look like this:
+    """)
+    return
+
+
+@app.cell
+def _(cfg, mo):
+    mo.md(f"""
+    ```json
+    {minimal(cfg)}
+    ```
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    Happy coding!
+    -------------
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    With the library installed and configured all is set.
+    The guide to [basic usage](basic-usage) is a good place to go next.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    Issues or questions
+    -------------------
+
+    Users in Statistics Norway will know where to contact the maintainers directly.
+    For any external users, the best channel for discussion is through the project's [GitHub Issues](https://github.com/statisticsnorway/ssb-timeseries/issues).
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(Config, cfg):
+    # @suppress
+
+    def test_cfg_is_valid_config():
+        assert isinstance(cfg, Config)
+        assert cfg.is_valid
+
+    return (test_cfg_is_valid_config,)
+
+
+@app.cell(hide_code=True)
+def test_run_and_report(test_cfg_is_valid_config, testing):
+    # @supress
+    testing.run_and_report([test_cfg_is_valid_config])
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+
+    """)
+    return
+
+
+if __name__ == "__main__":
+    app.run()

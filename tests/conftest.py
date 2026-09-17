@@ -21,11 +21,19 @@ from ssb_timeseries.types import SeriesType
 
 _ENV_VAR_VALUE_BEFORE_TESTS = config.active_file()
 
+ORIGINAL_LOGGER = logging.getLogger(config.PACKAGE_NAME)
 # TEST_LOGGER = "ssb_timeseries"  # should it be ts package logger?
-TEST_LOGGER = "tests"  # ... no, 'tests' is necessary, BUT requires a entry in config:
+TEST_LOGGER = "tests"  # ... no, 'tests' is better,
+# ... BUT requires an entry in config:
 TEST_LOG_CONFIG = deepcopy(config.LOGGING_PRESETS["console+file"])
-TEST_LOG_CONFIG["loggers"][TEST_LOGGER] = TEST_LOG_CONFIG["loggers"].pop(
-    config.PACKAGE_NAME
+# However:
+# TEST_LOG_CONFIG["loggers"][TEST_LOGGER] = TEST_LOG_CONFIG["loggers"].pop(
+#     config.PACKAGE_NAME
+# )
+# ... fails, because tests running marimo via subprocess gets 'ssb_timeseries' rather than 'tests' (even if copying env!)
+# --> add 'tests', rather than replace 'ssb_timeseries'
+TEST_LOG_CONFIG["loggers"][TEST_LOGGER] = deepcopy(
+    TEST_LOG_CONFIG["loggers"][config.PACKAGE_NAME]
 )
 
 
@@ -187,7 +195,7 @@ def buildup_and_teardown(
     root_dir,
 ):
     """Reset config and logging between modules."""
-    before_tests = config.CONFIG
+    before_tests = config.Config.active()
     config_file_for_testing = str(
         fs.touch(root_dir / "config" / "config_for_tests.json")
     )
@@ -200,7 +208,7 @@ def buildup_and_teardown(
     config.active_file(config_file_for_testing)
     temp_configuration = config.Config(
         configuration_file=str(config_file_for_testing),
-        log_file=str(log_file_for_testing),
+        # log_file=str(log_file_for_testing),
         io_handlers=config.BUILTIN_IO_HANDLERS,
         repositories=_repository_test_config(root_dir),
         snapshots=_snapshot_test_config(root_dir),
@@ -209,7 +217,8 @@ def buildup_and_teardown(
         logging=log_config,
         ignore_file=True,
     )
-    temp_configuration.save()
+    temp_configuration.save(config_file_for_testing)
+    temp_configuration.activate()
     assert fs.exists(temp_configuration.configuration_file)
 
     logger = set_up_logging_according_to_config(TEST_LOGGER, temp_configuration.logging)
@@ -218,14 +227,16 @@ def buildup_and_teardown(
     yield temp_configuration
     logging.getLogger(TEST_LOGGER).removeFilter(LogWarningFilter())
 
-    if before_tests.configuration_file:
+    if _ENV_VAR_VALUE_BEFORE_TESTS:
         before_tests.save()
+        before_tests.activate()
+        set_up_logging_according_to_config(config.PACKAGE_NAME, before_tests.logging)
     else:
         config.unset_env_var()
+        config.Config().refresh()
+        logging.getLogger(config.PACKAGE_NAME)
 
-    set_up_logging_according_to_config(config.PACKAGE_NAME, before_tests.logging)
-    active_config_after = config.active_file()
-    assert active_config_after == _ENV_VAR_VALUE_BEFORE_TESTS
+    assert config.active_file() == _ENV_VAR_VALUE_BEFORE_TESTS
 
 
 # -----------------------------------------------------------------------------
