@@ -154,7 +154,7 @@ def datelike_unlocalize(df: IntoFrameT) -> IntoFrameT:
     return datetime_localize(df_with_dt_cols, None)
 
 
-def datetime_convert_naive(df: IntoFrameT) -> tuple[IntoFrameT, IntoFrameT.Schema]:
+def datetime_convert_naive(df: IntoFrameT) -> IntoFrameT:
     """Ensure all datetime columns of a dataframe are timezone naive."""
     nw_df = cast(nw.DataFrame, nw.from_native(df))
     date_col_schema = temporal_column_schema(df)

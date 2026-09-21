@@ -157,15 +157,15 @@ def create_df(
         nw_df = nw.from_dict(data_dict, backend=implementation)
         match implementation.lower():
             case "pyarrow" | "arrow" | "pa":
-                out = nw_df.to_arrow()
+                out = nw_df.to_arrow()  # type: ignore[assignment]
             case "numpy" | "np":
-                out = nw_df.to_numpy()
+                out = nw_df.to_numpy()  # type: ignore[assignment]
             case "polars" | "pl":
-                out = nw_df.to_polars()
+                out = nw_df.to_polars()  # type: ignore[assignment]
             case "narwhals" | "nw":
-                out = nw_df
+                out = nw_df  # type: ignore[assignment]
             case "pandas" | "pd" | _:
-                out = nw_df.to_pandas().reset_index(drop=True)
+                out = nw_df.to_pandas().reset_index(drop=True)  # type: ignore[assignment]
                 out.set_index(temporal_columns(nw_df))
         return datelike_convert_timezone(out, tz)
 

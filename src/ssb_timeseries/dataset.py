@@ -30,7 +30,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Literal
 from typing import cast
 from typing import no_type_check
 
@@ -1195,26 +1194,27 @@ class Dataset:
         self,
         freq: str,
         func: F | str,
-        implementation: Literal("pd", "pandas", "pl", "polars") = "pd",
-        *args: Any,
+        /,
         **kwargs: Any,
     ) -> Self:
         """Alter frequency of dataset data (upsampling or downsampling).
 
         Supported values for `func` are :data:`ssb_timeseries.dataframes.sampling.SIMPLE_AGGS`
-        for downsampling and :data:`ssb_timeseries.dataframes.sampling.FILL_METHODS` for i upsampling.
+        for downsampling and :data:`ssb_timeseries.dataframes.sampling.FILL_METHODS` for upsampling.
 
-        The `implementation` defaults to `pandas`, but can be set to 'polars'.
+        The implementation is `pandas` or `polars` depending on the `freq` arguemnts.
 
-        Args and Kwargs follow the implementation.
+        Additional Kwargs can be provided for either implementation.
         """
-        match str(implementation).lower():
-            case "pl" | "polars":
-                df = resample_polars(self.data, *args, freq=freq, func=func, **kwargs)
-            case "pd" | "pandas":
-                df = resample_pandas(self.data, *args, freq=freq, func=func, **kwargs)
-            case _:
-                raise ValueError(f"Dataset.resample() received {implementation=}")
+        from .dataframes.sampling import PANDAS_TO_POLARS_FREQ
+
+        kwargs.pop("implementation")
+        if freq in PANDAS_TO_POLARS_FREQ.keys():
+            df = resample_pandas(self.data, freq, func, **kwargs)
+        elif freq in PANDAS_TO_POLARS_FREQ.values():
+            df = resample_polars(self.data, freq, func, **kwargs)
+        else:
+            raise ValueError(f"Dataset.resample() received invalid {freq=}.")
 
         new_name = f"new set:[{self.name}.resampled({freq}, {func}]"
         return self.__class__(

@@ -1,16 +1,9 @@
 """Dataframe date and time operations."""
 
 from typing import Any
-from typing import Literal
 
 import narwhals as nw
-
-# from numpy.typing import DTypeLike
-# from numpy.typing import NDArray
 import polars as pl
-
-# import pyarrow
-from narwhals.typing import IntoFrame
 from narwhals.typing import IntoFrameT
 
 from ..dates import DEFAULT_TZ
@@ -67,7 +60,7 @@ PANDAS_TO_POLARS_FREQ = {
 
 
 def group_by(
-    df: IntoFrame,
+    df: IntoFrameT,
     *,
     series_names: str | list[str] = "",
     tz: TimeZone = DEFAULT_TZ,
@@ -76,7 +69,7 @@ def group_by(
     """Check if dataframes are equal."""
     df = datelike_convert_timezone(df, tz)
     temporal = temporal_column_schema(df)
-    nw_df = eager(df).sort()
+    nw_df = eager(df).sort()  # type: ignore[arg-type]
     p_df = datelike_convert_naive(nw_df.to_polars())
     result = p_df.group_by_dynamic(
         temporal.keys(),
@@ -84,9 +77,9 @@ def group_by(
         period=kwargs.get("period", "1y"),
         closed=kwargs.get("closed", "left"),
     ).agg(pl.col(series_names).sum())
-    naive = nw.from_native(result.reset_index())  # ... to_native() # of nw_df!
-    tz = str({v.time_zone for v in temporal.values()}.unique)
-    return datelike_convert_timezone(naive, tz)
+    naive = nw.from_native(result.reset_index())
+    tz = str({v.time_zone for v in temporal.values()}.unique)  # type: ignore[attr-defined]
+    return datelike_convert_timezone(naive, tz)  # ... to_native() # of nw_df!
 
 
 def resample_pandas(
@@ -101,7 +94,7 @@ def resample_pandas(
     temporal = temporal_column_schema(df_in_default_tz)
 
     naive = datelike_convert_naive(df_in_default_tz)
-    pd_df = eager(naive).to_pandas()
+    pd_df = eager(naive).to_pandas()  # type: ignore[arg-type]
 
     # TODO: have a closer look at dates returned for last period when upsampling
     resampler = pd_df.set_index(list(temporal.keys())).resample(freq)
@@ -115,9 +108,9 @@ def resample_pandas(
 
 def resample_polars(
     df: IntoFrameT,
-    *,
-    freq: str = "1y",
-    func: F | Literal(SIMPLE_AGGS) | Literal(FILL_METHODS),
+    freq: str,
+    func: F | str,  # Literal[SIMPLE_AGGS] | Literal[FILL_METHODS],
+    /,
     **kwargs: Any,
 ) -> pl.DataFrame:
     """Alter frequency of dataset data using Polars syntax and conventions.
@@ -129,7 +122,7 @@ def resample_polars(
     df = datelike_to_default_tz(df)
     temporal = temporal_column_schema(df)
 
-    timezones = {v.time_zone for v in temporal.values()}
+    timezones = {v.time_zone for v in temporal.values()}  # type: ignore[attr-defined]
     if len(timezones) == 1:
         tz = next(iter(timezones))
     else:
@@ -137,7 +130,7 @@ def resample_polars(
             "Can not resample dataframe where temporal columns have different time zones."
         )  # TODO: relax to allow differnet as_of from valid_from, valid_to / valid_at?
 
-    pl_df = eager(datelike_convert_naive(df)).to_polars()
+    pl_df = eager(datelike_convert_naive(df)).to_polars()  # type: ignore[arg-type]
 
     if len(temporal.keys()) != 1:
         msg = (
@@ -151,13 +144,19 @@ def resample_polars(
 
     if isinstance(func, str) and func in FILL_METHODS:
         strategy = "forward" if func == "ffill" else "backward"
-        return pl_df.upsample(time_column=time_col, every=freq, **kwargs).fill_null(
-            strategy=strategy
-        )
+        return pl_df.upsample(
+            time_column=time_col,
+            every=kwargs.pop("every", freq),
+            **kwargs,
+        ).fill_null(strategy=strategy)
 
     if isinstance(func, str) and func in SIMPLE_AGGS:
         agg_expr = getattr(other_cols, func)()
-        return pl_df.group_by_dynamic(time_col, every=freq, **kwargs).agg(agg_expr)
+        return pl_df.group_by_dynamic(
+            time_col,
+            every=kwargs.pop("every", freq),
+            **kwargs,
+        ).agg(agg_expr)
 
     # Arbitrary callable: applied per-column within each dynamic window.
     # Note this is a per-column apply, not a per-group-dataframe apply
@@ -166,6 +165,6 @@ def resample_polars(
     # pandas semantics and needs a different construct
     # (e.g. `.map_groups`).
     naive = pl_df.group_by_dynamic(time_col, every=freq, **kwargs).agg(
-        other_cols.map_batches(func)
+        other_cols.map_batches(func)  # type: ignore[arg-type]
     )
     return naive.with_columns(pl.col(temporal.keys()).dt.replace_time_zone(tz))

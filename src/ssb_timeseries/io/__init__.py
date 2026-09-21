@@ -440,8 +440,8 @@ def persist(
     snap_io.write(
         sharing=getattr(ds, "sharing", {}),
         as_of_tz=ds.as_of_utc,
-        period_from=date_from,
-        period_to=date_to,
+        period_from=date_from,  # type: ignore[arg-type]
+        period_to=date_to,  # type: ignore[arg-type]
         data_path=DataIO(ds).dh.fullpath,  # type: ignore[attr-defined]
         # meta_path=MetaIO(ds).dh.fullpath,
     )

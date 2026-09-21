@@ -151,7 +151,7 @@ def test_dataset_resample_upsampling(
 
     y = x.resample(
         freq,
-        method,
+        method,  # not used , replaced by interpretation of freq
         implementation=calculation,
     )  # , closed="s")
     ts.logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
@@ -168,10 +168,14 @@ def test_dataset_resample_upsampling(
     SIMPLE_AGGS,
 )
 @pytest.mark.parametrize(
-    "calculation, freq",
+    "calculation, freq, expected_shape",
     [
-        ("pd", "QE"),
-        ("pl", "1q"),
+        ("pd", "QS", (4, 4)),
+        ("pd", "QE", (4, 4)),
+        ("pd", "YS", (1, 4)),
+        ("pd", "YE", (1, 4)),
+        ("pl", "3mo", (4, 4)),
+        ("pl", "1y", (1, 4)),
     ],
 )
 def test_dataset_resample_downsampling(
@@ -180,6 +184,7 @@ def test_dataset_resample_downsampling(
     method,
     monthly_data,
     caplog,
+    expected_shape,
 ):
     caplog.set_level(logging.DEBUG)
 
@@ -192,9 +197,9 @@ def test_dataset_resample_downsampling(
     assert x.data.shape == (12, 4)
     y = x.resample(
         freq,
-        func=method,
+        method,
         implementation=calculation,
     )
     ts.logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
     print(x.pd, "\n", y.data)
-    assert y.data.shape == (4, 4)
+    assert y.data.shape == expected_shape

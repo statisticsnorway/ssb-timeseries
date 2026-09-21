@@ -12,6 +12,7 @@ from narwhals.typing import IntoFrameT
 from ..dates import PA_TIMESTAMP_TZ
 from ..dates import PA_TIMESTAMP_UNIT
 from ..dates import date_utc
+from ..dates import ensure_datetime
 
 
 def temporal_columns(df: IntoFrame) -> list[str]:
@@ -27,11 +28,10 @@ def temporal_column_schema(df: IntoFrameT) -> nw.Schema:
     return nw_df.select(ncs.datetime()).schema
 
 
-def date_range(df: IntoFrameT) -> list[datetime] | list[date]:
+def date_range(df: IntoFrame) -> list[datetime] | list[date]:
     """Get the minimum and maximum dates from temporal columns."""
     columns = temporal_columns(df)
     if not columns:
-        # later: try to resolve selected column names, like "year", "quarter"
         raise ValueError("Dataframe contains no temporal columns.")
 
     frame = nw.from_native(df)
@@ -46,7 +46,7 @@ def date_range(df: IntoFrameT) -> list[datetime] | list[date]:
     else:
         row = bounds.row(0)
 
-    return [min(row), max(row)]
+    return [ensure_datetime(min(row)), ensure_datetime(max(row))]
 
 
 def prepend_as_of(

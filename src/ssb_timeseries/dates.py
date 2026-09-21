@@ -40,7 +40,7 @@ DEFAULT_TZ = EUROPE
 TimeZone: TypeAlias = ZoneInfo | str | None
 
 
-def date_tz(some_date: datetime | str, tz: str, **kwargs) -> datetime:
+def date_tz(some_date: datetime | str, tz: TimeZone, **kwargs) -> datetime:
     """Convert datetime or date string to specified TZ.
 
     The output will be rounded to the precision specified by kwarg 'rounding'.
