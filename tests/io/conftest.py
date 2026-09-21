@@ -21,7 +21,7 @@ def sharing_configs(conftest) -> tuple:
     shared_123 = Path(config["sharing"]["s123"]["directory"]["options"]["path"])
     shared_234 = Path(config["sharing"]["s234"]["directory"]["options"]["path"])
 
-    yield (persisted, shared, shared_123, shared_234)
+    return (persisted, shared, shared_123, shared_234)
 
 
 @pytest.fixture
@@ -39,7 +39,7 @@ def without_specified_teams(sharing_configs) -> dict:
         },
     ]
 
-    yield {
+    return {
         "process_stage": PROCESS_STAGE,
         "product": PRODUCT,
         "sharing": sharing,
@@ -64,7 +64,7 @@ def with_specified_teams(sharing_configs) -> dict:
         },
     ]
 
-    yield {
+    return {
         "process_stage": PROCESS_STAGE,
         "product": PRODUCT,
         "sharing": sharing,
@@ -89,7 +89,7 @@ def no_product(sharing_configs) -> dict:
         },
     ]
 
-    yield {
+    return {
         "process_stage": PROCESS_STAGE,
         # "product": "",
         "sharing": sharing,
@@ -108,7 +108,6 @@ def no_product(sharing_configs) -> dict:
         "without_specified_teams",
         "no_product",
     ],
-    scope="function",
 )
 def dataset_with_sharing_config(
     request,
@@ -121,4 +120,4 @@ def dataset_with_sharing_config(
     if "product" in cfg:
         dataset.product = cfg.pop("product")
     dataset.sharing = cfg.pop("sharing")
-    yield (cfg, dataset)
+    return (cfg, dataset)

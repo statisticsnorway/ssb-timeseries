@@ -23,19 +23,19 @@ def dates_are_datetimes() -> list:
         datetime(2026, 1, 2),
         datetime(2026, 1, 3),
     ]  # <--- datestimes!
-    yield dates
+    return dates
 
 
 @pytest.fixture
 def dates_are_dates() -> list:
     dates = [date(2026, 1, 1), date(2026, 1, 2), date(2026, 1, 3)]  # <--- dates!
-    yield dates
+    return dates
 
 
 @pytest.fixture
 def dates_are_strings() -> list:
     dates = ["2026-01-01", "2026-01-02", "2026-01-03"]  # <--- strings!
-    yield dates
+    return dates
 
 
 # -------- multiple config scenarios for sharing --------------------
@@ -56,7 +56,7 @@ def dates(
 ) -> tuple:
     """Combines parameter sets with datasets of all types to create complete test cases."""
     the_dates = request.getfixturevalue(request.param)
-    yield the_dates
+    return the_dates
 
 
 # -------- --------------------

@@ -33,7 +33,7 @@ def monthly_data(request, tag_values=None):
         # monthly_data.set_index(temporal_columns(df))
         # monthly_data.reset_index()
         ...
-    yield df  # datetime_convert_timezone(df, EUROPE)
+    return df  # datetime_convert_timezone(df, EUROPE)
 
 
 # ------------------------------------------------------------------

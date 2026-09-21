@@ -116,7 +116,7 @@ class Helpers:
         return f"{inspect.stack()[1][3]!s}_{uuid.uuid4().hex[:n]}"
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def conftest(buildup_and_teardown) -> Helpers:
     h = Helpers(configuration=buildup_and_teardown)
     return h
@@ -125,7 +125,7 @@ def conftest(buildup_and_teardown) -> Helpers:
 @pytest.fixture(scope="session")
 def root_dir(tmp_path_factory):
     root = tmp_path_factory.mktemp("tests")
-    yield root
+    return root
 
 
 def _repository_test_config(path: Path) -> dict[str, str]:
@@ -265,7 +265,7 @@ def buildup_and_teardown(
 )
 def one_new_set_for_each_unversioned_type(request):
     """A fixture returning one example dataset for each *unversioned* data type in a list."""
-    yield request.getfixturevalue(request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(
@@ -276,7 +276,7 @@ def one_new_set_for_each_unversioned_type(request):
 )
 def one_new_set_for_each_versioned_type(request):
     """A fixture returning one example dataset for each *versioned* data type in a list."""
-    yield request.getfixturevalue(request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(
@@ -289,7 +289,7 @@ def one_new_set_for_each_versioned_type(request):
 )
 def one_new_set_for_each_data_type(request):
     """A fixture returning one example dataset for each data type in a list."""
-    yield request.getfixturevalue(request.param)
+    return request.getfixturevalue(request.param)
 
 
 # ---- get EXISTING sets per series (group of) series type ---------
@@ -297,18 +297,18 @@ def one_new_set_for_each_data_type(request):
 
 @pytest.fixture(params=["NONE", "AS_OF"])
 def versioning(request):
-    yield request.param
+    return request.param
 
 
 @pytest.fixture(params=["AT", "FROM_TO"])
 def temporality(request):
-    yield request.param
+    return request.param
 
 
 @pytest.fixture()
 def series_types(versioning, temporality):
     """SeriesType for every combination of versioning and temporality."""
-    yield SeriesType(versioning, temporality)
+    return SeriesType(versioning, temporality)
 
 
 @pytest.fixture(
@@ -316,7 +316,7 @@ def series_types(versioning, temporality):
 )
 def one_existing_set_for_each_unversioned_type(request):
     """A fixture returning one example dataset for each *unversioned* data type in a list."""
-    yield request.getfixturevalue(request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(
@@ -324,7 +324,7 @@ def one_existing_set_for_each_unversioned_type(request):
 )
 def one_existing_set_for_each_versioned_type(request):
     """A fixture returning one example dataset for each *versioned* data type in a list."""
-    yield request.getfixturevalue(request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(
@@ -337,4 +337,4 @@ def one_existing_set_for_each_versioned_type(request):
 )
 def one_existing_set_for_each_data_type(request):
     """A parameterized fixture returning one saved dataset for each data type."""
-    yield request.getfixturevalue(request.param)
+    return request.getfixturevalue(request.param)

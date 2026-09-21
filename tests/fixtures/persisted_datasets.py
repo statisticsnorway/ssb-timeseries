@@ -27,7 +27,7 @@ def existing_none_at_set(abc_at, buildup_and_teardown):
         attributes=["A", "B", "C"],
     )
     x.save()
-    yield x
+    return x
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def existing_none_from_to_set(abc_from_to, buildup_and_teardown):
         attributes=["A", "B", "C"],
     )
     x.save()
-    yield x
+    return x
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def existing_as_of_at_set(abc_at, buildup_and_teardown):
         attributes=["A", "B", "C"],
     )
     x.save()
-    yield x
+    return x
 
 
 @pytest.fixture
@@ -68,7 +68,7 @@ def existing_as_of_from_to_set(abc_from_to, buildup_and_teardown):
         attributes=["A", "B", "C"],
     )
     x.save()
-    yield x
+    return x
 
 
 # ------ leftovers from the early days - consider replacing ------------
@@ -84,7 +84,7 @@ def existing_simple_set(abc_at, buildup_and_teardown):
         attributes=["A", "B", "C"],
     )
     x.save()
-    yield x
+    return x
 
 
 @pytest.fixture
@@ -98,7 +98,7 @@ def existing_estimate_set(abc_at, buildup_and_teardown):
         attributes=["A", "B", "C"],
     )
     x.save()
-    yield x
+    return x
 
 
 @pytest.fixture
@@ -121,4 +121,4 @@ def existing_small_set(buildup_and_teardown):
         dataset_tags={"E": "e", "F": ["f1", "f2"]},
     )
     x.save()
-    yield x
+    return x

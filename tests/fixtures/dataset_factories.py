@@ -19,7 +19,7 @@ def tag_values():
     """Define series names for which to generate test data."""
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     tag_values = [value for value in tags.values()]
-    yield tag_values
+    return tag_values
 
 
 @pytest.fixture(scope="session")
@@ -31,7 +31,7 @@ def abc_at(tag_values):
         freq="MS",
         temporality="AT",
     )
-    yield df
+    return df
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ def abc_from_to(tag_values):
         freq="MS",
         temporality="FROM_TO",
     )
-    yield df
+    return df
 
 
 @pytest.fixture(scope="session")
@@ -55,7 +55,7 @@ def xyz_at():
         freq="MS",
         temporality="AT",
     )
-    yield df
+    return df
 
 
 @pytest.fixture(scope="session")
@@ -67,7 +67,7 @@ def xyz_from_to():
         freq="MS",
         temporality="FROM_TO",
     )
-    yield df
+    return df
 
 
 # ----- other helper(s) ------------------------------
@@ -95,7 +95,7 @@ def new_dataset_none_at(abc_at, buildup_and_teardown):
         data=abc_at,
         attributes=["A", "B", "C"],
     )
-    yield x
+    return x
 
 
 @pytest.fixture
@@ -108,7 +108,7 @@ def new_dataset_as_of_at(abc_at, buildup_and_teardown):
         data=abc_at,
         attributes=["A", "B", "C"],
     )
-    yield x
+    return x
 
 
 @pytest.fixture
@@ -120,7 +120,7 @@ def new_dataset_none_from_to(abc_from_to, buildup_and_teardown):
         data=abc_from_to,
         attributes=["A", "B", "C"],
     )
-    yield x
+    return x
 
 
 @pytest.fixture
@@ -134,4 +134,4 @@ def new_dataset_as_of_from_to(abc_from_to, buildup_and_teardown):
         attributes=["A", "B", "C"],
     )
 
-    yield x
+    return x
