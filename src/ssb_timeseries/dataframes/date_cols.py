@@ -21,7 +21,7 @@ def temporal_columns(df: IntoFrame) -> list[str]:
     return [name for name, dtype in schema.items() if dtype.is_temporal()]
 
 
-def temporal_column_schema(df: IntoFrameT) -> IntoFrameT.Schema:
+def temporal_column_schema(df: IntoFrameT) -> nw.Schema:
     """Ensure all datetime columns of a dataframe are timezone naive."""
     nw_df = cast(nw.DataFrame, nw.from_native(df))
     return nw_df.select(ncs.datetime()).schema
