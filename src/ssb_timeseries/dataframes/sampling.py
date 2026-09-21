@@ -16,7 +16,7 @@ from narwhals.typing import IntoFrameT
 from ..dates import DEFAULT_TZ
 from ..dates import TimeZone
 from ..types import F
-from .__init__ import eager
+from . import eager
 from .date_cols import temporal_column_schema
 from .dates import datelike_convert_naive
 from .dates import datelike_convert_timezone
