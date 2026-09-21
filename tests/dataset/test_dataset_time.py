@@ -4,12 +4,39 @@ import uuid
 import pytest
 
 import ssb_timeseries as ts
+from ssb_timeseries.dataframes.sampling import FILL_METHODS
+from ssb_timeseries.dataframes.sampling import SIMPLE_AGGS
 from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.dates import EUROPE
+from ssb_timeseries.dates import date_eur_no
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.types import SeriesType
 
 # mypy: ignore-errors
+
+
+@pytest.fixture(params=["pandas", "polars", "pyarrow"])
+def monthly_data(request, tag_values=None):
+    implementation = request.param
+    if not tag_values:
+        tag_values = [["p", "q", "r"]]
+    df = create_df(
+        *tag_values,
+        start_date=date_eur_no("2022-01-01"),
+        end_date=date_eur_no("2022-12-31"),
+        freq="MS",
+        tz=EUROPE,
+        implementation=implementation,
+    )
+    if input == "pandas":
+        # monthly_data.set_index(temporal_columns(df))
+        # monthly_data.reset_index()
+        ...
+    yield df  # datetime_convert_timezone(df, EUROPE)
+
+
+# ------------------------------------------------------------------
 
 
 def test_correct_datetime_columns_valid_at(caplog) -> None:
@@ -78,7 +105,7 @@ def test_dataset_groupby_mean(caplog):
 
 
 @pytest.mark.skip(reason="Not ready yet.")
-def test_dataset_groupby_auto(caplog):
+def test_dataset_groupby_auto(monthly_data, caplog):
     caplog.set_level(logging.DEBUG)
 
     x = Dataset(
@@ -86,9 +113,7 @@ def test_dataset_groupby_auto(caplog):
     )
 
     tag_values = [["p_pris", "q_pris", "r_pris", "p_volum", "q_volum", "r_volum"]]
-    x.data = create_df(
-        *tag_values, start_date="2022-01-01", end_date="2023-02-28", freq="D"
-    )
+    x.data = monthly_data(tag_values=tag_values)
     assert x.data.shape == (424, 7)
     df = x.groupby("M", "auto")
     df_mean = x.groupby("M", "mean")
@@ -100,42 +125,76 @@ def test_dataset_groupby_auto(caplog):
     assert ~all(df == df_sum)
 
 
-def test_dataset_resample_upsampling_ffil(caplog):
+@pytest.mark.parametrize("method", FILL_METHODS)
+@pytest.mark.parametrize(
+    "calculation, freq",
+    [
+        ("pd", "D"),
+        ("pl", "1d"),
+    ],
+)
+def test_dataset_resample_upsampling(
+    monthly_data,
+    calculation,
+    method,
+    freq,
+    caplog,
+):
     caplog.set_level(logging.DEBUG)
-
-    tag_values = [["p", "q", "r"]]
     x = Dataset(
         name="test-resample",
         data_type=SeriesType.simple(),
         load_data=False,
-        data=create_df(
-            *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="MS"
-        ),
+        data=monthly_data,
     )
     assert x.data.shape == (12, 4)
 
-    y = x.resample("D", "ffill", closed="s")
+    y = x.resample(
+        freq,
+        method,
+        implementation=calculation,
+    )  # , closed="s")
     ts.logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
     # beware of index column!
     # double check behaviour for lat period
     # verify / create test cases per Temporality
     # (might want to rethink )
-    assert y.data.shape == (335, 3)
+    print(x.nw, "\n", y.nw)
+    assert y.data.shape == (335, 4)
 
 
-def test_dataset_resample_downsampling_w_mean(caplog):
+@pytest.mark.parametrize(
+    "method",
+    SIMPLE_AGGS,
+)
+@pytest.mark.parametrize(
+    "calculation, freq",
+    [
+        ("pd", "QE"),
+        ("pl", "1q"),
+    ],
+)
+def test_dataset_resample_downsampling(
+    calculation,
+    freq,
+    method,
+    monthly_data,
+    caplog,
+):
     caplog.set_level(logging.DEBUG)
 
-    tag_values = [["p", "q", "r"]]
     x = Dataset(
         name="test-resample",
         data_type=SeriesType.simple(),
         load_data=False,
-        data=create_df(
-            *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="MS"
-        ),
+        data=monthly_data,
     )
     assert x.data.shape == (12, 4)
-    y = x.resample("QE", "mean")
+    y = x.resample(
+        freq,
+        func=method,
+        implementation=calculation,
+    )
     ts.logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
-    assert y.data.shape == (4, 3)
+    print(x.pd, "\n", y.data)
+    assert y.data.shape == (4, 4)

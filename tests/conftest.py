@@ -12,6 +12,7 @@ import pytest
 from ssb_timeseries import config
 from ssb_timeseries.io import fs
 from ssb_timeseries.logging import set_up_logging_according_to_config
+from ssb_timeseries.types import SeriesType
 
 from .fixtures.dataset_factories import abc_at  # noqa: F401
 from .fixtures.dataset_factories import abc_from_to  # noqa: F401
@@ -272,7 +273,6 @@ def one_new_set_for_each_unversioned_type(request):
         "new_dataset_as_of_at",
         "new_dataset_as_of_from_to",
     ],
-    scope="function",
 )
 def one_new_set_for_each_versioned_type(request):
     """A fixture returning one example dataset for each *versioned* data type in a list."""
@@ -286,7 +286,6 @@ def one_new_set_for_each_versioned_type(request):
         "new_dataset_as_of_at",
         "new_dataset_as_of_from_to",
     ],
-    scope="function",
 )
 def one_new_set_for_each_data_type(request):
     """A fixture returning one example dataset for each data type in a list."""
@@ -296,9 +295,24 @@ def one_new_set_for_each_data_type(request):
 # ---- get EXISTING sets per series (group of) series type ---------
 
 
+@pytest.fixture(params=["NONE", "AS_OF"])
+def versioning(request):
+    yield request.param
+
+
+@pytest.fixture(params=["AT", "FROM_TO"])
+def temporality(request):
+    yield request.param
+
+
+@pytest.fixture()
+def series_types(versioning, temporality):
+    """SeriesType for every combination of versioning and temporality."""
+    yield SeriesType(versioning, temporality)
+
+
 @pytest.fixture(
     params=["existing_none_at_set", "existing_none_from_to_set"],
-    scope="function",
 )
 def one_existing_set_for_each_unversioned_type(request):
     """A fixture returning one example dataset for each *unversioned* data type in a list."""
@@ -307,7 +321,6 @@ def one_existing_set_for_each_unversioned_type(request):
 
 @pytest.fixture(
     params=["existing_dataset_as_of_at", "existing_dataset_as_of_from_to"],
-    scope="function",
 )
 def one_existing_set_for_each_versioned_type(request):
     """A fixture returning one example dataset for each *versioned* data type in a list."""
@@ -321,7 +334,6 @@ def one_existing_set_for_each_versioned_type(request):
         "existing_estimate_set",
         "existing_as_of_from_to_set",
     ],
-    scope="function",
 )
 def one_existing_set_for_each_data_type(request):
     """A parameterized fixture returning one saved dataset for each data type."""

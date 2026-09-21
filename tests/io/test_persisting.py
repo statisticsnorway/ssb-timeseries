@@ -1,129 +1,14 @@
 import logging
-from pathlib import Path
 
 import pytest
 
 from ssb_timeseries.io import fs
 
+from ..fixtures.dataset_factories import function_name_hex
+
 # mypy: disable-error-code="no-untyped-def,no-untyped-call,arg-type,attr-defined,assignment"
 
 test_logger = logging.getLogger(__name__)
-
-# ========================= test setup ================================
-
-# BUCKET = CONFIG.bucket
-PRODUCT = "sample-data-product"
-PROCESS_STAGE = "statistikk"
-
-
-@pytest.fixture(scope="function")
-def sharing_configs(conftest) -> tuple:
-    """Read base paths only once."""
-    config = conftest.configuration
-
-    persisted = Path(config["snapshots"]["default"]["directory"]["options"]["path"])
-    shared = Path(config["sharing"]["default"]["directory"]["options"]["path"])
-    shared_123 = Path(config["sharing"]["s123"]["directory"]["options"]["path"])
-    shared_234 = Path(config["sharing"]["s234"]["directory"]["options"]["path"])
-
-    yield (persisted, shared, shared_123, shared_234)
-
-
-@pytest.fixture(scope="function")
-def without_specified_teams(sharing_configs) -> dict:
-    """Team name is not required in the configuration."""
-    (persisted, shared, _, _) = sharing_configs
-    sharing = [
-        {
-            "team": "",
-            "path": shared,
-        },
-        {
-            # target team is *really* not specified
-            "path": shared,
-        },
-    ]
-
-    yield {
-        "process_stage": PROCESS_STAGE,
-        "product": PRODUCT,
-        "sharing": sharing,
-        "expected_snapshot_path": persisted / PROCESS_STAGE / PRODUCT,
-        "expected_sharing_path_123": shared,
-        "expected_sharing_path_234": shared,
-    }
-
-
-@pytest.fixture(scope="function")
-def with_specified_teams(sharing_configs) -> dict:
-    """Team name is not required in the configuration."""
-    (persisted, _, shared_123, shared_234) = sharing_configs
-    sharing = [
-        {
-            "team": "s123",
-            "path": shared_123,
-        },
-        {
-            "team": "s234",
-            "path": shared_234,
-        },
-    ]
-
-    yield {
-        "process_stage": PROCESS_STAGE,
-        "product": PRODUCT,
-        "sharing": sharing,
-        "expected_snapshot_path": persisted / PROCESS_STAGE / PRODUCT,
-        "expected_sharing_path_123": shared_123,
-        "expected_sharing_path_234": shared_234,
-    }
-
-
-@pytest.fixture(scope="function")
-def no_product(sharing_configs) -> dict:
-    """Specifying a product is optional the configuration."""
-    (persisted, _, shared_123, shared_234) = sharing_configs
-    sharing = [
-        {
-            "team": "s123",
-            "path": shared_123,
-        },
-        {
-            "team": "s234",
-            "path": shared_234,
-        },
-    ]
-
-    yield {
-        "process_stage": PROCESS_STAGE,
-        # "product": "",
-        "sharing": sharing,
-        "expected_snapshot_path": persisted / PROCESS_STAGE,
-        "expected_sharing_path_123": shared_123,
-        "expected_sharing_path_234": shared_234,
-    }
-
-
-@pytest.fixture(
-    params=[
-        "with_specified_teams",
-        "without_specified_teams",
-        "no_product",
-    ],
-    scope="function",
-)
-def dataset_with_sharing_config(
-    request,
-    one_new_set_for_each_data_type,
-) -> tuple:
-    """Combines parameter sets with datasets of all types to create complete test cases."""
-    cfg = request.getfixturevalue(request.param)
-    dataset = one_new_set_for_each_data_type
-    dataset.process_stage = cfg.pop("process_stage")
-    if "product" in cfg:
-        dataset.product = cfg.pop("product")
-    dataset.sharing = cfg.pop("sharing")
-    yield (cfg, dataset)
 
 
 def log(path, before, after):
@@ -132,7 +17,36 @@ def log(path, before, after):
     )
 
 
-# ========================= the tests ================================
+# ----- The tests --------------
+
+
+def test_snapshot_after_save_does_not_raise_error(
+    caplog,
+    xyz_at,
+):
+    from ssb_timeseries.dataset import Dataset
+
+    caplog.set_level(logging.DEBUG)
+
+    ds = Dataset(name=function_name_hex(), data=xyz_at, data_type="simple")
+
+    ds.save()
+    ds.snapshot()
+
+
+def test_snapshot_without_save_raises_error(
+    caplog,
+    xyz_at,
+):
+    from ssb_timeseries.dataset import Dataset
+
+    caplog.set_level(logging.DEBUG)
+
+    ds = Dataset(name=function_name_hex(), data=xyz_at, data_type="simple")
+
+    with pytest.raises(FileNotFoundError):
+        # no ds.save() to see here!
+        ds.snapshot()
 
 
 def test_snapshot_and_sharing_increases_file_count_in_configured_locations(
@@ -167,28 +81,3 @@ def test_snapshot_and_sharing_increases_file_count_in_configured_locations(
     assert count_after_persisted == count_before_persisted + n
     assert count_after_123 == count_before_123 + n
     assert count_after_234 == count_before_234 + n
-
-
-@pytest.mark.xfail(reason="Working on it!")
-def test_reproduce_bug_in_issue_249(
-    caplog,
-):
-    """Reproducing https://github.com/statisticsnorway/ssb-timeseries/issues/249."""
-    import pandas as pd
-
-    from ssb_timeseries.dataset import Dataset
-
-    caplog.set_level(logging.DEBUG)
-
-    # dates = [date("2026-01-01"), date("2026-01-01"), date("2026-01-01")]
-    dates = ["2026-01-01", "2026-01-01", "2026-01-01"]
-    df_a = pd.DataFrame({"valid_at": dates, "a": [1.1, 1.3, 1.4]})
-    df_b = pd.DataFrame({"valid_at": dates, "a": [2.5, 2.6, 2.7]})
-
-    ds_a = Dataset(name="ds_a", data=df_a, data_type="simple")
-    ds_b = Dataset(name="ds_b", data=df_b, data_type="simple")
-
-    ds_c = ds_a + ds_b
-    assert isinstance(ds_c, Dataset)
-
-    ds_c.snapshot()

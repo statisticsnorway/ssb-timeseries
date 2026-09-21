@@ -20,8 +20,14 @@ from dateutil.rrule import WEEKLY
 from dateutil.rrule import YEARLY
 from dateutil.rrule import rrule
 
-from ssb_timeseries.dates import date_round
-from ssb_timeseries.dates import ensure_datetime
+from .dataframes.date_cols import temporal_columns
+from .dataframes.dates import datelike_convert_timezone
+from .dates import DEFAULT_TZ
+from .dates import TimeZone
+from .dates import date_round
+from .dates import date_tz
+from .dates import ensure_datetime
+from .dates import ensure_tz_aware
 
 # mypy: disable-error-code="arg-type, type-arg, import-untyped, unreachable, attr-defined"
 
@@ -86,6 +92,7 @@ def create_df(
     temporality: str = "AT",
     decimals: int = 0,
     implementation: str = "pandas",
+    tz: str | TimeZone = DEFAULT_TZ,
 ) -> Any:
     """Generate sample data for specified date range and permutations over lists.
 
@@ -112,6 +119,7 @@ def create_df(
         temporality: The temporality of the data. Default is 'AT'.
         decimals: The number of decimal places to round to. Optional, default is 0.
         implementation: Narwhals supported dataframe library or object type.
+        tz: Timezone to convert data to after generation; uses DFAULT_TZ if not specified.
 
     Returns:
         A DataFrame or similar object (Numpy array, Arrow table, dict) containing sample data.
@@ -129,8 +137,8 @@ def create_df(
 
     series = series_names(*lists, separator=separator)
     dates = date_ranges(
-        start_date=ensure_datetime(start_date),
-        end_date=ensure_datetime(end_date),
+        start_date=date_tz(start_date, tz),
+        end_date=date_tz(end_date, tz),
         freq=freq,
         interval=interval,
         temporality=temporality,
@@ -149,15 +157,17 @@ def create_df(
         nw_df = nw.from_dict(data_dict, backend=implementation)
         match implementation.lower():
             case "pyarrow" | "arrow" | "pa":
-                return nw_df.to_arrow()
+                out = nw_df.to_arrow()
             case "numpy" | "np":
-                return nw_df.to_numpy()
+                out = nw_df.to_numpy()
             case "polars" | "pl":
-                return nw_df.to_polars()
+                out = nw_df.to_polars()
             case "narwhals" | "nw":
-                return nw_df
+                out = nw_df
             case "pandas" | "pd" | _:
-                return nw_df.to_pandas()
+                out = nw_df.to_pandas().reset_index(drop=True)
+                out.set_index(temporal_columns(nw_df))
+        return datelike_convert_timezone(out, tz)
 
 
 def date_ranges(
@@ -166,6 +176,7 @@ def date_ranges(
     freq: str,
     interval: int = 1,
     temporality: str = "AT",
+    tz: str = "",
 ) -> dict[str, list[datetime]]:
     """Generate a list of dates with a specified frequency."""
     freq_map = {
@@ -207,8 +218,8 @@ def date_ranges(
         bymonth=bymonth,
         bymonthday=bymonthday,
     )
-    dt_start = ensure_datetime(start_date)
-    dt_end = ensure_datetime(end_date)
+    dt_start = ensure_tz_aware(ensure_datetime(start_date))
+    dt_end = ensure_tz_aware(ensure_datetime(end_date))
     d = r(
         dtstart=dt_start,
         until=dt_end,

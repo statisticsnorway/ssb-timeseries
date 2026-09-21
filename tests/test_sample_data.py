@@ -1,6 +1,9 @@
 import logging
 
 import ssb_timeseries as ts
+from ssb_timeseries.dates import EUROPE
+from ssb_timeseries.dates import date_eur_no
+from ssb_timeseries.dates import date_utc
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.sample_data import series_names
 from ssb_timeseries.sample_data import xyz_at
@@ -180,10 +183,31 @@ def test_create_df_at_temporality_creates_correct_dates():
     )
     expected_dates = ["2023-01-01", "2023-02-01", "2023-03-01"]
     # Convert to datetime objects for comparison
-    expected_datetimes = [ts.dates.date_utc(d) for d in expected_dates]
+    expected_datetimes = [date_utc(d) for d in expected_dates]
     # Convert dataframe column to list of datetime objects
-    actual_datetimes = [ts.dates.date_utc(d) for d in df["valid_at"].to_list()]
+    actual_datetimes = [date_utc(d) for d in df["valid_at"].to_list()]
     assert actual_datetimes == expected_datetimes
+
+
+def test_create_df_at_temporality_with_cet_tz_params_returns_cet_tz_dates():
+    """Verify that create_df with AT temporality generates the correct date sequence."""
+    df = create_df(
+        start_date=date_eur_no("2023-01-01"),
+        end_date=date_eur_no("2023-03-01"),
+        freq="MS",
+        temporality="AT",
+        tz=EUROPE,
+    )
+    expected_dates = ["2023-01-01", "2023-02-01", "2023-03-01"]
+    # Convert to datetime objects for comparison
+    expected_datetimes = [date_eur_no(d) for d in expected_dates]
+    expected_tz = [d.tzinfo for d in expected_datetimes]
+    # Convert dataframe column to list of datetime objects
+    actual_datetimes = [d for d in df["valid_at"].to_list()]
+    actual_tz = [d.tzinfo for d in df["valid_at"].to_list()]
+    print(actual_datetimes, "\n", expected_datetimes)
+    assert actual_datetimes == expected_datetimes
+    assert set(actual_tz) == set(expected_tz) == {EUROPE}
 
 
 def test_create_df_from_to_temporality_creates_correct_periods():

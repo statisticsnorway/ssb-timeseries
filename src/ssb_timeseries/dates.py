@@ -19,7 +19,6 @@ from dateutil import parser
 from narwhals.typing import IntoFrameT, FrameT, IntoSeriesT
 import narwhals as nw
 import narwhals.selectors as ncs
-from pandas import PeriodIndex
 import pyarrow as pa
 from .logging import logger
 
@@ -33,46 +32,85 @@ NW_DEFAULT_TIME_UNIT: Literal["ns", "us", "ms"] = "ns"
 PA_TIMESTAMP_UNIT: Literal["ns", "us", "ms", "s"] = "ns"
 PA_TIMESTAMP_TZ: str = "UTC"
 
-DEFAULT_TZ = ZoneInfo("Europe/Oslo")  # Will shift between CET and CEST
-CET = ZoneInfo("CET")
 UTC = ZoneInfo("UTC")
+CET = ZoneInfo("CET")
+EUROPE = ZoneInfo("Europe/Oslo")  # Will shift between CET and CEST
+DEFAULT_TZ = EUROPE
+
 TimeZone: TypeAlias = ZoneInfo | str | None
 
 
+def date_tz(some_date: datetime | str, tz: str, **kwargs) -> datetime:
+    """Convert datetime or date string to specified TZ.
+
+    The output will be rounded to the precision specified by kwarg 'rounding'.
+    """
+    if not some_date:
+        raise ValueError("Date can not be empty!")
+    if not tz:
+        raise ValueError("Timezone can not be empty!")
+
+    if isinstance(tz, ZoneInfo):
+        to_tz = tz
+    else:
+        to_tz = ZoneInfo(tz)
+
+    dt_type = ensure_datetime(some_date)
+    with_tz = ensure_tz_aware(dt_type)
+    # dt = with_tz.astimezone(tz=tz)
+    dt = with_tz.astimezone(tz=to_tz)
+    return date_round(dt, **kwargs)
+
+
 def date_utc(some_date: datetime | str | None, **kwargs) -> datetime:
-    """Convert datetime or date string to UTC.
+    """Convert datetime or date string to UTC (preserve instant).
 
-    If date has no timezone information, the data is assumed to be in default timezone (CET).
-
+    If date has no timezone information, the data is assumed to be in default timezone.
     The output will be rounded to the precision specified by kwarg 'rounding'.
     """
     if some_date is None or some_date == "":
         return date_round(now_utc())
-
     else:
-        dt_type = ensure_datetime(some_date)
-        tz_aware = ensure_tz_aware(dt_type)
-        correct_tz = tz_aware.astimezone(tz=UTC)
-        return date_round(correct_tz, **kwargs)
+        return date_tz(some_date, UTC)
 
 
 def date_local(some_date: datetime | str, **kwargs) -> datetime:
-    """Convert date to default timezone.
+    """Convert date to default timezone (preserve instant).
 
     If not configured otherwise the default is Europe/Oslo which provides automatic shifts between CET and CEST.
     The output can be rounded to the precision specified by kwarg 'rounding'.
     """
-    dt_type = ensure_datetime(some_date, tz=DEFAULT_TZ)
-    return date_round(dt_type, **kwargs)
+    if some_date is None or some_date == "":
+        some_date = now_utc()
+
+    return date_tz(some_date, DEFAULT_TZ)
 
 
 def date_cet(some_date: datetime | str, **kwargs) -> datetime:
-    """Convert date to time_zone Europe/Oslo which provides automatic shifts between CET and CEST.
+    """Convert date to time_zone CET (preserve instant).
+
+    Note that this is NOT the same as Europe/Oslo.
+    Europe/Oslo shifts between CET and CEST.
+    For most cases, one should use `date_eur_no` or `date_tz(..., <TZ>.
 
     The output can be rounded to the precision specified by kwarg 'rounding'.
     """
-    dt_type = ensure_datetime(some_date, tz=CET)
-    return date_round(dt_type, **kwargs)
+    if some_date is None or some_date == "":
+        some_date = now_utc()
+
+    return date_tz(some_date, CET)
+
+
+def date_eur_no(some_date: datetime | str, **kwargs) -> datetime:
+    """Convert date to time_zone Europe/Oslo /preserve instant).
+
+    Note that Europe/Oslo provides automatic shifts between CET and CEST.
+    The output can be rounded to the precision specified by kwarg 'rounding'.
+    """
+    if some_date is None or some_date == "":
+        some_date = now_utc()
+
+    return date_tz(some_date, EUROPE)
 
 
 def date_round(d: datetime, **kwargs) -> datetime:
@@ -102,33 +140,32 @@ def date_round(d: datetime, **kwargs) -> datetime:
 
 
 def ensure_datetime(some_date_representation: Any, **kwargs) -> datetime:
-    """Make sure that we are dealing with a datetime object, convert if possible.
-
-    If input is None or empty strings will be converted to now_utc().
-    """
+    """Make sure that a date representation is a datetime object, convert if possible."""
     if isinstance(some_date_representation, datetime):
         return some_date_representation
-    elif some_date_representation is None or some_date_representation == "":
-        date_as_dt = now_utc(**kwargs)
     else:
         try:
             date_as_dt = some_date_representation.to_datetime()
         except (ValueError, TypeError, AttributeError):
             date_as_dt = parser.parse(some_date_representation)
-        return date_as_dt
     return date_as_dt
 
 
-def ensure_tz_aware(some_date: datetime) -> datetime:
-    """Make sure that our datetime object is timezone aware.
+def ensure_tz_aware(some_date: datetime, tz: ZoneInfo | str = DEFAULT_TZ) -> datetime:
+    """Make sure that a datetime object is timezone aware.
 
-    Assume CET if timezone information is missing.
+    Assume DEAFAULT_TZ if timezone information is missing.
     """
+    if isinstance(tz, ZoneInfo):
+        to_tz = tz
+    else:
+        to_tz = ZoneInfo(tz)
+
     if is_tz_naive(some_date):
         logger.debug(
-            "DATE_UTC catched a date without timezone info. This will become an error later. Assuming CET."
+            "ENSURE_TZ_AWARE catched a date without timezone info. This may become an error later. Assuming {DEFAULT_TZ}."
         )
-        return some_date.replace(tzinfo=DEFAULT_TZ)
+        return some_date.replace(tzinfo=to_tz)
     else:
         return some_date
 
@@ -153,6 +190,12 @@ def now_cet(**kwargs) -> datetime:
     return date_round(t, **kwargs)
 
 
+def now_eur_no(**kwargs) -> datetime:
+    """Return now in Europe/Oslo."""
+    t = datetime.now(tz=EUROPE)
+    return date_round(t, **kwargs)
+
+
 def utc_iso(d: Any, timespec: str = DEFAULT_TIMESPEC) -> str:
     """Convert date to UTC and return as an ISO formatted string."""
     return date_utc(d).isoformat(timespec=timespec)
@@ -161,24 +204,6 @@ def utc_iso(d: Any, timespec: str = DEFAULT_TIMESPEC) -> str:
 def utc_iso_no_colon(d: datetime, timespec: str = DEFAULT_TIMESPEC) -> str:
     """Convert date to UTC and return as an ISO formatted string without the colons."""
     return utc_iso(d, timespec=timespec).replace(":", "")
-
-
-def prepend_as_of(
-    df: nw.typing.IntoFrameT, as_of: datetime | None
-) -> nw.typing.IntoFrameT:
-    """Prepend column 'as_of' to dataframe."""
-    nw_df = cast(nw.DataFrame, nw.from_native(df))
-
-    if as_of is not None:
-        as_of_value = date_utc(as_of)
-        return nw_df.with_columns(nw.lit(as_of_value).alias("as_of")).to_native()
-    else:
-        # Create a column of typed nulls to avoid type inference errors
-        nw_df = cast(nw.DataFrame, nw.from_native(df))
-        as_of_nulls_series = nw.lit(None).cast(
-            nw.Datetime(time_unit=PA_TIMESTAMP_UNIT, time_zone=PA_TIMESTAMP_TZ)
-        )
-        return nw_df.with_columns(as_of=as_of_nulls_series).to_native()
 
 
 def local_timezone() -> ZoneInfo:
@@ -191,241 +216,3 @@ def validate_timezone(tz: TimeZone = "") -> str:
     if not tz:
         tz = DEFAULT_TZ
     return str(tz)
-
-
-def _nw_expr_datelike_to_datetime() -> list[nw.Expr]:
-    """Returns a Narwhals expression to transform all Date columns to Datetime."""
-    expressions = [cast(nw.Expr, ncs.by_dtype(nw.Object, nw.Date).cast(nw.Datetime))]
-    return expressions
-
-
-def _nw_expr_datetime_time_unit(
-    schema=nw.Schema, time_unit: Literal["ns", "us", "ms", "s"] = NW_DEFAULT_TIME_UNIT
-) -> list[nw.Expr]:
-    """Returns a Narwhals expression to transform all Date columns to Datetime."""
-    expressions = []
-    for col_name, dtype in schema.items():
-        if dtype in (nw.Date, nw.Datetime):
-            expressions.append(
-                nw.col(col_name).cast(
-                    nw.Datetime(time_unit=time_unit, time_zone=dtype.time_zone)
-                )
-            )
-    return expressions
-
-
-def _nw_expr_tz_localize(schema: nw.Schema, target_tz: TimeZone) -> list[nw.Expr]:
-    """Returns a list of expressions to localize all tz anive Datetime columns to target time zone."""
-    expressions = _nw_expr_datelike_to_datetime()
-    tz = validate_timezone(target_tz)
-    for col_name, dtype in schema.items():
-        if (
-            dtype in (nw.Date, nw.Datetime)
-            and getattr(dtype, "time_zone", None) is None
-        ):
-            expressions.append(nw.col(col_name).dt.replace_time_zone(tz))
-    return expressions
-
-
-def _nw_expr_tz_convert(schema: dict, target_tz: TimeZone) -> list[nw.Expr]:
-    """Scans the schema and returns a list of expressions for Datetime columns
-    that are in a different timezone than the target.
-    """
-    expressions = []
-    tz = validate_timezone(target_tz)
-    for col_name, dtype in schema.items():
-        if (
-            dtype in (nw.Date, nw.Datetime)
-            and dtype.time_zone is not None
-            and dtype.time_zone != tz
-        ):
-            expressions.append(nw.col(col_name).dt.convert_time_zone(tz))
-    return expressions
-
-
-def datetime_time_unit(
-    df: IntoFrameT, time_unit: Literal["ns", "us", "ms", "s"] = NW_DEFAULT_TIME_UNIT
-) -> IntoFrameT:
-    """Ensure all datetime columns of a dataframe use the same time unit."""
-    nw_df = cast(nw.DataFrame, nw.from_native(df))
-    expression = _nw_expr_datetime_time_unit(nw_df.schema, time_unit=time_unit)
-    return nw_df.with_columns(expression).to_native()
-
-
-def datelike_to_datetime(
-    df: IntoFrameT,
-) -> IntoFrameT:
-    """Convert all datelike columns of a dataframe to Narwhals Datetime.
-
-    Any timezone information (or lack there of) is passed through without explicit transformation.
-    Note that this does not guarantee time zone information is completely untouched.
-    Implicit localizations (typically to UTC) may still be triggered by Narwhals type transitions for some backends.
-
-    """
-    nw_df = cast(nw.DataFrame, nw.from_native(df))
-    expression = _nw_expr_datelike_to_datetime()
-    return nw_df.with_columns(expression).to_native()
-
-
-def datetime_localize(df: IntoFrameT, target_tz: TimeZone = "") -> IntoFrameT:
-    """Ensure all datetime columns of a dataframe are timezone aware.
-
-    Columns without timezone information are localized using 'target_tz' parameter if provided, otherwise falling back to default.
-
-    If the dataframe contains datelike columns of types other than Datetime, ie. Date, Object or string representations, see the twin function 'datelike_localize()'
-        >>> # xdoctest: +SETUP
-        >>> import pandas as pd
-        >>> from ssb_timeseries.dates import datelike_to_datetime
-        >>> # ------------------------------------------------------------
-
-        >>> df = pd.DataFrame({'time': [
-        ...     '2022-01-01 11:30',
-        ...     '2022-01-01 12:00',
-        ...     '2022-01-01 12:30',
-        ...     '2022-01-01 13:00'
-        ... ]})
-        >>> datetime_localize(datelike_to_datetime(df))
-    """
-    nw_df = cast(nw.DataFrame, nw.from_native(df))
-    expression = _nw_expr_tz_localize(
-        nw_df.schema,
-        target_tz,
-    )
-    return nw_df.with_columns(expression).to_native()
-
-
-def datelike_localize(df: IntoFrameT, target_tz: TimeZone = "") -> IntoFrameT:
-    """Convert all datelike columns of a dataframe to timezone aware Narwhals Datetime.
-
-    Equivalent to
-        >>> # xdoctest: +SETUP
-        >>> import pandas as pd
-        >>> from ssb_timeseries.dates import datelike_to_datetime
-        >>> # ------------------------------------------------------------
-
-        >>> df = pd.DataFrame({'time': ['2022-01-01','2022-01-01','2022-01-01','2022-01-01']})
-        >>> datetime_localize(datelike_to_datetime(df))
-    """
-    df_with_dt_cols = datelike_to_datetime(df)
-    return datetime_localize(df_with_dt_cols, target_tz)
-
-
-def datetime_convert_timezone(
-    df: IntoFrameT,
-    target_tz: TimeZone = "",
-    unlocalized_tz: TimeZone = "",
-) -> IntoFrameT:
-    """Convert all datetime columns of a dataframe to target timezone.
-
-    Ensures all datetime columns of a dataframe are timezone aware in the manner of datetime_localize:
-    Columns without timezone information are first localized using the 'unlocalized_tz' parameter if it is provided, otherwise the localization will fall back to default.
-    """
-    df_localized = datetime_localize(df, target_tz=unlocalized_tz)
-    nw_df = cast(nw.DataFrame, nw.from_native(df_localized))
-    expression = _nw_expr_tz_convert(
-        nw_df.schema,
-        target_tz,
-    )
-    return nw_df.with_columns(expression).to_native()
-
-
-def datelike_convert_timezone(
-    df: IntoFrameT,
-    target_tz: TimeZone = "",
-    unlocalized_tz: TimeZone = "",
-) -> IntoFrameT:
-    """Convert all datelike columns of a dataframe to target timezone.
-
-    Ensures all datetime columns of a dataframe are timezone aware in the manner of datetime_localize:
-    Columns without timezone information are first localized using the 'unlocalized_tz' parameter if it is provided, otherwise the localization will fall back to default.
-    """
-    df_with_dt_cols = datelike_to_datetime(df)
-    df_localized = datetime_localize(df_with_dt_cols, unlocalized_tz)
-    return datetime_convert_timezone(df_localized, target_tz)
-
-
-def datetime_to_utc(
-    df: IntoFrameT,
-    unlocalized_tz: TimeZone = "",
-) -> IntoFrameT:
-    """Convert datetime columns of a dataframe to UTC.
-
-    If dates have no timezone information, the data is assumed to be in the default timezone (CET if not configured otherwise).
-    """
-    return datetime_convert_timezone(df, UTC, unlocalized_tz)
-
-
-def datelike_to_utc(df: IntoFrameT, unlocalized_tz: TimeZone = "") -> IntoFrameT:
-    """Convert all datelike columns of a dataframe to UTC."""
-    df_localized = datelike_localize(df, target_tz=unlocalized_tz)
-    return datetime_to_utc(df_localized)
-
-    # chaining expresssions should have performance advantages
-    # ... but does not work
-    # all_expressions = [
-    #     *_nw_expr_datelike_to_datetime(),
-    #     *_nw_expr_tz_localize(nw_frame.schema, str(DEFAULT_TZ)),
-    #     *_nw_expr_tz_convert(nw_frame.schema, 'UTC'),
-    # ]
-    # return nw_frame.with_columns(*all_expressions).to_native()
-
-
-def validate_dates(
-    df: IntoFrameT,
-    date_columns: Iterable[str],
-    throw_error: bool = False,
-) -> bool:
-    """Check that all expected date columns are defined, are time zone aware dates and in UTC."""
-    nw_df = cast(nw.DataFrame, nw.from_native(df))
-    if nw_df.is_empty():
-        return True
-
-    columns_exist = [d in nw_df.columns for d in date_columns]
-    if all(columns_exist):
-        ...
-    elif throw_error:
-        columns_not_found = set(date_columns) - set(nw_df.columns)
-        raise ValueError(f"Expected date columns {columns_not_found} was not found.")
-    else:
-        return False
-
-    dates_are_utc = [
-        d in nw_df.select(ncs.datetime(time_zone="UTC")).columns for d in date_columns
-    ]
-    if all(dates_are_utc):
-        ...
-    elif throw_error:
-        all_date_cols = nw_df.select(ncs.datetime()).schema
-        utc_date_cols = nw_df.select(ncs.datetime(time_zone="UTC")).schema
-        non_utc = set(all_date_cols.keys()) - set(utc_date_cols.keys())
-        raise ValueError(
-            f"Some provided date columns where not UTC: {non_utc}\n{all_date_cols}."
-        )
-    else:
-        return False
-
-    return all(columns_exist) and all(dates_are_utc)
-
-
-def standardize_dates(
-    df: nw.typing.IntoFrameT,
-    time_unit: Literal["ns", "us", "ms"] = NW_DEFAULT_TIME_UNIT,
-) -> nw.typing.IntoFrameT:
-    """Ensure that all date columns conform to the same standards.
-
-    * Same datatype --> nw.dt.Timestamp?
-    * Time zone aware + UTC for storage.
-    * Configurable max precision?
-
-    Other questions/ideas include:
-    * Pandas Period indexes are nice -> consider conversions?
-    * Pendulum or other libraries?
-    """
-    as_utc = datelike_to_utc(df)
-    return datetime_time_unit(as_utc, time_unit=time_unit)
-
-
-def period_index(col: IntoSeriesT, freq: str) -> PeriodIndex:
-    """Returns a period index for a date or datetime series."""
-    dates = nw.from_native(col, series_only=True).to_pandas()
-    return PeriodIndex(dates, freq=freq)

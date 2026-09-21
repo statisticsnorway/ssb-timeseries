@@ -37,8 +37,8 @@ from ..config import Config
 from ..dataframes import empty_frame
 from ..dataframes import is_empty
 from ..dataframes import merge_data
-from ..dates import prepend_as_of
-from ..dates import standardize_dates
+from ..dataframes.date_cols import prepend_as_of
+from ..dataframes.dates import standardize_dates
 from . import fs
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped"
