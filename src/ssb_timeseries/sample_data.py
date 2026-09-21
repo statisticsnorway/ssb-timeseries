@@ -27,7 +27,6 @@ from .dates import TimeZone
 from .dates import date_round
 from .dates import date_tz
 from .dates import ensure_datetime
-from .dates import ensure_tz_aware
 
 # mypy: disable-error-code="arg-type, type-arg, import-untyped, unreachable, attr-defined"
 
@@ -176,7 +175,7 @@ def date_ranges(
     freq: str,
     interval: int = 1,
     temporality: str = "AT",
-    tz: str = "",
+    tz: TimeZone = DEFAULT_TZ,
 ) -> dict[str, list[datetime]]:
     """Generate a list of dates with a specified frequency."""
     freq_map = {
@@ -218,8 +217,8 @@ def date_ranges(
         bymonth=bymonth,
         bymonthday=bymonthday,
     )
-    dt_start = ensure_tz_aware(ensure_datetime(start_date))
-    dt_end = ensure_tz_aware(ensure_datetime(end_date))
+    dt_start = date_tz(ensure_datetime(start_date), tz)
+    dt_end = date_tz(ensure_datetime(end_date), tz)
     d = r(
         dtstart=dt_start,
         until=dt_end,
