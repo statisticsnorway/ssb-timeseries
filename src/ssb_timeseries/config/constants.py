@@ -41,7 +41,7 @@ DEFAULT_HANDLER = '"simple-parquet"'
 HOME = str(Path.home())
 
 DAPLALAB_WORK = "/home/onyxia/work"
-DAPLALAB_FUSE = "/buckets"
+DAPLALAB_FUSE = "/buckets/produkt"
 SSB_DIR_NAME = "tidsserier"
 ROOT_DIR_NAME = "timeseries"
 META_DIR_NAME = "metadata"
