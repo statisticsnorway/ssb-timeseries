@@ -109,17 +109,16 @@ def resample_pandas(
     if isinstance(func, str) and func in SIMPLE_AGGS | FILL_METHODS:
         out = getattr(resampler, func)()
     else:
-        # out = pd_df.resample(freq, *args, **kwargs).apply(func)
-        out = getattr(resampler, func)(*args, **kwargs)
+        out = func(resampler, *args, **kwargs)  # type: ignore[operator]
 
-    nw_out = nw.from_native(out.reset_index())
+    nw_out = nw.from_native(out.reset_index()).to_native()
     return datelike_convert_timezone(nw_out, tz)
 
 
 def resample_polars(
     df: IntoFrameT,
     freq: str,
-    func: F | str,  # Literal[SIMPLE_AGGS] | Literal[FILL_METHODS],
+    func: F | str,
     /,
     **kwargs: Any,
 ) -> pl.DataFrame:
