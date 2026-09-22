@@ -36,6 +36,7 @@ from .types import ConfigDict
 
 PACKAGE_NAME = "ssb_timeseries"
 ENV_VAR_NAME = "TIMESERIES_CONFIG"
+DEFAULT_HANDLER = '"simple-parquet"'
 
 HOME = str(Path.home())
 
@@ -51,13 +52,14 @@ LOGDIR = "logs"
 LOGFILE = "timeseries.log"
 CONFIGFILE = "timeseries_config.json"
 
-DAPLA_TEAM_CONTEXT = os.getenv("DAPLA_TEAM_CONTEXT", "")
+PROJECT_ID = os.getenv("DAPLA_TEAM_GOOGLE_PROJECT_ID", "<team_name>")
+DAPLA_TEAM_CONTEXT = os.getenv("DAPLA_TEAM_CONTEXT", PROJECT_ID)
 DAPLA_ENV = os.getenv("DAPLA_ENVIRONMENT", "")
 """Returns the Dapla environment: 'prod' | test | dev"""
-DAPLA_TEAM = os.getenv("DAPLA_TEAM", "<teamname>")
+DAPLA_TEAM = os.getenv("DAPLA_TEAM", PROJECT_ID)
 """Returns the Dapla team/project name.'"""
-DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-{DAPLA_ENV}"
-"""Returns the Dapla product bucket name for the current environment: gs://{DAPLA_TEAM}-{DAPLA_ENV}."""
+DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-data-produkt-{DAPLA_ENV.lower()}"
+"""Returns the Dapla product bucket name for the current environment: gs://{DAPLA_TEAM}-data-produkt{DAPLA_ENV}"""
 
 LOGGING_PRESETS = {
     "simple": {
@@ -142,7 +144,7 @@ PRESETS: dict[str, ConfigDict] = {
         "repositories": {
             DAPLA_TEAM: {
                 "directory": {
-                    "handler": "simple-parquet",
+                    "handler": DEFAULT_HANDLER,
                     "options": {"path": str(Path(HOME, ROOT_DIR_NAME))},
                 },
                 "catalog": {
@@ -153,7 +155,29 @@ PRESETS: dict[str, ConfigDict] = {
                 },
             }
         },
-        "logging": LOGGING_PRESETS["simple"],
+        "logging": {},
+    },
+    "dapla": {
+        "configuration_file": str(
+            Path(DAPLA_BUCKET, SSB_CONF_DIR, PACKAGE_NAME, CONFIGFILE)
+        ),
+        "io_handlers": BUILTIN_IO_HANDLERS,
+        "repositories": {
+            PROJECT_ID: {
+                "name": PROJECT_ID,
+                "directory": {
+                    "handler": DEFAULT_HANDLER,
+                    "options": {"path": str(Path(DAPLA_BUCKET, SSB_DIR_NAME))},
+                },
+                "catalog": {
+                    "handler": "json",
+                    "options": {
+                        "path": str(Path(DAPLA_BUCKET, SSB_DIR_NAME, META_DIR_NAME)),
+                    },
+                },
+            }
+        },
+        "logging": {},
     },
     "daplalab": {
         "configuration_file": str(
@@ -161,11 +185,11 @@ PRESETS: dict[str, ConfigDict] = {
         ),
         "io_handlers": BUILTIN_IO_HANDLERS,
         "repositories": {
-            DAPLA_TEAM: {
-                "name": DAPLA_TEAM,
+            PROJECT_ID: {
+                "name": PROJECT_ID,
                 "directory": {
-                    "handler": "simple-parquet",
-                    "options": {"path": str(Path(DAPLALAB_FUSE, ROOT_DIR_NAME))},
+                    "handler": DEFAULT_HANDLER,
+                    "options": {"path": str(Path(DAPLALAB_FUSE, SSB_DIR_NAME))},
                 },
                 "catalog": {
                     "handler": "json",
@@ -175,7 +199,7 @@ PRESETS: dict[str, ConfigDict] = {
                 },
             }
         },
-        "logging": LOGGING_PRESETS["simple"],
+        "logging": {},
     },
 }
 
