@@ -153,7 +153,6 @@ def test_dataset_resample_upsampling(
     y = x.resample(
         freq,
         method,  # not used , replaced by interpretation of freq
-        implementation=calculation,
     )  # , closed="s")
     ts.logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
     # beware of index column!
@@ -196,7 +195,6 @@ def test_dataset_resample_downsampling(
     y = x.resample(
         freq,
         method,
-        implementation=calculation,
     )
     ts.logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
     assert y.data.shape == expected_shape

@@ -1202,13 +1202,12 @@ class Dataset:
         Supported values for `func` are :data:`ssb_timeseries.dataframes.sampling.SIMPLE_AGGS`
         for downsampling and :data:`ssb_timeseries.dataframes.sampling.FILL_METHODS` for upsampling.
 
-        The implementation is `pandas` or `polars` depending on the `freq` arguemnts.
+        The underluying implementation is `pandas` or `polars` depending on the `freq` arguments.
 
         Additional Kwargs can be provided for either implementation.
         """
         from .dataframes.sampling import PANDAS_TO_POLARS_FREQ
 
-        kwargs.pop("implementation")
         if freq in PANDAS_TO_POLARS_FREQ.keys():
             df = resample_pandas(self.data, freq, func, **kwargs)
         elif freq in PANDAS_TO_POLARS_FREQ.values():
