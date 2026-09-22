@@ -39,9 +39,10 @@ from typing import Any
 from narwhals.typing import IntoFrame
 
 from ..config.types import FileBasedRepository
+from ..dataframes.date_cols import date_range
+from ..dataframes.dates import datelike_to_utc
 from ..dataset import Dataset
 from ..dates import date_utc
-from ..dates import datelike_to_utc
 from ..logging import logger
 from ..meta import TagDict
 from ..types import SeriesType
@@ -434,13 +435,13 @@ def persist(
         set_name=ds.name,
         sharing=ds.sharing,
     )
-    date_from = ds.data[ds.datetime_columns].min().min()
-    date_to = ds.data[ds.datetime_columns].max().max()
+    (date_from, date_to) = date_range(ds.data)
+    print(type(date_from))
     snap_io.write(
         sharing=getattr(ds, "sharing", {}),
         as_of_tz=ds.as_of_utc,
-        period_from=date_from,
-        period_to=date_to,
+        period_from=date_from,  # type: ignore[arg-type]
+        period_to=date_to,  # type: ignore[arg-type]
         data_path=DataIO(ds).dh.fullpath,  # type: ignore[attr-defined]
         # meta_path=MetaIO(ds).dh.fullpath,
     )

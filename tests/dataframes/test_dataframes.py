@@ -14,8 +14,8 @@ from ssb_timeseries.dataframes import empty_frame
 from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dataframes import merge_data
+from ssb_timeseries.dataframes.dates import datelike_to_utc
 from ssb_timeseries.dates import date_utc
-from ssb_timeseries.dates import datelike_to_utc
 from ssb_timeseries.sample_data import create_df
 
 

@@ -62,9 +62,12 @@ from .dataframes import infer_datatype
 from .dataframes import is_df_like
 from .dataframes import is_empty
 from .dataframes import rename_columns
+from .dataframes.dates import period_index
+from .dataframes.dates import standardize_dates
+from .dataframes.sampling import resample_pandas
+from .dataframes.sampling import resample_polars
 from .dates import date_local
 from .dates import date_utc
-from .dates import period_index
 from .dates import utc_iso
 from .logging import logger
 from .types import DatasetTagDict
@@ -307,22 +310,27 @@ class Dataset:
                 self.data_type,
                 self.name,
             )
-            lookup_as_of = self.versions()[-1]
-            if isinstance(lookup_as_of, datetime):
-                as_of_tz = lookup_as_of
-            self.as_of_utc = date_utc(as_of_tz)
+            if self.versions():
+                lookup_as_of = self.versions()[-1]
+                if isinstance(lookup_as_of, datetime):
+                    as_of_tz = lookup_as_of
+                self.as_of_utc = date_utc(as_of_tz)
+            else:
+                ...
         elif as_of_tz:
             self.as_of_utc = date_utc(as_of_tz)
         else:
             self.as_of_utc = None
 
-        kwarg_data = kwargs.get("data", None)
-        if is_df_like(kwarg_data) and not is_empty(kwarg_data):
-            self.data = kwarg_data
-        elif find_existing:  # and self.data_type.versioning == types.Versioning.AS_OF:
-            self.data = io.DataIO(self).dh.read()
-        else:
-            self.data = empty_frame()
+        # kwarg_data = kwargs.get("data", None)
+        # if is_df_like(kwarg_data) and not is_empty(kwarg_data):
+        #    self.data = kwarg_data
+        # elif find_existing:  # and self.data_type.versioning == types.Versioning.AS_OF:
+        #    self.data = io.DataIO(self).dh.read()
+        # else:
+        #    self.data = empty_frame()
+        ## ... replace with?
+        self.data = self.__prepare_data(kwargs.get("data", None), find_existing)
 
         stored_tags = tags_for_existing
         self.tags = self.default_tags()
@@ -351,6 +359,25 @@ class Dataset:
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
         self.sharing: dict[str, str] = kwargs.get("sharing", {})
+
+    def __prepare_data(self, data_to_check: Any, find_existing: bool = False) -> Any:
+        """Validate data passed to Dataset.__init__.
+
+        If
+        """
+        if is_df_like(data_to_check):
+            data = data_to_check  # add cleaning / type conversions --> TO DO
+        elif isinstance(data_to_check, pa.Table):
+            data = nw.from_native(data_to_check)
+        elif isinstance(data_to_check, dict):
+            data = nw.from_dict(data_to_check, backend="pyarrow")
+        elif find_existing:
+            data = io.DataIO(self).dh.read()
+        elif data_to_check is None:
+            data = empty_frame(columns=self.data_type.date_columns)
+        else:
+            raise ValueError("Unhandled data provided.")
+        return standardize_dates(data)
 
     def copy(
         self,
@@ -1170,42 +1197,34 @@ class Dataset:
         self,
         freq: str,
         func: F | str,
-        *args: Any,
+        /,
         **kwargs: Any,
     ) -> Self:
-        """Alter frequency of dataset data."""
-        # TODO: have a closer look at dates returned for last period when upsampling
-        # df = self.data.set_index(self.datetime_columns)
-        df = self.data.set_index(self.datetime_columns).copy()
-        match func:
-            case "min":
-                out = df.resample(freq).min()
-            case "max":
-                out = df.resample(freq).max()
-            case "sum":
-                out = df.resample(freq).sum()
-            case "mean":
-                out = df.resample(freq).mean()
-            case "ffill":
-                out = df.resample(freq).ffill()
-            case "bfill":
-                out = df.resample(freq).bfill()
-            case _:
-                out = df.resample(freq, *args, **kwargs).apply(func)
+        """Alter frequency of dataset data (upsampling or downsampling).
+
+        Supported values for `func` are :data:`ssb_timeseries.dataframes.sampling.SIMPLE_AGGS`
+        for downsampling and :data:`ssb_timeseries.dataframes.sampling.FILL_METHODS` for upsampling.
+
+        The underluying implementation is `pandas` or `polars` depending on the `freq` arguments.
+
+        Additional Kwargs can be provided for either implementation.
+        """
+        from .dataframes.sampling import PANDAS_TO_POLARS_FREQ
+
+        if freq in PANDAS_TO_POLARS_FREQ.keys():
+            df = resample_pandas(self.data, freq, func, **kwargs)
+        elif freq in PANDAS_TO_POLARS_FREQ.values():
+            df = resample_polars(self.data, freq, func, **kwargs)
+        else:
+            raise ValueError(f"Dataset.resample() received invalid {freq=}.")
 
         new_name = f"new set:[{self.name}.resampled({freq}, {func}]"
         return self.__class__(
             name=new_name,
             data_type=self.data_type,
             as_of_tz=self.as_of_utc,
-            data=out,
+            data=df,
         )
-
-    # TODO: rethink identity: is / is not behaviour
-    # def identical(self, other:Self) -> bool:
-    #     # check_data = self.__eq__(other:Self)
-    #     # return all(check_defs) and check_data.all()
-    #     return self.__dict__ == other.__dict__
 
     def all(self) -> bool:
         """Check if all values in series columns evaluate to true."""
@@ -1220,7 +1239,6 @@ class Dataset:
     def boolean_columns(self) -> list[str]:
         """Get names of all numeric series columns (ie columns that are not datetime)."""
         return list(nw.from_native(self.data).select(ncs.boolean()).columns)
-        # replaces: return [c for c in self.data.columns if c not in self.datetime_columns]
 
     @property
     def datetime_columns(self) -> list[str]:

@@ -1,6 +1,6 @@
 [project]
 name = "ssb-timeseries"
-version = "0.7.6"
+version = "0.8.0"
 description = "SSB Timeseries"
 authors = [{ name = "Bernhard Ryeng", email = "bernhard.ryeng@ssb.no" }]
 license = "MIT"
@@ -79,7 +79,7 @@ poetry-plugin-export = ">=1.9"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-#addopts = [ "--import-mode=importlib", ] # RYE: not needed? (added in a wild goose chase)
+addopts = [ "--import-mode=importlib", ] # RYE: ...?
 filterwarnings = [
     "error",
     "error", "ignore::pytest.PytestUnraisableExceptionWarning",

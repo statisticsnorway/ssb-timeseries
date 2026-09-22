@@ -17,10 +17,10 @@ from narwhals.typing import IntoFrameT
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
+from ..types import SeriesType
+from ..types import Temporality
+from ..types import Versioning
 from .dates import standardize_dates
-from .types import SeriesType
-from .types import Temporality
-from .types import Versioning
 
 # mypy: disable-error-code="union-attr"
 
@@ -83,13 +83,15 @@ def are_equal(*frames: IntoFrame) -> bool:
     first_df = nw.from_native(frames[0]).to_polars()
     for df in frames[1:]:
         df = nw.from_native(df).to_polars()
-        if df.shape != first_df.shape:
-            return False
-        elif set(df.columns) != set(first_df.columns):
-            return False
-        elif not df.select(sorted(df.columns)).equals(
+
+        shapes_are_equal = df.shape == first_df.shape
+        column_names_are_equal = set(df.columns) == set(first_df.columns)
+        all_values_are_equal = df.select(sorted(df.columns)).equals(
             first_df.select(sorted(first_df.columns))
-        ):
+        )
+
+        criteria = [shapes_are_equal, column_names_are_equal, all_values_are_equal]
+        if not all(criteria):
             return False
     return True
 
