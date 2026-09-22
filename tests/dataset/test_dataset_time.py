@@ -127,10 +127,10 @@ def test_dataset_groupby_auto(monthly_data, caplog):
 
 @pytest.mark.parametrize("method", FILL_METHODS)
 @pytest.mark.parametrize(
-    "calculation, freq",
+    "calculation, freq, expected_shape",
     [
-        ("pd", "D"),
-        ("pl", "1d"),
+        ("pd", "D", (335, 4)),
+        ("pl", "1d", (335, 4)),
     ],
 )
 def test_dataset_resample_upsampling(
@@ -138,6 +138,7 @@ def test_dataset_resample_upsampling(
     calculation,
     method,
     freq,
+    expected_shape,
     caplog,
 ):
     caplog.set_level(logging.DEBUG)
@@ -156,11 +157,8 @@ def test_dataset_resample_upsampling(
     )  # , closed="s")
     ts.logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
     # beware of index column!
-    # double check behaviour for lat period
-    # verify / create test cases per Temporality
-    # (might want to rethink )
-    print(x.nw, "\n", y.nw)
-    assert y.data.shape == (335, 4)
+    # double check behaviour for last period
+    assert y.data.shape == expected_shape
 
 
 @pytest.mark.parametrize(
@@ -201,5 +199,4 @@ def test_dataset_resample_downsampling(
         implementation=calculation,
     )
     ts.logger.debug(f"resample:\n{x.data}\n{y.name}\n{y.data}")
-    print(x.pd, "\n", y.data)
     assert y.data.shape == expected_shape

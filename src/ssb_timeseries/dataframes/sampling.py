@@ -93,6 +93,14 @@ def resample_pandas(
     df_in_default_tz = datelike_to_default_tz(df)
     temporal = temporal_column_schema(df_in_default_tz)
 
+    timezones = {v.time_zone for v in temporal.values()}  # type: ignore[attr-defined]
+    if len(timezones) == 1:
+        tz = next(iter(timezones))
+    else:
+        raise ValueError(
+            "Can not resample dataframe where temporal columns have different time zones."
+        )  # TODO: relax to allow differnet as_of from valid_from, valid_to / valid_at?
+
     naive = datelike_convert_naive(df_in_default_tz)
     pd_df = eager(naive).to_pandas()  # type: ignore[arg-type]
 
@@ -103,7 +111,8 @@ def resample_pandas(
     else:
         out = pd_df.resample(freq, *args, **kwargs).apply(func)
 
-    return nw.from_native(out.reset_index())
+    nw_out = nw.from_native(out.reset_index())
+    return datelike_convert_timezone(nw_out, tz)
 
 
 def resample_polars(
@@ -144,27 +153,29 @@ def resample_polars(
 
     if isinstance(func, str) and func in FILL_METHODS:
         strategy = "forward" if func == "ffill" else "backward"
-        return pl_df.upsample(
+        naive = pl_df.upsample(
             time_column=time_col,
             every=kwargs.pop("every", freq),
             **kwargs,
         ).fill_null(strategy=strategy)
 
-    if isinstance(func, str) and func in SIMPLE_AGGS:
+    elif isinstance(func, str) and func in SIMPLE_AGGS:
         agg_expr = getattr(other_cols, func)()
-        return pl_df.group_by_dynamic(
+        naive = pl_df.group_by_dynamic(
             time_col,
             every=kwargs.pop("every", freq),
             **kwargs,
         ).agg(agg_expr)
 
-    # Arbitrary callable: applied per-column within each dynamic window.
-    # Note this is a per-column apply, not a per-group-dataframe apply
-    # like pandas' `.resample().apply(func)` — if `func` needs to see
-    # multiple columns of the same group at once, this won't match
-    # pandas semantics and needs a different construct
-    # (e.g. `.map_groups`).
-    naive = pl_df.group_by_dynamic(time_col, every=freq, **kwargs).agg(
-        other_cols.map_batches(func)  # type: ignore[arg-type]
-    )
-    return naive.with_columns(pl.col(temporal.keys()).dt.replace_time_zone(tz))
+    else:
+        # Arbitrary callable: applied per-column within each dynamic window.
+        # Note this is a per-column apply, not a per-group-dataframe apply
+        # like pandas' `.resample().apply(func)` — if `func` needs to see
+        # multiple columns of the same group at once, this won't match
+        # pandas semantics and needs a different construct
+        # (e.g. `.map_groups`).
+        naive = pl_df.group_by_dynamic(time_col, every=freq, **kwargs).agg(
+            other_cols.map_batches(func)  # type: ignore[arg-type]
+        )
+    return datelike_convert_timezone(naive, tz)
+    # .with_columns(pl.col(temporal.keys()).dt.replace_time_zone(tz))
