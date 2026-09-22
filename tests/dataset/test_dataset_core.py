@@ -5,6 +5,7 @@ from datetime import timedelta
 import pytest
 from pytest import LogCaptureFixture
 
+from ssb_timeseries.dataframes import empty_frame
 from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import default_repository
@@ -31,12 +32,66 @@ def test_default_repository():
     assert default_repository() == "test_1"
 
 
-def test_dataset_instance_created(
+@pytest.mark.parametrize("find_existing", [True, False])
+def test_dataset_init_with_no_data_creates_new_instance(
+    series_type,
+    find_existing,
     caplog: LogCaptureFixture,
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
-    example = Dataset(name="test-no-dir-created", data_type=SeriesType.simple())
+    if series_type.versioning == Versioning.AS_OF:
+        example = Dataset(
+            name=f"test-no-dir-created-{series_type}",
+            data_type=series_type,
+            as_of=now_utc,
+            find_existing=find_existing,
+        )
+    else:
+        example = Dataset(
+            name=f"test-no-dir-created-{series_type}",
+            data_type=series_type,
+            find_existing=find_existing,
+        )
+    assert isinstance(example, Dataset)
+
+
+@pytest.mark.parametrize("implementation", ["arrow", "pandas", "polars", "dict"])
+@pytest.mark.parametrize("find_existing", [True, False])
+def test_dataset_init_with_empty_data_creates_new_instance(
+    series_type,
+    find_existing,
+    implementation,
+    caplog: LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+
+    if series_type.versioning == Versioning.AS_OF:
+        empty_df = empty_frame(
+            columns=series_type.date_columns, implementation=implementation
+        )
+        example = Dataset(
+            name=f"test-no-dir-created-{series_type}",
+            data_type=series_type,
+            as_of=now_utc,
+            data=empty_df,
+            find_existing=find_existing,
+        )
+    else:
+        if implementation == "dict":
+            empty_data = empty_frame(
+                columns=series_type.date_columns, implementation="arrow"
+            ).to_pydict()
+        else:
+            empty_data = empty_frame(
+                columns=series_type.date_columns, implementation=implementation
+            )
+        example = Dataset(
+            name=f"test-no-dir-created-{series_type}",
+            data_type=series_type,
+            data=empty_data,
+            find_existing=find_existing,
+        )
     assert isinstance(example, Dataset)
 
 

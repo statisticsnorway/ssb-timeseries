@@ -310,10 +310,13 @@ class Dataset:
                 self.data_type,
                 self.name,
             )
-            lookup_as_of = self.versions()[-1]
-            if isinstance(lookup_as_of, datetime):
-                as_of_tz = lookup_as_of
-            self.as_of_utc = date_utc(as_of_tz)
+            if self.versions():
+                lookup_as_of = self.versions()[-1]
+                if isinstance(lookup_as_of, datetime):
+                    as_of_tz = lookup_as_of
+                self.as_of_utc = date_utc(as_of_tz)
+            else:
+                ...
         elif as_of_tz:
             self.as_of_utc = date_utc(as_of_tz)
         else:
@@ -362,18 +365,18 @@ class Dataset:
 
         If
         """
-        if is_df_like(data_to_check) and not is_empty(data_to_check):
+        if is_df_like(data_to_check):
             data = data_to_check  # add cleaning / type conversions --> TO DO
         elif isinstance(data_to_check, pa.Table):
             data = nw.from_native(data_to_check)
         elif isinstance(data_to_check, dict):
-            data = nw.data_from_dict()
+            data = nw.from_dict(data_to_check, backend="pyarrow")
         elif find_existing:
             data = io.DataIO(self).dh.read()
         elif data_to_check is None:
-            data = empty_frame()
+            data = empty_frame(columns=self.data_type.date_columns)
         else:
-            print(data_to_check)
+            raise ValueError("Unhandled data provided.")
         return standardize_dates(data)
 
     def copy(

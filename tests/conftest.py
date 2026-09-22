@@ -306,7 +306,7 @@ def temporality(request):
 
 
 @pytest.fixture
-def series_types(versioning, temporality):
+def series_type(versioning, temporality):
     """SeriesType for every combination of versioning and temporality."""
     return SeriesType(versioning, temporality)
 

@@ -91,6 +91,17 @@ def _nw_expr_tz_convert(schema: dict, target_tz: TimeZone) -> list[nw.Expr]:
     return expressions
 
 
+def _nw_expr_to_tz_naive(
+    schema: dict,
+) -> list[nw.Expr]:
+    """Scans the schema and returns a list of expressions for Datetime columns."""
+    expressions = []
+    for col_name, dtype in schema.items():
+        if dtype in (nw.Date, nw.Datetime) and dtype.time_zone is not None:
+            expressions.append(nw.col(col_name).dt.replace_time_zone(None))
+    return expressions
+
+
 def datetime_time_unit(
     df: IntoFrameT, time_unit: Literal["ns", "us", "ms", "s"] = NW_DEFAULT_TIME_UNIT
 ) -> IntoFrameT:
@@ -157,11 +168,20 @@ def datelike_unlocalize(df: IntoFrameT) -> IntoFrameT:
 def datetime_convert_naive(df: IntoFrameT) -> IntoFrameT:
     """Ensure all datetime columns of a dataframe are timezone naive."""
     nw_df = cast(nw.DataFrame, nw.from_native(df))
-    expression = _nw_expr_tz_localize(
-        nw_df.schema,
-        None,
-    )
+    expression = _nw_expr_to_tz_naive(nw_df.schema)
     return nw_df.with_columns(expression).to_native()
+
+
+def datelike_convert_naive(
+    df: IntoFrameT,
+) -> IntoFrameT:
+    """Convert all datelike columns of a dataframe to target timezone.
+
+    Ensures all datetime columns of a dataframe are timezone aware in the manner of datetime_localize:
+    Columns without timezone information are first localized using the 'unlocalized_tz' parameter if it is provided, otherwise the localization will fall back to default.
+    """
+    df_with_dt_cols = datelike_to_datetime(df)
+    return datetime_convert_naive(df_with_dt_cols)
 
 
 def datetime_convert_timezone(
@@ -196,20 +216,6 @@ def datelike_convert_timezone(
     df_with_dt_cols = datelike_to_datetime(df)
     df_localized = datetime_localize(df_with_dt_cols, unlocalized_tz)
     return datetime_convert_timezone(df_localized, target_tz)
-
-
-def datelike_convert_naive(
-    df: IntoFrameT,
-    unlocalized_tz: TimeZone = "",
-) -> IntoFrameT:
-    """Convert all datelike columns of a dataframe to target timezone.
-
-    Ensures all datetime columns of a dataframe are timezone aware in the manner of datetime_localize:
-    Columns without timezone information are first localized using the 'unlocalized_tz' parameter if it is provided, otherwise the localization will fall back to default.
-    """
-    df_with_dt_cols = datelike_to_datetime(df)
-    df_localized = datelike_unlocalize(df_with_dt_cols)
-    return datetime_convert_naive(df_localized)
 
 
 def datetime_to_utc(

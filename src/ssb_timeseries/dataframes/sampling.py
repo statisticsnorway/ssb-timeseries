@@ -109,7 +109,8 @@ def resample_pandas(
     if isinstance(func, str) and func in SIMPLE_AGGS | FILL_METHODS:
         out = getattr(resampler, func)()
     else:
-        out = pd_df.resample(freq, *args, **kwargs).apply(func)
+        # out = pd_df.resample(freq, *args, **kwargs).apply(func)
+        out = getattr(resampler, func)(*args, **kwargs)
 
     nw_out = nw.from_native(out.reset_index())
     return datelike_convert_timezone(nw_out, tz)
@@ -137,17 +138,18 @@ def resample_polars(
     else:
         raise ValueError(
             "Can not resample dataframe where temporal columns have different time zones."
-        )  # TODO: relax to allow differnet as_of from valid_from, valid_to / valid_at?
+        )  # TODO: relax to allow different as_of from valid_from, valid_to / valid_at?
 
     pl_df = eager(datelike_convert_naive(df)).to_polars()  # type: ignore[arg-type]
 
-    if len(temporal.keys()) != 1:
-        msg = (
-            f"resample_polars needs exactly one datetime column, got {temporal.keys()}"
-        )
-        raise ValueError(msg)
-    time_col = next(iter(temporal.keys()))
+    # if len(temporal.keys()) != 1:
+    #    msg = (
+    #        f"resample_polars needs exactly one datetime column, got {temporal.keys()}"
+    #    )
+    #    raise ValueError(msg)
+    #    # TO DO: handle from_to data so they do not fail here
 
+    time_col = next(iter(temporal.keys()))
     pl_df = pl_df.sort(time_col)
     other_cols = pl.all().exclude(time_col)
 

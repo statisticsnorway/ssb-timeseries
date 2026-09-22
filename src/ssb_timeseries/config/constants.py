@@ -36,7 +36,7 @@ from .types import ConfigDict
 
 PACKAGE_NAME = "ssb_timeseries"
 ENV_VAR_NAME = "TIMESERIES_CONFIG"
-DEFAULT_HANDLER = '"simple-parquet"'
+DEFAULT_HANDLER = "simple-parquet"
 
 HOME = str(Path.home())
 
