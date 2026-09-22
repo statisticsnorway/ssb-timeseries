@@ -57,7 +57,6 @@ def date_tz(some_date: datetime | str, tz: TimeZone, **kwargs) -> datetime:
 
     dt_type = ensure_datetime(some_date)
     with_tz = ensure_tz_aware(dt_type)
-    # dt = with_tz.astimezone(tz=tz)
     dt = with_tz.astimezone(tz=to_tz)
     return date_round(dt, **kwargs)
 
