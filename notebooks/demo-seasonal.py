@@ -19,11 +19,8 @@ def _():
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Introduksjon til SSB Timeseries
-    ===============================
-
-    Bernhard Ryeng, September 2026
-    ------------------------------
+    Introduksjon
+    ============
     """)
     return
 
@@ -42,9 +39,10 @@ def _(mo):
     mo.md(r"""
     - **Kodebibliotek** som later som det er et fullverdig **tidsseriesystem**
     - [Anbefalt retning for utvikling](https://adr.ssb.no/0031-fellesloesning-for-haandtering-av-tidsserier/)
-    - [statisticsnorway/ssb-timeseries](https://github.com/statisticsnorway/ssb-timeseries)
-    - [Installasjon og konfigurasjon](https://statisticsnorway.github.io/ssb-timeseries/guides/quickstart.html)
-    - [Grunnleggende bruk](https://statisticsnorway.github.io/ssb-timeseries/guides/basic-usage.html)
+    - **Praktisk:**
+     - [statisticsnorway/ssb-timeseries](https://github.com/statisticsnorway/ssb-timeseries)
+     - [Installasjon og konfigurasjon](https://statisticsnorway.github.io/ssb-timeseries/guides/quickstart.html)
+     - [Grunnleggende bruk](https://statisticsnorway.github.io/ssb-timeseries/guides/basic-usage.html)
     """)
     return
 
@@ -101,8 +99,8 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Demo
-    ====
+    Demonstrasjon
+    =============
     """)
     return
 
@@ -290,7 +288,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ... for *versjonerte* datasett lagres data for hver `as_of` dato.
@@ -368,20 +366,8 @@ def _(jul, pl):
 
 
 @app.cell
-def _():
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-
-    """)
-    return
-
-
-@app.cell
-def _():
+def _(jul, pl):
+    jul.pl.describe().select(pl.col(["statistic", "valid_at"]))
     return
 
 
@@ -398,31 +384,18 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     - Aggregering (group by)
-      - (Re)sampling
-      - Moving average.
+     - (Re)sampling
+     - Moving average.
 
-    Planlagte enkle utvidelser:
-      - Indeksering
-      - Direkte støtte for diff, shift, cumsum (alle tilgjengelige via eksterne biblioteker)
+    - Planlagte enkle utvidelser:
+     - Indeksering
+     - Direkte støtte for diff, shift, cumsum (alle tilgjengelige via eksterne biblioteker)
+     - Typetransisjoner.
 
-      - Changing types.
-
-    Proper timeseries analysis and seasonal adjustment. (Planned integrations.)
-    """)
-    return
-
-
-@app.cell
-def _(jul, pl):
-    jul.pl.describe().select(pl.col(["statistic", "valid_at"]))
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Resample
-    --------
+    - Integrasjon mot eksterne bibliotek for "ordentlig" tidsserieanalyse.
+     - Nixtla
+     - Darts
+     - ...
     """)
     return
 
@@ -430,7 +403,17 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    --------
+    Resampling
+    ----------
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Litt forskjellig støtte i "standardbibliotekene".
+    Variasjoner ikke bare i funksjoner og parametere, men også i grunnleggende virkemåte, f.eks relatert til tidssoner og dermed også sommer-/vintertid.
     """)
     return
 
@@ -575,6 +558,14 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Deres eget minimale eksempel:
+    """)
+    return
+
+
 @app.cell
 def _():
     from statsforecast import StatsForecast
@@ -604,7 +595,7 @@ def _(AutoARIMA, StatsForecast, df):
 
 @app.cell
 def _(AutoARIMA, StatsForecast):
-    def auto_arima(x, freq, season_length):
+    def predict_with_auto_arima(x, freq, season_length):
         sf = StatsForecast(
             models=[AutoARIMA(season_length=season_length)],
             freq=freq,
@@ -612,16 +603,16 @@ def _(AutoARIMA, StatsForecast):
         sf.fit(x)
         return sf.predict(h=12, level=[95])
 
-    return (auto_arima,)
+    return (predict_with_auto_arima,)
 
 
 @app.cell
-def _(auto_arima, feb):
+def _(feb, predict_with_auto_arima):
     for f_series in feb:
-        ff = f_series.nixtla()
-        predicted = auto_arima(ff, 'D', 365)
-        print(predicted)
-    return (predicted,)
+        one_series_adapted_to_nixtla_format = f_series.nixtla()
+        predicted_f = predict_with_auto_arima(one_series_adapted_to_nixtla_format, 'D', 365)
+        print(predicted_f)
+    return
 
 
 @app.cell
@@ -644,12 +635,12 @@ def _(pop):
 
 
 @app.cell
-def _(auto_arima, pop):
+def _(auto_arima, pop, predicted_p):
     p_predicted=[]
     for p in pop: #, "sum(0_03)", "sum(0_04)" ]:
         pp = p.nixtla()
-        p_predicted.append( auto_arima(pp, 'Y', 1))
-    p_predicted[0]['AutoARIMA'].plot()
+        predicted_p.append( auto_arima(pp, 'Y', 1))
+    predicted_p[0]['AutoARIMA'].plot()
     return (p_predicted,)
 
 
