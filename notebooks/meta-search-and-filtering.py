@@ -12,6 +12,13 @@ def _():
     return mo, testing
 
 
+@app.cell
+def _():
+    from mdtools import catalog_item_list_to_df
+
+    return (catalog_item_list_to_df,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -85,13 +92,6 @@ def _(mo):
     To list the datasets in the catalog:
     """)
     return
-
-
-@app.cell(hide_code=True)
-def _():
-    from mdtools import catalog_item_list_to_df
-
-    return (catalog_item_list_to_df,)
 
 
 @app.cell

@@ -64,6 +64,7 @@ from .dataframes import is_empty
 from .dataframes import rename_columns
 from .dataframes.dates import period_index
 from .dataframes.dates import standardize_dates
+from .dataframes.sampling import group_by
 from .dataframes.sampling import resample_pandas
 from .dataframes.sampling import resample_polars
 from .dates import date_local
@@ -1127,7 +1128,7 @@ class Dataset:
                 # exec(cmd)
                 locals_[col] = self.nw[col]
 
-    def groupby(
+    def group_by(
         self,
         freq: str,
         func: str = "auto",
@@ -1137,6 +1138,30 @@ class Dataset:
         """Group dataset data by specified frequency and function.
 
         Returns a new Dataset.
+        """
+        new_name = f"({self.name}.groupby({freq},{func})"
+        result = group_by(self.data, freq, func, *args, **kwargs)
+
+        # TODO: tag maintenance --> frequency
+
+        return self.__class__(
+            name=new_name,
+            data_type=self.data_type,
+            as_of_tz=self.as_of_utc,
+            data=result,
+        )
+
+    def groupby(
+        self,
+        freq: str,
+        func: str = "auto",
+        *args: Any,
+        **kwargs: Any,
+    ) -> Self:
+        """Group dataset data by specified frequency and function.
+
+        Returns a new Dataset. Pandas implementation.
+        WARNING: This function is about to be deprecated.
         """
         datetime_columns = list(
             set(self.nw.columns) & {"valid_at", "valid_to", "valid_from"}

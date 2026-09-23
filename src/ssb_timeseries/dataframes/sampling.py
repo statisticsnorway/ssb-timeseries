@@ -59,14 +59,14 @@ PANDAS_TO_POLARS_FREQ = {
 }
 
 
-def group_by(
+def group_by_pl(
     df: IntoFrameT,
     *,
     series_names: str | list[str] = "",
     tz: TimeZone = DEFAULT_TZ,
     **kwargs,
 ) -> IntoFrameT:
-    """Check if dataframes are equal."""
+    """Aggregate over time axes."""
     df = datelike_convert_timezone(df, tz)
     temporal = temporal_column_schema(df)
     nw_df = eager(df).sort()  # type: ignore[arg-type]
@@ -80,6 +80,101 @@ def group_by(
     naive = nw.from_native(result.reset_index())
     tz = str({v.time_zone for v in temporal.values()}.unique)  # type: ignore[attr-defined]
     return datelike_convert_timezone(naive, tz)  # ... to_native() # of nw_df!
+
+
+def group_by(
+    df_raw: IntoFrameT,
+    freq: str,
+    func: str | list[str] = "",
+    /,
+    agg_mapping: dict | None = None,
+    *,
+    time_col: str = "",
+    series_names: str | list[str] = "",
+    tz: TimeZone = DEFAULT_TZ,
+    **kwargs,
+) -> IntoFrameT:
+    """Aggregate over time axes."""
+    df = nw.from_native(df_raw)
+    if not time_col:
+        temporal = temporal_column_schema(df)
+        if len(temporal.keys()) > 1:
+            time_col = temporal.keys()
+        else:
+            time_col = next(iter(temporal.keys()))
+
+    if agg_mapping is None and not func:
+        raise ValueError("Either agg_mapping or func_name must be specified.")
+
+    # Define a temporary name for our grouping key
+    group_key = f"{time_col}_{freq}"
+
+    time_expr = nw.col(time_col)
+    if tz is not None:
+        time_expr = time_expr.dt.convert_time_zone(tz)
+
+    match freq.lower():
+        case "y" | "yr" | "year":
+            year_expr = time_expr.dt.to_string("%Y")
+            df = df.with_columns(year_expr.alias(group_key))
+        case "m" | "mth" | "month":
+            month_expr = time_expr.dt.to_string("%Y-%m")
+            df = df.with_columns(month_expr.alias(group_key))
+        case "q" | "quarter":
+            # not available: ... nw.col(time_expr).dt.quarter()
+            # --> math derivation: (month - 1) // 3 + 1
+            y_expr = time_expr.dt.to_string("%Y")
+            m_expr = time_expr.dt.month()
+            q_expr = ((m_expr - 1) // 3) + 1
+            # quarter_expr = f"{time_expr.dt.year()}-Q{((month_expr - 1) // 3) + 1}"
+            # quarter_expr = time_expr.dt.to_string("%Y-%Q-qq").str.replace("qq", q_expr)
+            quarter_expr = nw.concat_str(
+                [y_expr, q_expr.cast(nw.String)], separator="-Q"
+            )
+            df = df.with_columns(quarter_expr.alias(group_key))
+        case "w" | "wk" | "week":
+            # week_expr = f"{time_expr.dt.year()}-W{nw.col(time_expr).dt.week():02}"
+            week_expr = time_expr.dt.to_string("%Y-%v")
+            # %v weeknum - ISO week
+            # %u weeknum - Sun first day of week
+            # %w weeknum - Mon first day of week
+            df = df.with_columns(week_expr.alias(group_key))
+        case "raw":
+            # If column already contains pre-formatted strings:
+            # '2026-Q1', '2026-w34', ...
+            group_key = time_col
+        case _:
+            raise ValueError(f"Unsupported frequency type: {freq}")
+
+    if not series_names:
+        series_names = [
+            name for name, dtype in df.schema.items() if not dtype.is_temporal()
+        ]
+    # list(set(df.columns) - set(temporal.keys()))
+    if not agg_mapping:
+        if func and isinstance(func, str):
+            agg_mapping = {func: series_names}
+        elif func and isinstance(func, list):
+            agg_mapping = {f: [series_names] for f in func}
+
+    expressions = []
+    for func, cols in agg_mapping.items():
+        for col in cols:
+            if col not in series_names or col == group_key:
+                continue
+            expr = getattr(nw.col(col), func)()
+            expr = expr.alias(f"{col}_{freq}_{func}")
+            expressions.append(expr)
+
+    result = df.group_by(group_key).agg(*expressions)
+    if isinstance(time_col, list):
+        # time_col = time_col[0]
+        result = result.rename({group_key: time_col[0]})
+    else:
+        # if group_key != time_col:
+        result = result.rename({group_key: time_col})
+
+    return nw.to_native(result)
 
 
 def resample_pandas(
