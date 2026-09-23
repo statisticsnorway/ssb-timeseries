@@ -111,8 +111,9 @@ def _(mo):
 def _():
     from ssb_timeseries import get_catalog
     from ssb_timeseries.dataset import Dataset
+    from ssb_timeseries.meta import Taxonomy
 
-    return Dataset, get_catalog
+    return Dataset, Taxonomy, get_catalog
 
 
 @app.cell(hide_code=True)
@@ -228,7 +229,7 @@ def _(Dataset, SeriesType, pl):
         long_renamed = long.with_columns(
             pl.concat_str([
                 pl.col('sex'), #.str.replace(r"^([F|M]{1})(.*)","$1"),
-                pl.col('age').str.replace(r"(.*)( year.*)","$1")]
+                pl.col('age').str.replace(r"(.*)( year.*)","$1").str.zfill(3)]
                 ,
                 separator="_",
             ).alias("name"),
@@ -237,14 +238,13 @@ def _(Dataset, SeriesType, pl):
         #print(long_renamed)
 
         wide = long_renamed.pivot(on='name', values='value')
-        #print(wide)
+        print(wide)
         return Dataset(
             name="Norwegian population by age and sex",
             data_type = SeriesType('NONE','AT'),
             data = wide,
             dataset_tags={'contents':'Persons'}, # better: 'statistical entity'? --> units?
             attributes=['sex','age'],
-            substitutions= [('Males', 'M'), ('Females', 'F')],
         )
 
     return (load_population,)
@@ -328,22 +328,6 @@ def _(mo):
     - støtter flere objekttyper: skalarer, matriser/vektorer, sett/serier som passer med [Numpy "broadcasting rules"](https://numpy.org/doc/stable/user/basics.broadcasting.html)
     - evaluert for serieverdiene (numeriske kolonner)
     - ingen magisk datomatching --> tillater diff som over
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(f"""
-
     """)
     return
 
@@ -584,6 +568,9 @@ def _(jul):
 def _(mo):
     mo.md(r"""
     ### Nixtla
+
+    - https://nixtlaverse.nixtla.io/statsforecast/docs/getting-started/installation.html
+    - https://github.com/Nixtla/statsforecast
     """)
     return
 
@@ -651,14 +638,81 @@ def _(load_population, population_file):
 
 @app.cell
 def _(pop):
-    Females = pop[{'sex':'Females'}]
-    Females
+    Females = pop[{'sex':'Females','age':'033'}]
+    Females.tags
     return
 
 
 @app.cell
-def _(pop):
-    pop.aggregate(["sex"], ['Males', 'Females'], ['sum'])
+def _(auto_arima, pop):
+    p_predicted=[]
+    for p in pop: #, "sum(0_03)", "sum(0_04)" ]:
+        pp = p.nixtla()
+        p_predicted.append( auto_arima(pp, 'Y', 1))
+    p_predicted[0]['AutoARIMA'].plot()
+    return (p_predicted,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Aggregering med metadata
+    ------------------------
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(Taxonomy):
+    sex = Taxonomy(data=[
+        {"code": "0", "name":"Both","parentCode": ""},
+        {"code": "Males", "name":"Males","parentCode": "0"},
+        {"code": "Females", "name":"Females","parentCode": "0"},
+    ] )
+    return (sex,)
+
+
+@app.cell
+def _(sex):
+    sex.print_tree()
+    return
+
+
+@app.cell(hide_code=True)
+def _(Taxonomy):
+    ag = [{"code": "0","name": "0-110", "parentCode": ""}]
+    for aa in range(10):
+        ag.append ({"code": f"{aa:02}","name": f"{aa:02}", "parentCode": "0"})
+    for aaa in range(107):
+        a=f"{aaa:03}"
+        ag.append({"code": a,"name": a, "parentCode": a[0:2]})
+    ages = Taxonomy(data=ag)
+    return (ages,)
+
+
+@app.cell
+def _(ages):
+    ages.print_tree()
+    return
+
+
+@app.cell
+def _(ages, pop, sex):
+    pop_aggr = pop.aggregate(attributes=["sex", "age"], taxonomies=[sex, ages],functions=['sum'])
+    return (pop_aggr,)
+
+
+@app.cell
+def _(pop_aggr):
+    pop_aggr.data
+    return
+
+
+@app.cell
+def _(auto_arima, p_predicted, pop_aggr):
+    for p in pop_aggr["sum(0_0)"]: #, "sum(0_03)", "sum(0_04)" ]:
+        pp = p.nixtla()
+        p_predicted.append( auto_arima(pp, 'Y', 1))
     return
 
 
