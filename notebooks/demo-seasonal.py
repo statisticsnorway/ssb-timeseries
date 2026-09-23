@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.24.0"
+__generated_with = "0.24.2"
 app = marimo.App(width="full")
 
 
@@ -10,7 +10,10 @@ def _():
     import testing
     from mdtools import catalog_item_list_to_df, hex
 
-    return catalog_item_list_to_df, hex, mo, testing
+    from pathlib import Path
+    import polars as pl
+
+    return Path, catalog_item_list_to_df, hex, mo, pl, testing
 
 
 @app.cell(hide_code=True)
@@ -70,16 +73,6 @@ def _(mo):
         og biblioteker som Numpy, Pandas, Polars, Pyarrow
       - Tilpasset DAPLA
     """)
-    return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
     return
 
 
@@ -203,6 +196,60 @@ def _(create_df):
     return
 
 
+@app.cell(hide_code=True)
+def _(Path):
+    population_file = Path("~") / "Downloads" / "10211_20260915-010226.csv"
+    return (population_file,)
+
+
+@app.cell(hide_code=True)
+def _(Dataset, SeriesType, pl):
+    def load_population(csv_file):
+
+        df = pl.read_csv(csv_file,  separator=";",  skip_rows=1 )
+
+        contents = df['contents'].unique().to_list()
+        years = df.columns[3:]
+        sexes = df['sex'].unique().to_list()
+        age = df['age'].unique().sort().to_list()
+
+        print("Contents:" , *contents)
+        print("Years:", *years[0:2], '...', *years[-2:])
+        print("Sexes:", *sexes)
+        print(f"{len(age)} age groups:", *age[0:5], '...', *age[-2:])
+
+        long = df.drop('contents').unpivot(
+            index=~pl.selectors.contains(years),
+            variable_name='year',
+            value_name ='value'
+        ).sort(by=['sex','age','year']) # sort makes the timeseries nature of the data clearer
+        #print(long)
+
+        long_renamed = long.with_columns(
+            pl.concat_str([
+                pl.col('sex'), #.str.replace(r"^([F|M]{1})(.*)","$1"),
+                pl.col('age').str.replace(r"(.*)( year.*)","$1")]
+                ,
+                separator="_",
+            ).alias("name"),
+            pl.col('year').str.strptime(pl.Date, '%Y').alias("valid_at"),
+            ).select(['name', 'valid_at','value']) #.drop('sex', 'age', 'year')
+        #print(long_renamed)
+
+        wide = long_renamed.pivot(on='name', values='value')
+        #print(wide)
+        return Dataset(
+            name="Norwegian population by age and sex",
+            data_type = SeriesType('NONE','AT'),
+            data = wide,
+            dataset_tags={'contents':'Persons'}, # better: 'statistical entity'? --> units?
+            attributes=['sex','age'],
+            substitutions= [('Males', 'M'), ('Females', 'F')],
+        )
+
+    return (load_population,)
+
+
 @app.cell
 def _(get_catalog):
     db = get_catalog()
@@ -258,7 +305,7 @@ def _(Dataset):
     feb = Dataset(name=n, as_of_tz="2025-02-01")
 
     change_from_feb_to_july = jul - feb
-    return change_from_feb_to_july, jul
+    return change_from_feb_to_july, feb, jul
 
 
 @app.cell
@@ -325,13 +372,6 @@ def _(mo):
 def _(jul):
     jul.pl
     return
-
-
-@app.cell
-def _():
-    import polars as pl
-
-    return (pl,)
 
 
 @app.cell
@@ -419,7 +459,7 @@ def _(set_name):
 
 @app.cell
 def _(Dataset):
-    xyz_monthly = Dataset("XYZ_c71b3793")
+    xyz_monthly = Dataset("XYZ_924cd754")
     xyz_monthly.plot()
     return (xyz_monthly,)
 
@@ -506,14 +546,119 @@ def _(mo):
 
 
 @app.cell
-def _(quarterly):
-    rolling_4q_avg = quarterly.moving_average(-2,-1)
+def _(xyz_d_bfill):
+    q = xyz_d_bfill.groupby('Q','mean')
+    rolling_4q_avg = q.moving_average(-2,1)
     return (rolling_4q_avg,)
 
 
 @app.cell
 def _(rolling_4q_avg):
     rolling_4q_avg.pd
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Tidsserieanalyse
+    ----------------
+    """)
+    return
+
+
+@app.cell
+def _(jul):
+    jul
+    return
+
+
+@app.cell
+def _(jul):
+    for j_series in jul:
+        print(j_series.pl)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Nixtla
+    """)
+    return
+
+
+@app.cell
+def _():
+    from statsforecast import StatsForecast
+    from statsforecast.models import AutoARIMA
+    from statsforecast.utils import AirPassengersDF
+
+    return AirPassengersDF, AutoARIMA, StatsForecast
+
+
+@app.cell
+def _(AirPassengersDF):
+    df = AirPassengersDF
+    df
+    return (df,)
+
+
+@app.cell
+def _(AutoARIMA, StatsForecast, df):
+    sf = StatsForecast(
+        models=[AutoARIMA(season_length=12)],
+        freq='ME',
+    )
+    sf.fit(df)
+    sf.predict(h=12, level=[95])
+    return
+
+
+@app.cell
+def _(AutoARIMA, StatsForecast):
+    def auto_arima(x, freq, season_length):
+        sf = StatsForecast(
+            models=[AutoARIMA(season_length=season_length)],
+            freq=freq,
+        )
+        sf.fit(x)
+        return sf.predict(h=12, level=[95])
+
+    return (auto_arima,)
+
+
+@app.cell
+def _(auto_arima, feb):
+    for f_series in feb:
+        ff = f_series.nixtla()
+        predicted = auto_arima(ff, 'D', 365)
+        print(predicted)
+    return (predicted,)
+
+
+@app.cell
+def _(predicted):
+    predicted.set_index('ds').plot()
+    return
+
+
+@app.cell
+def _(load_population, population_file):
+    pop = load_population(population_file)
+    return (pop,)
+
+
+@app.cell
+def _(pop):
+    Females = pop[{'sex':'Females'}]
+    Females
+    return
+
+
+@app.cell
+def _(pop):
+    pop.aggregate(["sex"], ['Males', 'Females'], ['sum'])
     return
 
 

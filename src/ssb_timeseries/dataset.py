@@ -24,6 +24,7 @@ from __future__ import annotations
 import re
 import warnings
 from collections.abc import Iterable
+from collections.abc import Iterator
 from collections.abc import Sequence
 from copy import deepcopy
 from datetime import datetime
@@ -71,6 +72,7 @@ from .dates import date_local
 from .dates import date_utc
 from .dates import utc_iso
 from .logging import logger
+from .series import Series
 from .types import DatasetTagDict
 from .types import F
 from .types import PathStr
@@ -1051,6 +1053,20 @@ class Dataset:
             ]
 
         self.data = nw_self.with_columns(expressions).to_native()
+
+    def __iter__(self) -> Iterator[Series]:
+        """Return a Series iterator for the Dataset."""
+        date_cols = self.datetime_columns
+        for series_name in self.series:
+            yield Series(
+                name=series_name,
+                data_type=self.data_type,
+                as_of_utc=self.as_of_utc
+                if self.data_type.versioning == Versioning.AS_OF
+                else None,
+                tags=self.tags["series"][series_name],
+                data=nw.from_native(self.data).select([*date_cols, series_name]),
+            )
 
     def __len__(self) -> int:
         """Returns the length of the dataset along the time axis, ie. the number of rows."""
