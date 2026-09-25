@@ -125,6 +125,62 @@ def test_dataset_groupby_auto(monthly_data, caplog):
     assert ~all(df == df_sum)
 
 
+def test_group_by_with_default_auto_warns_future_warning_and_raises_not_implemented_error():
+    x = Dataset(
+        name="test-group-by-auto-on-hold",
+        data_type=SeriesType.simple(),
+        data=create_df(
+            ["x", "y"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+    )
+
+    with pytest.warns(FutureWarning, match="unavailable"):
+        with pytest.raises(NotImplementedError, match="unavailable"):
+            x.group_by("q")
+
+    with pytest.warns(FutureWarning, match="unavailable"):
+        with pytest.raises(NotImplementedError, match="unavailable"):
+            x.group_by("q", "auto")
+
+
+def test_group_by_with_explicit_func_aggregates_and_emits_no_future_warning(recwarn):
+    x = Dataset(
+        name="test-group-by-explicit",
+        data_type=SeriesType.simple(),
+        data=create_df(
+            ["x", "y"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
+        ),
+    )
+
+    result = x.group_by("q", "sum")
+
+    assert result.data.shape[1] == 3
+    assert [w for w in recwarn if issubclass(w.category, FutureWarning)] == []
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="The proof-of-concept `auto` is on hold and currently broken: it calls the Polars "
+    "method select(regex=...) on a pandas frame, so it raises AttributeError.",
+)
+def test_groupby_with_proof_of_concept_auto_warns_that_it_is_on_hold_but_still_fails_on_polars_api():
+    x = Dataset(
+        name="test-groupby-auto-warns",
+        data_type=SeriesType.simple(),
+        data=create_df(
+            ["p_pris", "q_pris", "p_volum", "q_volum"],
+            start_date="2022-01-01",
+            end_date="2022-12-31",
+            freq="MS",
+        ),
+    )
+
+    with pytest.warns(FutureWarning, match="on hold"):
+        result = x.groupby("M", "auto")
+
+    assert result.data.shape[0] == 12
+
+
 @pytest.mark.parametrize("method", FILL_METHODS)
 @pytest.mark.parametrize(
     "calculation, freq, expected_shape",

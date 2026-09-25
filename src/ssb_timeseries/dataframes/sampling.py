@@ -123,6 +123,23 @@ def group_by(
 ) -> IntoFrameT:
     """Aggregate over time axes.
 
+    The grouping axis is derived from a temporal column, and the grouping labels depend on
+    `freq`, identically for the pandas, Polars, and PyArrow backends:
+
+    | `freq` | accepted aliases | group label |
+    |---|---|---|
+    | year | `y`, `yr`, `year` | `2024` |
+    | month | `m`, `mth`, `month` | `2024-01` |
+    | quarter | `q`, `quarter` | `2024-Q1` |
+    | ISO week | `w`, `wk`, `week` | `2024-01` |
+    | pre-formatted | `raw` | the value in the time column |
+
+    ISO weeks are labelled by ISO year and ISO week number, so the week containing 1 January is
+    labelled with the ISO year it belongs to. `func` is a function name or a list of function
+    names applied to every series, or `agg_mapping` maps function names to the series they apply
+    to. The experimental `auto` aggregation is not resolved here; see
+    :meth:`ssb_timeseries.dataset.Dataset.group_by`.
+
     `valid_from` as the temporal anchor for data with `Temporality.FROM_TO`, ie. periods represented by `valid_from` and `valid_to` pairs.
     When the entire interval fall inside the aggregation window, this behaviour will produce the corret result.
     If the strange numbers for intervals that are greater than the aggregation window.
@@ -173,11 +190,9 @@ def group_by(
             )
             df = df.with_columns(quarter_expr.alias(group_key))
         case "w" | "wk" | "week":
-            # week_expr = f"{time_expr.dt.year()}-W{nw.col(time_expr).dt.week():02}"
-            week_expr = time_expr.dt.to_string("%Y-%v")
-            # %v weeknum - ISO week
-            # %u weeknum - Sun first day of week
-            # %w weeknum - Mon first day of week
+            # %G is the ISO year and %V the ISO week, so that the week containing
+            # 1 January keeps one label across the year boundary.
+            week_expr = time_expr.dt.to_string("%G-%V")
             df = df.with_columns(week_expr.alias(group_key))
         case "raw":
             # If column already contains pre-formatted strings:

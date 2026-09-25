@@ -1154,7 +1154,19 @@ class Dataset:
         """Group dataset data by specified frequency and function.
 
         Returns a new Dataset.
+
+        `func="auto"` being the default effectively makes `func` a mandatory argument. It alignes the signature with the PoC phase Pandas implementation :meth:`groupby`, but is temprarily unavailable, pending configuration refactoring.
         """
+        if func == "auto":
+            warnings.warn(
+                "The experimental proof-of-concept `auto` aggregation is temporarily unavailable in `group_by`.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            raise NotImplementedError(
+                "`auto` aggregation is temporarily unavailable. Pass an explicit `func` or `agg_mapping`."
+            )
+
         new_name = f"({self.name}.groupby({freq},{func})"
         result = group_by(self.data, freq, func, *args, **kwargs)
 
@@ -1176,9 +1188,20 @@ class Dataset:
     ) -> Self:
         """Group dataset data by specified frequency and function.
 
-        Returns a new Dataset. Pandas implementation.
-        WARNING: This function is about to be deprecated.
+        Returns a new Dataset. Pandas implementation from early.
+        WARNING: This function is about to be deprecated. Use :meth:`group_by`.
+
+        `func="auto"`is **on hold** until a proper configuration-driven mapping can replace the experimental proof-of-concept heuristic that selects functions by hard-coded column-name pattern. It remains the default, which effectively makes func mandatory.
         """
+        if func == "auto":
+            warnings.warn(
+                "The experimental proof-of-concept `auto` aggregation is on hold and will be "
+                "replaced by a mapping from the global configuration; see "
+                "notes/2026-09-25-group-by-auto-design.md.",
+                FutureWarning,
+                stacklevel=2,
+            )
+
         datetime_columns = list(
             set(self.nw.columns) & {"valid_at", "valid_to", "valid_from"}
         )
