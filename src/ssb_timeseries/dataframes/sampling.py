@@ -86,29 +86,6 @@ def _grouping_time_column(
     )
 
 
-def group_by_pl(
-    df: IntoFrameT,
-    *,
-    series_names: str | list[str] = "",
-    tz: TimeZone = DEFAULT_TZ,
-    **kwargs,
-) -> IntoFrameT:
-    """Aggregate over time axes."""
-    df = datelike_convert_timezone(df, tz)
-    temporal = temporal_column_schema(df)
-    nw_df = eager(df).sort()  # type: ignore[arg-type]
-    p_df = datelike_convert_naive(nw_df.to_polars())
-    result = p_df.group_by_dynamic(
-        temporal.keys(),
-        every=kwargs.get("every", "1y"),
-        period=kwargs.get("period", "1y"),
-        closed=kwargs.get("closed", "left"),
-    ).agg(pl.col(series_names).sum())
-    naive = nw.from_native(result.reset_index())
-    tz = str({v.time_zone for v in temporal.values()}.unique)  # type: ignore[attr-defined]
-    return datelike_convert_timezone(naive, tz)  # ... to_native() # of nw_df!
-
-
 def group_by(
     df_raw: IntoFrameT,
     freq: str,
