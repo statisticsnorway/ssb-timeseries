@@ -268,6 +268,7 @@ class FileSystem:
                 self.fullpath,
                 e,
             )
+            raise
         logger.info(
             "DATASET.write.success %s: writing data to file\n\t%s\nended.",
             self.set_name,

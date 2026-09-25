@@ -4,20 +4,22 @@ Tags and technical properties are controlled through the Dataset.
 Series should generally only be initialized through the Dataset. The typical use case is `Dataset.__iter__`.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import TYPE_CHECKING
 
 import narwhals as nw
 
+from ..dataframes import eager
 from ..dataframes.date_cols import temporal_columns
 from ..types import SeriesType
 
 if TYPE_CHECKING:
-    import pandas as pd
-    import polars as pl
-    import pyarrow as pa
+    import pandas
+    import polars
+    import pyarrow
     from narwhals.typing import Frame
-    from narwhals.typing import IntoFrame
 
 
 class Series:
@@ -28,7 +30,7 @@ class Series:
         name: str,
         data_type: SeriesType,
         tags: dict,
-        data: IntoFrame,
+        data: Frame,
         as_of_utc: datetime | None = None,
     ) -> None:
         """Create a new Series object."""
@@ -36,7 +38,7 @@ class Series:
         self.data_type = data_type
         self.as_of_utc = as_of_utc
         self.tags = tags
-        self.data = data
+        self.data = nw.from_native(data)
 
     @property
     def dataset(self) -> str:
@@ -54,26 +56,26 @@ class Series:
         return nw.from_native(self.data)
 
     @property
-    def pa(self) -> pa.Table:
+    def pa(self) -> pyarrow.Table:
         """Returns Series as a (new) Arrow table."""
-        return nw.from_native(self.data).to_arrow()
+        return eager(self.data).to_arrow()
 
     @property
-    def pd(self) -> pd.DataFrame:
+    def pd(self) -> pandas.DataFrame:
         """Returns Series as a (new) Pandas dataframe."""
-        return nw.from_native(self.data).to_pandas()
+        return eager(self.data).to_pandas()
 
     @property
-    def pl(self) -> pl.DataFrame:
+    def pl(self) -> polars.DataFrame:
         """Returns Series as a (new) Polars dataframe."""
-        return nw.from_native(self.data).to_polars()
+        return eager(self.data).to_polars()
 
-    def nixtla(self) -> pd.DataFrame:
+    def nixtla(self) -> pandas.DataFrame:
         """Returns Series in a Pandas DataFrame with Nixtla long format."""
-        date_cols = temporal_columns(self.data)
+        df = eager(self.data)
+        date_cols = temporal_columns(df)
         return (
-            nw.from_native(self.data)
-            .select([date_cols[0], self.name])
+            df.select([date_cols[0], self.name])
             .rename(
                 {
                     date_cols[0]: "ds",

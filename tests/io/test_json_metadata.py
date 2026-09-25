@@ -2,6 +2,7 @@
 
 import logging
 
+import pytest
 from pytest import LogCaptureFixture
 
 from ssb_timeseries.dataset import Dataset
@@ -125,6 +126,49 @@ def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
     assert datasets_found
     assert isinstance(datasets_found, list)
     assert len(datasets_found) == 2
+
+
+@pytest.mark.parametrize("repository", [None, ""], ids=["missing", "empty"])
+def test_write_rejects_tags_without_repository(
+    conftest,
+    repository,
+) -> None:
+    """Metadata must name the repository it is written to."""
+    set_name = conftest.function_name_hex()
+    json_handler = json_metadata.JsonMetaIO(repository=conftest.repo)
+    tags = {"name": set_name}
+    if repository is not None:
+        tags["repository"] = repository
+
+    with pytest.raises(ValueError, match="must contain a non-empty 'repository' tag"):
+        json_handler.write(set_name=set_name, tags=tags)
+
+    assert not fs.exists(json_handler.fullpath(set_name))
+
+
+def test_write_propagates_filesystem_errors(
+    conftest,
+    monkeypatch,
+    caplog: LogCaptureFixture,
+) -> None:
+    """Filesystem failures must be raised instead of reported as successful writes."""
+    caplog.set_level(logging.DEBUG)
+    set_name = conftest.function_name_hex()
+    json_handler = json_metadata.JsonMetaIO(repository=conftest.repo)
+
+    def fail_write(*_args, **_kwargs) -> None:
+        raise OSError("forced metadata write failure")
+
+    monkeypatch.setattr(json_metadata.fs, "write_json", fail_write)
+
+    with pytest.raises(OSError, match="forced metadata write failure"):
+        json_handler.write(
+            set_name=set_name,
+            tags={"name": set_name, "repository": conftest.repo["name"]},
+        )
+
+    assert "JsonMetaIO.write.error" in caplog.text
+    assert "JsonMetaIO.write.success" not in caplog.text
 
 
 def test_search_for_nonexisting_dataset_returns_none(

@@ -132,7 +132,7 @@ def infer_datatype(df: IntoFrame, **kwargs) -> SeriesType:
     )
     temporality = _coalesce(kwargs.get("temporality"), t_from_columns)
 
-    return SeriesType(versioning, temporality)
+    return SeriesType(versioning=versioning, temporality=temporality)
 
 
 def is_df_like(obj: Any) -> bool:

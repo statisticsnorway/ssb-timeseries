@@ -101,6 +101,22 @@ def test_search_for_dataset_by_setname_contains_with_one_match_returns_list_with
     assert datasets_found[0]["object_tags"] == x.tags
 
 
+def test_metaio_write_uses_explicit_tags(conftest) -> None:
+    """Explicit metadata tags should be written without requiring a Dataset."""
+    set_name = conftest.function_name_hex()
+    explicit_tags = {
+        "name": set_name,
+        "repository": conftest.repo["name"],
+        "custom": "explicit-value",
+        "series": {},
+    }
+    meta_io = io.MetaIO(repository=conftest.repo["name"])
+
+    meta_io.write(set_name=set_name, tags=explicit_tags)
+
+    assert meta_io.read(set_name=set_name) == explicit_tags
+
+
 def test_search_for_nonexisting_dataset_returns_none(
     conftest,
     caplog: LogCaptureFixture,

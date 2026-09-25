@@ -247,6 +247,40 @@ def test_write_new_dataset_creates_file_with_correct_schema(
     )
 
 
+def test_parquet_schema_includes_series_without_individual_tags() -> None:
+    """Series names must remain in the schema when their tag dictionaries are empty."""
+    tags = {
+        "name": "untagged-series",
+        "versioning": "NONE",
+        "temporality": "AT",
+        "series": {"a": {}, "b": {}},
+    }
+
+    schema, _ = _parquet_schema(SeriesType.simple(), tags, [])
+
+    assert schema.names == ["as_of", "valid_at", "a", "b"]
+
+
+def test_write_preserves_all_series(
+    one_new_set_for_each_unversioned_type: Dataset,
+) -> None:
+    """A Hive write and read round trip must retain every series column."""
+    dataset = one_new_set_for_each_unversioned_type
+    io_handler = io.HiveFileSystem(
+        repository=dataset.repository,
+        set_name=dataset.name,
+        set_type=dataset.data_type,
+        as_of_utc=dataset.as_of_utc,
+    )
+
+    io_handler.write(data=dataset.data, tags=dataset.tags)
+    written = io_handler.read()
+
+    expected_columns = set(dataset.series) | set(dataset.data_type.date_columns)
+    assert set(written.column_names) == expected_columns
+    assert len(written) == len(dataset.data)
+
+
 def test_simple_write_with_none_data_raises_type_error(
     one_new_set_for_each_data_type: Dataset,
     caplog: LogCaptureFixture,

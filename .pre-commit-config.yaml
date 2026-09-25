@@ -24,7 +24,7 @@ repos:
   - repo: local
     hooks:
       - id: pytest-check
-        name: pytest-check
+        name: pytest
         entry: poetry run pytest --xdoctest-style=google
         language: system
         types: [python]

@@ -159,6 +159,10 @@ class JsonMetaIO:
             tags: The dictionary of metadata to write.
             set_name: The name of the dataset.
         """
+        if not tags.get("repository"):
+            raise ValueError(
+                f"Metadata tags for dataset '{set_name}' must contain a non-empty 'repository' tag."
+            )
         try:
             logger.info(
                 "JsonMetaIO.write.start %s: writing metadata to file\n\t%s\nstarted.",
@@ -174,11 +178,12 @@ class JsonMetaIO:
             )
         except Exception as e:
             logger.exception(
-                "JsonMetaIO.write.error %s: Writing metadata for dataset %s t file %s.",
-                e,
+                "JsonMetaIO.write.error: Writing metadata for dataset %s to file %s returned exception: %s.",
                 set_name,
                 self.fullpath(set_name),
+                e,
             )
+            raise
 
     @property
     def exists(self, set_name: str = "") -> bool:

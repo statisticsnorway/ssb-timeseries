@@ -336,6 +336,7 @@ class Catalog(_CatalogProtocol):
                 object_type=str(object_type),
                 equals=equals,
                 contains=contains,
+                pattern=pattern,
                 tags=tags,
             )
 

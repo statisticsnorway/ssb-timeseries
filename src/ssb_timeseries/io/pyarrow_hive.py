@@ -218,19 +218,16 @@ def _parquet_schema(
     ]
     date_col_fields.sort(key=lambda x: x.name)
 
-    if not series_meta:
-        num_col_fields = [
-            pa.field(
-                series_key,
-                PA_NUMERIC,
-                nullable=True,
-                metadata=tags_to_json(series_tags),
-            )
-            for series_key, series_tags in series_meta.items()
-        ]
-        num_col_fields.sort(key=lambda x: x.name)
-    else:
-        num_col_fields = []
+    num_col_fields = [
+        pa.field(
+            series_key,
+            PA_NUMERIC,
+            nullable=True,
+            metadata=tags_to_json(series_tags),
+        )
+        for series_key, series_tags in series_meta.items()
+    ]
+    num_col_fields.sort(key=lambda x: x.name)
 
     schema = pa.schema(
         date_col_fields + num_col_fields,

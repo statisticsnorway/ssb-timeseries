@@ -184,6 +184,33 @@ def test_read_non_existent_dataset_returns_empty_frame(
     assert read_data.shape[0] == 0
 
 
+def test_write_propagates_filesystem_errors(
+    one_new_set_for_each_data_type: Dataset,
+    monkeypatch,
+    caplog: LogCaptureFixture,
+) -> None:
+    """Filesystem failures must be raised instead of reported as successful writes."""
+    caplog.set_level(logging.DEBUG)
+    dataset = one_new_set_for_each_data_type
+    io_handler = io.FileSystem(
+        repository=dataset.repository,
+        set_name=dataset.name,
+        set_type=dataset.data_type,
+        as_of_utc=dataset.as_of_utc,
+    )
+
+    def fail_write(*_args, **_kwargs) -> None:
+        raise OSError("forced write failure")
+
+    monkeypatch.setattr(io.fs, "write_parquet", fail_write)
+
+    with pytest.raises(OSError, match="forced write failure"):
+        io_handler.write(data=dataset.data, tags=dataset.tags)
+
+    assert "DATASET.write.error" in caplog.text
+    assert "DATASET.write.success" not in caplog.text
+
+
 def test_simple_write_with_none_data_raises_type_error(
     one_new_set_for_each_data_type: Dataset,
     caplog: LogCaptureFixture,

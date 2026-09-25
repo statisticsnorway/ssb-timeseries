@@ -59,6 +59,33 @@ PANDAS_TO_POLARS_FREQ = {
 }
 
 
+def _grouping_time_column(
+    temporal: nw.Schema,
+    time_col: str = "",
+) -> str:
+    """Select the temporal column to use as the grouping axis."""
+    if time_col:
+        return time_col
+
+    if "valid_at" in temporal:
+        return "valid_at"
+
+    if "valid_from" in temporal:
+        # valid_from as the temporal anchor
+        # interval not split distributed across aggregation periods.
+        # --> correct when interval < aggr.window, otherwise not
+        # --> TODO?
+        return "valid_from"
+
+    if len(temporal) == 1:
+        return next(iter(temporal))
+
+    raise ValueError(
+        "Could not determine the grouping time column. "
+        "Please specify time_col explicitly."
+    )
+
+
 def group_by_pl(
     df: IntoFrameT,
     *,
@@ -94,24 +121,39 @@ def group_by(
     tz: TimeZone = DEFAULT_TZ,
     **kwargs,
 ) -> IntoFrameT:
-    """Aggregate over time axes."""
-    df = nw.from_native(df_raw)
-    if not time_col:
-        temporal = temporal_column_schema(df)
-        if len(temporal.keys()) > 1:
-            time_col = temporal.keys()
-        else:
-            time_col = next(iter(temporal.keys()))
+    """Aggregate over time axes.
 
-    if agg_mapping is None and not func:
+    `valid_from` as the temporal anchor for data with `Temporality.FROM_TO`, ie. periods represented by `valid_from` and `valid_to` pairs.
+    When the entire interval fall inside the aggregation window, this behaviour will produce the corret result.
+    If the strange numbers for intervals that are greater than the aggregation window.
+    The interval is *not* split or otherwise distributed across aggregation periods.
+    (In such cases, the use of `group_by` is most often wrong and `resample` should be used instead.)
+    """
+    df = nw.from_native(df_raw)  # type: ignore[type-var]
+
+    if not series_names:
+        series_names = [
+            name for name, dtype in df.schema.items() if not dtype.is_temporal()
+        ]
+    # list(set(df.columns) - set(temporal.keys()))
+    if not agg_mapping and func:
+        if isinstance(func, str):
+            agg_mapping = {func: series_names}
+        elif isinstance(func, list):
+            agg_mapping = {f: series_names for f in func}
+
+    if not agg_mapping:
         raise ValueError("Either agg_mapping or func_name must be specified.")
+
+    temporal = temporal_column_schema(df)
+    time_col = _grouping_time_column(temporal, time_col)
 
     # Define a temporary name for our grouping key
     group_key = f"{time_col}_{freq}"
 
     time_expr = nw.col(time_col)
     if tz is not None:
-        time_expr = time_expr.dt.convert_time_zone(tz)
+        time_expr = time_expr.dt.convert_time_zone(str(tz))
 
     match freq.lower():
         case "y" | "yr" | "year":
@@ -121,13 +163,11 @@ def group_by(
             month_expr = time_expr.dt.to_string("%Y-%m")
             df = df.with_columns(month_expr.alias(group_key))
         case "q" | "quarter":
-            # not available: ... nw.col(time_expr).dt.quarter()
-            # --> math derivation: (month - 1) // 3 + 1
+            # --> derive as: (month - 1) // 3 + 1
             y_expr = time_expr.dt.to_string("%Y")
             m_expr = time_expr.dt.month()
             q_expr = ((m_expr - 1) // 3) + 1
-            # quarter_expr = f"{time_expr.dt.year()}-Q{((month_expr - 1) // 3) + 1}"
-            # quarter_expr = time_expr.dt.to_string("%Y-%Q-qq").str.replace("qq", q_expr)
+            # because  nw.col(time_expr).dt.quarter()` is not available
             quarter_expr = nw.concat_str(
                 [y_expr, q_expr.cast(nw.String)], separator="-Q"
             )
@@ -146,24 +186,13 @@ def group_by(
         case _:
             raise ValueError(f"Unsupported frequency type: {freq}")
 
-    if not series_names:
-        series_names = [
-            name for name, dtype in df.schema.items() if not dtype.is_temporal()
-        ]
-    # list(set(df.columns) - set(temporal.keys()))
-    if not agg_mapping:
-        if func and isinstance(func, str):
-            agg_mapping = {func: series_names}
-        elif func and isinstance(func, list):
-            agg_mapping = {f: [series_names] for f in func}
-
     expressions = []
-    for func, cols in agg_mapping.items():
+    for agg_func, cols in agg_mapping.items():
         for col in cols:
             if col not in series_names or col == group_key:
                 continue
-            expr = getattr(nw.col(col), func)()
-            expr = expr.alias(f"{col}_{freq}_{func}")
+            expr = getattr(nw.col(col), agg_func)()
+            expr = expr.alias(f"{col}_{freq}_{agg_func}")
             expressions.append(expr)
 
     result = df.group_by(group_key).agg(*expressions)
@@ -174,7 +203,7 @@ def group_by(
         # if group_key != time_col:
         result = result.rename({group_key: time_col})
 
-    return nw.to_native(result)
+    return result.to_native()
 
 
 def resample_pandas(
@@ -187,6 +216,7 @@ def resample_pandas(
     """Alter frequency of dataset data using Pandas syntax and conventions."""
     df_in_default_tz = datelike_to_default_tz(df)
     temporal = temporal_column_schema(df_in_default_tz)
+    grouping_column = _grouping_time_column(temporal, kwargs.pop("time_col", ""))
 
     timezones = {v.time_zone for v in temporal.values()}  # type: ignore[attr-defined]
     if len(timezones) == 1:
@@ -200,7 +230,7 @@ def resample_pandas(
     pd_df = eager(naive).to_pandas()  # type: ignore[arg-type]
 
     # TODO: have a closer look at dates returned for last period when upsampling
-    resampler = pd_df.set_index(list(temporal.keys())).resample(freq)
+    resampler = pd_df.set_index(grouping_column).resample(freq)
     if isinstance(func, str) and func in SIMPLE_AGGS | FILL_METHODS:
         out = getattr(resampler, func)()
     else:
@@ -226,6 +256,7 @@ def resample_polars(
     """
     df = datelike_to_default_tz(df)
     temporal = temporal_column_schema(df)
+    time_col = _grouping_time_column(temporal, kwargs.pop("time_col", ""))
 
     timezones = {v.time_zone for v in temporal.values()}  # type: ignore[attr-defined]
     if len(timezones) == 1:
@@ -237,7 +268,6 @@ def resample_polars(
 
     pl_df = eager(datelike_convert_naive(df)).to_polars()  # type: ignore[arg-type]
 
-    time_col = next(iter(temporal.keys()))
     pl_df = pl_df.sort(time_col)
     other_cols = pl.all().exclude(time_col)
 
