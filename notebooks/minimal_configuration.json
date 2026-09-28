@@ -2,7 +2,7 @@
     "configuration_file": "/home/bernhard/.config/ssb_timeseries/timeseries_config.json",
     "io_handlers": {
         "hive-partitioned-parquet": {
-            "handler": "ssb_timeseries.io.pyarrow_hive.FileSystem",
+            "handler": "ssb_timeseries.io.pyarrow_hive.HiveFileSystem",
             "options": {}
         },
         "json": {
@@ -14,7 +14,7 @@
             "options": {}
         },
         "snapshots": {
-            "handler": "ssb_timeseries.io.snapshots.FileSystem",
+            "handler": "ssb_timeseries.io.snapshot.FileSystem",
             "options": {}
         }
     },

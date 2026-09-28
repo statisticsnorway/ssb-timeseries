@@ -1167,7 +1167,7 @@ class Dataset:
                 "`auto` aggregation is temporarily unavailable. Pass an explicit `func` or `agg_mapping`."
             )
 
-        new_name = f"({self.name}.groupby({freq},{func})"
+        new_name = f"({self.name}.groupby({freq},{func}))"
         result = group_by(self.data, freq, func, *args, **kwargs)
 
         # TODO: tag maintenance --> frequency
@@ -1191,13 +1191,13 @@ class Dataset:
         Returns a new Dataset. Pandas implementation from early.
         WARNING: This function is about to be deprecated. Use :meth:`group_by`.
 
-        `func="auto"`is **on hold** until a proper configuration-driven mapping can replace the experimental proof-of-concept heuristic that selects functions by hard-coded column-name pattern. It remains the default, which effectively makes func mandatory.
+        `func="auto"` is **on hold** until a proper configuration-driven mapping can replace the experimental proof-of-concept heuristic that selects functions by hard-coded column-name pattern. It remains the default, which effectively makes func mandatory.
         """
         if func == "auto":
             warnings.warn(
                 "The experimental proof-of-concept `auto` aggregation is on hold and will be "
-                "replaced by a mapping from the global configuration; see "
-                "notes/2026-09-25-group-by-auto-design.md.",
+                "replaced by a mapping from the global configuration. Pass an explicit `func` "
+                "or `agg_mapping` instead.",
                 FutureWarning,
                 stacklevel=2,
             )
@@ -1248,7 +1248,7 @@ class Dataset:
                 logger.debug(f"groupby\n{out}.")
                 logger.debug(f"DATASET {self.name}: groupby\n{out}.")
 
-        new_name = f"({self.name}.groupby({freq},{func})"
+        new_name = f"({self.name}.groupby({freq},{func}))"
 
         return self.__class__(
             name=new_name,
@@ -1282,7 +1282,7 @@ class Dataset:
         else:
             raise ValueError(f"Dataset.resample() received invalid {freq=}.")
 
-        new_name = f"new set:[{self.name}.resampled({freq}, {func}]"
+        new_name = f"({self.name}.resampled({freq}, {func}))"
         return self.__class__(
             name=new_name,
             data_type=self.data_type,

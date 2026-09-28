@@ -32,7 +32,7 @@ Request features on the [Issue Tracker].
 
 ## How to set up your development environment
 
-You need Python 3.11+ (3.14 recommended) and the following tools:
+You need Python 3.11+ (except 3.14.1) and the following tools:
 
 - [Poetry]
 - [Nox]

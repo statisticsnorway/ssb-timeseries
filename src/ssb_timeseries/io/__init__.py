@@ -101,7 +101,7 @@ def _io_handler(**kwargs) -> protocols.DataReadWrite | protocols.MetadataReadWri
         case _:
             raise ValueError("Unhandlked handler type.")
     handler = _handler_class(handler_config["handler"])
-    handler_options = handler_config.get("options", {})
+    handler_options = dict(handler_config.get("options", {}))
     if kwargs:
         handler_options.update(kwargs)
         logger.debug("_IO_HANDLER() ... kwargs: %s", kwargs)

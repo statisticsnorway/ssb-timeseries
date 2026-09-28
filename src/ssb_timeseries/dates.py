@@ -90,7 +90,7 @@ def date_cet(some_date: datetime | str, **kwargs) -> datetime:
 
     Note that this is NOT the same as Europe/Oslo.
     Europe/Oslo shifts between CET and CEST.
-    For most cases, one should use `date_eur_no` or `date_tz(..., <TZ>.
+    For most cases, one should use `date_eur_no` or `date_tz(..., <TZ>)`.
 
     The output can be rounded to the precision specified by kwarg 'rounding'.
     """
