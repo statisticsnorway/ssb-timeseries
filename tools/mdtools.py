@@ -1,5 +1,6 @@
 import inspect
 import textwrap
+import uuid
 from collections.abc import Callable
 from typing import Any, TypeVar
 from tabulate import tabulate
@@ -8,6 +9,10 @@ F = TypeVar("F", bound=Callable[..., Any])
 _tbl_format = 'simple'
 _float_format=".2f"
 
+def hex(prefix:str='',/, n:int = 8):
+    if prefix:
+        prefix = prefix+"_"
+    return f"{prefix}{uuid.uuid4().hex[:n]}"
 
 def prompt(cmd, str=''):
     """print a prompt with command before output str"""
@@ -70,6 +75,18 @@ def catalog_item_list_to_df(cat_item_list):
                 return f"{{{len(val)} series tags}}"
         return val
 
-    pd.set_option('display.max_rows', 12)
-    df = pd.DataFrame(cat_item_list) #.truncate(before=5,after=5)
-    return df.style.format(dict_placeholder, subset=["object_tags"]).hide(axis='index')
+    if cat_item_list:
+        #pd.set_option('display.max_rows', 12)
+        df = pd.DataFrame(cat_item_list) #.truncate(before=5,after=5)
+        return df.style.format(dict_placeholder, subset=["object_tags"]).hide(axis='index').hide(subset=['parent','children'],axis='columns').set_properties(**{
+            'min-width': '90px',
+            'max-width': '300px',
+            'overflow': 'hidden',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap'
+        })
+
+        #.set_properties(subset=[col], **{'width': pixel_width})
+    else:
+        print("Empty!")
+        return

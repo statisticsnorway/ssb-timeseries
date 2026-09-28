@@ -133,7 +133,7 @@ BUILTIN_IO_HANDLERS = {
         "options": {},
     },
     "snapshots": {
-        "handler": "ssb_timeseries.io.snapshots.FileSystem",
+        "handler": "ssb_timeseries.io.snapshot.FileSystem",
         "options": {},
     },
 }

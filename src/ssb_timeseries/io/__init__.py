@@ -208,15 +208,15 @@ class MetaIO:
 
     def write(self, set_name: str = "", tags: TagDict | None = None) -> None:
         """Write metadata for a given dataset."""
-        if not tags:
+        if tags is None:
+            if self.ds is None:
+                raise ValueError(
+                    "MetaIO.write requires tags when no Dataset is provided."
+                )
             tags = self.ds.tags
-        else:
-            raise ValueError(
-                "MetaIO.write requires tags to be provided, eiher through dataset at init, or passed as 'tags' parameter."
-            )
         self.dh.write(
             set_name=set_name,
-            tags=self.ds.tags,
+            tags=tags,
         )
 
 

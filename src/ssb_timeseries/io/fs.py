@@ -255,36 +255,101 @@ def find(
     contains: str = "",
     pattern: str = "",
     search_sub_dirs: bool = True,
-    full_path: bool = False,
     replace_root: bool = False,
+    recursive: bool = False,
 ) -> list[str]:
-    """Find files and subdirectories with names matching pattern. Should work for both local and GCS filesystems."""
-    if contains:
-        pattern = f"*{pattern}*"
-    elif equals:
+    """Find files and subdirectories under a local or GCS path.
+
+    At most one of `equals`, `contains` and `pattern` may be given; they are
+    alternatives, not independent filters. With none of them, the name criterion
+    is `*`, so everything at the searched depth matches.
+
+    The searched depth is decided by `recursive` and `search_sub_dirs`, which
+    build these search patterns against `search_path`:
+
+    - neither: `search_path/pattern`, so `search_path` itself.
+    - `search_sub_dirs`, the default: `search_path/*/pattern`, one level below.
+    - `recursive`: `search_path/**/pattern`, every depth below, including
+      `search_path` itself.
+
+    Files and subdirectories both match, and the result is sorted.
+
+    Args:
+        search_path: Root to search, a local path or a `gs://<bucket>/...` URL.
+        equals: Name that must match exactly.
+        contains: Substring the name must include, matched as `*contains*`.
+        pattern: Glob pattern for the name, for example `*.json`.
+        search_sub_dirs: Search the immediate subdirectories of `search_path`
+            instead of `search_path` itself.
+        replace_root: Rewrite `search_path` at the start of each returned path as
+            the literal `root`, for example `root/sub1/c.json`. The rewritten
+            paths always use `/`, on every platform.
+        recursive: Search every depth below `search_path`, overriding
+            `search_sub_dirs`.
+
+    Returns:
+        Sorted list of full paths of the matches. Equally named entries in
+        different subdirectories stay distinct, because paths are never reduced
+        to their final component. On GCS the paths carry no `gs://<bucket>`
+        prefix.
+
+    Raises:
+        ValueError: If more than one of `equals`, `contains` and `pattern` is given.
+    """
+    given = [
+        name
+        for name, value in (
+            ("equals", equals),
+            ("contains", contains),
+            ("pattern", pattern),
+        )
+        if value
+    ]
+    if len(given) > 1:
+        msg = f"find() accepts only one of equals, contains, pattern, but got {given}."
+        raise ValueError(msg)
+
+    if equals:
         pattern = equals
+    elif contains:
+        pattern = f"*{contains}*"
     elif not pattern:
         pattern = "*"
 
-    if search_sub_dirs:
-        search_str = path(search_path, "*", pattern)
+    # Local paths must be joined with the native separator. `glob` returns a
+    # pattern containing no wildcard verbatim, so a `/` here would reach the
+    # caller as a mixed-separator string on Windows. GCS URLs keep `/`, which is
+    # also what preserves the `gs://` scheme.
+    gcs = is_gcs(search_path)
+    sep = "/" if gcs else os.sep
+    root = str(search_path).rstrip("/" + os.sep)
+    if recursive:
+        search_str = sep.join((root, "**", pattern))
+    elif search_sub_dirs:
+        search_str = sep.join((root, "*", pattern))
     else:
-        search_str = path(search_path, pattern)
+        search_str = sep.join((root, pattern))
 
-    if is_gcs(path):
-        fs = GCSFileSystem()  # pragma: no cover
-        found = fs.glob(search_str)  # pragma: no cover
+    if gcs:
+        filesystem = GCSFileSystem()
+        # `glob` is required, not `find`: `AbstractFileSystem.find` does not glob,
+        # it walks the literal path, so a pattern would return nothing. `glob` also
+        # expands `**` and includes directories, which the local branch does too.
+        found = sorted(filesystem.glob(search_str))
+        # `glob` returns paths without the `gs://<bucket>` prefix, so that stripped
+        # form is what `replace_root` has to rewrite.
+        match_root = filesystem._strip_protocol(root)
     else:
-        found = glob.glob(search_str)
+        found = sorted(glob.glob(search_str, recursive=recursive))
+        match_root = root
 
     if replace_root:
-        # may be necessary if not returning full path? -> TODO: add tests
-        found = [f.replace(path, "root").split(os.path.sep) for f in found]
-
-    if full_path:
-        return found
-    else:
-        return [f[-1] for f in found]
+        # `lstrip` the native separator as well, and always emit `/`: a rewritten
+        # path is a logical path, not one to hand back to the filesystem.
+        found = [
+            f"root/{f.removeprefix(match_root).lstrip('/' + os.sep)}" for f in found
+        ]
+    return found
 
 
 def read_text(path: PathStr, file_format: str = "") -> dict:

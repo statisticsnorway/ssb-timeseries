@@ -24,6 +24,7 @@ from __future__ import annotations
 import re
 import warnings
 from collections.abc import Iterable
+from collections.abc import Iterator
 from collections.abc import Sequence
 from copy import deepcopy
 from datetime import datetime
@@ -64,12 +65,14 @@ from .dataframes import is_empty
 from .dataframes import rename_columns
 from .dataframes.dates import period_index
 from .dataframes.dates import standardize_dates
+from .dataframes.sampling import group_by
 from .dataframes.sampling import resample_pandas
 from .dataframes.sampling import resample_polars
 from .dates import date_local
 from .dates import date_utc
 from .dates import utc_iso
 from .logging import logger
+from .series import Series
 from .types import DatasetTagDict
 from .types import F
 from .types import PathStr
@@ -1051,6 +1054,20 @@ class Dataset:
 
         self.data = nw_self.with_columns(expressions).to_native()
 
+    def __iter__(self) -> Iterator[Series]:
+        """Return a Series iterator for the Dataset."""
+        date_cols = self.datetime_columns
+        for series_name in self.series:
+            yield Series(
+                name=series_name,
+                data_type=self.data_type,
+                as_of_utc=self.as_of_utc
+                if self.data_type.versioning == Versioning.AS_OF
+                else None,
+                tags=self.tags["series"][series_name],
+                data=nw.from_native(self.data).select([*date_cols, series_name]),
+            )
+
     def __len__(self) -> int:
         """Returns the length of the dataset along the time axis, ie. the number of rows."""
         (length, _) = self.data.shape
@@ -1127,7 +1144,7 @@ class Dataset:
                 # exec(cmd)
                 locals_[col] = self.nw[col]
 
-    def groupby(
+    def group_by(
         self,
         freq: str,
         func: str = "auto",
@@ -1137,7 +1154,54 @@ class Dataset:
         """Group dataset data by specified frequency and function.
 
         Returns a new Dataset.
+
+        `func="auto"` being the default effectively makes `func` a mandatory argument. It alignes the signature with the PoC phase Pandas implementation :meth:`groupby`, but is temprarily unavailable, pending configuration refactoring.
         """
+        if func == "auto":
+            warnings.warn(
+                "The experimental proof-of-concept `auto` aggregation is temporarily unavailable in `group_by`.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            raise NotImplementedError(
+                "`auto` aggregation is temporarily unavailable. Pass an explicit `func` or `agg_mapping`."
+            )
+
+        new_name = f"({self.name}.groupby({freq},{func})"
+        result = group_by(self.data, freq, func, *args, **kwargs)
+
+        # TODO: tag maintenance --> frequency
+
+        return self.__class__(
+            name=new_name,
+            data_type=self.data_type,
+            as_of_tz=self.as_of_utc,
+            data=result,
+        )
+
+    def groupby(
+        self,
+        freq: str,
+        func: str = "auto",
+        *args: Any,
+        **kwargs: Any,
+    ) -> Self:
+        """Group dataset data by specified frequency and function.
+
+        Returns a new Dataset. Pandas implementation from early.
+        WARNING: This function is about to be deprecated. Use :meth:`group_by`.
+
+        `func="auto"`is **on hold** until a proper configuration-driven mapping can replace the experimental proof-of-concept heuristic that selects functions by hard-coded column-name pattern. It remains the default, which effectively makes func mandatory.
+        """
+        if func == "auto":
+            warnings.warn(
+                "The experimental proof-of-concept `auto` aggregation is on hold and will be "
+                "replaced by a mapping from the global configuration; see "
+                "notes/2026-09-25-group-by-auto-design.md.",
+                FutureWarning,
+                stacklevel=2,
+            )
+
         datetime_columns = list(
             set(self.nw.columns) & {"valid_at", "valid_to", "valid_from"}
         )
@@ -1934,28 +1998,15 @@ def search(
     as_of_tz: datetime = None,
     repository: str = "",
     require_unique: bool = False,
-    # ) -> list[old_io.SearchResult] | Dataset | None:
 ) -> list | Dataset | None:
     """Search for datasets by name matching pattern.
 
     Returns:
-         list[io.SearchResult] | Dataset | list[None]: The dataset for a single match, a list for no or multiple matches.
+         list[CatalogItem] | Dataset | list[None]: The dataset for a single match, a list for no or multiple matches.
 
     Raises:
         ValueError: If `require_unique = True` and a unique result is not found.
     """
-    # TODO: REFACTOR (using catalog?)
-    # from .io import simple as old_io
-    # found = old_io.find_datasets(
-    #    pattern=pattern,
-    #    repository=repository,
-    # )
-    # logger.debug(
-    #    "DATASET.search for '%s'\nin repositories\n%s\nreturned:\n%s",
-    #    pattern,
-    #    repository,
-    #    found,
-    # )
     from .catalog import get_catalog
 
     c = get_catalog()

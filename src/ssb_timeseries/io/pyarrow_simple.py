@@ -23,7 +23,6 @@ import os
 import re
 from datetime import datetime
 from typing import Any
-from typing import NamedTuple
 from typing import cast
 
 import narwhals as nw
@@ -41,7 +40,6 @@ from ..dataframes.dates import datelike_to_utc
 from ..dates import date_utc
 from ..dates import utc_iso_no_colon
 from ..logging import logger
-from ..types import PathStr
 from . import fs
 from .parquet_schema import parquet_schema
 
@@ -268,6 +266,7 @@ class FileSystem:
                 self.fullpath,
                 e,
             )
+            raise
         logger.info(
             "DATASET.write.success %s: writing data to file\n\t%s\nended.",
             self.set_name,
@@ -299,67 +298,3 @@ class FileSystem:
                 case _:
                     raise ValueError(f"pattern '{pattern}' not recognized.")
         return versions
-
-
-# ================================ SEARCH: =================================
-
-
-class SearchResult(NamedTuple):
-    """Represents a single item in a search result."""
-
-    name: str
-    type_directory: str
-
-
-def find_datasets(
-    pattern: str | PathStr = "",
-    exclude: str = "metadata",
-    repository: list[PathStr] | PathStr = "",
-) -> list[SearchResult]:
-    """Search for dataset directories in all configured repositories.
-
-    Args:
-        pattern: A glob pattern to match against directory names.
-        exclude: A substring to exclude from the search results.
-        repository: A specific repository path to search in. If empty,
-            searches all configured repositories.
-
-    Returns:
-        A list of SearchResult objects for the found datasets.
-    """
-    if pattern:
-        pattern = f"*{pattern}*"
-    else:
-        pattern = "*"
-
-    if repository:
-        search_directories = [repository]
-        repo_names = ["root"]
-        logger.debug("IO.find_dataset pattern %s in repo %s", pattern, repository)
-    else:
-        search_directories = [
-            v["directory"]["options"]["path"]
-            for k, v in active_config().repositories.items()
-        ]
-        repo_names = list(active_config().repositories.keys())
-
-    directories = []
-    for search_dir in search_directories:
-        directories.extend(fs.find(search_dir, pattern, full_path=True))
-
-    logger.debug("%s %s", pattern, directories)
-    if exclude:
-        dirs = [d for d in directories if exclude not in d]
-        logger.debug(
-            "DATASET.IO.find_datasets: exclude '%s' eliminated:\n%s",
-            exclude,
-            [d for d in dirs if exclude in d],
-        )
-    search_results = []
-    for search_dir, repo in zip(search_directories, repo_names, strict=False):
-        logger.debug("%s | %s", search_dir, repo)
-        search_results.extend(
-            [d.replace(search_dir, repo).split(os.path.sep) for d in dirs]
-        )
-    logger.debug("search results: %s", search_results)
-    return [SearchResult(f[2], f[1]) for f in search_results]
