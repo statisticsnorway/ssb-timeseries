@@ -282,7 +282,8 @@ def find(
         search_sub_dirs: Search the immediate subdirectories of `search_path`
             instead of `search_path` itself.
         replace_root: Rewrite `search_path` at the start of each returned path as
-            the literal `root`, for example `root/sub1/c.json`.
+            the literal `root`, for example `root/sub1/c.json`. The rewritten
+            paths always use `/`, on every platform.
         recursive: Search every depth below `search_path`, overriding
             `search_sub_dirs`.
 
@@ -315,16 +316,21 @@ def find(
     elif not pattern:
         pattern = "*"
 
-    # Joining with strings instead of `path()` keeps the double slash in `gs://` URLs.
-    root = str(search_path).rstrip("/")
+    # Local paths must be joined with the native separator. `glob` returns a
+    # pattern containing no wildcard verbatim, so a `/` here would reach the
+    # caller as a mixed-separator string on Windows. GCS URLs keep `/`, which is
+    # also what preserves the `gs://` scheme.
+    gcs = is_gcs(search_path)
+    sep = "/" if gcs else os.sep
+    root = str(search_path).rstrip("/" + os.sep)
     if recursive:
-        search_str = f"{root}/**/{pattern}"
+        search_str = sep.join((root, "**", pattern))
     elif search_sub_dirs:
-        search_str = f"{root}/*/{pattern}"
+        search_str = sep.join((root, "*", pattern))
     else:
-        search_str = f"{root}/{pattern}"
+        search_str = sep.join((root, pattern))
 
-    if is_gcs(search_path):
+    if gcs:
         filesystem = GCSFileSystem()
         # `glob` is required, not `find`: `AbstractFileSystem.find` does not glob,
         # it walks the literal path, so a pattern would return nothing. `glob` also
@@ -338,7 +344,11 @@ def find(
         match_root = root
 
     if replace_root:
-        found = [f"root/{f.removeprefix(match_root).lstrip('/')}" for f in found]
+        # `lstrip` the native separator as well, and always emit `/`: a rewritten
+        # path is a logical path, not one to hand back to the filesystem.
+        found = [
+            f"root/{f.removeprefix(match_root).lstrip('/' + os.sep)}" for f in found
+        ]
     return found
 
 

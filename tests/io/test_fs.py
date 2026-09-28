@@ -407,6 +407,22 @@ def test_find_no_longer_offers_a_full_path_option() -> None:
     assert "full_path" not in inspect.signature(fs.find).parameters
 
 
+def test_find_returns_paths_in_canonical_native_form(find_root) -> None:
+    r"""Assert results are canonical native paths, not mixed-separator strings.
+
+    `glob` returns a pattern containing no wildcard verbatim, so joining a local
+    root with `/` reaches Windows callers as `...\\repo/b.txt`. Reparsing each
+    result and comparing turns that into an assertion failure there; on POSIX the
+    two spellings coincide, so this guards the contract but cannot reproduce the
+    failure. The `equals` option is the one that exposes the bug, because every
+    other option goes through a wildcard, which `glob` normalises to the native
+    separator before returning. CI on Windows is what caught it.
+    """
+    found = fs.find(find_root, equals="b.txt", search_sub_dirs=False)
+    assert found == [str(find_root / "b.txt")]
+    assert [str(Path(path)) for path in found] == found
+
+
 def test_find_returns_full_paths_of_the_top_level_entries_only(
     find_root,
 ) -> None:
