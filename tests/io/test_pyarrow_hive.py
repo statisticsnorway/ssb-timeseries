@@ -215,7 +215,7 @@ def test_write_new_dataset_creates_file_with_correct_schema(
     # Write the dataset, which triggers file and schema creation
     io_handler.write(data=dataset.data, tags=dataset.tags)
 
-    written_files = fs.find(io_handler.directory, pattern="*.parquet", full_path=True)
+    written_files = fs.find(io_handler.directory, pattern="*.parquet")
     assert written_files, "No Parquet files found in the output directory."
     assert len(written_files) == 1
 

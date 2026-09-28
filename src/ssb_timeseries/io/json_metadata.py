@@ -10,6 +10,7 @@ This approach duplicates metadata that might also be stored in data files
 from __future__ import annotations
 
 import json
+import warnings
 from pathlib import Path
 from typing import Any
 from typing import NamedTuple
@@ -25,11 +26,33 @@ from .json_helpers import sanitize_for_json
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
 
 
-class SearchResult(NamedTuple):
-    """Represents a single item in a metadata search result."""
+class _SearchResult(NamedTuple):
+    """A single item in a metadata search result.
+
+    Deprecated. Superseded by `CatalogItem`; kept only so that importers of the
+    old name get a warning rather than an ImportError.
+    """
 
     name: str
     type_directory: str
+
+
+def __getattr__(name: str) -> Any:
+    """Warn on access to names that have been deprecated (PEP 562).
+
+    Module-level `__getattr__` only fires for names absent from the module
+    namespace, so deprecated names are defined privately and surfaced here.
+    """
+    if name == "SearchResult":
+        warnings.warn(
+            "json_metadata.SearchResult is deprecated and will be removed; "
+            "use ssb_timeseries.catalog.CatalogItem instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return _SearchResult
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)
 
 
 def _filename(set_name: str) -> str:
@@ -267,7 +290,6 @@ def find_metadata_files(
     found = fs.find(
         search_path=path,
         pattern=search_pattern,
-        full_path=True,
         search_sub_dirs=False,
     )
     logger.debug("find_metadata_files() in repo path\n%s.", found)

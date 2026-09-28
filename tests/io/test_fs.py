@@ -1,10 +1,14 @@
+import inspect
 import logging
+import os
 import uuid
 from pathlib import Path
+from types import SimpleNamespace
 
 import polars
 import pyarrow
 import pytest
+from fsspec.implementations.local import LocalFileSystem
 
 import ssb_timeseries as ts
 from ssb_timeseries.io import fs
@@ -27,9 +31,6 @@ def df():
         freq="MS",
     )
     yield simple_data
-
-
-import os
 
 
 @pytest.mark.skipif(not os.getenv("DAPLA_TEAM_CONTEXT"), reason="Not on Dapla")
@@ -322,3 +323,261 @@ def test_write_parquet_supports_arrow_table_input(
         schema=None,
     )
     assert fs.exists(temp_file)
+
+
+# ------------------------------------------------------------------
+# find
+# ------------------------------------------------------------------
+
+FIND_TREE_FILES = [
+    "a.json",
+    "b.txt",
+    "sub1/c.json",
+    "sub1/sub1_deep/d.json",
+    "sub2/e.json",
+]
+
+
+@pytest.fixture
+def find_root(tmp_path):
+    """A repository-like tree with entries at three depths.
+
+    find_root/a.json, find_root/b.txt
+    find_root/sub1/c.json, find_root/sub1/sub1_deep/d.json, find_root/sub2/e.json
+    """
+    root = tmp_path / "repo"
+    for relative in FIND_TREE_FILES:
+        target = root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("{}")
+    return root
+
+
+@pytest.fixture
+def gcs_bucket(tmp_path):
+    """A bucket holding the same tree as `find_root`, addressed as a gs:// URL.
+
+    Returns the bucket directory. Its children mirror `find_root`, so
+    `gs://<bucket.name>/repo` resolves to the same shape as `find_root`.
+    """
+    bucket = tmp_path / "bucket"
+    for relative in FIND_TREE_FILES:
+        target = bucket / "repo" / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("{}")
+    return bucket
+
+
+@pytest.fixture
+def fake_gcs(monkeypatch, gcs_bucket):
+    """A real fsspec filesystem standing in for GCSFileSystem.
+
+    Only `_strip_protocol` is overridden, so `glob` and `find` are the inherited
+    `AbstractFileSystem` implementations. That is the point: `find` does not glob,
+    so a change back to `find` fails here on behaviour instead of on a mock. Like
+    `gcsfs`, stripping the protocol keeps the bucket as a path segment, which is
+    what lets `glob` match its pattern against the names it gets back from `find`.
+    """
+    calls: list = []
+    bucket_dir = gcs_bucket
+    bucket_name = gcs_bucket.name
+
+    class LocalBucketFileSystem(LocalFileSystem):
+        protocol = "gcs"
+
+        def _strip_protocol(cls, path):
+            return super()._strip_protocol(
+                str(path).replace(f"gs://{bucket_name}", str(bucket_dir))
+            )
+
+        def glob(self, path, *args, **kwargs):
+            calls.append(("glob", str(path)))
+            return super().glob(path, *args, **kwargs)
+
+    monkeypatch.setattr(fs, "GCSFileSystem", LocalBucketFileSystem)
+    return SimpleNamespace(calls=calls)
+
+
+def test_find_no_longer_offers_a_full_path_option() -> None:
+    """Assert that the lossy `full_path=False` mode stays removed.
+
+    It reduced every match to its last path component, which silently merged
+    equally named entries in different subdirectories.
+    """
+    assert "full_path" not in inspect.signature(fs.find).parameters
+
+
+def test_find_returns_full_paths_of_the_top_level_entries_only(
+    find_root,
+) -> None:
+    found = fs.find(find_root, search_sub_dirs=False)
+    assert found == [
+        str(find_root / "a.json"),
+        str(find_root / "b.txt"),
+        str(find_root / "sub1"),
+        str(find_root / "sub2"),
+    ]
+
+
+def test_find_keeps_equally_named_entries_in_different_subdirectories_distinct(
+    tmp_path,
+) -> None:
+    """Assert that equally named entries in different subdirectories stay distinct.
+
+    The dropped `full_path=False` mode reduced every match to its last
+    component, so these two entries used to collapse into one name.
+    """
+    for sub in ("first", "second"):
+        (tmp_path / sub).mkdir()
+        (tmp_path / sub / "0.parquet").write_text("")
+
+    found = fs.find(tmp_path, pattern="0.parquet", search_sub_dirs=True)
+
+    assert found == [
+        str(tmp_path / "first" / "0.parquet"),
+        str(tmp_path / "second" / "0.parquet"),
+    ]
+    assert len(set(found)) == 2
+
+
+def test_find_with_contains_returns_only_the_paths_containing_the_substring(
+    find_root,
+) -> None:
+    found = fs.find(find_root, contains="c.json")
+    assert found == [str(find_root / "sub1" / "c.json")]
+
+
+def test_find_with_equals_returns_only_the_exactly_matching_path(find_root) -> None:
+    found = fs.find(find_root, equals="b.txt", search_sub_dirs=False)
+    assert found == [str(find_root / "b.txt")]
+
+
+def test_find_with_search_sub_dirs_true_reaches_one_level_below_but_not_further(
+    find_root,
+) -> None:
+    found = fs.find(find_root, pattern="*.json", search_sub_dirs=True)
+    assert found == [
+        str(find_root / "sub1" / "c.json"),
+        str(find_root / "sub2" / "e.json"),
+    ]
+
+
+def test_find_with_recursive_true_matches_files_at_every_depth(find_root) -> None:
+    found = fs.find(find_root, pattern="*.json", recursive=True)
+    assert found == [
+        str(find_root / "a.json"),
+        str(find_root / "sub1" / "c.json"),
+        str(find_root / "sub1" / "sub1_deep" / "d.json"),
+        str(find_root / "sub2" / "e.json"),
+    ]
+
+
+def test_find_with_recursive_false_matches_only_the_search_path_itself(
+    find_root,
+) -> None:
+    found = fs.find(find_root, pattern="d.json", recursive=False)
+    assert found == []
+
+
+def test_find_without_criteria_returns_every_entry_one_level_below_including_directories(
+    find_root,
+) -> None:
+    found = fs.find(find_root, search_sub_dirs=True)
+    assert found == [
+        str(find_root / "sub1" / "c.json"),
+        str(find_root / "sub1" / "sub1_deep"),
+        str(find_root / "sub2" / "e.json"),
+    ]
+
+
+def test_find_with_replace_root_returns_paths_prefixed_with_root_instead_of_raising(
+    find_root,
+) -> None:
+    found = fs.find(find_root, search_sub_dirs=False, replace_root=True)
+    assert found == [
+        "root/a.json",
+        "root/b.txt",
+        "root/sub1",
+        "root/sub2",
+    ]
+
+
+def test_find_with_replace_root_and_a_trailing_slash_keeps_the_separator(
+    find_root,
+) -> None:
+    found = fs.find(f"{find_root}/", search_sub_dirs=False, replace_root=True)
+    assert found == [
+        "root/a.json",
+        "root/b.txt",
+        "root/sub1",
+        "root/sub2",
+    ]
+
+
+def test_find_with_two_criteria_raises_value_error_naming_both_arguments(
+    find_root,
+) -> None:
+    with pytest.raises(ValueError, match="equals"):
+        fs.find(find_root, equals="a.json", contains="c")
+
+
+def test_find_returns_results_in_sorted_order(find_root) -> None:
+    found = fs.find(find_root, search_sub_dirs=False)
+    assert found == sorted(found)
+
+
+def test_find_with_a_gcs_search_path_queries_the_gcs_filesystem_with_an_unmangled_gs_url(
+    fake_gcs, gcs_bucket
+) -> None:
+    fs.find(f"gs://{gcs_bucket.name}/repo", pattern="*.json")
+    assert fake_gcs.calls == [("glob", f"gs://{gcs_bucket.name}/repo/*/*.json")]
+
+
+def test_find_with_a_gcs_search_path_returns_the_matching_entries_of_the_bucket(
+    fake_gcs, gcs_bucket
+) -> None:
+    found = fs.find(f"gs://{gcs_bucket.name}/repo", pattern="*.json")
+    assert [Path(p).name for p in found] == ["c.json", "e.json"]
+
+
+def test_find_with_a_gcs_search_path_and_recursive_true_matches_every_depth(
+    fake_gcs, gcs_bucket
+) -> None:
+    found = fs.find(f"gs://{gcs_bucket.name}/repo", pattern="*.json", recursive=True)
+    assert [Path(p).name for p in found] == ["a.json", "c.json", "d.json", "e.json"]
+
+
+def test_find_with_a_gcs_search_path_returns_subdirectories_like_the_local_branch(
+    fake_gcs, gcs_bucket
+) -> None:
+    found = fs.find(f"gs://{gcs_bucket.name}/repo", search_sub_dirs=True)
+    assert sorted(Path(p).name for p in found) == ["c.json", "e.json", "sub1_deep"]
+
+
+def test_find_with_a_gcs_search_path_and_replace_root_rewrites_the_stripped_root(
+    fake_gcs, gcs_bucket
+) -> None:
+    found = fs.find(
+        f"gs://{gcs_bucket.name}/repo",
+        search_sub_dirs=False,
+        replace_root=True,
+    )
+    assert [Path(p).as_posix() for p in found] == [
+        "root/a.json",
+        "root/b.txt",
+        "root/sub1",
+        "root/sub2",
+    ]
+
+
+def test_find_with_a_local_search_path_never_queries_the_gcs_filesystem(
+    find_root, fake_gcs
+) -> None:
+    found = fs.find(find_root, search_sub_dirs=False)
+    assert fake_gcs.calls == []
+    assert found == [
+        str(find_root / "a.json"),
+        str(find_root / "b.txt"),
+        str(find_root / "sub1"),
+        str(find_root / "sub2"),
+    ]

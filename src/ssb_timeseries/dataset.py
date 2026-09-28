@@ -1998,28 +1998,15 @@ def search(
     as_of_tz: datetime = None,
     repository: str = "",
     require_unique: bool = False,
-    # ) -> list[old_io.SearchResult] | Dataset | None:
 ) -> list | Dataset | None:
     """Search for datasets by name matching pattern.
 
     Returns:
-         list[io.SearchResult] | Dataset | list[None]: The dataset for a single match, a list for no or multiple matches.
+         list[CatalogItem] | Dataset | list[None]: The dataset for a single match, a list for no or multiple matches.
 
     Raises:
         ValueError: If `require_unique = True` and a unique result is not found.
     """
-    # TODO: REFACTOR (using catalog?)
-    # from .io import simple as old_io
-    # found = old_io.find_datasets(
-    #    pattern=pattern,
-    #    repository=repository,
-    # )
-    # logger.debug(
-    #    "DATASET.search for '%s'\nin repositories\n%s\nreturned:\n%s",
-    #    pattern,
-    #    repository,
-    #    found,
-    # )
     from .catalog import get_catalog
 
     c = get_catalog()
