@@ -253,10 +253,12 @@ def test_group_by_with_time_col_groups_by_the_requested_column_not_the_first_tem
 
 
 def test_group_by_with_unsupported_frequency_raises_value_error_naming_the_frequency():
+    frame = group_by_frame("pandas")
     with pytest.raises(ValueError, match="Unsupported frequency type: 2h"):
-        group_by(group_by_frame("pandas"), "2h", "sum")
+        group_by(frame, "2h", "sum")
 
 
 def test_group_by_without_func_and_without_agg_mapping_raises_value_error():
+    frame = group_by_frame("pandas")
     with pytest.raises(ValueError, match="Either agg_mapping or func_name"):
-        group_by(group_by_frame("pandas"), "m")
+        group_by(frame, "m")
