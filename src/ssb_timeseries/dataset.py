@@ -71,6 +71,7 @@ from .dataframes.sampling import resample_polars
 from .dates import date_local
 from .dates import date_utc
 from .dates import utc_iso
+from .io.dataset_ref import DatasetRef
 from .logging import logger
 from .series import Series
 from .types import DatasetTagDict
@@ -546,6 +547,22 @@ class Dataset:
     def series_tags(self) -> SeriesTagDict:
         """Get series tags."""
         return self.tags["series"]  # type: ignore
+
+    @property
+    def ref(self) -> DatasetRef:
+        """Get a read-only reference to this dataset, for passing to I/O operations.
+
+        The reference is built on each access rather than cached,
+        because `rename` and `save` both change what a handler needs to know.
+        """
+        return DatasetRef(
+            name=self.name,
+            data_type=self.data_type,
+            as_of_utc=self.as_of_utc,
+            process_stage=self.process_stage,
+            product=self.product,
+            sharing=dict(self.sharing),
+        )
 
     def default_tags(self) -> DatasetTagDict:
         """Return default tags for set and series."""
