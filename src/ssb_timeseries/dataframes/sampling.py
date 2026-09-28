@@ -129,12 +129,11 @@ def group_by(
         series_names = [
             name for name, dtype in df.schema.items() if not dtype.is_temporal()
         ]
-    # list(set(df.columns) - set(temporal.keys()))
     if not agg_mapping and func:
         if isinstance(func, str):
             agg_mapping = {func: series_names}
         elif isinstance(func, list):
-            agg_mapping = {f: series_names for f in func}
+            agg_mapping = dict.fromkeys(func, series_names)
 
     if not agg_mapping:
         raise ValueError("Either agg_mapping or func_name must be specified.")
@@ -189,10 +188,8 @@ def group_by(
 
     result = df.group_by(group_key).agg(*expressions)
     if isinstance(time_col, list):
-        # time_col = time_col[0]
         result = result.rename({group_key: time_col[0]})
     else:
-        # if group_key != time_col:
         result = result.rename({group_key: time_col})
 
     return result.to_native()
