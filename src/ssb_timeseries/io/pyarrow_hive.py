@@ -64,9 +64,24 @@ class HiveFileSystem:
         set_name: str,
         set_type: types.SeriesType,
         as_of_utc: datetime | None = None,
+        path: str = "",
         **kwargs: dict[str, Any],
     ) -> None:
-        """Initialize the filesystem handler for a given dataset."""
+        """Initialize the filesystem handler for a given dataset.
+
+        Args:
+            repository: The repository configuration dictionary, or the name of
+                a repository in the active configuration.
+            set_name: The name of the dataset to operate on.
+            set_type: The series type of the dataset to operate on.
+            as_of_utc: The 'as of' datetime, required when the series type has
+                versioning of type `Versioning.AS_OF`.
+            path: Root path of the repository, passed in from the repository
+                binding's `options` by the dispatcher.
+            **kwargs: Handler specific options. Unknown keys are accepted and
+                retained so that handlers can be extended without changing the
+                dispatcher.
+        """
         if isinstance(repository, dict):
             self.repository = repository
         else:
@@ -75,18 +90,22 @@ class HiveFileSystem:
 
         self.set_name = set_name
         self.data_type = set_type
+        self.options = kwargs
 
         if as_of_utc is None and set_type.versioning == types.Versioning.AS_OF:
             raise ValueError(
                 "An 'as of' datetime must be specified when the type has versioning of type Versioning.AS_OF."
             )
         self.as_of_utc = as_of_utc
+        self.path = str(path)
 
     @property
     def root(self) -> str:
         """Return the root path of the configured repository."""
-        ts_root = self.repository["directory"]["options"]["path"]
-        return str(ts_root)
+        if not self.path:
+            # TODO: remove once all construction sites pass `path` explicitly.
+            self.path = str(self.repository["directory"]["options"]["path"])
+        return self.path
 
     @property
     def directory(self) -> str:

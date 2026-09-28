@@ -119,12 +119,19 @@ class JsonMetaIO:
         self,
         repository: FileBasedRepository,
         set_name: str = "",
+        path: str = "",
+        **options: Any,
     ) -> None:
         """Initialize the handler for a given repository and dataset.
 
         Args:
             repository: The repository configuration dictionary.
             set_name: The name of the dataset to operate on.
+            path: Root path of the catalog, passed in from the repository
+                binding's `options` by the dispatcher.
+            **options: Handler specific options. Unknown keys are accepted and
+                retained so that handlers can be extended without changing the
+                dispatcher.
         """
         if isinstance(repository, dict | FileBasedRepository):
             self.repository = repository
@@ -133,11 +140,16 @@ class JsonMetaIO:
         logger.debug("JsonMetaIO uses repository %s", self.repository)
         self.repo_name = repository.get("name", "unnamed metadata repository")
         self.set_name = set_name
+        self.options = options
+        self.path = str(path)
 
     @property
     def dir(self) -> str:
         """Return the configured catalog directory path for the repository."""
-        return self.repository["catalog"]["options"]["path"]
+        if not self.path:
+            # TODO: remove once all construction sites pass `path` explicitly.
+            self.path = str(self.repository["catalog"]["options"]["path"])
+        return self.path
 
     def fullpath(self, set_name: str = "") -> str:
         """Return the full path to a dataset's metadata file."""

@@ -35,6 +35,8 @@ from datetime import datetime
 from datetime import timezone
 from functools import cache
 from typing import Any
+from typing import Literal
+from typing import cast
 
 from narwhals.typing import IntoFrame
 
@@ -52,6 +54,8 @@ from . import snapshot
 # mypy: disable-error-code="no-any-return,no-untyped-def,return-value,assignment,attr-defined"
 DEFAULT_PROCESS_STAGE = "Statistikk"  # TODO: control from config?
 
+HandlerType = Literal["data", "metadata", "archive"]
+
 
 def _all_repos() -> list:
     """Get a list of all repository names."""
@@ -61,7 +65,7 @@ def _all_repos() -> list:
 
 
 def _repo_config(
-    target: Any,  # str | dict[str, FileBasedRepository],
+    target: str | FileBasedRepository | dict,
 ) -> FileBasedRepository:
     """Get a repository configuration dictionary by name.
 
@@ -75,22 +79,43 @@ def _repo_config(
         repo.setdefault("name", target)
     elif isinstance(target, dict):
         repo = target
-        pass
     else:
         raise TypeError(
             f"Repository must be provided either by name (str) or as full dict; was {type(target)}:\n{target}"
         )
 
-    return repo
+    return cast(FileBasedRepository, repo)
 
 
-def _io_handler(**kwargs) -> protocols.DataReadWrite | protocols.MetadataReadWrite:
-    """Dynamically import and instantiate an IO handler.
+def _io_handler(
+    *,
+    handler_type: HandlerType,
+    repository: str | FileBasedRepository | dict,
+    set_name: str = "",
+    set_type: SeriesType | None = None,
+    as_of_utc: datetime | None = None,
+    **options: Any,
+) -> protocols.DataReadWrite | protocols.MetadataReadWrite:
+    """Dynamically import and instantiate an I/O handler.
 
     The handler is determined by the 'repository' and 'handler_type' arguments.
+
+    Dataset identity (`set_name`, `set_type`, `as_of_utc`) and handler
+    configuration (`options`) are kept apart, so that a configuration key can
+    never be mistaken for a dataset attribute.
+
+    Args:
+        handler_type: Which binding of the repository to instantiate, one of
+            'data', 'metadata' or 'archive'.
+        repository: The repository configuration dictionary, or the name of a
+            repository in the active configuration.
+        set_name: The name of the dataset to operate on.
+        set_type: The series type of the dataset to operate on.
+        as_of_utc: The 'as of' datetime, required when the series type has
+            versioning of type `Versioning.AS_OF`.
+        **options: Additional options passed through to the handler.
     """
-    repo_cfg = _repo_config(kwargs.pop("repository"))
-    handler_type = kwargs.pop("handler_type")
+    repo_cfg = _repo_config(repository)
     match handler_type.lower():
         case "data":
             handler_config = repo_cfg["directory"]
@@ -101,13 +126,18 @@ def _io_handler(**kwargs) -> protocols.DataReadWrite | protocols.MetadataReadWri
         case _:
             raise ValueError("Unhandlked handler type.")
     handler = _handler_class(handler_config["handler"])
-    handler_options = dict(handler_config.get("options", {}))
-    if kwargs:
-        handler_options.update(kwargs)
-        logger.debug("_IO_HANDLER() ... kwargs: %s", kwargs)
-        # set_name and type passed for DataIO is necessary because of incomplete IO handler refactoring --> TODO: complete
-    instance = handler(repository=repo_cfg, **kwargs)
-    return instance
+    # A fresh dict, so the active configuration is never mutated. Dataset
+    # identity is applied last, so a configuration key can never shadow it.
+    handler_kwargs: dict[str, Any] = dict(handler_config.get("options", {}))
+    handler_kwargs.update(options)
+    handler_kwargs.update(
+        set_name=set_name,
+        set_type=set_type,
+        as_of_utc=as_of_utc,
+    )
+    if options:
+        logger.debug("_IO_HANDLER() ... options: %s", options)
+    return handler(repository=repo_cfg, **handler_kwargs)
 
 
 def _handler_class(handler_name: str) -> type:

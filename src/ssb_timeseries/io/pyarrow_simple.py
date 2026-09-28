@@ -121,11 +121,28 @@ class FileSystem:
         as_of_utc: datetime | None = None,
         process_stage: str = "statistikk",
         sharing: dict | None = None,
+        path: str = "",
+        **options: Any,
     ) -> None:
         """Initialize the filesystem handler for a given dataset.
 
         This method calculates the necessary directory structure based on the
         dataset's type and name.
+
+        Args:
+            repository: The repository configuration dictionary, or the name of
+                a repository in the active configuration.
+            set_name: The name of the dataset to operate on.
+            set_type: The series type of the dataset to operate on.
+            as_of_utc: The 'as of' datetime, required when the series type has
+                versioning of type `Versioning.AS_OF`.
+            process_stage: The process stage the dataset belongs to.
+            sharing: Access control tags for the dataset.
+            path: Root path of the repository, passed in from the repository
+                binding's `options` by the dispatcher.
+            **options: Handler specific options. Unknown keys are accepted and
+                retained so that handlers can be extended without changing the
+                dispatcher.
         """
         if isinstance(repository, dict):
             self.repository = repository
@@ -138,6 +155,7 @@ class FileSystem:
 
         self.process_stage = process_stage
         self.sharing = sharing
+        self.options = options
 
         if as_of_utc is None and set_type.versioning == types.Versioning.AS_OF:
             raise ValueError(
@@ -145,12 +163,15 @@ class FileSystem:
             )
 
         self.as_of_utc: datetime = as_of_utc
+        self.path = str(path)
 
     @property
     def root(self) -> str:
         """Return the root path of the configured repository."""
-        ts_root = self.repository["directory"]["options"]["path"]
-        return str(ts_root)
+        if not self.path:
+            # TODO: remove once all construction sites pass `path` explicitly.
+            self.path = str(self.repository["directory"]["options"]["path"])
+        return self.path
 
     @property
     def filename(self) -> str:

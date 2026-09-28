@@ -104,3 +104,97 @@ def test_the_active_configuration_stays_serializable_after_using_a_data_handler(
     Config.active().save(tmp_path / "config_after_data_handler.json")
 
     assert (tmp_path / "config_after_data_handler.json").exists()
+
+
+def test_the_configured_path_reaches_the_data_handler_as_its_root(
+    conftest, tmp_path
+) -> None:
+    """A handler must read its root from `options`, not by digging into the repository."""
+    repository = deepcopy(Config.active().repositories["test_1"])
+    configured_path = str(tmp_path / "options-supplied-root")
+    repository["directory"]["options"]["path"] = configured_path
+
+    handler = io._io_handler(
+        handler_type="data",
+        repository=repository,
+        set_name="options-probe",
+        set_type=SeriesType.simple(),
+    )
+
+    assert handler.root == configured_path
+
+
+def test_the_configured_path_reaches_the_metadata_handler_as_its_directory(
+    conftest, tmp_path
+) -> None:
+    """The metadata handler must read its directory from `options` as well."""
+    repository = deepcopy(Config.active().repositories["test_1"])
+    configured_path = str(tmp_path / "options-supplied-catalog")
+    repository["catalog"]["options"]["path"] = configured_path
+
+    handler = io._io_handler(
+        handler_type="metadata",
+        repository=repository,
+        set_name="options-probe",
+    )
+
+    assert handler.dir == configured_path
+
+
+@pytest.mark.parametrize("handler_type", ["data", "metadata"])
+def test_a_handler_accepts_options_it_does_not_recognize(
+    conftest, handler_type: str
+) -> None:
+    """Handlers must tolerate unknown options rather than rejecting them.
+
+    The dispatcher cannot know what a given handler needs, so unknown keys are
+    retained on the instance for the handler to use on its own terms.
+    """
+    repository = deepcopy(Config.active().repositories["test_1"])
+    binding = "directory" if handler_type == "data" else "catalog"
+    repository[binding]["options"]["unrecognised_option"] = "some-value"
+    handler = io._io_handler(
+        handler_type=handler_type,
+        repository=repository,
+        set_name="options-probe",
+        **({"set_type": SeriesType.simple()} if handler_type == "data" else {}),
+    )
+
+    assert handler.options["unrecognised_option"] == "some-value"
+
+
+def test_the_dispatcher_separates_dataset_identity_from_handler_options(
+    conftest,
+) -> None:
+    """A configuration key must not be able to masquerade as a dataset attribute.
+
+    The handler needs to know which dataset it operates on, and the dispatcher
+    needs to hand over the repository's `options`, without the two being
+    interchangeable.
+    A configured `set_name` must be overridden by the dataset actually
+    requested, and must not end up in the handler's `options`.
+    """
+    repository = deepcopy(Config.active().repositories["test_1"])
+    repository["directory"]["options"]["set_name"] = "shadowing-the-dataset"
+
+    handler = io._io_handler(
+        handler_type="data",
+        repository=repository,
+        set_name="separation-probe",
+        set_type=SeriesType.simple(),
+    )
+
+    assert handler.set_name == "separation-probe"
+    assert "set_name" not in handler.options
+
+
+def test_the_dispatcher_rejects_an_unhandled_handler_type(
+    conftest,
+) -> None:
+    """An unknown handler type must fail loudly rather than fall through."""
+    with pytest.raises(ValueError, match="Unhandlked handler type"):
+        io._io_handler(
+            handler_type="not-a-handler-type",  # type: ignore[arg-type]
+            repository=deepcopy(Config.active().repositories["test_1"]),
+            set_name="unhandled-type-probe",
+        )
