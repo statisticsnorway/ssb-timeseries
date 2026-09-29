@@ -15,6 +15,8 @@ from ssb_timeseries.config import Config
 from ssb_timeseries.config.constants import BUILTIN_IO_HANDLERS
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import now_utc
+from ssb_timeseries.io.protocols import DataReadWrite
+from ssb_timeseries.io.protocols import MetadataReadWrite
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.types import SeriesType
 
@@ -143,6 +145,43 @@ def test_the_configured_path_reaches_the_data_handler_as_its_root(
     )
 
     assert handler.root == configured_path
+
+
+def test_a_configured_file_pattern_reaches_the_data_handler(
+    conftest,
+    one_new_set_for_each_data_type,
+) -> None:
+    """The file pattern is a property of the storage, so it comes from config.
+
+    The facade used to pass it on every call, which forced a filename concept
+    onto handlers that have no filenames.
+    """
+    dataset = one_new_set_for_each_data_type
+    repository = deepcopy(conftest.configuration.repositories["test_1"])
+
+    io._io_handler(handler_type="data", repository=repository).write(
+        dataset.ref, data=dataset.data, tags=dataset.tags
+    )
+
+    # Configured to match the written data file.
+    repository["directory"]["options"]["file_pattern"] = "*.parquet"
+    assert io._io_handler(handler_type="data", repository=repository).versions(
+        dataset.ref
+    )
+
+    # Configured to match nothing, which proves the option is read rather than
+    # ignored in favour of a hard-coded default.
+    repository["directory"]["options"]["file_pattern"] = "*.not-parquet"
+    assert (
+        io._io_handler(handler_type="data", repository=repository).versions(dataset.ref)
+        == []
+    )
+
+    # Absent, and defaulted by the handler to its own parquet convention.
+    del repository["directory"]["options"]["file_pattern"]
+    assert io._io_handler(handler_type="data", repository=repository).versions(
+        dataset.ref
+    )
 
 
 def test_the_configured_path_reaches_the_metadata_handler_as_its_directory(
@@ -289,14 +328,9 @@ def test_a_data_handler_serves_two_datasets_of_different_types(
     assert "x" not in unversioned_read.column_names
 
     # Each dataset must report only its own version marker, not the other's.
-    # A NONE dataset reports the literal "latest"; the pattern follows the
-    # series type, as the facade passes it.
-    assert handler.versions(
-        unversioned.ref, pattern=unversioned.data_type.versioning
-    ) == ["latest"]
-    assert handler.versions(versioned.ref, pattern=versioned.data_type.versioning) == [
-        versioned.as_of_utc
-    ]
+    # A NONE dataset reports the literal "latest".
+    assert handler.versions(unversioned.ref) == ["latest"]
+    assert handler.versions(versioned.ref) == [versioned.as_of_utc]
 
 
 def test_a_metadata_handler_serves_two_datasets(
@@ -320,3 +354,52 @@ def test_a_metadata_handler_serves_two_datasets(
     assert handler.read(second.name) == second.tags
     assert handler.exists(first.name)
     assert handler.exists(second.name)
+
+
+def test_the_facade_hands_a_data_handler_the_ref_and_nothing_else(
+    conftest,
+    monkeypatch,
+    one_new_set_for_each_data_type,
+) -> None:
+    """The shared contract must not carry storage specific arguments.
+
+    The facade used to pass `file_pattern` and `pattern` on every call, which
+    described a filename layout that only some handlers have. A handler backed
+    by a database or an HTTP API has no filenames, so the stub below takes only
+    a ref: if the facade grows any argument again, this raises TypeError.
+    """
+    recorded: list = []
+
+    class RefOnlyHandler:
+        def __init__(self, repository, **options) -> None:
+            self.repository = repository
+
+        def versions(self, dataset) -> list:
+            recorded.append(dataset)
+            return []
+
+    monkeypatch.setattr(io, "_handler_class", lambda handler_name: RefOnlyHandler)
+    ds = one_new_set_for_each_data_type
+
+    io.versions(ds)
+
+    assert recorded == [ds.ref]
+
+
+@pytest.mark.parametrize("handler_name", ["simple-parquet", "hive-partitioned-parquet"])
+def test_a_registered_data_handler_satisfies_the_data_protocol(
+    handler_name: str,
+) -> None:
+    """A handler the dispatcher may instantiate must satisfy the protocol.
+
+    The protocols are declared `runtime_checkable` but nothing ever checked
+    them, so a handler could be registered and satisfy nothing.
+    `snapshots` is excluded because the dispatcher cannot instantiate it yet;
+    see the snapshot step.
+    """
+    assert isinstance(io._handler_class(handler_name), DataReadWrite)
+
+
+def test_a_registered_metadata_handler_satisfies_the_metadata_protocol() -> None:
+    """A handler the dispatcher may instantiate must satisfy the protocol."""
+    assert isinstance(io._handler_class("json"), MetadataReadWrite)

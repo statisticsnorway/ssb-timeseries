@@ -17,6 +17,7 @@ from ssb_timeseries.io.dataset_ref import DatasetRef
 from ssb_timeseries.io.fs import file_count
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import Versioning
 
 # mypy: ignore-errors
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"
@@ -80,6 +81,50 @@ def test_versioning_as_of_creates_new_file(
         initial_count=files_before,
         timeout_seconds=20,
     ), f"File count did not increase for type {x.data_type}."
+
+
+def test_versions_needs_no_pattern_argument(
+    one_existing_set_for_each_data_type,
+) -> None:
+    """A direct call to versions() must not need a pattern argument.
+
+    The default used to be "as_of", which cannot match the file name of a
+    dataset of any other versioning, so calling this on a NONE dataset raised
+    AttributeError from a regex that did not match. The ref already carries
+    the versioning, so the handler reads it from there.
+    """
+    dataset: Dataset = one_existing_set_for_each_data_type
+    io_handler = io.FileSystem(
+        repository=dataset.repository,
+        path=data_path(dataset.repository),
+    )
+    io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
+
+    versions = io_handler.versions(dataset.ref)
+
+    if dataset.data_type.versioning == Versioning.NONE:
+        assert set(versions) == {"latest"}
+    else:
+        # Other tests share this dataset's directory, so it may hold versions
+        # beyond this one. This dataset's own version must be among them.
+        assert dataset.as_of_utc in versions
+
+
+def test_a_pattern_that_does_not_match_the_file_name_says_so(
+    one_existing_set_for_each_data_type,
+) -> None:
+    """A non-matching pattern must report the mismatch, not raise AttributeError."""
+    dataset: Dataset = one_existing_set_for_each_data_type
+    io_handler = io.FileSystem(
+        repository=dataset.repository,
+        path=data_path(dataset.repository),
+    )
+    io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
+    directory = Path(io_handler._directory(dataset.ref))
+    written = next(directory.glob("*.parquet"))
+
+    with pytest.raises(ValueError, match="does not match the file name"):
+        io._version_from_file_name(written.name, "not_a_versioning")
 
 
 def test_versioning_none_appends_to_existing_file(

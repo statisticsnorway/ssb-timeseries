@@ -79,15 +79,18 @@ class DataReadWrite(Protocol):
         """
         ...
 
-    def versions(
-        self, dataset: DatasetRef, *args: Any, **kwargs: Any
-    ) -> list[datetime | str]:
+    def versions(self, dataset: DatasetRef) -> list[datetime | str]:
         """Retrieve a list of available versions for a dataset.
+
+        A handler takes only the dataset ref, because the ref carries the
+        versioning, and the handler's configured options carry everything else
+        about its own storage.
+        Storage specific concerns such as a file name pattern are deliberately
+        absent, so that a handler backed by a database or an HTTP API is not
+        asked to interpret them.
 
         Args:
             dataset: The dataset to list versions for.
-            *args: Accepted and ignored, for call compatibility.
-            **kwargs: Handler specific options, such as a file name pattern.
 
         Returns:
             A sorted list of version identifiers (datetimes or strings).

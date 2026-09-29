@@ -428,19 +428,17 @@ def find(
 
 def versions(
     ds: Dataset,
-    **kwargs,
 ) -> list[datetime | str]:
     """Get a list of all available version markers for a dataset.
 
+    Only the dataset ref is passed to the handler.
+    The ref carries the versioning, and the handler's configured options carry
+    the rest of what it needs to know about its own storage.
+
     Args:
         ds: The Dataset object to inspect.
-        **kwargs: Additional arguments passed to the underlying IO handler.
     """
-    versions = DataIO(ds).dh.versions(
-        ds.ref,
-        file_pattern="*.parquet",
-        pattern=ds.data_type.versioning,
-    )
+    versions = DataIO(ds).dh.versions(ds.ref)
     return versions
 
 

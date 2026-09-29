@@ -56,15 +56,18 @@ PA_NUMERIC = "float64"
 
 
 def _version_from_file_name(
-    file_name: str, pattern: str | types.Versioning = "as_of", group: int = 2
+    file_name: str, pattern: str | types.Versioning, group: int = 2
 ) -> str:
-    """Extract a version marker from a filename using known patterns."""
+    """Extract a version marker from a filename using known patterns.
+
+    The `persisted` convention is not handled here.
+    It belongs to the snapshot handler, which is the only place this library
+    writes `_v<N>.parquet` files, and it keeps its own copy of this table.
+    """
     if isinstance(pattern, types.Versioning):
         pattern = str(pattern)
 
     match pattern.lower():
-        case "persisted":
-            regex = r"(_v)(\d+)(.parquet)"
         case "as_of":
             date_part = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{6}[+-][0-9]{4}"
             regex = f"(as_of_)({date_part})(-data.parquet)"
@@ -76,7 +79,12 @@ def _version_from_file_name(
         case _:
             regex = pattern
 
-    vs = re.search(regex, file_name).group(group)
+    found = re.search(regex, file_name)
+    if found is None:
+        raise ValueError(
+            f"pattern '{pattern}' does not match the file name '{file_name}'."
+        )
+    vs = found.group(group)
     logger.debug(
         "file: %s pattern:%s, regex%s \n--> version: %s ",
         file_name,
@@ -85,30 +93,6 @@ def _version_from_file_name(
         vs,
     )
     return vs
-
-
-def last_version_number_by_regex(directory: str, pattern: str = "*") -> str:
-    """Return the max version number from files in a directory matching a pattern."""
-    files = fs.ls(directory, pattern=pattern)
-    number_of_files = len(files)
-
-    vs = sorted([int(_version_from_file_name(fname, "persisted")) for fname in files])
-    if vs:
-        read_from_filenames = max(vs)
-        out = read_from_filenames
-    else:
-        read_from_filenames = 0
-        out = number_of_files
-
-    logger.debug(
-        "io/pyarrow_simple.last_version_number_by_regex() search in directory: \n\t%s\n\tfor '%s' found %s files, regex identified version %s --> vs %s.",
-        directory,
-        pattern,
-        f"{number_of_files!s}",
-        f"{read_from_filenames!s}",
-        f"{out!s}",
-    )
-    return out
 
 
 class FileSystem:
@@ -301,23 +285,31 @@ class FileSystem:
     def versions(
         self,
         dataset: DatasetRef,
-        file_pattern: str = "*",
-        pattern: str | types.Versioning = "as_of",
+        file_pattern: str | None = None,
     ) -> list[datetime | str]:
         """List all available version markers from a dataset's data directory.
 
+        The versioning comes from the dataset ref, so no pattern argument is
+        needed to know how this library names its versioned files.
+
         Args:
             dataset: The dataset to list versions for.
-            file_pattern: The file name pattern to search for.
-            pattern: The versioning pattern to extract from file names.
+            file_pattern: Glob selecting the files to inspect, which is a
+                property of this handler's storage rather than of the dataset.
+                The default, None, reads it from the repository `options` and
+                falls back to "*.parquet", the only suffix this handler writes.
         """
+        if file_pattern is None:
+            file_pattern = self.options.get("file_pattern", "*.parquet")
+
         files = fs.ls(self._directory(dataset), pattern=file_pattern)
         versions: list[str | datetime] = []
         if files:
             vs_strings = [
-                _version_from_file_name(str(fname), pattern, group=2) for fname in files
+                _version_from_file_name(str(fname), dataset.data_type.versioning)
+                for fname in files
             ]
-            match types.Versioning(pattern):
+            match dataset.data_type.versioning:
                 case types.Versioning.AS_OF:
                     versions = sorted([date_utc(as_of) for as_of in vs_strings])
                 case types.Versioning.NAMES:
@@ -325,5 +317,7 @@ class FileSystem:
                 case types.Versioning.NONE:
                     versions = vs_strings
                 case _:
-                    raise ValueError(f"pattern '{pattern}' not recognized.")
+                    raise ValueError(
+                        f"versioning '{dataset.data_type.versioning}' not recognized."
+                    )
         return versions

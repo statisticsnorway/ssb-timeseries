@@ -203,6 +203,10 @@ class HiveFileSystem:
     def versions(self, dataset: DatasetRef) -> list[datetime | str]:
         """List available versions by inspecting a dataset's subdirectories.
 
+        Hive keeps its data in partition directories rather than in versioned
+        file names, so there is no file name pattern to configure and no
+        filename convention to parse. The versioning comes from the ref.
+
         Args:
             dataset: The dataset to list versions for.
         """
