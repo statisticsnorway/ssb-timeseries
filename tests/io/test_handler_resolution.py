@@ -5,6 +5,7 @@ The handler classes are also exercised directly by `test_pyarrow_simple.py` and
 for as long as the registry and the modules agreed by accident.
 """
 
+import uuid
 from copy import deepcopy
 
 import pytest
@@ -12,6 +13,10 @@ import pytest
 from ssb_timeseries import io
 from ssb_timeseries.config import Config
 from ssb_timeseries.config.constants import BUILTIN_IO_HANDLERS
+from ssb_timeseries.dataset import Dataset
+from ssb_timeseries.dates import now_utc
+from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.types import SeriesType
 
 # mypy: disable-error-code="no-untyped-def,no-untyped-call,arg-type,attr-defined,assignment"
 
@@ -96,6 +101,32 @@ def test_the_active_configuration_stays_serializable_after_using_a_data_handler(
     Config.active().save(tmp_path / "config_after_data_handler.json")
 
     assert (tmp_path / "config_after_data_handler.json").exists()
+
+
+def test_the_active_configuration_survives_a_full_save_cycle_through_the_facade(
+    conftest,
+    one_new_set_for_each_data_type,
+    tmp_path,
+) -> None:
+    """The existing tests only build a handler directly.
+
+    A full cycle through the facade builds handlers, reads the configuration,
+    and writes data and metadata, which is where a handler was injecting
+    `as_of_utc` into the active configuration. The configuration must come back
+    out unchanged, and must still serialise.
+    """
+    untouched = deepcopy(Config.active().repositories["test_1"])
+    ds = one_new_set_for_each_data_type
+
+    io.save(ds)
+    io.read_metadata(ds.repository, set_name=ds.name)
+    io.read_data(ds.repository, set_name=ds.name, as_of_tz=ds.as_of_utc)
+    io.versions(ds)
+    io.find(ds.repository, series="x")
+
+    assert Config.active().repositories["test_1"] == untouched
+    Config.active().save(tmp_path / "config_after_full_cycle.json")
+    assert (tmp_path / "config_after_full_cycle.json").exists()
 
 
 def test_the_configured_path_reaches_the_data_handler_as_its_root(
@@ -187,3 +218,105 @@ def test_the_dispatcher_rejects_an_unhandled_handler_type(
             handler_type="not-a-handler-type",  # type: ignore[arg-type]
             repository=deepcopy(Config.active().repositories["test_1"]),
         )
+
+
+@pytest.fixture
+def two_datasets_of_different_types(conftest):
+    """Build two datasets that differ in both series type and content.
+
+    The fixture `one_new_set_for_each_data_type` is cached per test, so a second
+    call would hand back the same object. These are built directly instead.
+    """
+    versioned = Dataset(
+        name=f"crosstalk_versioned_{uuid.uuid4().hex}",
+        data_type=SeriesType("as_of", "at"),
+        as_of_tz=now_utc(),
+        data=create_df(
+            ["x"],
+            start_date="2022-01-01",
+            end_date="2022-04-01",
+            freq="MS",
+            temporality="AT",
+        ),
+    )
+    unversioned = Dataset(
+        name=f"crosstalk_unversioned_{uuid.uuid4().hex}",
+        data_type=SeriesType("none", "at"),
+        data=create_df(
+            ["y"],
+            start_date="2021-01-01",
+            end_date="2021-03-01",
+            freq="MS",
+            temporality="AT",
+        ),
+    )
+    assert versioned.name != unversioned.name
+    return versioned, unversioned
+
+
+def test_a_data_handler_serves_two_datasets_of_different_types(
+    conftest,
+    two_datasets_of_different_types,
+) -> None:
+    """One handler instance must serve any number of datasets, with no cross-talk.
+
+    This is the property the handler redesign exists to provide, and nothing
+    asserted it until now. The two datasets deliberately differ in series type,
+    because a handler that carried the type between operations would look for
+    the second dataset's file under the first dataset's layout.
+    """
+    versioned, unversioned = two_datasets_of_different_types
+    repository = conftest.configuration.repositories["test_1"]
+
+    handler = io._io_handler(handler_type="data", repository=repository)
+
+    handler.write(versioned.ref, data=versioned.data, tags=versioned.tags)
+    handler.write(unversioned.ref, data=unversioned.data, tags=unversioned.tags)
+
+    assert handler.exists(versioned.ref)
+    assert handler.exists(unversioned.ref)
+
+    # Each read must return its own dataset, not the one written last.
+    # The two carry different series, so the columns prove which file was read.
+    versioned_read = handler.read(versioned.ref)
+    unversioned_read = handler.read(unversioned.ref)
+
+    assert versioned_read.num_rows == versioned.data.shape[0]
+    assert unversioned_read.num_rows == unversioned.data.shape[0]
+    assert "x" in versioned_read.column_names
+    assert "y" not in versioned_read.column_names
+    assert "y" in unversioned_read.column_names
+    assert "x" not in unversioned_read.column_names
+
+    # Each dataset must report only its own version marker, not the other's.
+    # A NONE dataset reports the literal "latest"; the pattern follows the
+    # series type, as the facade passes it.
+    assert handler.versions(
+        unversioned.ref, pattern=unversioned.data_type.versioning
+    ) == ["latest"]
+    assert handler.versions(versioned.ref, pattern=versioned.data_type.versioning) == [
+        versioned.as_of_utc
+    ]
+
+
+def test_a_metadata_handler_serves_two_datasets(
+    conftest,
+    two_datasets_of_different_types,
+) -> None:
+    """One metadata handler instance must serve any number of datasets.
+
+    The metadata layer holds no dataset identity, so the tags written for one
+    dataset must not leak into the file of another.
+    """
+    first, second = two_datasets_of_different_types
+    repository = conftest.configuration.repositories["test_1"]
+
+    handler = io._io_handler(handler_type="metadata", repository=repository)
+
+    handler.write(name=first.name, tags=first.tags)
+    handler.write(name=second.name, tags=second.tags)
+
+    assert handler.read(first.name) == first.tags
+    assert handler.read(second.name) == second.tags
+    assert handler.exists(first.name)
+    assert handler.exists(second.name)
