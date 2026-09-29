@@ -217,16 +217,12 @@ class MetaIO:
     ) -> None:
         """Initialize the metadata IO handler.
 
-        The handler can be bound to a Dataset instance or a repository name.
+        The handler can be bound to a Dataset instance or to a repository name.
         """
-        # dirty: either for Dataset or for repo --> target is repo only
         if isinstance(ds, Dataset):
             self.ds = ds
             self.repository = ds.repository
         elif repository:
-            if isinstance(repository, dict):
-                raise TypeError("WTF repo should be dict!")
-
             self.ds = None
             self.repository = repository
         else:
@@ -249,14 +245,24 @@ class MetaIO:
         kwargs.setdefault("series", False)
         return self.dh.search(**kwargs)
 
-    def read(self, set_name: str = "") -> dict:
+    def read(self, name: str = "") -> dict:
         """Read metadata for a given dataset."""
-        if not set_name:
-            set_name = self.ds.name
-        return self.dh.read(set_name=set_name)
+        if not name:
+            if self.ds is None:
+                raise ValueError(
+                    "MetaIO.read requires a name when no Dataset is given."
+                )
+            name = self.ds.name
+        return self.dh.read(name)
 
-    def write(self, set_name: str = "", tags: TagDict | None = None) -> None:
+    def write(self, name: str = "", tags: TagDict | None = None) -> None:
         """Write metadata for a given dataset."""
+        if not name:
+            if self.ds is None:
+                raise ValueError(
+                    "MetaIO.write requires a name when no Dataset is given."
+                )
+            name = self.ds.name
         if tags is None:
             if self.ds is None:
                 raise ValueError(
@@ -264,7 +270,7 @@ class MetaIO:
                 )
             tags = self.ds.tags
         self.dh.write(
-            set_name=set_name,
+            name=name,
             tags=tags,
         )
 
@@ -277,7 +283,7 @@ def save(ds: Dataset) -> None:
     """
     utc_data = datelike_to_utc(ds.data)
     DataIO(ds).write(data=utc_data, tags=ds.tags)
-    MetaIO(ds).dh.write(set_name=ds.name, tags=ds.tags)
+    MetaIO(ds).dh.write(name=ds.name, tags=ds.tags)
 
 
 def search(
@@ -323,7 +329,7 @@ def read_metadata(
     """
     meta_io = _io_handler(handler_type="metadata", repository=repository)
     if meta_io:
-        return meta_io.read(set_name=set_name)
+        return meta_io.read(set_name)
     else:
         return {}
 
@@ -394,14 +400,9 @@ def find(
 
     result = []
     for repo in repositories:
-        meta_io = _io_handler(
-            handler_type="metadata",
-            repository=repo,
-            set_name=set_name,
-        )
-        if meta_io.exists:
-            tags = meta_io.read(set_name=set_name)
-            result.append(dict(tags))
+        meta_io = _io_handler(handler_type="metadata", repository=repo)
+        if meta_io.exists(set_name):
+            result.append(dict(meta_io.read(set_name)))
 
     match (len(result), require_one, require_unique):
         case (0, False, _):

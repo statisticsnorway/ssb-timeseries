@@ -150,21 +150,27 @@ def test_a_handler_accepts_options_it_does_not_recognize(
     assert handler.options["unrecognised_option"] == "some-value"
 
 
+@pytest.mark.parametrize("handler_type", ["data", "metadata"])
 def test_a_handler_cannot_take_its_dataset_identity_from_configuration(
     conftest,
+    handler_type: str,
 ) -> None:
     """A configuration key must not be able to masquerade as a dataset attribute.
 
     A handler is configured from the repository alone, so it has no dataset
     identity of its own to override.
-    Which dataset an operation concerns comes from the `DatasetRef` that the
-    caller passes to that operation.
+    Which dataset an operation concerns is named in that operation, whether by
+    the `DatasetRef` a data handler takes or by the `name` a metadata handler
+    takes, since the metadata layer cannot know a series type.
     """
-    repository = deepcopy(Config.active().repositories["test_1"])
-    repository["directory"]["options"]["set_name"] = "shadowing-the-dataset"
+    repository = deepcopy(conftest.configuration.repositories["test_1"])
+    if handler_type == "data":
+        repository["directory"]["options"]["set_name"] = "shadowing-the-dataset"
+    else:
+        repository["catalog"]["options"]["set_name"] = "shadowing-the-dataset"
 
     handler = io._io_handler(
-        handler_type="data",
+        handler_type=handler_type,
         repository=repository,
     )
 

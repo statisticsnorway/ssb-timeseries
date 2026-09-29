@@ -118,15 +118,17 @@ class JsonMetaIO:
     def __init__(
         self,
         repository: FileBasedRepository,
-        set_name: str = "",
         path: str = "",
         **options: Any,
     ) -> None:
-        """Initialize the handler for a given repository and dataset.
+        """Initialize the handler for a given repository.
+
+        The handler holds configuration only.
+        The dataset an operation concerns is named in that operation, so one
+        instance can serve any number of datasets.
 
         Args:
             repository: The repository configuration dictionary.
-            set_name: The name of the dataset to operate on.
             path: Root path of the catalog, passed in from the repository
                 binding's `options` by the dispatcher.
             **options: Handler specific options. Unknown keys are accepted and
@@ -139,7 +141,6 @@ class JsonMetaIO:
             raise TypeError("Repository must be a dict.")
         logger.debug("JsonMetaIO uses repository %s", self.repository)
         self.repo_name = repository.get("name", "unnamed metadata repository")
-        self.set_name = set_name
         self.options = options
         self.path = str(path)
 
@@ -148,31 +149,27 @@ class JsonMetaIO:
         """Return the configured catalog directory path for the repository."""
         return self.path
 
-    def fullpath(self, set_name: str = "") -> str:
+    def fullpath(self, name: str) -> str:
         """Return the full path to a dataset's metadata file."""
-        if not set_name:
-            set_name = self.set_name
+        return str(Path(self.dir) / _filename(name))
 
-        return str(Path(self.dir) / _filename(set_name))
-
-    def read(self, **kwargs) -> dict:
+    def read(self, name: str) -> dict:
         """Read and return the metadata for a given dataset.
 
         Args:
-            **kwargs: May include 'set_name' to override the instance's default.
+            name: The name of the dataset to read.
         """
-        set_name = kwargs.get("set_name", self.set_name)
-        path = self.fullpath(set_name)
-        meta: dict = {"name": set_name}
+        path = self.fullpath(name)
+        meta: dict = {"name": name}
         logger.info(
             "JsonMetaIO.read.start %s: reading metadata from file %s\n",
-            set_name,
+            name,
             path,
         )
         if fs.exists(path):
             logger.info(
                 "JsonMetaIO.read.success %s: reading metadata from file %s\nended.",
-                set_name,
+                name,
                 path,
             )
             meta = fs.read_json(path)
@@ -182,47 +179,44 @@ class JsonMetaIO:
 
     def write(
         self,
+        name: str,
         tags: dict,
-        set_name: str,
     ) -> None:
         """Write metadata tags to a dataset's JSON file.
 
         Args:
+            name: The name of the dataset.
             tags: The dictionary of metadata to write.
-            set_name: The name of the dataset.
         """
         if not tags.get("repository"):
             raise ValueError(
-                f"Metadata tags for dataset '{set_name}' must contain a non-empty 'repository' tag."
+                f"Metadata tags for dataset '{name}' must contain a non-empty 'repository' tag."
             )
         try:
             logger.info(
                 "JsonMetaIO.write.start %s: writing metadata to file\n\t%s\nstarted.",
-                set_name,
-                self.fullpath(set_name),
+                name,
+                self.fullpath(name),
             )
             sanitized_tags = sanitize_for_json(tags)
-            fs.write_json(self.fullpath(set_name), sanitized_tags)
+            fs.write_json(self.fullpath(name), sanitized_tags)
             logger.info(
                 "JsonMetaIO.write.success %s: Writing metadata to file %s.",
-                set_name,
-                self.fullpath(set_name),
+                name,
+                self.fullpath(name),
             )
         except Exception as e:
             logger.exception(
                 "JsonMetaIO.write.error: Writing metadata for dataset %s to file %s returned exception: %s.",
-                set_name,
-                self.fullpath(set_name),
+                name,
+                self.fullpath(name),
                 e,
             )
             raise
 
-    @property
-    def exists(self, set_name: str = "") -> bool:
+    def exists(self, name: str) -> bool:
         """Check if the metadata file for a given dataset exists."""
-        if not set_name:
-            set_name = self.set_name
-        return fs.exists(self.fullpath(set_name))
+        return fs.exists(self.fullpath(name))
 
     def search(self, **kwargs) -> list[dict]:
         """Search the catalog for datasets and series matching given criteria.

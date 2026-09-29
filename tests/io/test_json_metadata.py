@@ -52,7 +52,7 @@ def test_read_existing_metadata_works_for_all_series_types(
     )
 
     # 2. Read the metadata back and verify it matches the source
-    read_tags = json_handler.read(set_name=existing_dataset.name)
+    read_tags = json_handler.read(name=existing_dataset.name)
     assert read_tags == existing_dataset.tags, (
         f"Tag mismatch for type {existing_dataset.data_type}."
     )
@@ -73,7 +73,7 @@ def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
         data=xyz_at,
     )
     json_handler = metadata_handler(conftest.repo)
-    json_handler.write(set_name=x.name, tags=x.tags)
+    json_handler.write(name=x.name, tags=x.tags)
     search_pattern = set_name
     datasets_found = json_handler.search(equals=search_pattern)
     test_logger.debug(f"search  for {search_pattern} returned: {datasets_found!s}")
@@ -99,7 +99,7 @@ def test_search_for_dataset_by_part_of_name_with_one_match_returns_the_set(
         data=xyz_at,
     )
     json_handler = metadata_handler(conftest.repo)
-    json_handler.write(set_name=x.name, tags=x.tags)
+    json_handler.write(name=x.name, tags=x.tags)
     search_pattern = set_name[-17:-1]
     datasets_found = json_handler.search(
         contains=search_pattern, datasets=True, series=False
@@ -126,13 +126,13 @@ def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
         data_type=SeriesType.simple(),
         data=xyz_at,
     )
-    json_handler.write(set_name=x.name, tags=x.tags)
+    json_handler.write(name=x.name, tags=x.tags)
     y = Dataset(
         name=f"{base_name}_2",
         data_type=SeriesType.simple(),
         data=xyz_at,
     )
-    json_handler.write(set_name=y.name, tags=y.tags)
+    json_handler.write(name=y.name, tags=y.tags)
 
     search_pattern = base_name
     datasets_found = json_handler.search(
@@ -158,7 +158,7 @@ def test_write_rejects_tags_without_repository(
         tags["repository"] = repository
 
     with pytest.raises(ValueError, match="must contain a non-empty 'repository' tag"):
-        json_handler.write(set_name=set_name, tags=tags)
+        json_handler.write(name=set_name, tags=tags)
 
     assert not fs.exists(json_handler.fullpath(set_name))
 
@@ -180,7 +180,7 @@ def test_write_propagates_filesystem_errors(
 
     with pytest.raises(OSError, match="forced metadata write failure"):
         json_handler.write(
-            set_name=set_name,
+            name=set_name,
             tags={"name": set_name, "repository": conftest.repo["name"]},
         )
 

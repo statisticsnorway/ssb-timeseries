@@ -339,7 +339,7 @@ def test_read_existing_simple_metadata(
 
     set_name = existing_simple_set.name
     x = Dataset(name=set_name, data_type=SeriesType.simple())
-    assert MetaIO(x).read(set_name=x.name) == existing_simple_set.tags
+    assert MetaIO(x).read(name=x.name) == existing_simple_set.tags
     # assert MetaIO(x.repository).read(x.name)
     assert x.tags["name"] == set_name and x.tags["versioning"] == str(Versioning.NONE)
 
@@ -378,7 +378,7 @@ def test_read_existing_estimate_metadata(
         as_of_tz=as_of,
     )
 
-    assert MetaIO(x).read(set_name=x.name) == existing_estimate_set.tags
+    assert MetaIO(x).read(name=x.name) == existing_estimate_set.tags
     assert x.tags["name"] == set_name
     assert x.tags["versioning"] == str(Versioning.AS_OF)
     for _, v in x.series_tags.items():

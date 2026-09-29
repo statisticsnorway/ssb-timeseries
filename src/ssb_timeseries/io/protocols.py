@@ -108,7 +108,7 @@ class MetadataReadWrite(Protocol):
 
         This constructor is called by the IO dispatcher.
         The handler is configured from the repository and its options only.
-        Which dataset an operation concerns is passed to that operation.
+        Which dataset an operation concerns is named in that operation.
 
         Args:
             repository: The metadata repository name or configuration.
@@ -116,35 +116,34 @@ class MetadataReadWrite(Protocol):
         """
         ...
 
-    @property
-    def exists(self, set_name: str = "") -> bool:
+    def exists(self, name: str) -> bool:
         """Check if metadata for a given dataset name exists."""
         ...
 
-    def find(self, **kwargs) -> bool:
-        """Find datasets in the configured storage based on metadata criteria."""
+    def write(self, name: str, tags: dict[str, Any]) -> None:
+        """Write metadata for one dataset to the configured storage.
+
+        Args:
+            name: The name of the dataset the tags belong to.
+            tags: The metadata tags to write.
+        """
         ...
 
-    def write(self, **kwargs) -> None:
-        """Write metadata to the configured storage."""
-        ...
-
-    def read(self, **kwargs) -> dict[str, Any]:
-        """Read metadata from the configured storage.
+    def read(self, name: str) -> dict[str, Any]:
+        """Read the metadata of one dataset from the configured storage.
 
         Returns:
             A dictionary containing the metadata tags for the dataset.
         """
         ...
 
-    @classmethod
-    def search(cls, **kwargs) -> dict[str, Any]:
+    def search(self, **kwargs) -> list[dict[str, Any]]:
         """Search and retrieve metadata from the configured storage.
 
         This method should allow searching for datasets based on various
         metadata criteria.
 
         Returns:
-            A dictionary or list of dictionaries containing the search results.
+            A list of catalog items matching the criteria.
         """
         ...
