@@ -43,8 +43,13 @@ class DatasetRef:
     product: str = ""
     """The product the dataset belongs to."""
 
-    sharing: list[dict[str, str]] = field(default_factory=list)
-    """Access control tags for the dataset, one entry per configured location."""
+    sharing: list[str] = field(default_factory=list)
+    """Keys naming the configured locations this dataset is also archived to.
+
+    A key is all that identifies a location, not where it is.
+    The storage each key maps to is configuration, so that a dataset says which
+    locations it belongs in and never where they are.
+    """
 
     @property
     def is_identified(self) -> bool:

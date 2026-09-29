@@ -61,8 +61,8 @@ def _version_from_file_name(
     """Extract a version marker from a filename using known patterns.
 
     The `persisted` convention is not handled here.
-    It belongs to the snapshot handler, which is the only place this library
-    writes `_v<N>.parquet` files, and it keeps its own copy of this table.
+    It belongs to the archiving formats, which are the only place this library
+    writes `_v<N>.parquet` files, and which keep their own version patterns.
     """
     if isinstance(pattern, types.Versioning):
         pattern = str(pattern)

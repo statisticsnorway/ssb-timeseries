@@ -15,6 +15,7 @@ from ssb_timeseries.config import Config
 from ssb_timeseries.config.constants import BUILTIN_IO_HANDLERS
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import now_utc
+from ssb_timeseries.io.protocols import ArchiveWrite
 from ssb_timeseries.io.protocols import DataReadWrite
 from ssb_timeseries.io.protocols import MetadataReadWrite
 from ssb_timeseries.sample_data import create_df
@@ -394,8 +395,6 @@ def test_a_registered_data_handler_satisfies_the_data_protocol(
 
     The protocols are declared `runtime_checkable` but nothing ever checked
     them, so a handler could be registered and satisfy nothing.
-    `snapshots` is excluded because the dispatcher cannot instantiate it yet;
-    see the snapshot step.
     """
     assert isinstance(io._handler_class(handler_name), DataReadWrite)
 
@@ -403,3 +402,13 @@ def test_a_registered_data_handler_satisfies_the_data_protocol(
 def test_a_registered_metadata_handler_satisfies_the_metadata_protocol() -> None:
     """A handler the dispatcher may instantiate must satisfy the protocol."""
     assert isinstance(io._handler_class("json"), MetadataReadWrite)
+
+
+def test_the_registered_archive_handler_satisfies_the_archive_protocol() -> None:
+    """Archiving has its own contract, and the registered handler must meet it.
+
+    An archive writes and keeps a version, which is neither reading a dataset
+    nor writing its metadata, so a handler that satisfied only one of those
+    contracts would pass the checks above and still be wrong here.
+    """
+    assert isinstance(io._handler_class("archive"), ArchiveWrite)

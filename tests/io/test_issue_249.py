@@ -62,13 +62,13 @@ def dates(
 # -------- --------------------
 
 
-def test_reproduce_bug_in_issue_249_without_save_before_snapshot(
+def test_reproduce_bug_in_issue_249_without_save_before_archive(
     caplog,
     dates,
 ):
     """This is as reported.
 
-    With no .save() before .snapshot(), the code reported would have failed in a later step.
+    With no .save() before .archive(), the code reported would have failed in a later step.
     """
     caplog.set_level(logging.DEBUG)
 
@@ -86,17 +86,17 @@ def test_reproduce_bug_in_issue_249_without_save_before_snapshot(
 
     with pytest.raises(FileNotFoundError):
         # ds_c.save()  # <--- not there
-        ds_c.snapshot()  # <-- so expect FileNotFoundError here
+        ds_c.archive()  # <-- so expect FileNotFoundError here
         # (instead, it failed earlier, seeing a Pyarrow table rather than a Pandas df)
 
 
-def test_reproduce_bug_in_issue_249_with_save_before_snapshot(
+def test_reproduce_bug_in_issue_249_with_save_before_archive(
     caplog,
     dates,
 ):
     """This is *almost* as reported.
 
-    Adding .save() before .snapshot(), the code should work.
+    Adding .save() before .archive(), the code should work.
     (And after fixing daterange, it does.)
     """
     caplog.set_level(logging.DEBUG)
@@ -114,7 +114,7 @@ def test_reproduce_bug_in_issue_249_with_save_before_snapshot(
     assert isinstance(ds_c, Dataset)
 
     ds_c.save()  #  <--- this was not in reported issue, but important!
-    ds_c.snapshot()  # <- with it, this works after the date_range fix
+    ds_c.archive()  # <- with it, this works after the date_range fix
 
 
 def test_reproduce_bug_in_issue_249_does_calculation_really_make_a_difference(
@@ -123,7 +123,7 @@ def test_reproduce_bug_in_issue_249_does_calculation_really_make_a_difference(
 ):
     """This is *almost* as reported.
 
-    Adding .save() before .snapshot(), the code should work.
+    Adding .save() before .archive(), the code should work.
     After fixing, it does.
     """
     caplog.set_level(logging.DEBUG)
@@ -132,4 +132,4 @@ def test_reproduce_bug_in_issue_249_does_calculation_really_make_a_difference(
     ds_a = Dataset(name="ds_a", data=df_a, data_type="simple")
 
     ds_a.save()
-    ds_a.snapshot()
+    ds_a.archive()

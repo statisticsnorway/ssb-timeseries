@@ -179,7 +179,7 @@ class Dataset:
     data: Any
     tags: dict
     repository: str
-    sharing: list[dict[str, str]] | None
+    sharing: list[str]
     lineage: str | None
 
     def __init__(
@@ -299,7 +299,8 @@ class Dataset:
         # Assigned before the data is touched, since reading may need a DatasetRef.
         self.product: str = kwargs.get("product", "")
         self.process_stage: str = kwargs.get("process_stage", "")
-        self.sharing: list[dict[str, str]] = kwargs.get("sharing") or []
+        # Keys naming configured locations, not the locations themselves.
+        self.sharing: list[str] = kwargs.get("sharing") or []
 
         if data_type:
             self.data_type = data_type
@@ -489,14 +490,24 @@ class Dataset:
         io.save(self)
 
     def snapshot(self) -> None:
-        """Copy data snapshot to immutable processing stage bucket and shared buckets.
+        """Deprecated. Use :py:meth:`~ssb_timeseries.dataset.Dataset.archive` instead."""
+        warnings.warn(
+            "Dataset.snapshot is deprecated and will be removed in a future "
+            "version. Use Dataset.archive instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.archive()
 
-        If :py:attr:`~ssb_timeseries.dataset.Dataset.sharing` identifies a configured location,
-        the snapshot files will be copied there.
+    def archive(self) -> None:
+        """Write a versioned, retained copy of the dataset's data.
 
-        See :py:func:`~ssb_timeseries.io.persist` for more detail.
+        If :py:attr:`~ssb_timeseries.dataset.Dataset.sharing` names a configured
+        location, the archive is copied there too.
+
+        See :py:func:`~ssb_timeseries.io.archive` for more detail.
         """
-        io.persist(self)  # is 'archive' a better name than 'persist' or 'snapshot'?
+        io.archive(self)
 
     def versions(self, **kwargs: Any) -> list[datetime | str]:
         """Get list of all series version markers (`as_of` dates or version names).
@@ -562,7 +573,7 @@ class Dataset:
             as_of_utc=self.as_of_utc,
             process_stage=self.process_stage,
             product=self.product,
-            sharing=[dict(s) for s in self.sharing],
+            sharing=list(self.sharing),
         )
 
     def default_tags(self) -> DatasetTagDict:

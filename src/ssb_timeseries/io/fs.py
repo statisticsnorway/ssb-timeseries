@@ -12,6 +12,7 @@ from pathlib import Path
 
 import narwhals
 import pyarrow
+import pyarrow.csv
 import pyarrow.dataset
 import pyarrow.parquet as pq
 import tomli
@@ -531,3 +532,70 @@ def write_parquet(
     #     **kwargs,
     # )
     # --> TODO: review interaction / lack thereof with pyarrow-...-helpers
+
+
+def write_dataframe(
+    data: pyarrow.Table | IntoFrame,
+    path: PathStr,
+    file_format: str,
+    **kwargs,
+) -> None:
+    """Write a dataframe to a file in the named format.
+
+    The counterpart of :py:func:`write_parquet` for any other format, so that
+    choosing a format is a matter of naming it rather than of calling a
+    different function.
+    Works on both local and GCS paths, selecting the backend automatically.
+
+    Args:
+        data: The dataframe to write (can be a PyArrow Table or any
+            Narwhals-compatible dataframe).
+        path: The destination path for the file.
+        file_format: The name of the format, for example "parquet" or "csv".
+        **kwargs: Additional keyword arguments passed to the backend.
+
+    Raises:
+        ValueError: If the format is not supported.
+    """
+    write = _dataframe_writer(file_format)
+    write(data=data, path=path, **kwargs)
+
+
+def _dataframe_writer(
+    file_format: str,
+) -> Callable[..., None]:
+    """Return a function for writing a dataframe in the named format.
+
+    Args:
+        file_format: The name of the format.
+
+    Raises:
+        ValueError: If the format is not supported.
+    """
+    match file_format.lower().lstrip("."):
+        case "parquet":
+
+            def parquet_writer(
+                data: pyarrow.Table | IntoFrame, path: PathStr, **kwargs
+            ) -> None:
+                write_parquet(data=data, path=path, **kwargs)
+
+            return parquet_writer
+
+        case "csv":
+
+            def csv_writer(
+                data: pyarrow.Table | IntoFrame, path: PathStr, **kwargs
+            ) -> None:
+                if is_gcs(path):  # pragma: no cover
+                    raise NotImplementedError(
+                        "Writing csv to GCS is not supported. Write it locally and "
+                        "copy the result instead."
+                    )
+                mk_parent_dir(path)
+                pyarrow.csv.write_csv(to_arrow(data), path, **kwargs)
+
+            return csv_writer
+
+        case _:
+            raise ValueError(f"Format {file_format} is not supported.")

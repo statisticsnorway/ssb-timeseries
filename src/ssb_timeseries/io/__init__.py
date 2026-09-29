@@ -50,11 +50,9 @@ from ..logging import logger
 from ..meta import TagDict
 from ..types import SeriesType
 from . import protocols
-from . import snapshot
 from .dataset_ref import DatasetRef
 
 # mypy: disable-error-code="no-any-return,no-untyped-def,return-value,assignment,attr-defined"
-DEFAULT_PROCESS_STAGE = "Statistikk"  # TODO: control from config?
 
 HandlerType = Literal["data", "metadata", "archive"]
 
@@ -92,7 +90,7 @@ def _repo_config(
 @overload
 def _io_handler(
     *,
-    handler_type: Literal["data", "archive"],
+    handler_type: Literal["data"],
     repository: str | FileBasedRepository | dict,
     **options: Any,
 ) -> protocols.DataReadWrite: ...
@@ -107,19 +105,28 @@ def _io_handler(
 ) -> protocols.MetadataReadWrite: ...
 
 
+@overload
+def _io_handler(
+    *,
+    handler_type: Literal["archive"],
+    repository: str | FileBasedRepository | dict,
+    **options: Any,
+) -> protocols.ArchiveWrite: ...
+
+
 def _io_handler(
     *,
     handler_type: HandlerType,
     repository: str | FileBasedRepository | dict,
     **options: Any,
-) -> protocols.DataReadWrite | protocols.MetadataReadWrite:
+) -> protocols.DataReadWrite | protocols.MetadataReadWrite | protocols.ArchiveWrite:
     """Dynamically import and instantiate an I/O handler.
 
     The handler is determined by the 'repository' and 'handler_type' arguments.
 
     A handler is configured from the repository and its `options` only.
     Which dataset an operation concerns is passed to that operation as a
-    `DatasetRef`, so one handler instance can serve any number of datasets.
+    `DatasetRef`, so a single handler instance can serve any number of datasets.
 
     Args:
         handler_type: Which binding of the repository to instantiate, one of
@@ -442,50 +449,109 @@ def versions(
     return versions
 
 
-def persist(
+def _sharing_destinations(keys: list[str]) -> list[str]:
+    """Resolve sharing keys to the configured storage each one names.
+
+    A key with no configured location of its own falls back to the default one,
+    so that a dataset can name a location that has not been set up yet without
+    that becoming an error.
+
+    Args:
+        keys: The sharing keys carried by a dataset.
+
+    Returns:
+        The folders the dataset's archive is also copied to.
+    """
+    from ..config import Config
+
+    sharing_config = Config.active().sharing or {}
+    default = sharing_config.get("default")
+
+    destinations = []
+    for key in keys:
+        config_item = sharing_config.get(key) or default
+        if config_item is None:
+            logger.warning(
+                "Sharing key '%s' has no configured location and there is no "
+                "default one, so nothing is archived there.",
+                key,
+            )
+            continue
+        destinations.append(str(config_item["directory"]["options"]["path"]))
+    return destinations
+
+
+def archive(
     ds: Dataset,
 ) -> None:
-    """Copy a dataset snapshot to its configured immutable and shared locations.
+    """Write a versioned, retained copy of a dataset's data.
+
+    The copy is written once per call, under the archive's own naming
+    convention, and no version is ever overwritten.
 
     This function relies on a `snapshots` section being defined in the project
-    configuration. The dataset's `process_stage` and `sharing` attributes
-    determine the exact destination paths.
+    configuration.
+    The dataset's `sharing` names any further configured locations its archive
+    is copied to.
 
     .. seealso::
         For detailed configuration examples, refer to the guide on
         :doc:`/configure-io`.
 
     Args:
-        ds: The Dataset object to persist.
+        ds: The Dataset object to archive.
     """
     from ..config import Config
 
-    # TODO: rewrite to use _io_handler to dynamically define IO module from config
     snapshot_config = Config.active().snapshots
     if not snapshot_config:
         return
-    process_stage = getattr(ds, "process_stage", DEFAULT_PROCESS_STAGE)
-    config_item = snapshot_config.get(process_stage)
-    if not config_item:
-        config_item = snapshot_config.get("default", {})  # type: ignore[arg-type]
+    config_item = snapshot_config.get("default")
 
     if not config_item:
         return
-    path = config_item["directory"]["options"]["path"]
-    snap_io = snapshot.FileSystem(
-        bucket=path,
-        process_stage=process_stage,
-        product=getattr(ds, "product", ""),
-        set_name=ds.name,
-        sharing=ds.sharing,
+
+    data_handler = DataIO(ds).dh
+    if not data_handler.exists(ds.ref):
+        raise FileNotFoundError(
+            f"Cannot archive '{ds.name}', because it has not been saved to "
+            f"repository '{ds.repository}'."
+        )
+
+    # The archive's own options sit beside its repository in the section, since
+    # they say how archives are written rather than where they are written to.
+    # TODO: declare `options` in the configuration schema, so this needs no cast.
+    archive_options = cast(
+        "dict[str, Any]",
+        config_item.get("options") or {},  # type: ignore[typeddict-item]
+    )
+    handler = _io_handler(
+        handler_type="archive",
+        repository={"directory": config_item["directory"]},
+        **archive_options,
     )
     (date_from, date_to) = date_range(ds.data)
-    print(type(date_from))
-    snap_io.write(
-        sharing=ds.sharing,
-        as_of_tz=ds.as_of_utc,
-        period_from=date_from,  # type: ignore[arg-type]
-        period_to=date_to,  # type: ignore[arg-type]
-        data_path=DataIO(ds).dh.fullpath(ds.ref),  # type: ignore[attr-defined]
-        # meta_path=MetaIO(ds).dh.fullpath,
+    handler.write(
+        ref=ds.ref,
+        data=data_handler.read(ds.ref),
+        period_from=date_from,
+        period_to=date_to,
+        destinations=_sharing_destinations(ds.sharing),
     )
+
+
+def persist(
+    ds: Dataset,
+) -> None:
+    """Deprecated. Use :py:func:`~ssb_timeseries.io.archive` instead.
+
+    Args:
+        ds: The Dataset object to archive.
+    """
+    warnings.warn(
+        "ssb_timeseries.io.persist is deprecated and will be removed in a future "
+        "version. Use ssb_timeseries.io.archive instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    archive(ds)

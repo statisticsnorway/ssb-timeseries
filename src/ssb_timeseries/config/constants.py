@@ -132,8 +132,8 @@ BUILTIN_IO_HANDLERS = {
         "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
         "options": {},
     },
-    "snapshots": {
-        "handler": "ssb_timeseries.io.snapshot.FileSystem",
+    "archive": {
+        "handler": "ssb_timeseries.io.archiving.Archive",
         "options": {},
     },
 }

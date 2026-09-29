@@ -168,12 +168,12 @@ def _repository_test_config(path: Path) -> dict[str, str]:
 
 
 def _snapshot_test_config(path: Path) -> dict[str, str]:
-    """Configure snapshots based on temp dir root path."""
+    """Configure the archive repository based on temp dir root path."""
     return {
         "default": {
-            "name": "snapshot-archive",
+            "name": "archive",
             "directory": {
-                "handler": "snapshots",
+                "handler": "archive",
                 "options": {"path": str(path / "snapshots")},
             },
         },
@@ -185,19 +185,19 @@ def _sharing_test_config(path: Path) -> dict[str, str]:
     return {
         "default": {
             "directory": {
-                "handler": "snapshots",
+                "handler": "archive",
                 "options": {"path": str(path / "shared" / "default")},
             }
         },
         "s123": {
             "directory": {
-                "handler": "snapshots",
+                "handler": "archive",
                 "options": {"path": str(path / "shared" / "s123")},
             }
         },
         "s234": {
             "directory": {
-                "handler": "snapshots",
+                "handler": "archive",
                 "options": {"path": str(path / "shared" / "s234")},
             }
         },

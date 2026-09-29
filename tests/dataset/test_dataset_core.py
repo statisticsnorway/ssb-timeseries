@@ -718,11 +718,13 @@ def test_correct_datetime_columns_valid_from_to(
     assert a.numeric_columns == ["x", "y", "z"]
 
 
-def test_a_ref_does_not_share_its_sharing_entries_with_the_dataset() -> None:
-    """A ref must be a snapshot of the sharing config, not a view onto it.
+def test_a_ref_does_not_share_its_sharing_list_with_the_dataset() -> None:
+    """A ref must be a snapshot of the sharing configuration, not a view onto it.
 
-    `DatasetRef` is frozen, but a shallow copy of the list would still leave the
-    entries themselves shared with the dataset and with refs built earlier.
+    `DatasetRef` is frozen, but a shallow copy of the list would still let a
+    caller change what later refs, and the dataset itself, consider its sharing.
+    The entries themselves are keys rather than paths, so there is nothing
+    inside an entry for a caller to edit.
     """
     dataset = Dataset(
         name=f"sharing-isolation-{uuid.uuid4().hex}",
@@ -735,15 +737,14 @@ def test_a_ref_does_not_share_its_sharing_entries_with_the_dataset() -> None:
             freq="MS",
             temporality="FROM_TO",
         ),
-        sharing=[{"team": "", "path": "/tmp/shared"}],
+        sharing=["s123", "s234"],
     )
 
     ref = dataset.ref
-    ref.sharing[0]["team"] = "mutated through the ref"
-    ref.sharing.append({"team": "added to the ref", "path": "/tmp/other"})
+    ref.sharing.append("added to the ref")
 
-    assert dataset.sharing == [{"team": "", "path": "/tmp/shared"}]
-    assert dataset.ref.sharing == [{"team": "", "path": "/tmp/shared"}]
+    assert dataset.sharing == ["s123", "s234"]
+    assert dataset.ref.sharing == ["s123", "s234"]
 
 
 def test_versioning_as_of_creates_new_file(

@@ -99,6 +99,51 @@ class DataReadWrite(Protocol):
 
 
 @runtime_checkable
+class ArchiveWrite(Protocol):
+    """Defines the contract for an archive handler.
+
+    An archive is a destination, not a source.
+    It takes the dataset's data as a frame and writes it in whatever layout the
+    archive itself defines, which is why it is not a `DataReadWrite`.
+
+    Notably it does not ask the source handler for a file path.
+    A data repository need not be a filesystem at all, so archiving a dataset
+    held in a database or behind an HTTP API has to work the same way.
+    """
+
+    def __init__(
+        self,
+        repository: str | dict,  # TODO: streamline - update to use dict config only
+        **options: Any,
+    ) -> None:
+        """Initialize the archive handler with configuration for its destination.
+
+        Which dataset an operation concerns is passed to that operation as a
+        `DatasetRef`, so one handler instance can serve any number of datasets.
+
+        Args:
+            repository: The archive repository name or configuration.
+            **options: Any parameters defined for the handler in the configuration.
+        """
+        ...
+
+    def write(
+        self,
+        ref: DatasetRef,
+        data: Any,
+        **kwargs: Any,
+    ) -> None:
+        """Archive one version of a dataset's data.
+
+        Args:
+            ref: The dataset being archived, which names the destination layout.
+            data: The dataset's data, as read from the data repository.
+            **kwargs: Handler specific options, such as the data's period.
+        """
+        ...
+
+
+@runtime_checkable
 class MetadataReadWrite(Protocol):
     """Defines the contract (protocol) for metadata IO handlers."""
 
