@@ -718,6 +718,34 @@ def test_correct_datetime_columns_valid_from_to(
     assert a.numeric_columns == ["x", "y", "z"]
 
 
+def test_a_ref_does_not_share_its_sharing_entries_with_the_dataset() -> None:
+    """A ref must be a snapshot of the sharing config, not a view onto it.
+
+    `DatasetRef` is frozen, but a shallow copy of the list would still leave the
+    entries themselves shared with the dataset and with refs built earlier.
+    """
+    dataset = Dataset(
+        name=f"sharing-isolation-{uuid.uuid4().hex}",
+        data_type=SeriesType("as_of", "from", "to"),
+        as_of_tz=now_utc(),
+        data=create_df(
+            ["x"],
+            start_date="2022-01-01",
+            end_date="2022-04-03",
+            freq="MS",
+            temporality="FROM_TO",
+        ),
+        sharing=[{"team": "", "path": "/tmp/shared"}],
+    )
+
+    ref = dataset.ref
+    ref.sharing[0]["team"] = "mutated through the ref"
+    ref.sharing.append({"team": "added to the ref", "path": "/tmp/other"})
+
+    assert dataset.sharing == [{"team": "", "path": "/tmp/shared"}]
+    assert dataset.ref.sharing == [{"team": "", "path": "/tmp/shared"}]
+
+
 def test_versioning_as_of_creates_new_file(
     existing_estimate_set: Dataset, caplog: LogCaptureFixture
 ) -> None:
@@ -725,11 +753,11 @@ def test_versioning_as_of_creates_new_file(
 
     x = existing_estimate_set
     y = x * 1.1
-    files_before = file_count(DataIO(x).dh.directory)
+    files_before = file_count(DataIO(x).dh._directory(x.ref))
     x.as_of_utc = now_utc()
     x.data = y.data
     x.save()
-    files_after = file_count(DataIO(x).dh.directory)
+    files_after = file_count(DataIO(x).dh._directory(x.ref))
     assert files_after == files_before + 1
 
 

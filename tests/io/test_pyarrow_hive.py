@@ -8,11 +8,13 @@ import pyarrow.parquet as pq
 import pytest
 from pytest import LogCaptureFixture
 
+from ssb_timeseries.config import Config
 from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.io import fs
 from ssb_timeseries.io import pyarrow_hive as io
+from ssb_timeseries.io.dataset_ref import DatasetRef
 from ssb_timeseries.io.pyarrow_hive import _parquet_schema
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.types import SeriesType
@@ -30,6 +32,16 @@ test_logger = logging.getLogger(__name__)
 # (leave to test_dataset_core to test Dataset behaviours)
 
 # =============================== HELPERS ===============================
+
+
+def data_path(repository: str | dict) -> str:
+    """Get the data path configured for a repository, as the dispatcher would."""
+    repo = (
+        repository
+        if isinstance(repository, dict)
+        else Config.active().repositories[repository]
+    )
+    return str(repo["directory"]["options"]["path"])
 
 
 def check_file_count_change(
@@ -60,17 +72,15 @@ def test_versioning_as_of_creates_new_file(
     x: Dataset = one_new_set_for_each_versioned_type
     io_handler = io.HiveFileSystem(
         repository=x.repository,
-        set_name=x.name,
-        set_type=x.data_type,
-        as_of_utc=x.as_of_utc,
+        path=data_path(x.repository),
     )
-    data_dir = io_handler.directory
+    data_dir = io_handler._directory(x.ref)
 
     subdirectories_before = fs.ls(data_dir)
     x.data = (x * 1.1).data
     time.sleep(1)  # so `now_utc()` does not get too close to old x.as_of_utc
-    io_handler.as_of_utc = now_utc()
-    io_handler.write(data=x.data, tags=x.tags)
+    x.as_of_utc = now_utc()
+    io_handler.write(x.ref, data=x.data, tags=x.tags)
     subdirectories_after = fs.ls(data_dir)
     assert len(subdirectories_after) == len(subdirectories_before) + 1, (
         f"Directory count did not increase for type {x.data_type}."
@@ -85,13 +95,11 @@ def test_versioning_none_merges_existing_data(
     a: Dataset = one_new_set_for_each_unversioned_type
     io_handler = io.HiveFileSystem(
         repository=a.repository,
-        set_name=a.name,
-        set_type=a.data_type,
-        as_of_utc=a.as_of_utc,
+        path=data_path(a.repository),
     )
     # First, write the initial data
     test_logger.debug("12 rows of data? %s", a.data.shape)
-    io_handler.write(data=a.data, tags=a.tags)
+    io_handler.write(a.ref, data=a.data, tags=a.tags)
 
     # Create new, smaller data
     new_data = create_df(
@@ -102,10 +110,10 @@ def test_versioning_none_merges_existing_data(
         temporality=a.data_type.temporality.name,
     )
     test_logger.debug("3 rows of new data? %s", new_data.shape)
-    io_handler.write(data=new_data, tags=a.tags)
+    io_handler.write(a.ref, data=new_data, tags=a.tags)
 
     # Read the data back and verify it has been merged
-    read_data = io_handler.read()
+    read_data = io_handler.read(a.ref)
     test_logger.debug(
         "15 rows of data read back? %s",
         read_data.shape,
@@ -123,18 +131,43 @@ def test_write_creates_correct_partition_directories(
     dataset = one_new_set_for_each_data_type
     io_handler = io.HiveFileSystem(
         repository=dataset.repository,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
+        path=data_path(dataset.repository),
     )
-    io_handler.write(data=dataset.data, tags=dataset.tags)
+    io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
 
-    subdirectories = fs.ls(io_handler.directory)
+    partitions = [Path(d).name for d in fs.ls(io_handler._directory(dataset.ref))]
 
-    if dataset.data_type.versioning == "AS_OF":
-        assert any(d.startswith("as_of=") for d in subdirectories)
-    elif dataset.data_type.versioning == "NONE":
-        assert "as_of=__HIVE_DEFAULT_PARTITION__" in subdirectories
+    match dataset.data_type.versioning:
+        case Versioning.AS_OF:
+            assert any(p.startswith("as_of=") for p in partitions), partitions
+        case Versioning.NONE:
+            # An unversioned dataset has no 'as of' to partition on, so it must
+            # land in the null partition rather than being stamped with the
+            # time of the write.
+            assert "as_of=__HIVE_DEFAULT_PARTITION__" in partitions, partitions
+
+
+def test_an_unversioned_dataset_gets_no_as_of_in_its_partition(
+    one_new_set_for_each_unversioned_type: Dataset,
+) -> None:
+    """A NONE dataset must never be stamped with the time it happened to be written.
+
+    `DatasetRef` leaves `as_of_utc` as None for such a dataset.
+    If that were ever normalised to 'now', the Hive partition would change name
+    on every write, and the null partition would never be used.
+    """
+    dataset = one_new_set_for_each_unversioned_type
+    assert dataset.as_of_utc is None
+    assert dataset.ref.as_of_utc is None
+
+    io_handler = io.HiveFileSystem(
+        repository=dataset.repository,
+        path=data_path(dataset.repository),
+    )
+    io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
+
+    partitions = [Path(d).name for d in fs.ls(io_handler._directory(dataset.ref))]
+    assert "as_of=__HIVE_DEFAULT_PARTITION__" in partitions, partitions
 
 
 def test_versions_method_returns_correct_versions(
@@ -144,26 +177,24 @@ def test_versions_method_returns_correct_versions(
     dataset = existing_as_of_from_to_set
     io_handler = io.HiveFileSystem(
         repository=dataset.repository,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
+        path=data_path(dataset.repository),
     )
     # Write the first version
-    io_handler.write(data=dataset.data, tags=dataset.tags)
+    first_ref = dataset.ref
+    io_handler.write(first_ref, data=dataset.data, tags=dataset.tags)
 
     # Write a second version with a new timestamp
     time.sleep(1)
-    new_as_of = now_utc()
-    io_handler.as_of_utc = new_as_of
-    io_handler.write(data=dataset.data, tags=dataset.tags)
+    dataset.as_of_utc = now_utc()
+    io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
 
     # Retrieve the list of versions
-    available_versions = io_handler.versions()
+    available_versions = io_handler.versions(dataset.ref)
 
     # Verify that both original and new as_of timestamps are present
     assert len(available_versions) >= 2  # Can be more if tests run multiple times
+    assert first_ref.as_of_utc in available_versions
     assert dataset.as_of_utc in available_versions
-    assert new_as_of in available_versions
 
 
 # --------------- from test_io -------------------------------
@@ -172,9 +203,7 @@ def test_versions_method_returns_correct_versions(
 def test_io_dirs(conftest) -> None:
     dirs = io.HiveFileSystem(
         repository=conftest.repo,
-        set_name="test-1",
-        set_type=SeriesType.simple(),
-        as_of_utc=None,
+        path=data_path(conftest.repo),
     )
     assert isinstance(dirs, io.HiveFileSystem)
 
@@ -186,13 +215,12 @@ def test_io_data_directory_path_as_expected(
     test_name = conftest.function_name()
     test_io = io.HiveFileSystem(
         repository=conftest.repo,
-        set_name=test_name,
-        set_type=SeriesType.simple(),
-        as_of_utc=None,
+        path=data_path(conftest.repo),
     )
-    repo_base_dir = Path(conftest.repo["directory"]["options"]["path"])
+    repo_base_dir = Path(data_path(conftest.repo))
+    ref = DatasetRef(name=test_name, data_type=SeriesType.simple())
     expected: str = repo_base_dir / "data_type=NONE_AT" / f"dataset={test_name}"
-    assert str(test_io.directory) == str(expected)
+    assert str(test_io._directory(ref)) == str(expected)
 
 
 def test_write_new_dataset_creates_file_with_correct_schema(
@@ -204,18 +232,16 @@ def test_write_new_dataset_creates_file_with_correct_schema(
     dataset = one_new_set_for_each_data_type
     io_handler = io.HiveFileSystem(
         repository=dataset.repository,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
+        path=data_path(dataset.repository),
     )
 
     # The fixture ensures the dataset is new, so the dataset directory should not exist
-    assert not io_handler.exists
+    assert not io_handler.exists(dataset.ref)
 
     # Write the dataset, which triggers file and schema creation
-    io_handler.write(data=dataset.data, tags=dataset.tags)
+    io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
 
-    written_files = fs.find(io_handler.directory, pattern="*.parquet")
+    written_files = fs.find(io_handler._directory(dataset.ref), pattern="*.parquet")
     assert written_files, "No Parquet files found in the output directory."
     assert len(written_files) == 1
 
@@ -268,13 +294,11 @@ def test_write_preserves_all_series(
     dataset = one_new_set_for_each_unversioned_type
     io_handler = io.HiveFileSystem(
         repository=dataset.repository,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
+        path=data_path(dataset.repository),
     )
 
-    io_handler.write(data=dataset.data, tags=dataset.tags)
-    written = io_handler.read()
+    io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
+    written = io_handler.read(dataset.ref)
 
     expected_columns = set(dataset.series) | set(dataset.data_type.date_columns)
     assert set(written.column_names) == expected_columns
@@ -290,30 +314,42 @@ def test_simple_write_with_none_data_raises_type_error(
     dataset = one_new_set_for_each_data_type
     io_handler = io.HiveFileSystem(
         repository=dataset.repository,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
+        path=data_path(dataset.repository),
     )
 
     with pytest.raises(TypeError):
-        io_handler.write(data=None, tags=dataset.tags)
+        io_handler.write(dataset.ref, data=None, tags=dataset.tags)
 
 
-def test_hive_filesystem_init_raises_error_for_as_of_none_without_as_of_utc(
+def test_a_versioned_dataset_cannot_be_written_without_an_as_of(
     one_new_set_for_each_versioned_type: Dataset,
 ) -> None:
-    """Verify that initializing HiveFileSystem with Versioning.AS_OF and as_of_utc=None raises a ValueError."""
+    """Writing a versioned dataset needs to know which version to write.
+
+    Reading and listing are fine without one, since there is simply
+    nothing to return, so the requirement is checked when it first matters.
+    """
     dataset = one_new_set_for_each_versioned_type
+    ref = DatasetRef(
+        name=dataset.name,
+        data_type=SeriesType(
+            versioning=Versioning.AS_OF,
+            temporality=dataset.data_type.temporality,
+        ),
+        as_of_utc=None,
+    )
+
+    assert not ref.is_identified
+    handler = io.HiveFileSystem(
+        repository=dataset.repository,
+        path=data_path(dataset.repository),
+    )
+    # A read finds no version, and yields an empty frame rather than failing.
+    assert is_empty(handler.read(ref))
+
+    # A write would have to invent a version, so it must fail.
     with pytest.raises(ValueError, match="An 'as of' datetime must be specified"):
-        io.HiveFileSystem(
-            repository=dataset.repository,
-            set_name=dataset.name,
-            set_type=SeriesType(
-                versioning=Versioning.AS_OF,
-                temporality=dataset.data_type.temporality,
-            ),
-            as_of_utc=None,
-        )
+        handler.write(ref, data=dataset.data, tags=dataset.tags)
 
 
 def test_read_non_existent_dataset_returns_empty_frame(
@@ -323,16 +359,11 @@ def test_read_non_existent_dataset_returns_empty_frame(
     dataset = one_new_set_for_each_data_type
     io_handler = io.HiveFileSystem(
         repository=dataset.repository,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
+        path=data_path(dataset.repository),
     )
     # Ensure the dataset does not exist
-    if io_handler.exists:
-        # This should not happen with the fixture, but as a safeguard
-        # we would need to delete the directory. For now, assume it doesn't exist.
-        pass
+    assert not io_handler.exists(dataset.ref)
 
-    read_data = io_handler.read()
+    read_data = io_handler.read(dataset.ref)
     assert read_data.shape == (0, 0)
     assert is_empty(read_data)

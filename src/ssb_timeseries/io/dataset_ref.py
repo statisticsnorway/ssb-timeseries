@@ -43,18 +43,31 @@ class DatasetRef:
     product: str = ""
     """The product the dataset belongs to."""
 
-    sharing: dict[str, str] = field(default_factory=dict)
-    """Access control tags for the dataset."""
+    sharing: list[dict[str, str]] = field(default_factory=list)
+    """Access control tags for the dataset, one entry per configured location."""
 
-    def __post_init__(self) -> None:
-        """Check that the reference identifies a storable dataset.
+    @property
+    def is_identified(self) -> bool:
+        """Whether this reference pins down one particular dataset.
 
         A dataset with `Versioning.AS_OF` is identified by the time it was
-        valid, so it cannot be written or read without one.
-        This is a property of the dataset, not of any particular handler,
+        valid, so a reference to it is incomplete until an `as_of_utc` is known.
+        Such a reference is still useful, and still valid, for asking which
+        versions exist.
+        """
+        return not (
+            self.as_of_utc is None and self.data_type.versioning == Versioning.AS_OF
+        )
+
+    def require_identified(self) -> None:
+        """Check that this reference identifies one dataset that can be read or written.
+
+        Reading and writing a versioned dataset needs to know which version,
+        so an `as_of_utc` is required by then.
+        This is a property of the dataset rather than of any particular handler,
         so it is checked once here rather than in every handler.
         """
-        if self.as_of_utc is None and self.data_type.versioning == Versioning.AS_OF:
+        if not self.is_identified:
             raise ValueError(
                 "An 'as of' datetime must be specified when the type has versioning of type Versioning.AS_OF."
             )

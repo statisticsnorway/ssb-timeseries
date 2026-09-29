@@ -179,7 +179,7 @@ class Dataset:
     data: Any
     tags: dict
     repository: str
-    sharing: dict | None
+    sharing: list[dict[str, str]] | None
     lineage: str | None
 
     def __init__(
@@ -295,6 +295,12 @@ class Dataset:
         if tags_for_existing:
             self.tags = tags_for_existing
 
+        # "owner" / sharing / access
+        # Assigned before the data is touched, since reading may need a DatasetRef.
+        self.product: str = kwargs.get("product", "")
+        self.process_stage: str = kwargs.get("process_stage", "")
+        self.sharing: list[dict[str, str]] = kwargs.get("sharing") or []
+
         if data_type:
             self.data_type = data_type
 
@@ -359,11 +365,6 @@ class Dataset:
             if ready_to_auto_tag:
                 self.series_names_to_tags()
 
-        # "owner" / sharing / access
-        self.product: str = kwargs.get("product", "")
-        self.process_stage: str = kwargs.get("process_stage", "")
-        self.sharing: dict[str, str] = kwargs.get("sharing", {})
-
     def __prepare_data(self, data_to_check: Any, find_existing: bool = False) -> Any:
         """Validate data passed to Dataset.__init__.
 
@@ -376,7 +377,7 @@ class Dataset:
         elif isinstance(data_to_check, dict):
             data = nw.from_dict(data_to_check, backend="pyarrow")
         elif find_existing:
-            data = io.DataIO(self).dh.read()
+            data = io.DataIO(self).read()
         elif data_to_check is None:
             data = empty_frame(columns=self.data_type.date_columns)
         else:
@@ -561,7 +562,7 @@ class Dataset:
             as_of_utc=self.as_of_utc,
             process_stage=self.process_stage,
             product=self.product,
-            sharing=dict(self.sharing),
+            sharing=[dict(s) for s in self.sharing],
         )
 
     def default_tags(self) -> DatasetTagDict:

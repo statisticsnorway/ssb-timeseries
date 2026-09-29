@@ -146,9 +146,6 @@ class JsonMetaIO:
     @property
     def dir(self) -> str:
         """Return the configured catalog directory path for the repository."""
-        if not self.path:
-            # TODO: remove once all construction sites pass `path` explicitly.
-            self.path = str(self.repository["catalog"]["options"]["path"])
         return self.path
 
     def fullpath(self, set_name: str = "") -> str:

@@ -12,7 +12,6 @@ import pytest
 from ssb_timeseries import io
 from ssb_timeseries.config import Config
 from ssb_timeseries.config.constants import BUILTIN_IO_HANDLERS
-from ssb_timeseries.types import SeriesType
 
 # mypy: disable-error-code="no-untyped-def,no-untyped-call,arg-type,attr-defined,assignment"
 
@@ -49,8 +48,6 @@ def test_every_data_handler_instantiates_through_the_configuration_layer(
     handler = io._io_handler(
         handler_type="data",
         repository=repository,
-        set_name="handler-resolution-probe",
-        set_type=SeriesType.simple(),
     )
 
     configured = BUILTIN_IO_HANDLERS[handler_name]["handler"]
@@ -66,7 +63,6 @@ def test_the_metadata_handler_instantiates_through_the_configuration_layer(
     handler = io._io_handler(
         handler_type="metadata",
         repository=repository,
-        set_name="handler-resolution-probe",
     )
 
     configured = BUILTIN_IO_HANDLERS["json"]["handler"]
@@ -83,8 +79,6 @@ def test_instantiating_a_data_handler_does_not_modify_the_active_configuration(
     io._io_handler(
         handler_type="data",
         repository=repository,
-        set_name="configuration-integrity-probe",
-        set_type=SeriesType.simple(),
     )
 
     assert Config.active().repositories["test_1"] == untouched
@@ -97,8 +91,6 @@ def test_the_active_configuration_stays_serializable_after_using_a_data_handler(
     io._io_handler(
         handler_type="data",
         repository=Config.active().repositories["test_1"],
-        set_name="configuration-integrity-probe",
-        set_type=SeriesType.simple(),
     )
 
     Config.active().save(tmp_path / "config_after_data_handler.json")
@@ -117,8 +109,6 @@ def test_the_configured_path_reaches_the_data_handler_as_its_root(
     handler = io._io_handler(
         handler_type="data",
         repository=repository,
-        set_name="options-probe",
-        set_type=SeriesType.simple(),
     )
 
     assert handler.root == configured_path
@@ -135,7 +125,6 @@ def test_the_configured_path_reaches_the_metadata_handler_as_its_directory(
     handler = io._io_handler(
         handler_type="metadata",
         repository=repository,
-        set_name="options-probe",
     )
 
     assert handler.dir == configured_path
@@ -156,23 +145,20 @@ def test_a_handler_accepts_options_it_does_not_recognize(
     handler = io._io_handler(
         handler_type=handler_type,
         repository=repository,
-        set_name="options-probe",
-        **({"set_type": SeriesType.simple()} if handler_type == "data" else {}),
     )
 
     assert handler.options["unrecognised_option"] == "some-value"
 
 
-def test_the_dispatcher_separates_dataset_identity_from_handler_options(
+def test_a_handler_cannot_take_its_dataset_identity_from_configuration(
     conftest,
 ) -> None:
     """A configuration key must not be able to masquerade as a dataset attribute.
 
-    The handler needs to know which dataset it operates on, and the dispatcher
-    needs to hand over the repository's `options`, without the two being
-    interchangeable.
-    A configured `set_name` must be overridden by the dataset actually
-    requested, and must not end up in the handler's `options`.
+    A handler is configured from the repository alone, so it has no dataset
+    identity of its own to override.
+    Which dataset an operation concerns comes from the `DatasetRef` that the
+    caller passes to that operation.
     """
     repository = deepcopy(Config.active().repositories["test_1"])
     repository["directory"]["options"]["set_name"] = "shadowing-the-dataset"
@@ -180,12 +166,10 @@ def test_the_dispatcher_separates_dataset_identity_from_handler_options(
     handler = io._io_handler(
         handler_type="data",
         repository=repository,
-        set_name="separation-probe",
-        set_type=SeriesType.simple(),
     )
 
-    assert handler.set_name == "separation-probe"
-    assert "set_name" not in handler.options
+    assert not hasattr(handler, "set_name")
+    assert "set_name" in handler.options
 
 
 def test_the_dispatcher_rejects_an_unhandled_handler_type(
@@ -196,5 +180,4 @@ def test_the_dispatcher_rejects_an_unhandled_handler_type(
         io._io_handler(
             handler_type="not-a-handler-type",  # type: ignore[arg-type]
             repository=deepcopy(Config.active().repositories["test_1"]),
-            set_name="unhandled-type-probe",
         )

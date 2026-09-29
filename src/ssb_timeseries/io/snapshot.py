@@ -59,7 +59,7 @@ class FileSystem:
         bucket: PathStr,
         process_stage: str = "statistikk",
         product: str = "",
-        sharing: dict | None = None,
+        sharing: list[dict[str, str]] | None = None,
     ) -> None:
         """Initialize the filesystem handler for a given dataset snapshot.
 
@@ -166,7 +166,7 @@ class FileSystem:
 
     def write(
         self,
-        sharing: dict | None = None,
+        sharing: list[dict[str, str]] | None = None,
         as_of_tz: datetime | None = None,
         period_from: datetime | None = None,
         period_to: datetime | None = None,
@@ -176,7 +176,7 @@ class FileSystem:
         """Copy snapshot files to their primary and shared storage locations.
 
         Args:
-            sharing: A dictionary defining sharing configurations.
+            sharing: One entry per shared location, each with a 'path' and an optional 'team'.
             as_of_tz: The version timestamp of the snapshot.
             period_from: The start of the data's time period.
             period_to: The end of the data's time period.
@@ -203,8 +203,9 @@ class FileSystem:
             logger.debug("Sharing configs: %s", sharing)
             for s in sharing:
                 logger.debug("Sharing: %s", s)
-                if "team" not in s.keys():
-                    s["team"] = "no team specified"
+                # The team is defaulted into a local rather than written back
+                # into `s`, so that the caller's configuration is not mutated.
+                team = s.get("team", "no team specified")
                 if data_path:
                     fs.cp(
                         data_publish_path,
@@ -218,6 +219,6 @@ class FileSystem:
                 logger.debug(
                     "DATASET %s: sharing with %s, snapshot copied to %s.",
                     self.set_name,
-                    s["team"],
+                    team,
                     s["path"],
                 )

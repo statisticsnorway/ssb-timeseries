@@ -37,6 +37,7 @@ from functools import cache
 from typing import Any
 from typing import Literal
 from typing import cast
+from typing import overload
 
 from narwhals.typing import IntoFrame
 
@@ -50,6 +51,7 @@ from ..meta import TagDict
 from ..types import SeriesType
 from . import protocols
 from . import snapshot
+from .dataset_ref import DatasetRef
 
 # mypy: disable-error-code="no-any-return,no-untyped-def,return-value,assignment,attr-defined"
 DEFAULT_PROCESS_STAGE = "Statistikk"  # TODO: control from config?
@@ -87,32 +89,43 @@ def _repo_config(
     return cast(FileBasedRepository, repo)
 
 
+@overload
+def _io_handler(
+    *,
+    handler_type: Literal["data", "archive"],
+    repository: str | FileBasedRepository | dict,
+    **options: Any,
+) -> protocols.DataReadWrite: ...
+
+
+@overload
+def _io_handler(
+    *,
+    handler_type: Literal["metadata"],
+    repository: str | FileBasedRepository | dict,
+    **options: Any,
+) -> protocols.MetadataReadWrite: ...
+
+
 def _io_handler(
     *,
     handler_type: HandlerType,
     repository: str | FileBasedRepository | dict,
-    set_name: str = "",
-    set_type: SeriesType | None = None,
-    as_of_utc: datetime | None = None,
     **options: Any,
 ) -> protocols.DataReadWrite | protocols.MetadataReadWrite:
     """Dynamically import and instantiate an I/O handler.
 
     The handler is determined by the 'repository' and 'handler_type' arguments.
 
-    Dataset identity (`set_name`, `set_type`, `as_of_utc`) and handler
-    configuration (`options`) are kept apart, so that a configuration key can
-    never be mistaken for a dataset attribute.
+    A handler is configured from the repository and its `options` only.
+    Which dataset an operation concerns is passed to that operation as a
+    `DatasetRef`, so one handler instance can serve any number of datasets.
 
     Args:
         handler_type: Which binding of the repository to instantiate, one of
             'data', 'metadata' or 'archive'.
         repository: The repository configuration dictionary, or the name of a
             repository in the active configuration.
-        set_name: The name of the dataset to operate on.
-        set_type: The series type of the dataset to operate on.
-        as_of_utc: The 'as of' datetime, required when the series type has
-            versioning of type `Versioning.AS_OF`.
         **options: Additional options passed through to the handler.
     """
     repo_cfg = _repo_config(repository)
@@ -126,17 +139,11 @@ def _io_handler(
         case _:
             raise ValueError("Unhandlked handler type.")
     handler = _handler_class(handler_config["handler"])
-    # A fresh dict, so the active configuration is never mutated. Dataset
-    # identity is applied last, so a configuration key can never shadow it.
+    # A fresh dict, so the active configuration is never mutated.
     handler_kwargs: dict[str, Any] = dict(handler_config.get("options", {}))
-    handler_kwargs.update(options)
-    handler_kwargs.update(
-        set_name=set_name,
-        set_type=set_type,
-        as_of_utc=as_of_utc,
-    )
     if options:
         logger.debug("_IO_HANDLER() ... options: %s", options)
+        handler_kwargs.update(options)
     return handler(repository=repo_cfg, **handler_kwargs)
 
 
@@ -176,16 +183,28 @@ class DataIO:
 
     @property
     def dh(self) -> protocols.DataReadWrite:
-        """Expose the configured IO handler for data operations."""
+        """Expose the configured IO handler for data operations.
+
+        The handler holds configuration only.
+        The dataset it operates on is passed to each operation, as `ds.ref`.
+        """
         return _io_handler(
             handler_type="data",
             repository=self.ds.repository,
-            # dataset information should not really be required to initiate handler
-            # ... omitted when refactoring to facade pattern?
-            set_name=self.ds.name,
-            set_type=self.ds.data_type,
-            as_of_utc=date_utc(self.ds.as_of_utc),
         )
+
+    def read(self, **kwargs) -> IntoFrame:
+        """Read this dataset's data."""
+        return self.dh.read(self.ds.ref, **kwargs)
+
+    def write(self, data: IntoFrame, tags: TagDict | None = None) -> None:
+        """Write data for this dataset.
+
+        Args:
+            data: The data to write.
+            tags: The dataset's tags, used to derive the storage schema.
+        """
+        self.dh.write(self.ds.ref, data, tags=tags)
 
 
 class MetaIO:
@@ -257,7 +276,7 @@ def save(ds: Dataset) -> None:
         ds: The Dataset object to save.
     """
     utc_data = datelike_to_utc(ds.data)
-    DataIO(ds).dh.write(data=utc_data, tags=ds.tags)
+    DataIO(ds).write(data=utc_data, tags=ds.tags)
     MetaIO(ds).dh.write(set_name=ds.name, tags=ds.tags)
 
 
@@ -302,13 +321,9 @@ def read_metadata(
     Returns:
         A dictionary containing the dataset's metadata.
     """
-    meta_io = _io_handler(
-        handler_type="metadata",
-        repository=repository,
-        set_name=set_name,
-    )
+    meta_io = _io_handler(handler_type="metadata", repository=repository)
     if meta_io:
-        return meta_io.read()
+        return meta_io.read(set_name=set_name)
     else:
         return {}
 
@@ -331,14 +346,14 @@ def read_data(
     tags = read_metadata(repository, set_name)
     if tags:
         set_type = SeriesType(tags["versioning"], tags["temporality"])
-        data_io = _io_handler(
-            handler_type="data",
-            repository=repository,
-            set_name=set_name,
-            set_type=set_type,
+        # `date_utc` defaults to now, matching the previous behaviour where an
+        # unversioned read resolved to the latest version.
+        ref = DatasetRef(
+            name=set_name,
+            data_type=set_type,
             as_of_utc=date_utc(as_of_tz),
         )
-        data = data_io.read()
+        data = _io_handler(handler_type="data", repository=repository).read(ref)
     else:
         raise LookupError(f"Could not find Dataset('{set_name}') in {repository=}.")
 
@@ -420,8 +435,8 @@ def versions(
         ds: The Dataset object to inspect.
         **kwargs: Additional arguments passed to the underlying IO handler.
     """
-    data_io = DataIO(ds)
-    versions = data_io.dh.versions(
+    versions = DataIO(ds).dh.versions(
+        ds.ref,
         file_pattern="*.parquet",
         pattern=ds.data_type.versioning,
     )
@@ -468,10 +483,10 @@ def persist(
     (date_from, date_to) = date_range(ds.data)
     print(type(date_from))
     snap_io.write(
-        sharing=getattr(ds, "sharing", {}),
+        sharing=ds.sharing,
         as_of_tz=ds.as_of_utc,
         period_from=date_from,  # type: ignore[arg-type]
         period_to=date_to,  # type: ignore[arg-type]
-        data_path=DataIO(ds).dh.fullpath,  # type: ignore[attr-defined]
+        data_path=DataIO(ds).dh.fullpath(ds.ref),  # type: ignore[attr-defined]
         # meta_path=MetaIO(ds).dh.fullpath,
     )

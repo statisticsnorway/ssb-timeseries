@@ -1,4 +1,5 @@
 import logging
+from copy import deepcopy
 
 import pytest
 
@@ -47,6 +48,27 @@ def test_snapshot_without_save_raises_error(
     with pytest.raises(FileNotFoundError):
         # no ds.save() to see here!
         ds.snapshot()
+
+
+def test_snapshot_does_not_mutate_the_sharing_configuration(
+    dataset_with_sharing_config,
+):
+    """A snapshot must not write its defaults back into the dataset's configuration.
+
+    `DatasetRef` is documented as a snapshot rather than a live view, so a
+    handler that filled in a missing team would be editing the dataset it was
+    handed, and every ref built before that call as well.
+
+    The fixture is parametrised over several sharing configurations, one of which
+    deliberately leaves a team unspecified, so the defaulting path is covered.
+    """
+    (_, dataset) = dataset_with_sharing_config
+    sharing_before = deepcopy(dataset.sharing)
+
+    dataset.save()
+    dataset.snapshot()
+
+    assert dataset.sharing == sharing_before
 
 
 def test_snapshot_and_sharing_increases_file_count_in_configured_locations(
