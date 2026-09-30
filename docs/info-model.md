@@ -103,7 +103,7 @@ True immutability is a matter of IO implementation, even for `versioning = NONE`
 Immutability does not imply transparent versions, though, and transparency comes at a cost of heavier queries.
 Many immutable implementations make it quite painful to compare versions.
 
-The transparent, but only semi-immutable versioning is supplemented by the `Dataset.persist()` (snapshot) functionality.
+The transparent, but only semi-immutable versioning is supplemented by the `Dataset.archive()` functionality.
 This allows archiving data in immutable, stable stages that directly align with Statistics Norway's "inverted GSBPM" model (as outlined in the [2023 modernization strategy](https://unece.org/sites/default/files/2023-06/CES%202023%2021_Item%203.pdf)).
 By saving strict, point-in-time snapshots to dedicated buckets, the library enforces the strict progression of data through the five official steady states (Source, Input, Processed, Statistics, and Output).
 While daily work and transparent versioning happen dynamically in the active repositories, snapshots provide the absolute idempotency and traceability legally mandated for official statistics.

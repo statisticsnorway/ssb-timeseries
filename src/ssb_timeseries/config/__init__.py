@@ -66,6 +66,7 @@ from .constants import ENV_VAR_NAME
 from .constants import LOGGING_PRESETS
 from .constants import PACKAGE_NAME
 from .constants import PRESETS
+from .types import ArchiveConfig
 from .types import ConfigDict
 from .types import FileBasedRepository
 from .types import FileRepoConfig
@@ -145,12 +146,12 @@ class Config:
     """The path to the configuRation file."""
     repositories: dict[str, Repository]
     """Defines storage locations for time series data and metadata."""
-    snapshots: dict[str, Repository]
-    """Defines the storage locations for persisting (archiving) data in stable states."""
+    archives: dict[str, ArchiveConfig]
+    """Defines the storage locations for archiving data in stable states."""
     sharing: dict[str, Repository]
     """Defines the storage locations for shared data."""
     io_handlers: dict[str, Any]
-    """IO handlers for repository, snapshotts and sharing."""
+    """IO handlers for repositories, archives and sharing."""
     logging: dict[str, Any]
     """Logging configuration as a valid :py:mod:`logging.dictConfig`."""
 
@@ -258,6 +259,15 @@ class Config:
         if logfile:
             _config_logger.warning(
                 "The config option 'log_file' has been deprecated. Use dictConfig instead."
+            )
+
+        if "snapshots" in configuration:
+            warnings.warn(
+                "The config section 'snapshots' has been renamed to 'archives'. "
+                "Nothing was archived, because the old section is now ignored; "
+                "rename it to 'archives' to keep archiving.",
+                DeprecationWarning,
+                stacklevel=2,
             )
 
         for key, value in configuration.items():

@@ -167,14 +167,14 @@ def _repository_test_config(path: Path) -> dict[str, str]:
     }
 
 
-def _snapshot_test_config(path: Path) -> dict[str, str]:
+def _archive_test_config(path: Path) -> dict[str, str]:
     """Configure the archive repository based on temp dir root path."""
     return {
         "default": {
             "name": "archive",
             "directory": {
                 "handler": "archive",
-                "options": {"path": str(path / "snapshots")},
+                "options": {"path": str(path / "archives")},
             },
         },
     }
@@ -225,7 +225,7 @@ def buildup_and_teardown(
         # log_file=str(log_file_for_testing),
         io_handlers=config.BUILTIN_IO_HANDLERS,
         repositories=_repository_test_config(root_dir),
-        snapshots=_snapshot_test_config(root_dir),
+        archives=_archive_test_config(root_dir),
         sharing=_sharing_test_config(root_dir),
         bucket=str(root_dir / "bucket"),
         logging=log_config,

@@ -101,17 +101,20 @@ Given the `io_handlers` defined above, a data repository can be configured as fo
 ## 3. Archive and Sharing Configuration (`archive`)
 
 The `archive` function writes an immutable, versioned copy of a dataset's data, keeping every version it has ever written.
-This is controlled by the `snapshots` and `sharing` sections.
+This is controlled by the `archives` and `sharing` sections.
+Each is a mapping of location names to a destination, and `archive()` writes to the one named `default`.
 
-Given the `my_archive_handler` defined in the `io_handlers` section, an archive configuration can be set up as follows:
+Given the `archive` handler defined in the `io_handlers` section, an archive configuration can be set up as follows:
 
 ```json
 {
-    "snapshots": {
+    "archives": {
         "default": {
             "directory": {
-                "path": "/path/to/your/archives",
-                "handler": "my_archive_handler"
+                "handler": "archive",
+                "options": {
+                    "path": "/path/to/your/archives"
+                }
             },
             "options": {
                 "archive_format": "ssb"
@@ -121,15 +124,17 @@ Given the `my_archive_handler` defined in the `io_handlers` section, an archive 
     "sharing": {
         "default": {
             "directory": {
-                "path": "/path/to/your/shared/default",
-                "handler": "my_archive_handler"
+                "handler": "archive",
+                "options": {
+                    "path": "/path/to/your/shared/default"
+                }
             }
         }
     }
 }
 ```
 
--   **`snapshots`**: Defines where archives are written. The `options` block configures how they are written rather than where.
+-   **`archives`**: Defines where archives are written. The `options` block inside `directory` is where the archive lives, while the `options` block beside it configures how archives are written rather than where.
 -   **`archive_format`**: Names the convention to follow, either `ssb` or `generic` (the default, which assumes nothing about your organisation). The convention decides the folders, the file names and the data format, and whether an archive is also copied to the dataset's shared locations.
 -   **`sharing`**: Defines the named locations datasets can be shared to.
 -   The `Dataset` attribute `.sharing` is a list of the keys in `sharing`, not a list of paths, so a dataset says which locations it belongs in and never where they are.

@@ -368,6 +368,11 @@ def test_the_facade_hands_a_data_handler_the_ref_and_nothing_else(
     described a filename layout that only some handlers have. A handler backed
     by a database or an HTTP API has no filenames, so the stub below takes only
     a ref: if the facade grows any argument again, this raises TypeError.
+
+    The stub implements the whole `DataReadWrite` protocol so that it passes the
+    dispatcher's runtime check, but only `versions` is ever called; the other
+    operations raise if the facade ever reaches for them, which is the property
+    this test is about.
     """
     recorded: list = []
 
@@ -378,6 +383,15 @@ def test_the_facade_hands_a_data_handler_the_ref_and_nothing_else(
         def versions(self, dataset) -> list:
             recorded.append(dataset)
             return []
+
+        def exists(self, dataset) -> bool:
+            raise AssertionError("the facade must not call exists on its own")
+
+        def read(self, dataset, *args, **kwargs):
+            raise AssertionError("the facade must not call read on its own")
+
+        def write(self, dataset, data, tags=None) -> None:
+            raise AssertionError("the facade must not call write on its own")
 
     monkeypatch.setattr(io, "_handler_class", lambda handler_name: RefOnlyHandler)
     ds = one_new_set_for_each_data_type
@@ -412,3 +426,75 @@ def test_the_registered_archive_handler_satisfies_the_archive_protocol() -> None
     contracts would pass the checks above and still be wrong here.
     """
     assert isinstance(io._handler_class("archive"), ArchiveWrite)
+
+
+def test_a_handler_that_does_not_satisfy_its_protocol_is_rejected(conftest) -> None:
+    """The dispatcher must reject a registered handler that is missing operations.
+
+    Registration is only a name in the registry; it says nothing about what the
+    handler can do. Without this check a handler that implements, say, only
+    `read` is handed to the caller, and the failure surfaces much later as an
+    `AttributeError` in the middle of an unrelated operation. The rejection has
+    to happen at resolution, where the configured role is known.
+    """
+
+    class ReadOnlyHandler:
+        """A handler that can read, and nothing else."""
+
+        def __init__(self, repository, **options) -> None:
+            self.repository = repository
+
+        def read(self, ref, **kwargs):
+            return None
+
+    repository = deepcopy(conftest.configuration.repositories["test_1"])
+    real_handler_class = io._handler_class
+    io._handler_class = lambda name: (  # type: ignore[assignment]
+        ReadOnlyHandler if name == "simple-parquet" else real_handler_class(name)
+    )
+    try:
+        with pytest.raises(TypeError) as excinfo:
+            io._io_handler(handler_type="data", repository=repository)
+    finally:
+        io._handler_class = real_handler_class  # type: ignore[assignment]
+
+    message = str(excinfo.value)
+    assert "ReadOnlyHandler" in message
+    # The error names what to implement, not just that something is wrong.
+    assert "exists" in message
+    assert "write" in message
+    assert "DataReadWrite" in message
+
+
+@pytest.mark.parametrize(
+    "role, protocol_name",
+    [
+        ("data", "DataReadWrite"),
+        ("metadata", "MetadataReadWrite"),
+        ("archive", "ArchiveWrite"),
+    ],
+)
+def test_each_role_enforces_its_own_protocol(conftest, role, protocol_name) -> None:
+    """The role of a handler decides which contract it must satisfy.
+
+    A single `isinstance` check against the union of every protocol would let a
+    metadata-only handler pass as a data handler, because the union only asks
+    whether the handler looks like one of the three.
+    """
+
+    class NothingHandler:
+        def __init__(self, repository, **options) -> None:
+            self.repository = repository
+
+    repository = deepcopy(conftest.configuration.repositories["test_1"])
+    real_handler_class = io._handler_class
+    io._handler_class = lambda name: (  # type: ignore[assignment]
+        NothingHandler
+        if name in ("simple-parquet", "json", "archive")
+        else real_handler_class(name)
+    )
+    try:
+        with pytest.raises(TypeError, match=protocol_name):
+            io._io_handler(handler_type=role, repository=repository)
+    finally:
+        io._handler_class = real_handler_class  # type: ignore[assignment]

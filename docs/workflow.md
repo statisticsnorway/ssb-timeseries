@@ -28,7 +28,7 @@ The first stages removes sensitive information, standardises the data and does r
 
 These requirements and the conventions implemented to meet them are specific to Statistics Norway and applies not only to timeseries data. As such, the standardisation is created to be generic, not to be optimal for dealing with timeseries.
 
-The solution is to keep the working data repository and the persisted snapshots separate. While a `.save` function stores a timeseries dataset in its working repository, `snapshot` will copy it to the archive.
+The solution is to keep the working data repository and the persisted snapshots separate. While a `.save` function stores a timeseries dataset in its working repository, `archive` will copy it to the archive.
 
 ```python
 x = Dataset(...)
@@ -37,12 +37,12 @@ x = Dataset(...)
 x.save()
 
 # persist to stable stage
-x.snapshot()
+x.archive()
 ```
 
 The process model is based on the international standard [Generic Statistical Business Process Model (GSBPM)](https://unece.org/statistics/specifications/gsbpm).
 
-While with proper configuration, the `snapshot` function will work, it is not expected to be of much use outside a SSB context.
+While with proper configuration, the `archive` function will work, it is not expected to be of much use outside a SSB context.
 
 Data is also transferred to the National Archive. That does not involve the time series library as the implementation relies on the snapshots to stable states.
 

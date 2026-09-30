@@ -25,6 +25,37 @@ def log(path, before, after):
 # ----- The tests --------------
 
 
+def test_archiving_is_a_no_op_when_no_archive_is_configured(
+    conftest,
+    monkeypatch,
+    xyz_at,
+):
+    """A configuration without an `archives` section must not archive, and must not fail.
+
+    Archiving is optional, and no preset configures an archive, so most
+    configurations reach the first line of `archive()`. Reading the section as an
+    attribute raised `AttributeError` there, which turned an unconfigured feature
+    into a crash on every save.
+    """
+    from ssb_timeseries import io
+    from ssb_timeseries.dataset import Dataset
+
+    configuration = deepcopy(conftest.configuration)
+    del configuration.__dict__["archives"]
+    monkeypatch.setattr(
+        "ssb_timeseries.config.Config.active",
+        lambda: configuration,
+    )
+
+    ds = Dataset(name=function_name_hex(), data=xyz_at, data_type="simple")
+    ds.save()
+
+    # Returns without raising, and without writing an archive anywhere.
+    io.archive(ds)
+
+    assert io._sharing_destinations([]) == []
+
+
 def test_archive_after_save_does_not_raise_error(
     caplog,
     xyz_at,
@@ -282,6 +313,12 @@ def test_archive_of_a_dataset_that_is_not_stored_as_a_file(
 
         def read(self, ref, interval=""):
             return data
+
+        def write(self, ref, data, tags=None):
+            raise AssertionError("archiving must not write through the data handler")
+
+        def versions(self, ref):
+            raise AssertionError("archiving must not ask the data handler for versions")
 
     assert not hasattr(InMemoryDataHandler, "fullpath")
 

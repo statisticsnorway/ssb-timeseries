@@ -56,6 +56,40 @@ from .dataset_ref import DatasetRef
 
 HandlerType = Literal["data", "metadata", "archive"]
 
+_PROTOCOLS: dict[HandlerType, type] = {
+    "data": protocols.DataReadWrite,
+    "metadata": protocols.MetadataReadWrite,
+    "archive": protocols.ArchiveWrite,
+}
+"""The contract each kind of handler must satisfy.
+
+The role is the one thing that decides which contract applies.
+A handler is registered once and named by configuration, so nothing in the
+registry says what it is for, and the caller is the only place that knows.
+"""
+
+
+def _missing_protocol_members(handler: Any, protocol: type) -> list[str]:
+    """List the operations a handler does not implement, for a given protocol.
+
+    The protocols are `runtime_checkable`, so `isinstance` can say whether a
+    handler satisfies one but not what it is missing.
+    Naming the operations is the difference between a handler that is rejected
+    and a handler someone can fix.
+
+    Args:
+        handler: The instantiated handler to check.
+        protocol: The protocol it was asked to satisfy.
+
+    Returns:
+        The names of the protocol's operations the handler does not have, sorted.
+    """
+    required = getattr(protocol, "__protocol_attrs__", None)
+    if required is None:
+        # Python 3.11 has no `__protocol_attrs__`, so read the annotations instead.
+        required = (name for name in vars(protocol) if not name.startswith("_"))
+    return sorted(name for name in required if not hasattr(handler, name))
+
 
 def _all_repos() -> list:
     """Get a list of all repository names."""
@@ -136,13 +170,17 @@ def _io_handler(
         **options: Additional options passed through to the handler.
     """
     repo_cfg = _repo_config(repository)
+    role: HandlerType
     match handler_type.lower():
         case "data":
             handler_config = repo_cfg["directory"]
+            role = "data"
         case "metadata":
             handler_config = repo_cfg["catalog"]
+            role = "metadata"
         case "archive":
             handler_config = repo_cfg["directory"]
+            role = "archive"
         case _:
             raise ValueError("Unhandlked handler type.")
     handler = _handler_class(handler_config["handler"])
@@ -151,7 +189,22 @@ def _io_handler(
     if options:
         logger.debug("_IO_HANDLER() ... options: %s", options)
         handler_kwargs.update(options)
-    return handler(repository=repo_cfg, **handler_kwargs)
+    instance = handler(repository=repo_cfg, **handler_kwargs)
+
+    protocol = _PROTOCOLS[role]
+    if not isinstance(instance, protocol):
+        missing = _missing_protocol_members(instance, protocol)
+        raise TypeError(
+            f"The handler '{handler_config['handler']}' resolved to "
+            f"{type(instance).__module__}.{type(instance).__qualname__}, "
+            f"configured as '{role}' for repository "
+            f"{repo_cfg.get('name', repository)}, which does not satisfy the "
+            f"{protocol.__name__} protocol. "
+            f"It is missing: {', '.join(missing)}. "
+            f"Registration alone does not make a handler usable; it must "
+            f"implement the operations the {role} layer calls."
+        )
+    return instance
 
 
 def _handler_class(handler_name: str) -> type:
@@ -464,7 +517,9 @@ def _sharing_destinations(keys: list[str]) -> list[str]:
     """
     from ..config import Config
 
-    sharing_config = Config.active().sharing or {}
+    # Read through `__getitem__`, which returns None for a section the active
+    # configuration does not declare. A preset need not configure any sharing.
+    sharing_config = Config.active()["sharing"] or {}
     default = sharing_config.get("default")
 
     destinations = []
@@ -489,10 +544,10 @@ def archive(
     The copy is written once per call, under the archive's own naming
     convention, and no version is ever overwritten.
 
-    This function relies on a `snapshots` section being defined in the project
+    This function relies on an `archives` section being defined in the project
     configuration.
-    The dataset's `sharing` names any further configured locations its archive
-    is copied to.
+    The dataset is archived to the `default` destination, and its `sharing` names
+    any further configured locations its archive is copied to.
 
     .. seealso::
         For detailed configuration examples, refer to the guide on
@@ -503,10 +558,13 @@ def archive(
     """
     from ..config import Config
 
-    snapshot_config = Config.active().snapshots
-    if not snapshot_config:
+    # Read through `__getitem__`, which returns None for a section the active
+    # configuration does not declare. Archiving is optional, and no preset
+    # configures it, so most configurations have no `archives` section at all.
+    archives_config = Config.active()["archives"] or {}
+    if not archives_config:
         return
-    config_item = snapshot_config.get("default")
+    config_item = archives_config.get("default")
 
     if not config_item:
         return
@@ -520,15 +578,10 @@ def archive(
 
     # The archive's own options sit beside its repository in the section, since
     # they say how archives are written rather than where they are written to.
-    # TODO: declare `options` in the configuration schema, so this needs no cast.
-    archive_options = cast(
-        "dict[str, Any]",
-        config_item.get("options") or {},  # type: ignore[typeddict-item]
-    )
     handler = _io_handler(
         handler_type="archive",
         repository={"directory": config_item["directory"]},
-        **archive_options,
+        **config_item.get("options", {}),
     )
     (date_from, date_to) = date_range(ds.data)
     handler.write(

@@ -171,9 +171,9 @@ MINIMAL_VALID_CONFIG = {
         pytest.param({}, True, id="minimal valid config"),
         pytest.param({"log_file": "log.log"}, True, id="optional field present"),
         pytest.param(
-            {"snapshots": {"default": {"directory": {"handler": "s", "options": {}}}}},
+            {"archives": {"default": {"directory": {"handler": "s", "options": {}}}}},
             True,
-            id="optional snapshots present",
+            id="optional archives present",
         ),
         pytest.param({"unknown_future_field": 42}, True, id="undeclared extra field"),
         pytest.param({"configuration_file": None}, False, id="None instead of str"),
@@ -207,6 +207,41 @@ def test_is_valid_config_requires_the_mandatory_fields(missing_key: str) -> None
 
     assert is_valid is False
     assert missing_key in str(reason)
+
+
+def test_a_configuration_still_named_snapshots_warns_that_it_is_ignored() -> None:
+    """A renamed section must say so, not quietly stop archiving.
+
+    An old configuration keeps whatever else it declares, and an unknown key is
+    accepted, so a `snapshots` section is simply set as an attribute nothing
+    reads. Without a warning, `archive()` returns without writing anything and
+    the only symptom is a missing archive.
+    """
+    with pytest.warns(DeprecationWarning, match="'archives'"):
+        configuration = config.Config(
+            **MINIMAL_VALID_CONFIG,
+            snapshots={"default": {"directory": {"handler": "s", "options": {}}}},
+        )
+
+    # The old section is kept, so a configuration round trip does not lose it,
+    # but nothing reads it, and the new one is absent rather than empty.
+    assert configuration["snapshots"]
+    assert configuration["archives"] is None
+
+
+def test_a_section_the_configuration_does_not_declare_reads_as_none() -> None:
+    """An optional section must be absent, not an attribute error.
+
+    `archives` and `sharing` are declared as annotations, so they are not
+    attributes until a configuration sets them, and no preset sets either.
+    Reading them directly raised `AttributeError`, which turned "archiving is
+    not configured" into a crash. `__getitem__` is the safe accessor.
+    """
+    configuration = config.Config(preset="daplalab")
+
+    assert configuration["archives"] is None
+    assert configuration["sharing"] is None
+    assert configuration["repositories"]
 
 
 def test_presets_are_valid_configurations() -> None:

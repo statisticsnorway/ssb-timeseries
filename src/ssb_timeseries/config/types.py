@@ -36,13 +36,25 @@ class Repository(TypedDict):
 FileBasedRepository: TypeAlias = Repository
 
 
+class ArchiveConfig(TypedDict):
+    """Defines one archive destination, and the options archives are written with.
+
+    The `directory` says where the archive is written, while `options` says how it
+    is written, for example which naming convention and retention to follow.
+    """
+
+    directory: Required[FileRepoConfig]
+    options: NotRequired[dict[str, Any]]
+    default: NotRequired[bool]
+
+
 class ConfigDict(TypedDict):
     """Required attributes for configuration."""
 
     configuration_file: Required[str]
     io_handlers: Required[dict[str, Any]]
     repositories: Required[dict[str, Repository]]
-    snapshots: NotRequired[dict[str, Repository]]
+    archives: NotRequired[dict[str, ArchiveConfig]]
     sharing: NotRequired[dict[str, Repository]]
     log_file: NotRequired[str]
     logging: Required[dict[str, Any]]

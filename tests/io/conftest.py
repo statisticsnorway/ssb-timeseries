@@ -22,7 +22,7 @@ def use_archive_format(monkeypatch):
 
     def _use(name):
         monkeypatch.setitem(
-            Config.active().snapshots["default"],
+            Config.active().archives["default"],
             "options",
             {"archive_format": name},
         )
@@ -35,7 +35,7 @@ def sharing_configs(conftest) -> tuple:
     """Read base paths only once."""
     config = conftest.configuration
 
-    persisted = Path(config["snapshots"]["default"]["directory"]["options"]["path"])
+    persisted = Path(config["archives"]["default"]["directory"]["options"]["path"])
     shared = Path(config["sharing"]["default"]["directory"]["options"]["path"])
     shared_123 = Path(config["sharing"]["s123"]["directory"]["options"]["path"])
     shared_234 = Path(config["sharing"]["s234"]["directory"]["options"]["path"])
