@@ -13,8 +13,8 @@
             "handler": "ssb_timeseries.io.pyarrow_simple.FileSystem",
             "options": {}
         },
-        "snapshots": {
-            "handler": "ssb_timeseries.io.snapshot.FileSystem",
+        "archive": {
+            "handler": "ssb_timeseries.io.archiving.Archive",
             "options": {}
         }
     },

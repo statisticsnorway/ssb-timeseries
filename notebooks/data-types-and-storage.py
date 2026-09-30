@@ -166,12 +166,6 @@ def _(pqr):
 
 
 @app.cell
-def _(pqr):
-    pqr.io.data_dir
-    return
-
-
-@app.cell
 def _(data_path, tree):
     print(tree(data_path))
     return
