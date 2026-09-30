@@ -39,7 +39,9 @@ from ..dataframes import is_empty
 from ..dataframes import merge_data
 from ..dataframes.date_cols import prepend_as_of
 from ..dataframes.dates import standardize_dates
+from ..logging import logger
 from . import fs
+from .dataset_ref import DatasetRef
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped"
 
@@ -61,45 +63,58 @@ class HiveFileSystem:
     def __init__(
         self,
         repository: Any,
-        set_name: str,
-        set_type: types.SeriesType,
-        as_of_utc: datetime | None = None,
+        path: str = "",
         **kwargs: dict[str, Any],
     ) -> None:
-        """Initialize the filesystem handler for a given dataset."""
+        """Initialize the filesystem handler for a repository.
+
+        Which dataset an operation concerns is passed to that operation as a
+        `DatasetRef`, so a single handler can serve any number of datasets.
+
+        Args:
+            repository: The repository configuration dictionary, or the name of
+                a repository in the active configuration.
+            path: Root path of the repository, passed in from the repository
+                binding's `options` by the dispatcher.
+            **kwargs: Handler specific options. Unknown keys are accepted and
+                retained so that handlers can be extended without changing the
+                dispatcher.
+        """
         if isinstance(repository, dict):
             self.repository = repository
         else:
             cfg = Config.active()
             self.repository = cfg.repositories.get(repository)
 
-        self.set_name = set_name
-        self.data_type = set_type
-
-        if as_of_utc is None and set_type.versioning == types.Versioning.AS_OF:
-            raise ValueError(
-                "An 'as of' datetime must be specified when the type has versioning of type Versioning.AS_OF."
-            )
-        self.as_of_utc = as_of_utc
+        self.options = kwargs
+        self.path = str(path)
 
     @property
     def root(self) -> str:
         """Return the root path of the configured repository."""
-        ts_root = self.repository["directory"]["options"]["path"]
-        return str(ts_root)
+        return self.path
 
-    @property
-    def directory(self) -> str:
-        """Return the data directory for the dataset."""
+    def _directory(self, dataset: DatasetRef) -> str:
+        """Return the data directory for a dataset."""
         return str(
             Path(self.root)
-            / f"data_type={self.data_type.versioning!s}_{self.data_type.temporality!s}"
-            / f"dataset={self.set_name}"
+            / f"data_type={dataset.data_type.versioning!s}_{dataset.data_type.temporality!s}"
+            / f"dataset={dataset.name}"
         )
 
-    def read(self, *args, **kwargs) -> FrameT:
-        """Read a partitioned dataset from the filesystem."""
-        if not self.exists:
+    def read(self, dataset: DatasetRef, *args, **kwargs) -> FrameT:
+        """Read a partitioned dataset from the filesystem.
+
+        Args:
+            dataset: The dataset to read.
+            *args: Accepted and ignored, for call compatibility.
+            **kwargs: Accepted and ignored, for call compatibility.
+        """
+        if not dataset.is_identified:
+            # No version chosen, so there is no particular partition to read.
+            logger.debug("No 'as of' for %s - return empty frame.", dataset.name)
+            return empty_frame()
+        if not self.exists(dataset):
             return empty_frame()
 
         # Define the full schema, including the partition key, to avoid type inference errors
@@ -107,50 +122,62 @@ class HiveFileSystem:
         # partition_schema = pa.schema( [pa.field("as_of", pa.timestamp("ns", tz="UTC"), nullable=True)])
 
         (_file_schema, partitioning) = _parquet_schema(
-            self.data_type,
+            dataset.data_type,
             {
-                "name": self.set_name,
-                "versioning": self.data_type.versioning,
-                "temporality": self.data_type.temporality,
+                "name": dataset.name,
+                "versioning": dataset.data_type.versioning,
+                "temporality": dataset.data_type.temporality,
             },  # define minimal tag dict, because it can not be empty (TODO: relax that?)
             partition_by=["as_of"],
         )
 
-        dataset = pa.dataset.dataset(  # type: ignore[call-overload]
-            self.directory,
+        stored = pa.dataset.dataset(  # type: ignore[call-overload]
+            self._directory(dataset),
             format=PA_FILE_FORMAT,
             partitioning=partitioning,
-            partition_base_dir=self.directory,
+            partition_base_dir=self._directory(dataset),
         )
-        table = dataset.to_table()
+        table = stored.to_table()
 
         # The 'as_of' column is a storage detail and should not be part of the logical dataset
         if (
             "as_of" in table.column_names
-            and self.data_type.versioning == types.Versioning.NONE
+            and dataset.data_type.versioning == types.Versioning.NONE
         ):
             table = table.drop(["as_of"])
 
         return table
 
-    def write(self, data: FrameT, tags: dict | None = None) -> None:
-        """Write data to the filesystem, partitioned by versioning scheme."""
-        df = prepend_as_of(data, self.as_of_utc)
+    def write(
+        self,
+        dataset: DatasetRef,
+        data: FrameT,
+        tags: dict | None = None,
+    ) -> None:
+        """Write a dataset's data to the filesystem, partitioned by versioning scheme.
+
+        Args:
+            dataset: The dataset to write.
+            data: The data to write.
+            tags: The dataset's tags, used to derive the storage schema.
+        """
+        dataset.require_identified()
+        df = prepend_as_of(data, dataset.as_of_utc)
         df = standardize_dates(df)
         (file_schema, partitioning) = _parquet_schema(
-            self.data_type,
+            dataset.data_type,
             tags,
             partition_by=["as_of"],
         )
-        if self.data_type.versioning == types.Versioning.NONE:
-            old_data = self.read()
+        if dataset.data_type.versioning == types.Versioning.NONE:
+            old_data = self.read(dataset)
             if not is_empty(old_data):
                 old_data = prepend_as_of(old_data, None)
                 df = merge_data(
                     old=old_data,
                     new=df,
-                    date_cols=set(self.data_type.date_columns),
-                    temporality=self.data_type.temporality,
+                    date_cols=set(dataset.data_type.date_columns),
+                    temporality=dataset.data_type.temporality,
                 )
 
         pa_table = nw.from_native(df).to_arrow()
@@ -158,24 +185,38 @@ class HiveFileSystem:
 
         pa.dataset.write_dataset(
             pa_table,
-            base_dir=self.directory,
+            base_dir=self._directory(dataset),
             partitioning=partitioning,
             existing_data_behavior=PA_BEHAVIOR,
             format=PA_FILE_FORMAT,
             schema=file_schema,
         )
 
-    @property
-    def exists(self) -> bool:
-        """Check if the dataset directory exists."""
-        return fs.exists(self.directory)
+    def exists(self, dataset: DatasetRef) -> bool:
+        """Check if a dataset's directory exists.
 
-    def versions(self) -> list[datetime | str]:
-        """List available versions by inspecting subdirectories."""
-        if not self.exists or self.data_type.versioning != types.Versioning.AS_OF:
+        Args:
+            dataset: The dataset to check.
+        """
+        return fs.exists(self._directory(dataset))
+
+    def versions(self, dataset: DatasetRef) -> list[datetime | str]:
+        """List available versions by inspecting a dataset's subdirectories.
+
+        Hive keeps its data in partition directories rather than in versioned
+        file names, so there is no file name pattern to configure and no
+        filename convention to parse. The versioning comes from the ref.
+
+        Args:
+            dataset: The dataset to list versions for.
+        """
+        if (
+            not self.exists(dataset)
+            or dataset.data_type.versioning != types.Versioning.AS_OF
+        ):
             return []
 
-        version_dirs = fs.ls(self.directory)
+        version_dirs = fs.ls(self._directory(dataset))
         versions = []
         for d in version_dirs:
             if "as_of=" in d:

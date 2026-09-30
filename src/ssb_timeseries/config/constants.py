@@ -125,15 +125,15 @@ BUILTIN_IO_HANDLERS = {
         "options": {},
     },
     "hive-partitioned-parquet": {
-        "handler": "ssb_timeseries.io.pyarrow_hive.FileSystem",
+        "handler": "ssb_timeseries.io.pyarrow_hive.HiveFileSystem",
         "options": {},
     },
     "json": {
         "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
         "options": {},
     },
-    "snapshots": {
-        "handler": "ssb_timeseries.io.snapshot.FileSystem",
+    "archive": {
+        "handler": "ssb_timeseries.io.archiving.Archive",
         "options": {},
     },
 }

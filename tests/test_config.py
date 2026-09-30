@@ -50,7 +50,7 @@ IO_HANDLERS = {
         "options": {"compression": "snappy"},
     },
     "json": {
-        "handler": "ssb_timeseries.io.json_metadata.MetaIO",
+        "handler": "ssb_timeseries.io.json_metadata.JsonMetaIO",
         "options": {},
     },
 }
@@ -150,6 +150,106 @@ def test_config_validation(
     test_logger.warning(f"Created configuration: {configuration}")
     assert isinstance(configuration, config.Config)
     assert configuration.is_valid
+
+
+MINIMAL_VALID_CONFIG = {
+    "configuration_file": "config.json",
+    "io_handlers": {"parquet": {"handler": "parquet", "options": {}}},
+    "repositories": {
+        "test_repo": {
+            "name": "test-repo",
+            "directory": {"handler": "parquet", "options": {}},
+        }
+    },
+    "logging": {},
+}
+
+
+@pytest.mark.parametrize(
+    "overrides,expected_valid",
+    [
+        pytest.param({}, True, id="minimal valid config"),
+        pytest.param({"log_file": "log.log"}, True, id="optional field present"),
+        pytest.param(
+            {"archives": {"default": {"directory": {"handler": "s", "options": {}}}}},
+            True,
+            id="optional archives present",
+        ),
+        pytest.param({"unknown_future_field": 42}, True, id="undeclared extra field"),
+        pytest.param({"configuration_file": None}, False, id="None instead of str"),
+        pytest.param({"configuration_file": 42}, False, id="int instead of str"),
+        pytest.param({"io_handlers": "parquet"}, False, id="str instead of dict"),
+        pytest.param({"repositories": []}, False, id="list instead of dict"),
+        pytest.param({"logging": None}, False, id="None instead of dict"),
+        pytest.param({"log_file": {"path": "x"}}, False, id="dict instead of str"),
+    ],
+)
+def test_is_valid_config_checks_declared_top_level_types(
+    overrides, expected_valid: bool
+) -> None:
+    """Wrong top level types must be detected, and missing optional fields must not."""
+    configuration = {**MINIMAL_VALID_CONFIG, **overrides}
+
+    is_valid, reason = config.is_valid_config(configuration)
+
+    assert is_valid is expected_valid, reason
+
+
+@pytest.mark.parametrize(
+    "missing_key",
+    ["configuration_file", "io_handlers", "repositories", "logging"],
+)
+def test_is_valid_config_requires_the_mandatory_fields(missing_key: str) -> None:
+    """Every mandatory field must be reported when absent."""
+    configuration = {k: v for k, v in MINIMAL_VALID_CONFIG.items() if k != missing_key}
+
+    is_valid, reason = config.is_valid_config(configuration)
+
+    assert is_valid is False
+    assert missing_key in str(reason)
+
+
+def test_a_configuration_still_named_snapshots_warns_that_it_is_ignored() -> None:
+    """A renamed section must say so, not quietly stop archiving.
+
+    An old configuration keeps whatever else it declares, and an unknown key is
+    accepted, so a `snapshots` section is simply set as an attribute nothing
+    reads. Without a warning, `archive()` returns without writing anything and
+    the only symptom is a missing archive.
+    """
+    with pytest.warns(DeprecationWarning, match="'archives'"):
+        configuration = config.Config(
+            **MINIMAL_VALID_CONFIG,
+            snapshots={"default": {"directory": {"handler": "s", "options": {}}}},
+        )
+
+    # The old section is kept, so a configuration round trip does not lose it,
+    # but nothing reads it, and the new one is absent rather than empty.
+    assert configuration["snapshots"]
+    assert configuration["archives"] is None
+
+
+def test_a_section_the_configuration_does_not_declare_reads_as_none() -> None:
+    """An optional section must be absent, not an attribute error.
+
+    `archives` and `sharing` are declared as annotations, so they are not
+    attributes until a configuration sets them, and no preset sets either.
+    Reading them directly raised `AttributeError`, which turned "archiving is
+    not configured" into a crash. `__getitem__` is the safe accessor.
+    """
+    configuration = config.Config(preset="daplalab")
+
+    assert configuration["archives"] is None
+    assert configuration["sharing"] is None
+    assert configuration["repositories"]
+
+
+def test_presets_are_valid_configurations() -> None:
+    """All shipped presets must pass the validation they are tested against."""
+    for preset_name, preset in config.PRESETS.items():
+        is_valid, reason = config.is_valid_config(preset)
+
+        assert is_valid, f"preset {preset_name} is invalid: {reason}"
 
 
 @pytest.mark.parametrize(
@@ -279,9 +379,19 @@ def test_init_of_not_already_existing_config_file_with_complete_params_creates_n
         configuration_file=tmp_config,
         log_file=test_dir,
         io_handlers=IO_HANDLERS,
-        repositories=[
-            {"name": "test-repo", "directory": test_dir, "catalog": test_dir}
-        ],
+        repositories={
+            "test_repo": {
+                "name": "test-repo",
+                "directory": {
+                    "handler": "parquet",
+                    "options": {"path": str(test_dir)},
+                },
+                "catalog": {
+                    "handler": "json",
+                    "options": {"path": str(test_dir)},
+                },
+            }
+        },
         logging={},
     )
 
@@ -289,7 +399,7 @@ def test_init_of_not_already_existing_config_file_with_complete_params_creates_n
         f"Using testdir: {test_dir}. Created configuration: {tmp_config}\n{configuration}"
     )
     assert isinstance(configuration, config.Config)
-    assert configuration.repositories[0]["directory"]
+    assert configuration.repositories["test_repo"]["directory"]["handler"] == "parquet"
 
 
 def test_init_w_only_config_file_param_pointing_to_file_not_exists_raises_error(

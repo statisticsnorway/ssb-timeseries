@@ -112,9 +112,9 @@ def test_metaio_write_uses_explicit_tags(conftest) -> None:
     }
     meta_io = io.MetaIO(repository=conftest.repo["name"])
 
-    meta_io.write(set_name=set_name, tags=explicit_tags)
+    meta_io.write(name=set_name, tags=explicit_tags)
 
-    assert meta_io.read(set_name=set_name) == explicit_tags
+    assert meta_io.read(name=set_name) == explicit_tags
 
 
 def test_search_for_nonexisting_dataset_returns_none(

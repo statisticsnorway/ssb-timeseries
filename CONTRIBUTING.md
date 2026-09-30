@@ -1,8 +1,7 @@
 # Contributor Guide
 
 Thank you for your interest in improving this project.
-This project is open-source under the [MIT license] and
-welcomes contributions in the form of bug reports, feature requests, and pull requests.
+This project is open-source under the [MIT license] and welcomes contributions in the form of bug reports, feature requests, and pull requests.
 
 Here is a list of important resources for contributors:
 
@@ -23,16 +22,43 @@ When filing an issue, make sure to answer these questions:
 - What did you expect to see?
 - What did you see instead?
 
-The best way to get your bug fixed is to provide a test case,
-and/or steps to reproduce the issue.
+The best way to get your bug fixed is to provide a test case, and/or steps to reproduce the issue.
 
 ## How to request a feature
 
 Request features on the [Issue Tracker].
 
+## Project outline
+
+The project uses a [src layout](https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/) with the usual `src/`, `docs/` and `tests/` directories, plus `notebooks/` and `tools/`.
+
+| Path | Contents |
+|---|---|
+| `src/ssb_timeseries/` | The library published to PyPI. |
+| `tests/` | The test suite, mirroring the `src/` layout. |
+| `docs/` | Documentation sources, including the `docs/reference/` API reference. |
+| `notebooks/` | Marimo notebooks and their configurations. |
+| `tools/` | Development scripts that are not part of the package, covering notebook helpers and the export of notebook content to `docs/`. |
+
+The guides under `docs/guides/` are exported from `notebooks/` by `tools/export_all_guides.py`.
+That script holds the list of notebooks it covers.
+Edits to an exported guide are lost on the next run, so edit the notebook instead.
+A guide the script does not list is hand-maintained.
+Rebuilding is a manual step, not a Nox session:
+
+```console
+poetry run python tools/export_all_guides.py
+```
+
+Run it when a notebook or its configuration changes.
+Commit the regenerated guides together with the change that produced them.
+
+Add a notebook to `tests/notebooks/test_guides.py` to have it run as part of the test suite, without regenerating anything in `docs/guides/`.
+The test only checks that the notebook runs to completion, so put the real assertions in cells named `test_...`.
+
 ## How to set up your development environment
 
-You need Python 3.11+ (3.14 recommended) and the following tools:
+You need Python 3.11+ (except 3.14.1) and the following tools:
 
 - [Poetry]
 - [Nox]
@@ -98,8 +124,7 @@ For example, invoke the unit test suite like this:
 nox --session=tests
 ```
 
-Unit tests are located in the _tests_ directory,
-and are written using the [pytest] testing framework.
+Unit tests are located in the `tests/` directory, and are written using the [pytest] testing framework.
 
 ## How to submit changes
 
@@ -113,14 +138,10 @@ Your pull request needs to meet the following guidelines for acceptance:
 
 Feel free to submit early, though — we can always iterate on this.
 
-To run linting and code formatting checks before committing your change, you can install pre-commit as a Git hook by running the following command:
-
-```console
-nox --session=pre-commit -- install
-```
-
 It is recommended to open an issue before starting work on anything.
 This will allow a chance to talk it over with the owners and validate your approach.
+
+We also appreciate it if you follow the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) and use [semantic line breaks](https://sembr.org/) for Markdown and reStructured Text.
 
 [mit license]: https://opensource.org/licenses/MIT
 [source code]: https://github.com/statisticsnorway/ssb-timeseries

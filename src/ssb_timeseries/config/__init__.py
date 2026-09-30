@@ -55,6 +55,8 @@ except ImportError:
 
 from typing import Any
 from typing import TypeAlias
+from typing import get_origin
+from typing import get_type_hints
 
 from ..types import PathStr
 from .constants import BUILTIN_IO_HANDLERS
@@ -64,6 +66,7 @@ from .constants import ENV_VAR_NAME
 from .constants import LOGGING_PRESETS
 from .constants import PACKAGE_NAME
 from .constants import PRESETS
+from .types import ArchiveConfig
 from .types import ConfigDict
 from .types import FileBasedRepository
 from .types import FileRepoConfig
@@ -75,11 +78,15 @@ _config_logger = logging.getLogger(__name__)
 
 
 def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
-    """Check if a dictionary is a valid configuration :py:class:`ConfigDict`."""
-    # The ConfigDict.__required_keys__ includes optional fields like 'snapshots' and 'sharing'
-    # which causes a ValidationError when the default configuration is loaded.
-    # To fix this, we explicitly define the required keys.
-    # missing_required = ConfigDict.__required_keys__ - set(configuration.keys())
+    """Check if a dictionary is a valid configuration :py:class:`ConfigDict`.
+
+    Only the top level of the configuration is validated, that is the presence of the
+    required fields and the type of the fields that are present. The shape of nested
+    items like repositories and io handlers is not validated.
+    """
+    # `config/types.py` uses `from __future__ import annotations`, which turns the
+    # Required and NotRequired markers into strings that `TypedDict.__required_keys__`
+    # cannot see. The required keys are therefore spelled out here.
     required_keys = {"configuration_file", "io_handlers", "repositories", "logging"}
     missing_required = required_keys - set(configuration.keys())
     if missing_required:
@@ -87,15 +94,14 @@ def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
         return (False, msg)
 
     wrong_type = []
-    for (
-        cfg_key,
-        cfg_expected_type,
-    ) in ConfigDict().items():  # type: ignore [typeddict-item]
-        config_item = configuration.get(cfg_key, None)
-        cfg_got_type = type(config_item)
-        if cfg_got_type is type(cfg_expected_type):
+    for cfg_key, cfg_expected_type in get_type_hints(ConfigDict).items():
+        if cfg_key not in configuration:
+            continue
+        expected_type = get_origin(cfg_expected_type) or cfg_expected_type
+        config_item = configuration.get(cfg_key)
+        if not isinstance(config_item, expected_type):
             wrong_type.append(
-                f"{cfg_key} - got {cfg_got_type} - expected {cfg_expected_type}"
+                f"{cfg_key} - got {type(config_item)} - expected {cfg_expected_type}"
             )
 
     if wrong_type:
@@ -140,12 +146,12 @@ class Config:
     """The path to the configuRation file."""
     repositories: dict[str, Repository]
     """Defines storage locations for time series data and metadata."""
-    snapshots: dict[str, Repository]
-    """Defines the storage locations for persisting (archiving) data in stable states."""
+    archives: dict[str, ArchiveConfig]
+    """Defines the storage locations for archiving data in stable states."""
     sharing: dict[str, Repository]
     """Defines the storage locations for shared data."""
     io_handlers: dict[str, Any]
-    """IO handlers for repository, snapshotts and sharing."""
+    """IO handlers for repositories, archives and sharing."""
     logging: dict[str, Any]
     """Logging configuration as a valid :py:mod:`logging.dictConfig`."""
 
@@ -253,6 +259,15 @@ class Config:
         if logfile:
             _config_logger.warning(
                 "The config option 'log_file' has been deprecated. Use dictConfig instead."
+            )
+
+        if "snapshots" in configuration:
+            warnings.warn(
+                "The config section 'snapshots' has been renamed to 'archives'. "
+                "Nothing was archived, because the old section is now ignored; "
+                "rename it to 'archives' to keep archiving.",
+                DeprecationWarning,
+                stacklevel=2,
             )
 
         for key, value in configuration.items():

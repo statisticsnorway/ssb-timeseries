@@ -9,12 +9,15 @@ import pytest
 from pytest import LogCaptureFixture
 
 # from ssb_timeseries.io import json_metadata
+from ssb_timeseries.config import Config
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import now_utc
 from ssb_timeseries.io import pyarrow_simple as io
+from ssb_timeseries.io.dataset_ref import DatasetRef
 from ssb_timeseries.io.fs import file_count
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import Versioning
 
 # mypy: ignore-errors
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"
@@ -24,6 +27,16 @@ test_logger = logging.getLogger(__name__)
 # test_logger = ts.logger
 
 # =============================== HELPERS ===============================
+
+
+def data_path(repository: str | dict) -> str:
+    """Get the data path configured for a repository, as the dispatcher would."""
+    repo = (
+        repository
+        if isinstance(repository, dict)
+        else Config.active().repositories[repository]
+    )
+    return str(repo["directory"]["options"]["path"])
 
 
 def check_file_count_change(
@@ -54,22 +67,64 @@ def test_versioning_as_of_creates_new_file(
     x: Dataset = one_new_set_for_each_versioned_type
     io_handler = io.FileSystem(
         repository=x.repository,
-        set_name=x.name,
-        set_type=x.data_type,
-        as_of_utc=x.as_of_utc,
+        path=data_path(x.repository),
     )
-    data_dir = io_handler.directory
+    data_dir = io_handler._directory(x.ref)
 
     files_before = file_count(data_dir)
     x.data = (x * 1.1).data
     time.sleep(1)  # so `now_utc()` does not get too close to old x.as_of_utc
-    io_handler.as_of_utc = now_utc()
-    io_handler.write(data=x.data, tags=x.tags)
+    x.as_of_utc = now_utc()
+    io_handler.write(x.ref, data=x.data, tags=x.tags)
     assert check_file_count_change(
         directory=data_dir,
         initial_count=files_before,
         timeout_seconds=20,
     ), f"File count did not increase for type {x.data_type}."
+
+
+def test_versions_needs_no_pattern_argument(
+    one_existing_set_for_each_data_type,
+) -> None:
+    """A direct call to versions() must not need a pattern argument.
+
+    The default used to be "as_of", which cannot match the file name of a
+    dataset of any other versioning, so calling this on a NONE dataset raised
+    AttributeError from a regex that did not match. The ref already carries
+    the versioning, so the handler reads it from there.
+    """
+    dataset: Dataset = one_existing_set_for_each_data_type
+    io_handler = io.FileSystem(
+        repository=dataset.repository,
+        path=data_path(dataset.repository),
+    )
+    io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
+
+    versions = io_handler.versions(dataset.ref)
+
+    if dataset.data_type.versioning == Versioning.NONE:
+        assert set(versions) == {"latest"}
+    else:
+        # Other tests share this dataset's directory, so it may hold versions
+        # beyond this one. This dataset's own version must be among them.
+        assert dataset.as_of_utc in versions
+
+
+def test_a_pattern_that_does_not_match_the_file_name_says_so(
+    one_existing_set_for_each_data_type,
+) -> None:
+    """A non-matching pattern must report the mismatch, not raise AttributeError."""
+    dataset: Dataset = one_existing_set_for_each_data_type
+    io_handler = io.FileSystem(
+        repository=dataset.repository,
+        path=data_path(dataset.repository),
+    )
+    io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
+    directory = Path(io_handler._directory(dataset.ref))
+    written = next(directory.glob("*.parquet"))
+
+    with pytest.raises(ValueError, match="does not match the file name"):
+        io._version_from_file_name(written.name, "not_a_versioning")
 
 
 def test_versioning_none_appends_to_existing_file(
@@ -80,9 +135,7 @@ def test_versioning_none_appends_to_existing_file(
     a: Dataset = one_existing_set_for_each_unversioned_type
     io_handler = io.FileSystem(
         repository=a.repository,
-        set_name=a.name,
-        set_type=a.data_type,
-        as_of_utc=a.as_of_utc,
+        path=data_path(a.repository),
     )
 
     # Create new data that overlaps partially with the existing data
@@ -95,9 +148,9 @@ def test_versioning_none_appends_to_existing_file(
         freq="MS",
         temporality=a.data_type.temporality,
     )
-    io_handler.write(data=new_data, tags=a.tags)
+    io_handler.write(a.ref, data=new_data, tags=a.tags)
     # Read the data back and verify the merge logic
-    c = io_handler.read()
+    c = io_handler.read(a.ref)
     test_logger.debug(
         f"First write {len(a.data)} rows, second write {len(new_data)} rows --> combined {len(c)} rows."
     )
@@ -108,9 +161,7 @@ def test_versioning_none_appends_to_existing_file(
 def test_io_dirs(conftest) -> None:
     dirs = io.FileSystem(
         repository=conftest.repo,
-        set_name="test-1",
-        set_type=SeriesType.simple(),
-        as_of_utc=None,
+        path=data_path(conftest.repo),
     )
     assert isinstance(dirs, io.FileSystem)
 
@@ -120,15 +171,15 @@ def test_io_data_directory_path_as_expected(
     caplog,
 ) -> None:
     test_name = conftest.function_name()
+    data_type = SeriesType.simple()
     test_io = io.FileSystem(
         repository=conftest.repo,
-        set_name=test_name,
-        set_type=SeriesType.simple(),
-        as_of_utc=None,
+        path=data_path(conftest.repo),
     )
-    repo_base_dir = Path(conftest.repo["directory"]["options"]["path"])
+    repo_base_dir = Path(data_path(conftest.repo))
     expected: str = repo_base_dir / "NONE_AT" / test_name
-    assert str(test_io.directory) == str(expected)
+    ref = DatasetRef(name=test_name, data_type=data_type)
+    assert str(test_io._directory(ref)) == str(expected)
 
 
 def test_write_new_dataset_creates_file_with_correct_schema(
@@ -140,32 +191,47 @@ def test_write_new_dataset_creates_file_with_correct_schema(
     dataset = one_new_set_for_each_data_type
     io_handler = io.FileSystem(
         repository=dataset.repository,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
+        path=data_path(dataset.repository),
     )
 
-    assert not io_handler.exists
-    io_handler.write(data=dataset.data, tags=dataset.tags)
-    assert io_handler.exists
+    assert not io_handler.exists(dataset.ref)
+    io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
+    assert io_handler.exists(dataset.ref)
 
-    schema = pyarrow.parquet.read_schema(io_handler.fullpath)
+    schema = pyarrow.parquet.read_schema(io_handler.fullpath(dataset.ref))
     expected_schema = io.parquet_schema(dataset.data_type, dataset.tags)
     assert schema.equals(expected_schema)
 
 
-def test_simple_filesystem_init_raises_error_for_as_of_without_as_of_utc(
+def test_a_versioned_dataset_cannot_be_written_without_an_as_of(
     one_new_set_for_each_versioned_type: Dataset,
 ) -> None:
-    """Verify that initializing FileSystem with Versioning.AS_OF and as_of_utc=None raises a ValueError."""
+    """Writing a versioned dataset needs to know which version to write.
+
+    Reading and listing are fine without one, since there is simply
+    nothing to return, so the requirement is checked when it first matters.
+    """
     dataset = one_new_set_for_each_versioned_type
+    ref = DatasetRef(
+        name=dataset.name,
+        data_type=dataset.data_type,
+        as_of_utc=None,
+    )
+
+    assert not ref.is_identified
+    # A read finds no version, and yields an empty frame rather than failing.
+    read_result = io.FileSystem(
+        repository=dataset.repository,
+        path=data_path(dataset.repository),
+    ).read(ref)
+    assert read_result.num_rows == 0
+
+    # A write would have to invent a version, so it must fail.
     with pytest.raises(ValueError, match="An 'as of' datetime must be specified"):
         io.FileSystem(
             repository=dataset.repository,
-            set_name=dataset.name,
-            set_type=dataset.data_type,
-            as_of_utc=None,
-        )
+            path=data_path(dataset.repository),
+        ).write(ref, data=dataset.data, tags=dataset.tags)
 
 
 def test_read_non_existent_dataset_returns_empty_frame(
@@ -175,12 +241,16 @@ def test_read_non_existent_dataset_returns_empty_frame(
     dataset = one_new_set_for_each_data_type
     io_handler = io.FileSystem(
         repository=dataset.repository,
-        set_name="non_existent_dataset",  # Ensure it doesn't exist
-        set_type=dataset.data_type,
+        path=data_path(dataset.repository),
+    )
+    # Ensure the dataset doesn't exist
+    ref = DatasetRef(
+        name="non_existent_dataset",
+        data_type=dataset.data_type,
         as_of_utc=dataset.as_of_utc,
     )
-    assert not io_handler.exists
-    read_data = io_handler.read()
+    assert not io_handler.exists(ref)
+    read_data = io_handler.read(ref)
     assert read_data.shape[0] == 0
 
 
@@ -194,9 +264,7 @@ def test_write_propagates_filesystem_errors(
     dataset = one_new_set_for_each_data_type
     io_handler = io.FileSystem(
         repository=dataset.repository,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
+        path=data_path(dataset.repository),
     )
 
     def fail_write(*_args, **_kwargs) -> None:
@@ -205,7 +273,7 @@ def test_write_propagates_filesystem_errors(
     monkeypatch.setattr(io.fs, "write_parquet", fail_write)
 
     with pytest.raises(OSError, match="forced write failure"):
-        io_handler.write(data=dataset.data, tags=dataset.tags)
+        io_handler.write(dataset.ref, data=dataset.data, tags=dataset.tags)
 
     assert "DATASET.write.error" in caplog.text
     assert "DATASET.write.success" not in caplog.text
@@ -220,10 +288,8 @@ def test_simple_write_with_none_data_raises_type_error(
     dataset = one_new_set_for_each_data_type
     io_handler = io.FileSystem(
         repository=dataset.repository,
-        set_name=dataset.name,
-        set_type=dataset.data_type,
-        as_of_utc=dataset.as_of_utc,
+        path=data_path(dataset.repository),
     )
 
     with pytest.raises(TypeError):
-        io_handler.write(data=None, tags=dataset.tags)
+        io_handler.write(dataset.ref, data=None, tags=dataset.tags)

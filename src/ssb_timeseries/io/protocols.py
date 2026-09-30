@@ -14,6 +14,8 @@ from typing import Any
 from typing import Protocol
 from typing import runtime_checkable
 
+from .dataset_ref import DatasetRef
+
 # mypy: disable-error-code="no-untyped-def"
 # ,no-any-return"
 
@@ -25,46 +27,51 @@ class DataReadWrite(Protocol):
     def __init__(
         self,
         repository: str | dict,  # TODO: streamline - update to use dict config only
-        set_name: str,  # TODO: remove -> turn into method parameter
-        set_type: str,  # TODO: remove -> turn into method parameter
-        as_of_utc: datetime | None = None,  # TODO: remove -> turn into method parameter
-        **kwargs,
+        **options: Any,
     ) -> None:
         """Initialize the IO handler with configuration for a specific data storage.
 
         This constructor is called by the IO dispatcher.
-        It configures the handler instance to operate within a specific context.
+        It configures the handler from the repository and its options only.
+        Which dataset an operation concerns is passed to that operation as a
+        `DatasetRef`, so one handler instance can serve any number of datasets.
 
         Args:
             repository: The data repository name or configuration.
-            set_name: The dataset name.
-            set_type: The data type for the dataset.
-            as_of_utc: The version marker (should be timezone aware).
-            **kwargs: Any parameters defined for the handler in the configuration.
+            **options: Any parameters defined for the handler in the configuration.
         """
         ...
 
-    @property
-    def exists(self, set_name: str = "") -> bool:
-        """Check if the dataset exists in the configured storage."""
+    def exists(self, dataset: DatasetRef) -> bool:
+        """Check if a dataset exists in the configured storage.
+
+        Args:
+            dataset: The dataset to check for.
+        """
         ...
 
-    def write(self, data: Any, tags: dict | None = None) -> None:
-        """Write the dataset's data to the configured storage.
+    def write(self, dataset: DatasetRef, data: Any, tags: dict | None = None) -> None:
+        """Write a dataset's data to the configured storage.
 
         This method should handle both the creation of new data files and the
         updating/merging of data into existing files, depending on the
         versioning strategy of the dataset.
 
         Args:
+            dataset: The dataset to write.
             data: The data to be written (e.g., a pandas DataFrame or PyArrow Table).
             tags: A dictionary of metadata tags to be stored with the data,
                 often in the file's schema.
         """
         ...
 
-    def read(self, *args, **kwargs) -> Any:
-        """Read data from the configured storage.
+    def read(self, dataset: DatasetRef, *args: Any, **kwargs: Any) -> Any:
+        """Read a dataset's data from the configured storage.
+
+        Args:
+            dataset: The dataset to read.
+            *args: Accepted and ignored, for call compatibility.
+            **kwargs: Handler specific read options, such as an interval.
 
         Returns:
             The dataset's data in a dataframe-like format (e.g., PyArrow Table).
@@ -72,11 +79,66 @@ class DataReadWrite(Protocol):
         """
         ...
 
-    def versions(self, *args, **kwargs) -> list[datetime | str]:
-        """Retrieve a list of available versions for the dataset.
+    def versions(self, dataset: DatasetRef) -> list[datetime | str]:
+        """Retrieve a list of available versions for a dataset.
+
+        A handler takes only the dataset ref, because the ref carries the
+        versioning, and the handler's configured options carry everything else
+        about its own storage.
+        Storage specific concerns such as a file name pattern are deliberately
+        absent, so that a handler backed by a database or an HTTP API is not
+        asked to interpret them.
+
+        Args:
+            dataset: The dataset to list versions for.
 
         Returns:
             A sorted list of version identifiers (datetimes or strings).
+        """
+        ...
+
+
+@runtime_checkable
+class ArchiveWrite(Protocol):
+    """Defines the contract for an archive handler.
+
+    An archive is a destination, not a source.
+    It takes the dataset's data as a frame and writes it in whatever layout the
+    archive itself defines, which is why it is not a `DataReadWrite`.
+
+    Notably it does not ask the source handler for a file path.
+    A data repository need not be a filesystem at all, so archiving a dataset
+    held in a database or behind an HTTP API has to work the same way.
+    """
+
+    def __init__(
+        self,
+        repository: str | dict,  # TODO: streamline - update to use dict config only
+        **options: Any,
+    ) -> None:
+        """Initialize the archive handler with configuration for its destination.
+
+        Which dataset an operation concerns is passed to that operation as a
+        `DatasetRef`, so one handler instance can serve any number of datasets.
+
+        Args:
+            repository: The archive repository name or configuration.
+            **options: Any parameters defined for the handler in the configuration.
+        """
+        ...
+
+    def write(
+        self,
+        ref: DatasetRef,
+        data: Any,
+        **kwargs: Any,
+    ) -> None:
+        """Archive one version of a dataset's data.
+
+        Args:
+            ref: The dataset being archived, which names the destination layout.
+            data: The dataset's data, as read from the data repository.
+            **kwargs: Handler specific options, such as the data's period.
         """
         ...
 
@@ -88,15 +150,17 @@ class MetadataReadWrite(Protocol):
     def __init__(
         self,
         repository: str | dict,  # TODO: streamline - update to use dict config only
-        set_name: str,  # TODO: remove -> turn into method parameter
-        **kwargs,
+        **options: Any,
     ) -> None:
         """Initialize the IO handler for a specific metadata storage.
 
+        This constructor is called by the IO dispatcher.
+        The handler is configured from the repository and its options only.
+        Which dataset an operation concerns is named in that operation.
+
         Args:
             repository: The metadata repository name or configuration.
-            set_name: The dataset name to operate on.
-            **kwargs: Any parameters defined for the handler in the configuration.
+            **options: Any parameters defined for the handler in the configuration.
         """
         ...
 
@@ -104,30 +168,30 @@ class MetadataReadWrite(Protocol):
         """Check if metadata for a given dataset name exists."""
         ...
 
-    def find(self, **kwargs) -> bool:
-        """Find datasets in the configured storage based on metadata criteria."""
+    def write(self, name: str, tags: dict[str, Any]) -> None:
+        """Write metadata for one dataset to the configured storage.
+
+        Args:
+            name: The name of the dataset the tags belong to.
+            tags: The metadata tags to write.
+        """
         ...
 
-    def write(self, **kwargs) -> None:
-        """Write metadata to the configured storage."""
-        ...
-
-    def read(self, **kwargs) -> dict[str, Any]:
-        """Read metadata from the configured storage.
+    def read(self, name: str) -> dict[str, Any]:
+        """Read the metadata of one dataset from the configured storage.
 
         Returns:
             A dictionary containing the metadata tags for the dataset.
         """
         ...
 
-    @classmethod
-    def search(cls, **kwargs) -> dict[str, Any]:
+    def search(self, **kwargs) -> list[dict[str, Any]]:
         """Search and retrieve metadata from the configured storage.
 
         This method should allow searching for datasets based on various
         metadata criteria.
 
         Returns:
-            A dictionary or list of dictionaries containing the search results.
+            A list of catalog items matching the criteria.
         """
         ...

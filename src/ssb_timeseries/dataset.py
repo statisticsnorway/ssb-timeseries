@@ -71,6 +71,7 @@ from .dataframes.sampling import resample_polars
 from .dates import date_local
 from .dates import date_utc
 from .dates import utc_iso
+from .io.dataset_ref import DatasetRef
 from .logging import logger
 from .series import Series
 from .types import DatasetTagDict
@@ -178,7 +179,7 @@ class Dataset:
     data: Any
     tags: dict
     repository: str
-    sharing: dict | None
+    sharing: list[str]
     lineage: str | None
 
     def __init__(
@@ -294,6 +295,13 @@ class Dataset:
         if tags_for_existing:
             self.tags = tags_for_existing
 
+        # "owner" / sharing / access
+        # Assigned before the data is touched, since reading may need a DatasetRef.
+        self.product: str = kwargs.get("product", "")
+        self.process_stage: str = kwargs.get("process_stage", "")
+        # Keys naming configured locations, not the locations themselves.
+        self.sharing: list[str] = kwargs.get("sharing") or []
+
         if data_type:
             self.data_type = data_type
 
@@ -358,11 +366,6 @@ class Dataset:
             if ready_to_auto_tag:
                 self.series_names_to_tags()
 
-        # "owner" / sharing / access
-        self.product: str = kwargs.get("product", "")
-        self.process_stage: str = kwargs.get("process_stage", "")
-        self.sharing: dict[str, str] = kwargs.get("sharing", {})
-
     def __prepare_data(self, data_to_check: Any, find_existing: bool = False) -> Any:
         """Validate data passed to Dataset.__init__.
 
@@ -375,7 +378,7 @@ class Dataset:
         elif isinstance(data_to_check, dict):
             data = nw.from_dict(data_to_check, backend="pyarrow")
         elif find_existing:
-            data = io.DataIO(self).dh.read()
+            data = io.DataIO(self).read()
         elif data_to_check is None:
             data = empty_frame(columns=self.data_type.date_columns)
         else:
@@ -487,14 +490,24 @@ class Dataset:
         io.save(self)
 
     def snapshot(self) -> None:
-        """Copy data snapshot to immutable processing stage bucket and shared buckets.
+        """Deprecated. Use :py:meth:`~ssb_timeseries.dataset.Dataset.archive` instead."""
+        warnings.warn(
+            "Dataset.snapshot is deprecated and will be removed in a future "
+            "version. Use Dataset.archive instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.archive()
 
-        If :py:attr:`~ssb_timeseries.dataset.Dataset.sharing` identifies a configured location,
-        the snapshot files will be copied there.
+    def archive(self) -> None:
+        """Write a versioned, retained copy of the dataset's data.
 
-        See :py:func:`~ssb_timeseries.io.persist` for more detail.
+        If :py:attr:`~ssb_timeseries.dataset.Dataset.sharing` names a configured
+        location, the archive is copied there too.
+
+        See :py:func:`~ssb_timeseries.io.archive` for more detail.
         """
-        io.persist(self)  # is 'archive' a better name than 'persist' or 'snapshot'?
+        io.archive(self)
 
     def versions(self, **kwargs: Any) -> list[datetime | str]:
         """Get list of all series version markers (`as_of` dates or version names).
@@ -546,6 +559,22 @@ class Dataset:
     def series_tags(self) -> SeriesTagDict:
         """Get series tags."""
         return self.tags["series"]  # type: ignore
+
+    @property
+    def ref(self) -> DatasetRef:
+        """Get a read-only reference to this dataset, for passing to I/O operations.
+
+        The reference is built on each access rather than cached,
+        because `rename` and `save` both change what a handler needs to know.
+        """
+        return DatasetRef(
+            name=self.name,
+            data_type=self.data_type,
+            as_of_utc=self.as_of_utc,
+            process_stage=self.process_stage,
+            product=self.product,
+            sharing=list(self.sharing),
+        )
 
     def default_tags(self) -> DatasetTagDict:
         """Return default tags for set and series."""
@@ -1167,7 +1196,7 @@ class Dataset:
                 "`auto` aggregation is temporarily unavailable. Pass an explicit `func` or `agg_mapping`."
             )
 
-        new_name = f"({self.name}.groupby({freq},{func})"
+        new_name = f"({self.name}.groupby({freq},{func}))"
         result = group_by(self.data, freq, func, *args, **kwargs)
 
         # TODO: tag maintenance --> frequency
@@ -1191,13 +1220,13 @@ class Dataset:
         Returns a new Dataset. Pandas implementation from early.
         WARNING: This function is about to be deprecated. Use :meth:`group_by`.
 
-        `func="auto"`is **on hold** until a proper configuration-driven mapping can replace the experimental proof-of-concept heuristic that selects functions by hard-coded column-name pattern. It remains the default, which effectively makes func mandatory.
+        `func="auto"` is **on hold** until a proper configuration-driven mapping can replace the experimental proof-of-concept heuristic that selects functions by hard-coded column-name pattern. It remains the default, which effectively makes func mandatory.
         """
         if func == "auto":
             warnings.warn(
                 "The experimental proof-of-concept `auto` aggregation is on hold and will be "
-                "replaced by a mapping from the global configuration; see "
-                "notes/2026-09-25-group-by-auto-design.md.",
+                "replaced by a mapping from the global configuration. Pass an explicit `func` "
+                "or `agg_mapping` instead.",
                 FutureWarning,
                 stacklevel=2,
             )
@@ -1248,7 +1277,7 @@ class Dataset:
                 logger.debug(f"groupby\n{out}.")
                 logger.debug(f"DATASET {self.name}: groupby\n{out}.")
 
-        new_name = f"({self.name}.groupby({freq},{func})"
+        new_name = f"({self.name}.groupby({freq},{func}))"
 
         return self.__class__(
             name=new_name,
@@ -1282,7 +1311,7 @@ class Dataset:
         else:
             raise ValueError(f"Dataset.resample() received invalid {freq=}.")
 
-        new_name = f"new set:[{self.name}.resampled({freq}, {func}]"
+        new_name = f"({self.name}.resampled({freq}, {func}))"
         return self.__class__(
             name=new_name,
             data_type=self.data_type,

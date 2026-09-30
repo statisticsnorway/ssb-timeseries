@@ -166,22 +166,19 @@ def _(data_path, tree):
 
 
 @app.cell
-def _(statistics_product, treee, ts):
+def _(ts):
     # let us differentiate sharing
     r = ts.dataset.Dataset("XYZ")
-    r.sharing = [{'team': 's123', 'path': f'/home/bernhard/timeseries/{statistics_product}/shared/s123/'}, {'team': 's234', 'path': f'/home/bernhard/timeseries/{statistics_product}/shared/s234/'}]
+    r.sharing = ["s123", "s234"]
     r.snapshot()
-    treee()
     return
 
 
 @app.cell
-def _(statistics_product, ts):
+def _(ts):
     s = ts.dataset.Dataset("PQR")
-    s.process_stage = 'statistikk'
-    s.sharing = [
-        {"team": "s234", "path": f'/home/bernhard/timeseries/{statistics_product}/shared/s234/'},
-    ]
+    s.process_stage = "statistikk"
+    s.sharing = ["s234"]
     s.snapshot()
     return
 

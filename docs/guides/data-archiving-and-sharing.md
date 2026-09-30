@@ -19,8 +19,9 @@ The conventions that apply are designed for archive and review purposes, not to 
 That is contrary to the purpose of the SSB Timeseries library,
 which is the reason "archiving" and "sharing" are treated differently from ordinary reads and writes.
 
-Configurations at the set level controls how a dataset is shared, but the actual sharing happens when data is persisted.
-Since shared data must be persisted, the `.snapshot()` function takes care of both.
+Configurations at the set level controls how a dataset is shared, but the actual sharing happens when data is archived.
+Since shared data must be archived, the `.archive()` function takes care of both.
+A dataset names the shared locations it belongs in, by the keys the configuration gives them, rather than the paths themselves.
 <!---->
 ## Setup
 
@@ -364,7 +365,7 @@ q.product = statistics_product
 ```
 
 ```python {.marimo}
-#q.snapshot()
+#q.archive()
 ```
 
 ```python {.marimo}
@@ -379,7 +380,7 @@ CONFIG.refresh()
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fdb9f7c0690&gt;</pre>
 
 ```python {.marimo}
-q.snapshot()
+q.archive()
 ```
 
 <!-- @output:qnkX -->
@@ -506,9 +507,10 @@ print(tree(data_path))
 
 ```python {.marimo}
 # let us differentiate sharing
+# each key names a location the configuration defines, not a path
 r = ts.dataset.Dataset("XYZ")
-r.sharing = [{'team': 's123', 'path': f'/home/bernhard/timeseries/{statistics_product}/shared/s123/'}, {'team': 's234', 'path': f'/home/bernhard/timeseries/{statistics_product}/shared/s234/'}]
-r.snapshot()
+r.sharing = ['s123', 's234']
+r.archive()
 treee()
 ```
 
@@ -539,10 +541,8 @@ TypeError: Index must either be string or integer
 ```python {.marimo}
 s = ts.dataset.Dataset("PQR")
 s.process_stage = 'statistikk'
-s.sharing = [
-    {"team": "s234", "path": f'/home/bernhard/timeseries/{statistics_product}/shared/s234/'},
-]
-s.snapshot()
+s.sharing = ['s234']
+s.archive()
 ```
 
 <!-- @output:DnEU -->

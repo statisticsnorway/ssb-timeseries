@@ -21,4 +21,5 @@ The package includes several modules:
    .meta <ssb_timeseries.meta>
    .sample_data <ssb_timeseries.sample_data>
    .sample_metadata <ssb_timeseries.sample_metadata>
+   .series <ssb_timeseries.series>
    .types <ssb_timeseries.types>

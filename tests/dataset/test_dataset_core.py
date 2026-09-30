@@ -339,7 +339,7 @@ def test_read_existing_simple_metadata(
 
     set_name = existing_simple_set.name
     x = Dataset(name=set_name, data_type=SeriesType.simple())
-    assert MetaIO(x).read(set_name=x.name) == existing_simple_set.tags
+    assert MetaIO(x).read(name=x.name) == existing_simple_set.tags
     # assert MetaIO(x.repository).read(x.name)
     assert x.tags["name"] == set_name and x.tags["versioning"] == str(Versioning.NONE)
 
@@ -378,7 +378,7 @@ def test_read_existing_estimate_metadata(
         as_of_tz=as_of,
     )
 
-    assert MetaIO(x).read(set_name=x.name) == existing_estimate_set.tags
+    assert MetaIO(x).read(name=x.name) == existing_estimate_set.tags
     assert x.tags["name"] == set_name
     assert x.tags["versioning"] == str(Versioning.AS_OF)
     for _, v in x.series_tags.items():
@@ -718,6 +718,35 @@ def test_correct_datetime_columns_valid_from_to(
     assert a.numeric_columns == ["x", "y", "z"]
 
 
+def test_a_ref_does_not_share_its_sharing_list_with_the_dataset() -> None:
+    """A ref must be a snapshot of the sharing configuration, not a view onto it.
+
+    `DatasetRef` is frozen, but a shallow copy of the list would still let a
+    caller change what later refs, and the dataset itself, consider its sharing.
+    The entries themselves are keys rather than paths, so there is nothing
+    inside an entry for a caller to edit.
+    """
+    dataset = Dataset(
+        name=f"sharing-isolation-{uuid.uuid4().hex}",
+        data_type=SeriesType("as_of", "from", "to"),
+        as_of_tz=now_utc(),
+        data=create_df(
+            ["x"],
+            start_date="2022-01-01",
+            end_date="2022-04-03",
+            freq="MS",
+            temporality="FROM_TO",
+        ),
+        sharing=["s123", "s234"],
+    )
+
+    ref = dataset.ref
+    ref.sharing.append("added to the ref")
+
+    assert dataset.sharing == ["s123", "s234"]
+    assert dataset.ref.sharing == ["s123", "s234"]
+
+
 def test_versioning_as_of_creates_new_file(
     existing_estimate_set: Dataset, caplog: LogCaptureFixture
 ) -> None:
@@ -725,11 +754,11 @@ def test_versioning_as_of_creates_new_file(
 
     x = existing_estimate_set
     y = x * 1.1
-    files_before = file_count(DataIO(x).dh.directory)
+    files_before = file_count(DataIO(x).dh._directory(x.ref))
     x.as_of_utc = now_utc()
     x.data = y.data
     x.save()
-    files_after = file_count(DataIO(x).dh.directory)
+    files_after = file_count(DataIO(x).dh._directory(x.ref))
     assert files_after == files_before + 1
 
 

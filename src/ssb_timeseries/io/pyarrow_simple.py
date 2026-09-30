@@ -41,6 +41,7 @@ from ..dates import date_utc
 from ..dates import utc_iso_no_colon
 from ..logging import logger
 from . import fs
+from .dataset_ref import DatasetRef
 from .parquet_schema import parquet_schema
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped, "
@@ -55,15 +56,18 @@ PA_NUMERIC = "float64"
 
 
 def _version_from_file_name(
-    file_name: str, pattern: str | types.Versioning = "as_of", group: int = 2
+    file_name: str, pattern: str | types.Versioning, group: int = 2
 ) -> str:
-    """Extract a version marker from a filename using known patterns."""
+    """Extract a version marker from a filename using known patterns.
+
+    The `persisted` convention is not handled here.
+    It belongs to the archiving formats, which are the only place this library
+    writes `_v<N>.parquet` files, and which keep their own version patterns.
+    """
     if isinstance(pattern, types.Versioning):
         pattern = str(pattern)
 
     match pattern.lower():
-        case "persisted":
-            regex = r"(_v)(\d+)(.parquet)"
         case "as_of":
             date_part = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{6}[+-][0-9]{4}"
             regex = f"(as_of_)({date_part})(-data.parquet)"
@@ -75,7 +79,12 @@ def _version_from_file_name(
         case _:
             regex = pattern
 
-    vs = re.search(regex, file_name).group(group)
+    found = re.search(regex, file_name)
+    if found is None:
+        raise ValueError(
+            f"pattern '{pattern}' does not match the file name '{file_name}'."
+        )
+    vs = found.group(group)
     logger.debug(
         "file: %s pattern:%s, regex%s \n--> version: %s ",
         file_name,
@@ -86,46 +95,28 @@ def _version_from_file_name(
     return vs
 
 
-def last_version_number_by_regex(directory: str, pattern: str = "*") -> str:
-    """Return the max version number from files in a directory matching a pattern."""
-    files = fs.ls(directory, pattern=pattern)
-    number_of_files = len(files)
-
-    vs = sorted([int(_version_from_file_name(fname, "persisted")) for fname in files])
-    if vs:
-        read_from_filenames = max(vs)
-        out = read_from_filenames
-    else:
-        read_from_filenames = 0
-        out = number_of_files
-
-    logger.debug(
-        "io/pyarrow_simple.last_version_number_by_regex() search in directory: \n\t%s\n\tfor '%s' found %s files, regex identified version %s --> vs %s.",
-        directory,
-        pattern,
-        f"{number_of_files!s}",
-        f"{read_from_filenames!s}",
-        f"{out!s}",
-    )
-    return out
-
-
 class FileSystem:
     """A filesystem abstraction for reading and writing dataset data."""
 
     def __init__(
         self,
         repository: Any,  # dict[str,str] | FileBasedRepository,
-        set_name: str,
-        set_type: types.SeriesType,
-        as_of_utc: datetime | None = None,
-        process_stage: str = "statistikk",
-        sharing: dict | None = None,
+        path: str = "",
+        **options: Any,
     ) -> None:
-        """Initialize the filesystem handler for a given dataset.
+        """Initialize the filesystem handler for a repository.
 
-        This method calculates the necessary directory structure based on the
-        dataset's type and name.
+        Which dataset an operation concerns is passed to that operation as a
+        `DatasetRef`, so a single handler can serve any number of datasets.
+
+        Args:
+            repository: The repository configuration dictionary, or the name of
+                a repository in the active configuration.
+            path: Root path of the repository, passed in from the repository
+                binding's `options` by the dispatcher.
+            **options: Handler specific options. Unknown keys are accepted and
+                retained so that handlers can be extended without changing the
+                dispatcher.
         """
         if isinstance(repository, dict):
             self.repository = repository
@@ -133,85 +124,84 @@ class FileSystem:
             cfg = Config.active()
             self.repository = cfg.repositories.get(repository)
 
-        self.set_name = set_name
-        self.data_type = set_type
-
-        self.process_stage = process_stage
-        self.sharing = sharing
-
-        if as_of_utc is None and set_type.versioning == types.Versioning.AS_OF:
-            raise ValueError(
-                "An 'as of' datetime must be specified when the type has versioning of type Versioning.AS_OF."
-            )
-
-        self.as_of_utc: datetime = as_of_utc
+        self.options = options
+        self.path = str(path)
 
     @property
     def root(self) -> str:
         """Return the root path of the configured repository."""
-        ts_root = self.repository["directory"]["options"]["path"]
-        return str(ts_root)
+        return self.path
 
-    @property
-    def filename(self) -> str:
-        """Construct the standard filename for the dataset's data file."""
-        match str(self.data_type.versioning):
+    def _filename(self, dataset: DatasetRef) -> str:
+        """Construct the standard filename for a dataset's data file."""
+        match str(dataset.data_type.versioning):
             case "AS_OF":
-                safe_timestamp = utc_iso_no_colon(self.as_of_utc)
-                file_name = f"{self.set_name}-as_of_{safe_timestamp}-data.parquet"
+                safe_timestamp = utc_iso_no_colon(dataset.as_of_utc)
+                file_name = f"{dataset.name}-as_of_{safe_timestamp}-data.parquet"
             case "NONE":
-                file_name = f"{self.set_name}-latest-data.parquet"
+                file_name = f"{dataset.name}-latest-data.parquet"
             case "NAMED":
-                file_name = f"{self.set_name}-NAMED-data.parquet"
+                file_name = f"{dataset.name}-NAMED-data.parquet"
             case _:
                 raise ValueError("Unhandled versioning.")
 
         logger.debug(file_name)
         return file_name
 
-    @property
-    def directory(self) -> str:
-        """Return the data directory for the dataset."""
+    def _directory(self, dataset: DatasetRef) -> str:
+        """Return the data directory for a dataset."""
         return os.path.join(
             self.root,
-            f"{self.data_type.versioning!s}_{self.data_type.temporality!s}",
-            self.set_name,
+            f"{dataset.data_type.versioning!s}_{dataset.data_type.temporality!s}",
+            dataset.name,
         )
 
-    @property
-    def fullpath(self) -> str:
-        """Return the full path to the dataset's data file."""
-        return os.path.join(self.directory, self.filename)
+    def fullpath(self, dataset: DatasetRef) -> str:
+        """Return the full path to a dataset's data file."""
+        return os.path.join(self._directory(dataset), self._filename(dataset))
 
     def read(
         self,
+        dataset: DatasetRef,
         interval: str = "",  # TODO: Implement use av interval = Interval.all,
     ) -> pyarrow.Table:
-        """Read data from the filesystem.
+        """Read a dataset's data from the filesystem.
 
         Returns an empty dataframe if the file is not found.
+
+        Args:
+            dataset: The dataset to read.
+            interval: The part of the dataset to read. Not yet implemented.
         """
         logger.debug(interval)
-        if fs.exists(self.fullpath):
+        if not dataset.is_identified:
+            # No version chosen, so there is no particular file to read.
+            logger.debug(
+                "No 'as of' for %s - return empty frame instead.", dataset.name
+            )
+            return empty_frame()
+        if fs.exists(self.fullpath(dataset)):
             logger.info(
                 "DATASET.read.start %s: Reading data from file %s",
-                self.set_name,
-                self.fullpath,
+                dataset.name,
+                self.fullpath(dataset),
             )
             try:
-                df = fs.read_parquet(self.fullpath, implementation="pyarrow")
-                logger.info("DATASET.read.success %s: Read data.", self.set_name)
+                df = fs.read_parquet(self.fullpath(dataset), implementation="pyarrow")
+                logger.info("DATASET.read.success %s: Read data.", dataset.name)
             except FileNotFoundError:
                 logger.exception(
                     "DATASET.read.error %s: Read data failed. File not found: %s",
-                    self.set_name,
-                    self.fullpath,
+                    dataset.name,
+                    self.fullpath(dataset),
                 )
                 df = empty_frame()
 
         else:
             df = empty_frame()
-            logger.debug(f"No file {self.fullpath} - return empty frame instead.")
+            logger.debug(
+                f"No file {self.fullpath(dataset)} - return empty frame instead."
+            )
         pa_table = datelike_to_utc(df)
 
         # The 'as_of' column is a storage detail and should not be part of the logical dataset
@@ -220,75 +210,106 @@ class FileSystem:
 
         return cast(pyarrow.Table, pa_table)
 
-    def write(self, data: FrameT, tags: dict | None = None) -> None:
-        """Write data to the filesystem.
+    def write(
+        self,
+        dataset: DatasetRef,
+        data: FrameT,
+        tags: dict | None = None,
+    ) -> None:
+        """Write a dataset's data to the filesystem.
 
         If versioning is AS_OF, a new file is always created.
         If versioning is NONE, new data is merged into the existing file.
+
+        Args:
+            dataset: The dataset to write.
+            data: The data to write.
+            tags: The dataset's tags, used to derive the storage schema.
         """
+        dataset.require_identified()
         new = nw.from_native(data)
-        if self.data_type.versioning == types.Versioning.AS_OF:
+        if dataset.data_type.versioning == types.Versioning.AS_OF:
             # consider a merge option for versioned writing?
-            df = prepend_as_of(new, self.as_of_utc)
+            df = prepend_as_of(new, dataset.as_of_utc)
         else:
-            old = self.read(self.set_name)
+            old = self.read(dataset)
             if is_empty(old):
                 df = new
             else:
                 logger.debug(
-                    f"Merging data with temporality: {self.data_type.temporality}"
+                    f"Merging data with temporality: {dataset.data_type.temporality}"
                 )
                 logger.debug(f"Old data length: {len(old)}")
                 logger.debug(f"New data length: {len(new)}")
                 df = merge_data(
                     new=new,
                     old=old,
-                    date_cols=self.data_type.date_columns,
-                    temporality=self.data_type.temporality,
+                    date_cols=dataset.data_type.date_columns,
+                    temporality=dataset.data_type.temporality,
                 )
                 logger.debug(f"Merged data length: {len(df)}")
 
         logger.info(
             "DATASET.write.start %s: writing data to file\n\t%s\nstarted.",
-            self.set_name,
-            self.fullpath,
+            dataset.name,
+            self.fullpath(dataset),
         )
         try:
             fs.write_parquet(
                 data=df,
-                path=self.fullpath,
-                schema=parquet_schema(self.data_type, tags),
+                path=self.fullpath(dataset),
+                schema=parquet_schema(dataset.data_type, tags),
             )
         except Exception as e:
             logger.exception(
                 "DATASET.write.error %s: writing data to file\n\t%s\nreturned exception: %s.",
-                self.set_name,
-                self.fullpath,
+                dataset.name,
+                self.fullpath(dataset),
                 e,
             )
             raise
         logger.info(
             "DATASET.write.success %s: writing data to file\n\t%s\nended.",
-            self.set_name,
-            self.fullpath,
+            dataset.name,
+            self.fullpath(dataset),
         )
 
-    @property
-    def exists(self) -> bool:
-        """Check if the data file for the dataset exists."""
-        return fs.exists(self.fullpath)
+    def exists(self, dataset: DatasetRef) -> bool:
+        """Check if the data file for a dataset exists.
+
+        Args:
+            dataset: The dataset to check.
+        """
+        return fs.exists(self.fullpath(dataset))
 
     def versions(
-        self, file_pattern: str = "*", pattern: str | types.Versioning = "as_of"
+        self,
+        dataset: DatasetRef,
+        file_pattern: str | None = None,
     ) -> list[datetime | str]:
-        """List all available version markers from the data directory."""
-        files = fs.ls(self.directory, pattern=file_pattern)
+        """List all available version markers from a dataset's data directory.
+
+        The versioning comes from the dataset ref, so no pattern argument is
+        needed to know how this library names its versioned files.
+
+        Args:
+            dataset: The dataset to list versions for.
+            file_pattern: Glob selecting the files to inspect, which is a
+                property of this handler's storage rather than of the dataset.
+                The default, None, reads it from the repository `options` and
+                falls back to "*.parquet", the only suffix this handler writes.
+        """
+        if file_pattern is None:
+            file_pattern = self.options.get("file_pattern", "*.parquet")
+
+        files = fs.ls(self._directory(dataset), pattern=file_pattern)
         versions: list[str | datetime] = []
         if files:
             vs_strings = [
-                _version_from_file_name(str(fname), pattern, group=2) for fname in files
+                _version_from_file_name(str(fname), dataset.data_type.versioning)
+                for fname in files
             ]
-            match types.Versioning(pattern):
+            match dataset.data_type.versioning:
                 case types.Versioning.AS_OF:
                     versions = sorted([date_utc(as_of) for as_of in vs_strings])
                 case types.Versioning.NAMES:
@@ -296,5 +317,7 @@ class FileSystem:
                 case types.Versioning.NONE:
                     versions = vs_strings
                 case _:
-                    raise ValueError(f"pattern '{pattern}' not recognized.")
+                    raise ValueError(
+                        f"versioning '{dataset.data_type.versioning}' not recognized."
+                    )
         return versions

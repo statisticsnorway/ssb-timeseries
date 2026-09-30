@@ -35,6 +35,9 @@ from datetime import datetime
 from datetime import timezone
 from functools import cache
 from typing import Any
+from typing import Literal
+from typing import cast
+from typing import overload
 
 from narwhals.typing import IntoFrame
 
@@ -47,10 +50,45 @@ from ..logging import logger
 from ..meta import TagDict
 from ..types import SeriesType
 from . import protocols
-from . import snapshot
+from .dataset_ref import DatasetRef
 
 # mypy: disable-error-code="no-any-return,no-untyped-def,return-value,assignment,attr-defined"
-DEFAULT_PROCESS_STAGE = "Statistikk"  # TODO: control from config?
+
+HandlerType = Literal["data", "metadata", "archive"]
+
+_PROTOCOLS: dict[HandlerType, type] = {
+    "data": protocols.DataReadWrite,
+    "metadata": protocols.MetadataReadWrite,
+    "archive": protocols.ArchiveWrite,
+}
+"""The contract each kind of handler must satisfy.
+
+The role is the one thing that decides which contract applies.
+A handler is registered once and named by configuration, so nothing in the
+registry says what it is for, and the caller is the only place that knows.
+"""
+
+
+def _missing_protocol_members(handler: Any, protocol: type) -> list[str]:
+    """List the operations a handler does not implement, for a given protocol.
+
+    The protocols are `runtime_checkable`, so `isinstance` can say whether a
+    handler satisfies one but not what it is missing.
+    Naming the operations is the difference between a handler that is rejected
+    and a handler someone can fix.
+
+    Args:
+        handler: The instantiated handler to check.
+        protocol: The protocol it was asked to satisfy.
+
+    Returns:
+        The names of the protocol's operations the handler does not have, sorted.
+    """
+    required = getattr(protocol, "__protocol_attrs__", None)
+    if required is None:
+        # Python 3.11 has no `__protocol_attrs__`, so read the annotations instead.
+        required = (name for name in vars(protocol) if not name.startswith("_"))
+    return sorted(name for name in required if not hasattr(handler, name))
 
 
 def _all_repos() -> list:
@@ -61,7 +99,7 @@ def _all_repos() -> list:
 
 
 def _repo_config(
-    target: Any,  # str | dict[str, FileBasedRepository],
+    target: str | FileBasedRepository | dict,
 ) -> FileBasedRepository:
     """Get a repository configuration dictionary by name.
 
@@ -75,38 +113,97 @@ def _repo_config(
         repo.setdefault("name", target)
     elif isinstance(target, dict):
         repo = target
-        pass
     else:
         raise TypeError(
             f"Repository must be provided either by name (str) or as full dict; was {type(target)}:\n{target}"
         )
 
-    return repo
+    return cast(FileBasedRepository, repo)
 
 
-def _io_handler(**kwargs) -> protocols.DataReadWrite | protocols.MetadataReadWrite:
-    """Dynamically import and instantiate an IO handler.
+@overload
+def _io_handler(
+    *,
+    handler_type: Literal["data"],
+    repository: str | FileBasedRepository | dict,
+    **options: Any,
+) -> protocols.DataReadWrite: ...
+
+
+@overload
+def _io_handler(
+    *,
+    handler_type: Literal["metadata"],
+    repository: str | FileBasedRepository | dict,
+    **options: Any,
+) -> protocols.MetadataReadWrite: ...
+
+
+@overload
+def _io_handler(
+    *,
+    handler_type: Literal["archive"],
+    repository: str | FileBasedRepository | dict,
+    **options: Any,
+) -> protocols.ArchiveWrite: ...
+
+
+def _io_handler(
+    *,
+    handler_type: HandlerType,
+    repository: str | FileBasedRepository | dict,
+    **options: Any,
+) -> protocols.DataReadWrite | protocols.MetadataReadWrite | protocols.ArchiveWrite:
+    """Dynamically import and instantiate an I/O handler.
 
     The handler is determined by the 'repository' and 'handler_type' arguments.
+
+    A handler is configured from the repository and its `options` only.
+    Which dataset an operation concerns is passed to that operation as a
+    `DatasetRef`, so a single handler instance can serve any number of datasets.
+
+    Args:
+        handler_type: Which binding of the repository to instantiate, one of
+            'data', 'metadata' or 'archive'.
+        repository: The repository configuration dictionary, or the name of a
+            repository in the active configuration.
+        **options: Additional options passed through to the handler.
     """
-    repo_cfg = _repo_config(kwargs.pop("repository"))
-    handler_type = kwargs.pop("handler_type")
+    repo_cfg = _repo_config(repository)
+    role: HandlerType
     match handler_type.lower():
         case "data":
             handler_config = repo_cfg["directory"]
+            role = "data"
         case "metadata":
             handler_config = repo_cfg["catalog"]
+            role = "metadata"
         case "archive":
             handler_config = repo_cfg["directory"]
+            role = "archive"
         case _:
             raise ValueError("Unhandlked handler type.")
     handler = _handler_class(handler_config["handler"])
-    handler_options = handler_config.get("options", {})
-    if kwargs:
-        handler_options.update(kwargs)
-        logger.debug("_IO_HANDLER() ... kwargs: %s", kwargs)
-        # set_name and type passed for DataIO is necessary because of incomplete IO handler refactoring --> TODO: complete
-    instance = handler(repository=repo_cfg, **kwargs)
+    # A fresh dict, so the active configuration is never mutated.
+    handler_kwargs: dict[str, Any] = dict(handler_config.get("options", {}))
+    if options:
+        logger.debug("_IO_HANDLER() ... options: %s", options)
+        handler_kwargs.update(options)
+    instance = handler(repository=repo_cfg, **handler_kwargs)
+
+    protocol = _PROTOCOLS[role]
+    if not isinstance(instance, protocol):
+        missing = _missing_protocol_members(instance, protocol)
+        raise TypeError(
+            f"The handler '{handler_config['handler']}' resolved to "
+            f"{type(instance).__module__}.{type(instance).__qualname__}, "
+            f"configured as '{role}' for repository "
+            f"{repo_cfg.get('name', repository)}, which does not satisfy the "
+            f"{protocol.__name__} protocol. "
+            f"It is missing: {', '.join(missing)}. "
+            f"Registration alone does not make a handler usable; it must "
+            f"implement the operations the {role} layer calls."
+        )
     return instance
 
 
@@ -146,16 +243,28 @@ class DataIO:
 
     @property
     def dh(self) -> protocols.DataReadWrite:
-        """Expose the configured IO handler for data operations."""
+        """Expose the configured IO handler for data operations.
+
+        The handler holds configuration only.
+        The dataset it operates on is passed to each operation, as `ds.ref`.
+        """
         return _io_handler(
             handler_type="data",
             repository=self.ds.repository,
-            # dataset information should not really be required to initiate handler
-            # ... omitted when refactoring to facade pattern?
-            set_name=self.ds.name,
-            set_type=self.ds.data_type,
-            as_of_utc=date_utc(self.ds.as_of_utc),
         )
+
+    def read(self, **kwargs) -> IntoFrame:
+        """Read this dataset's data."""
+        return self.dh.read(self.ds.ref, **kwargs)
+
+    def write(self, data: IntoFrame, tags: TagDict | None = None) -> None:
+        """Write data for this dataset.
+
+        Args:
+            data: The data to write.
+            tags: The dataset's tags, used to derive the storage schema.
+        """
+        self.dh.write(self.ds.ref, data, tags=tags)
 
 
 class MetaIO:
@@ -168,16 +277,12 @@ class MetaIO:
     ) -> None:
         """Initialize the metadata IO handler.
 
-        The handler can be bound to a Dataset instance or a repository name.
+        The handler can be bound to a Dataset instance or to a repository name.
         """
-        # dirty: either for Dataset or for repo --> target is repo only
         if isinstance(ds, Dataset):
             self.ds = ds
             self.repository = ds.repository
         elif repository:
-            if isinstance(repository, dict):
-                raise TypeError("WTF repo should be dict!")
-
             self.ds = None
             self.repository = repository
         else:
@@ -200,14 +305,24 @@ class MetaIO:
         kwargs.setdefault("series", False)
         return self.dh.search(**kwargs)
 
-    def read(self, set_name: str = "") -> dict:
+    def read(self, name: str = "") -> dict:
         """Read metadata for a given dataset."""
-        if not set_name:
-            set_name = self.ds.name
-        return self.dh.read(set_name=set_name)
+        if not name:
+            if self.ds is None:
+                raise ValueError(
+                    "MetaIO.read requires a name when no Dataset is given."
+                )
+            name = self.ds.name
+        return self.dh.read(name)
 
-    def write(self, set_name: str = "", tags: TagDict | None = None) -> None:
+    def write(self, name: str = "", tags: TagDict | None = None) -> None:
         """Write metadata for a given dataset."""
+        if not name:
+            if self.ds is None:
+                raise ValueError(
+                    "MetaIO.write requires a name when no Dataset is given."
+                )
+            name = self.ds.name
         if tags is None:
             if self.ds is None:
                 raise ValueError(
@@ -215,7 +330,7 @@ class MetaIO:
                 )
             tags = self.ds.tags
         self.dh.write(
-            set_name=set_name,
+            name=name,
             tags=tags,
         )
 
@@ -227,8 +342,8 @@ def save(ds: Dataset) -> None:
         ds: The Dataset object to save.
     """
     utc_data = datelike_to_utc(ds.data)
-    DataIO(ds).dh.write(data=utc_data, tags=ds.tags)
-    MetaIO(ds).dh.write(set_name=ds.name, tags=ds.tags)
+    DataIO(ds).write(data=utc_data, tags=ds.tags)
+    MetaIO(ds).dh.write(name=ds.name, tags=ds.tags)
 
 
 def search(
@@ -272,13 +387,9 @@ def read_metadata(
     Returns:
         A dictionary containing the dataset's metadata.
     """
-    meta_io = _io_handler(
-        handler_type="metadata",
-        repository=repository,
-        set_name=set_name,
-    )
+    meta_io = _io_handler(handler_type="metadata", repository=repository)
     if meta_io:
-        return meta_io.read()
+        return meta_io.read(set_name)
     else:
         return {}
 
@@ -301,14 +412,14 @@ def read_data(
     tags = read_metadata(repository, set_name)
     if tags:
         set_type = SeriesType(tags["versioning"], tags["temporality"])
-        data_io = _io_handler(
-            handler_type="data",
-            repository=repository,
-            set_name=set_name,
-            set_type=set_type,
+        # `date_utc` defaults to now, matching the previous behaviour where an
+        # unversioned read resolved to the latest version.
+        ref = DatasetRef(
+            name=set_name,
+            data_type=set_type,
             as_of_utc=date_utc(as_of_tz),
         )
-        data = data_io.read()
+        data = _io_handler(handler_type="data", repository=repository).read(ref)
     else:
         raise LookupError(f"Could not find Dataset('{set_name}') in {repository=}.")
 
@@ -349,14 +460,9 @@ def find(
 
     result = []
     for repo in repositories:
-        meta_io = _io_handler(
-            handler_type="metadata",
-            repository=repo,
-            set_name=set_name,
-        )
-        if meta_io.exists:
-            tags = meta_io.read(set_name=set_name)
-            result.append(dict(tags))
+        meta_io = _io_handler(handler_type="metadata", repository=repo)
+        if meta_io.exists(set_name):
+            result.append(dict(meta_io.read(set_name)))
 
     match (len(result), require_one, require_unique):
         case (0, False, _):
@@ -382,66 +488,123 @@ def find(
 
 def versions(
     ds: Dataset,
-    **kwargs,
 ) -> list[datetime | str]:
     """Get a list of all available version markers for a dataset.
 
+    Only the dataset ref is passed to the handler.
+    The ref carries the versioning, and the handler's configured options carry
+    the rest of what it needs to know about its own storage.
+
     Args:
         ds: The Dataset object to inspect.
-        **kwargs: Additional arguments passed to the underlying IO handler.
     """
-    data_io = DataIO(ds)
-    versions = data_io.dh.versions(
-        file_pattern="*.parquet",
-        pattern=ds.data_type.versioning,
-    )
+    versions = DataIO(ds).dh.versions(ds.ref)
     return versions
 
 
-def persist(
+def _sharing_destinations(keys: list[str]) -> list[str]:
+    """Resolve sharing keys to the configured storage each one names.
+
+    A key with no configured location of its own falls back to the default one,
+    so that a dataset can name a location that has not been set up yet without
+    that becoming an error.
+
+    Args:
+        keys: The sharing keys carried by a dataset.
+
+    Returns:
+        The folders the dataset's archive is also copied to.
+    """
+    from ..config import Config
+
+    # Read through `__getitem__`, which returns None for a section the active
+    # configuration does not declare. A preset need not configure any sharing.
+    sharing_config = Config.active()["sharing"] or {}
+    default = sharing_config.get("default")
+
+    destinations = []
+    for key in keys:
+        config_item = sharing_config.get(key) or default
+        if config_item is None:
+            logger.warning(
+                "Sharing key '%s' has no configured location and there is no "
+                "default one, so nothing is archived there.",
+                key,
+            )
+            continue
+        destinations.append(str(config_item["directory"]["options"]["path"]))
+    return destinations
+
+
+def archive(
     ds: Dataset,
 ) -> None:
-    """Copy a dataset snapshot to its configured immutable and shared locations.
+    """Write a versioned, retained copy of a dataset's data.
 
-    This function relies on a `snapshots` section being defined in the project
-    configuration. The dataset's `process_stage` and `sharing` attributes
-    determine the exact destination paths.
+    The copy is written once per call, under the archive's own naming
+    convention, and no version is ever overwritten.
+
+    This function relies on an `archives` section being defined in the project
+    configuration.
+    The dataset is archived to the `default` destination, and its `sharing` names
+    any further configured locations its archive is copied to.
 
     .. seealso::
         For detailed configuration examples, refer to the guide on
         :doc:`/configure-io`.
 
     Args:
-        ds: The Dataset object to persist.
+        ds: The Dataset object to archive.
     """
     from ..config import Config
 
-    # TODO: rewrite to use _io_handler to dynamically define IO module from config
-    snapshot_config = Config.active().snapshots
-    if not snapshot_config:
+    # Read through `__getitem__`, which returns None for a section the active
+    # configuration does not declare. Archiving is optional, and no preset
+    # configures it, so most configurations have no `archives` section at all.
+    archives_config = Config.active()["archives"] or {}
+    if not archives_config:
         return
-    process_stage = getattr(ds, "process_stage", DEFAULT_PROCESS_STAGE)
-    config_item = snapshot_config.get(process_stage)
-    if not config_item:
-        config_item = snapshot_config.get("default", {})  # type: ignore[arg-type]
+    config_item = archives_config.get("default")
 
     if not config_item:
         return
-    path = config_item["directory"]["options"]["path"]
-    snap_io = snapshot.FileSystem(
-        bucket=path,
-        process_stage=process_stage,
-        product=getattr(ds, "product", ""),
-        set_name=ds.name,
-        sharing=ds.sharing,
+
+    data_handler = DataIO(ds).dh
+    if not data_handler.exists(ds.ref):
+        raise FileNotFoundError(
+            f"Cannot archive '{ds.name}', because it has not been saved to "
+            f"repository '{ds.repository}'."
+        )
+
+    # The archive's own options sit beside its repository in the section, since
+    # they say how archives are written rather than where they are written to.
+    handler = _io_handler(
+        handler_type="archive",
+        repository={"directory": config_item["directory"]},
+        **config_item.get("options", {}),
     )
     (date_from, date_to) = date_range(ds.data)
-    print(type(date_from))
-    snap_io.write(
-        sharing=getattr(ds, "sharing", {}),
-        as_of_tz=ds.as_of_utc,
-        period_from=date_from,  # type: ignore[arg-type]
-        period_to=date_to,  # type: ignore[arg-type]
-        data_path=DataIO(ds).dh.fullpath,  # type: ignore[attr-defined]
-        # meta_path=MetaIO(ds).dh.fullpath,
+    handler.write(
+        ref=ds.ref,
+        data=data_handler.read(ds.ref),
+        period_from=date_from,
+        period_to=date_to,
+        destinations=_sharing_destinations(ds.sharing),
     )
+
+
+def persist(
+    ds: Dataset,
+) -> None:
+    """Deprecated. Use :py:func:`~ssb_timeseries.io.archive` instead.
+
+    Args:
+        ds: The Dataset object to archive.
+    """
+    warnings.warn(
+        "ssb_timeseries.io.persist is deprecated and will be removed in a future "
+        "version. Use ssb_timeseries.io.archive instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    archive(ds)
