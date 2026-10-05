@@ -7,9 +7,9 @@ app = marimo.App()
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
+    import testing
 
-
-    return (mo,)
+    return (mo, testing)
 
 
 @app.cell(hide_code=True)
@@ -170,7 +170,7 @@ def _(Dataset):
     prices = prices_and_volumes[{'variable': 'price'}]
     volumes = prices_and_volumes[{'variable': 'volume'}]
     revenue = prices * volumes
-    return revenue, volumes
+    return prices_and_volumes, revenue, volumes
 
 
 @app.cell(hide_code=True)
@@ -264,7 +264,7 @@ def _(revenue, taxonomy):
         functions=list_of_functions
     )
     aggregated_revenue.pl.schema.to_python()
-    return
+    return (aggregated_revenue,)
 
 
 @app.cell
@@ -315,6 +315,68 @@ def _(mo):
 
     Automatic unit conversions based on tags require configurations to identify the name of the unit attribute.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(
+    aggregated_revenue,
+    prices_and_volumes,
+    revenue,
+    taxonomy,
+    volumes,
+):
+    def test_taxonomy_has_leaf_nodes():
+        # The guide states 53 leaf nodes, and the aggregates below rely on there
+        # being a hierarchy to climb, so assert the shape rather than the count.
+        assert len(taxonomy.leaf_nodes) > 0
+        assert len(taxonomy.parent_nodes) > 0
+
+    def test_selection_yields_prices_and_volumes():
+        # 'More Prices and Volumes' holds 2 variables x 6 products x
+        # len(leaf_nodes) categories, so selecting one variable leaves
+        # 6 * len(leaf_nodes) series and each series name carries that variable.
+        expected = 6 * len(taxonomy.leaf_nodes)
+        assert len(prices_and_volumes.series) == 2 * expected
+        assert len(volumes.series) == expected
+        assert all("volume" in name for name in volumes.series)
+
+    def test_revenue_series_match_renaming_and_retagging():
+        # 53 leaf nodes times 6 products is 318, as the guide reports.
+        assert len(revenue.series) == len(taxonomy.leaf_nodes) * 6
+        assert all("revenue" in name for name in revenue.series)
+        assert revenue.name == "More Revenues"
+
+    def test_aggregated_revenue_is_fewer_series_than_revenue():
+        # Aggregating over the category attribute collapses the products, so the
+        # aggregate must be strictly smaller than the 318 revenue series.
+        assert len(aggregated_revenue.series) < len(revenue.series)
+        assert len(aggregated_revenue.series) > 0
+
+    return (
+        test_aggregated_revenue_is_fewer_series_than_revenue,
+        test_revenue_series_match_renaming_and_retagging,
+        test_selection_yields_prices_and_volumes,
+        test_taxonomy_has_leaf_nodes,
+    )
+
+
+@app.cell(hide_code=True)
+def _(
+    test_aggregated_revenue_is_fewer_series_than_revenue,
+    test_revenue_series_match_renaming_and_retagging,
+    test_selection_yields_prices_and_volumes,
+    test_taxonomy_has_leaf_nodes,
+    testing,
+):
+    testing.run_and_report(
+        [
+            test_taxonomy_has_leaf_nodes,
+            test_selection_yields_prices_and_volumes,
+            test_revenue_series_match_renaming_and_retagging,
+            test_aggregated_revenue_is_fewer_series_than_revenue,
+        ]
+    )
     return
 
 
