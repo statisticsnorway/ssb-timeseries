@@ -1,6 +1,6 @@
 ---
 title: Meta Basics
-marimo-version: 0.24.0
+marimo-version: 0.24.2
 ---
 
 # Metadata fundamentals
@@ -144,36 +144,33 @@ sample_set.tags
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;Sample Data&#x27;,
  &#x27;product group&#x27;: &#x27;essential&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;x&#x27;: {&#x27;area&#x27;: &#x27;x&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;x&#x27;,
+ &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
+                  &#x27;name&#x27;: &#x27;p&#x27;,
                   &#x27;product&#x27;: &#x27;coffee&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;y&#x27;: {&#x27;area&#x27;: &#x27;y&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;y&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
+                  &#x27;name&#x27;: &#x27;q&#x27;,
                   &#x27;product&#x27;: &#x27;crispbread&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;z&#x27;: {&#x27;area&#x27;: &#x27;z&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;z&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
+                  &#x27;name&#x27;: &#x27;r&#x27;,
                   &#x27;product&#x27;: &#x27;brown cheese&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}},
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
  &#x27;variable&#x27;: &#x27;price&#x27;,
- &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}</pre>
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
 Note how `Dataset.name` becomes `Series.dataset` in the tags, while the technical properties are inherited directly.
 The datatype dimensions are reflected in both in `.versioning` and the single `valid_at` column in `.data`:
@@ -186,26 +183,26 @@ sample_set.data
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2020-01-01 | 110.0 | 110.0 | 110.0 |
-| 2020-01-02 | 90.0 | 100.0 | 90.0 |
-| 2020-01-03 | 90.0 | 100.0 | 90.0 |
-| 2020-01-04 | 90.0 | 100.0 | 110.0 |
-| 2020-01-05 | 80.0 | 100.0 | 110.0 |
+| 2019-12-31 23:00:00+00:00 | 80.0 | 100.0 | 100.0 |
+| 2020-01-01 23:00:00+00:00 | 110.0 | 100.0 | 100.0 |
+| 2020-01-02 23:00:00+00:00 | 100.0 | 90.0 | 120.0 |
+| 2020-01-03 23:00:00+00:00 | 110.0 | 100.0 | 110.0 |
+| 2020-01-04 23:00:00+00:00 | 90.0 | 100.0 | 90.0 |
 | ... | ... | ... | ... |
-| 2025-05-28 | 100.0 | 90.0 | 100.0 |
-| 2025-05-29 | 100.0 | 100.0 | 100.0 |
-| 2025-05-30 | 90.0 | 110.0 | 100.0 |
-| 2025-05-31 | 110.0 | 100.0 | 90.0 |
-| 2025-06-01 | 100.0 | 90.0 | 110.0 |
+| 2025-05-27 22:00:00+00:00 | 110.0 | 90.0 | 110.0 |
+| 2025-05-28 22:00:00+00:00 | 110.0 | 70.0 | 100.0 |
+| 2025-05-29 22:00:00+00:00 | 100.0 | 110.0 | 90.0 |
+| 2025-05-30 22:00:00+00:00 | 80.0 | 100.0 | 100.0 |
+| 2025-05-31 22:00:00+00:00 | 110.0 | 90.0 | 100.0 |
 
 To apply more than the minimal set of technical tags, we need to "tag" the dataset and series.
 
 ```python {.marimo}
 sample_set.tag_dataset(tags={'variable': 'price','product group': 'essential'})
 
-sample_set.tag_series('x',tags={'product': 'coffee'})
-sample_set.tag_series('y',tags={'product': 'crispbread'})
-sample_set.tag_series('z',tags={'product': 'brown cheese'})
+sample_set.tag_series('p',tags={'product': 'coffee'})
+sample_set.tag_series('q',tags={'product': 'crispbread'})
+sample_set.tag_series('r',tags={'product': 'brown cheese'})
 
 sample_set.save()
 sample_set.tags
@@ -216,45 +213,42 @@ sample_set.tags
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;Sample Data&#x27;,
  &#x27;product group&#x27;: &#x27;essential&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;x&#x27;: {&#x27;area&#x27;: &#x27;x&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;x&#x27;,
+ &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
+                  &#x27;name&#x27;: &#x27;p&#x27;,
                   &#x27;product&#x27;: &#x27;coffee&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;y&#x27;: {&#x27;area&#x27;: &#x27;y&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;y&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
+                  &#x27;name&#x27;: &#x27;q&#x27;,
                   &#x27;product&#x27;: &#x27;crispbread&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;z&#x27;: {&#x27;area&#x27;: &#x27;z&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;z&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
+                  &#x27;name&#x27;: &#x27;r&#x27;,
                   &#x27;product&#x27;: &#x27;brown cheese&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}},
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
  &#x27;variable&#x27;: &#x27;price&#x27;,
- &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}</pre>
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
 Initialising a variable for an existing `Dataset`, we retrieve the previously stored metadata.
 
 ```python {.marimo}
-xyz = Dataset('Sample Data')
+pqr = Dataset('Sample Data')
 ```
 
 ```python {.marimo}
-xyz.tags
+pqr.tags
 ```
 
 <!-- @output:ZBYS -->
@@ -262,43 +256,40 @@ xyz.tags
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;Sample Data&#x27;,
  &#x27;product group&#x27;: &#x27;essential&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;x&#x27;: {&#x27;area&#x27;: &#x27;x&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;x&#x27;,
+ &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
+                  &#x27;name&#x27;: &#x27;p&#x27;,
                   &#x27;product&#x27;: &#x27;coffee&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;y&#x27;: {&#x27;area&#x27;: &#x27;y&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;y&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
+                  &#x27;name&#x27;: &#x27;q&#x27;,
                   &#x27;product&#x27;: &#x27;crispbread&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;z&#x27;: {&#x27;area&#x27;: &#x27;z&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;z&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
+                  &#x27;name&#x27;: &#x27;r&#x27;,
                   &#x27;product&#x27;: &#x27;brown cheese&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}},
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
  &#x27;variable&#x27;: &#x27;price&#x27;,
- &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}</pre>
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
 ## Selecting series
 
 Series can be selected from the dataset by name, regex patterns or tags.
 
 ```python {.marimo}
-xyz['x','y'].plot()
+pqr['p','q'].plot()
 ```
 
 <!-- @output:nHfw -->
@@ -308,7 +299,7 @@ xyz['x','y'].plot()
 And tags as well:
 
 ```python {.marimo}
-xyz[{'area': 'z'}].plot()
+pqr[{'product': 'coffee'}].plot()
 ```
 
 <!-- @output:AjVT -->
@@ -533,16 +524,93 @@ type(all_the_datasets[0])
 
 <!-- @output:xvXZ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;AZ_drikkevarer&#x27;,
- &#x27;Prices and Volumes&#x27;,
- &#x27;A Sample Dataset&#x27;,
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;A Sample Dataset&#x27;,
+ &#x27;ABC&#x27;,
  &#x27;PQR&#x27;,
  &#x27;Sample Data&#x27;,
- &#x27;AZ Drinks&#x27;,
  &#x27;XYZ&#x27;,
- &#x27;More Prices and Volumes&#x27;,
- &#x27;AZ_omsetning&#x27;,
- &#x27;AZ_drinks&#x27;&#93;</pre>
+ &#x27;XYZ_01467351&#x27;,
+ &#x27;XYZ_06690c35&#x27;,
+ &#x27;XYZ_07f5ed8c&#x27;,
+ &#x27;XYZ_08c7fb95&#x27;,
+ &#x27;XYZ_0fb6f4d4&#x27;,
+ &#x27;XYZ_10ef582f&#x27;,
+ &#x27;XYZ_1296b25d&#x27;,
+ &#x27;XYZ_133efd09&#x27;,
+ &#x27;XYZ_138928c9&#x27;,
+ &#x27;XYZ_14e25934&#x27;,
+ &#x27;XYZ_15613b7d&#x27;,
+ &#x27;XYZ_1d6fc3f3&#x27;,
+ &#x27;XYZ_220102a7&#x27;,
+ &#x27;XYZ_233799d2&#x27;,
+ &#x27;XYZ_23b8cac9&#x27;,
+ &#x27;XYZ_25920447&#x27;,
+ &#x27;XYZ_2aee681a&#x27;,
+ &#x27;XYZ_2d7ed423&#x27;,
+ &#x27;XYZ_31438726&#x27;,
+ &#x27;XYZ_314640b0&#x27;,
+ &#x27;XYZ_3e58b0cf&#x27;,
+ &#x27;XYZ_40ab339d&#x27;,
+ &#x27;XYZ_42fc4770&#x27;,
+ &#x27;XYZ_43610d5b&#x27;,
+ &#x27;XYZ_4505f14b&#x27;,
+ &#x27;XYZ_49aeace7&#x27;,
+ &#x27;XYZ_4a31e811&#x27;,
+ &#x27;XYZ_4bfeeaee&#x27;,
+ &#x27;XYZ_4d66e72a&#x27;,
+ &#x27;XYZ_5080ae0f&#x27;,
+ &#x27;XYZ_56010127&#x27;,
+ &#x27;XYZ_5933f406&#x27;,
+ &#x27;XYZ_5bfe8212&#x27;,
+ &#x27;XYZ_61bebb01&#x27;,
+ &#x27;XYZ_63b8ac7f&#x27;,
+ &#x27;XYZ_67e6d540&#x27;,
+ &#x27;XYZ_684b4573&#x27;,
+ &#x27;XYZ_68a63d13&#x27;,
+ &#x27;XYZ_6a7c5747&#x27;,
+ &#x27;XYZ_71ea833f&#x27;,
+ &#x27;XYZ_7839a617&#x27;,
+ &#x27;XYZ_7fb2ee25&#x27;,
+ &#x27;XYZ_855ac680&#x27;,
+ &#x27;XYZ_8732df60&#x27;,
+ &#x27;XYZ_89e54dd5&#x27;,
+ &#x27;XYZ_8a00e19f&#x27;,
+ &#x27;XYZ_8c3febc7&#x27;,
+ &#x27;XYZ_8d9c1f58&#x27;,
+ &#x27;XYZ_8dda4e6e&#x27;,
+ &#x27;XYZ_8f0ba191&#x27;,
+ &#x27;XYZ_8fab22ec&#x27;,
+ &#x27;XYZ_911f0d75&#x27;,
+ &#x27;XYZ_924cd754&#x27;,
+ &#x27;XYZ_9873e53b&#x27;,
+ &#x27;XYZ_9aaaa640&#x27;,
+ &#x27;XYZ_a99daba7&#x27;,
+ &#x27;XYZ_ad11302a&#x27;,
+ &#x27;XYZ_b75f01e2&#x27;,
+ &#x27;XYZ_b79b51e6&#x27;,
+ &#x27;XYZ_c390d6b5&#x27;,
+ &#x27;XYZ_c6a9e589&#x27;,
+ &#x27;XYZ_c7bd5e27&#x27;,
+ &#x27;XYZ_cefe8091&#x27;,
+ &#x27;XYZ_d2ed8629&#x27;,
+ &#x27;XYZ_d769e1f0&#x27;,
+ &#x27;XYZ_d84a3af2&#x27;,
+ &#x27;XYZ_e3db372b&#x27;,
+ &#x27;XYZ_e6d506f7&#x27;,
+ &#x27;XYZ_e6da0e82&#x27;,
+ &#x27;XYZ_e7444b5d&#x27;,
+ &#x27;XYZ_e7b08061&#x27;,
+ &#x27;XYZ_eba74d7d&#x27;,
+ &#x27;XYZ_ec00eea1&#x27;,
+ &#x27;XYZ_ec1374ea&#x27;,
+ &#x27;XYZ_eec645de&#x27;,
+ &#x27;XYZ_f0f8229a&#x27;,
+ &#x27;XYZ_f451f31b&#x27;,
+ &#x27;XYZ_f4cbeff3&#x27;,
+ &#x27;XYZ_f8a209fc&#x27;,
+ &#x27;XYZ_fac41f35&#x27;,
+ &#x27;probe-pollution&#x27;,
+ &#x27;x&#x27;&#93;</pre>
 
 ```python {.marimo disabled="true"}
 import pandas as pd
@@ -554,95 +622,2141 @@ The list above should correspond to what we find in our file based repository:
 <!-- @output:cEAS -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
-├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
+├── archives/
+│   ├── A Sample Dataset/
+│   │   ├── A Sample Dataset_v1.parquet
+│   │   └── A Sample Dataset_v2.parquet
+│   ├── PQR/
+│   │   └── PQR_v1.parquet
 │   └── XYZ/
-│       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-02T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-03T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
-│       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
-├── AS_OF_FROM_TO/
-│   └── Prices and Volumes/
-│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-02-29T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-10-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-11-30T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-02-28T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
-│       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── XYZ_v1.parquet
+├── AS_OF_AT/
+│   ├── ABC/
+│   │   ├── ABC-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── ABC-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── ABC-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── ABC-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── ABC-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── ABC-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── ABC-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_01467351/
+│   │   ├── XYZ_01467351-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_01467351-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_01467351-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_06690c35/
+│   │   ├── XYZ_06690c35-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_06690c35-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_06690c35-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_07f5ed8c/
+│   │   ├── XYZ_07f5ed8c-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_07f5ed8c-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_07f5ed8c-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_08c7fb95/
+│   │   ├── XYZ_08c7fb95-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_08c7fb95-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_08c7fb95-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_0fb6f4d4/
+│   │   ├── XYZ_0fb6f4d4-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_0fb6f4d4-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_0fb6f4d4-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_10ef582f/
+│   │   ├── XYZ_10ef582f-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_10ef582f-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_10ef582f-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_1296b25d/
+│   │   ├── XYZ_1296b25d-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_1296b25d-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_1296b25d-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_133efd09/
+│   │   ├── XYZ_133efd09-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_133efd09-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_133efd09-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_138928c9/
+│   │   ├── XYZ_138928c9-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_138928c9-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_138928c9-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_14e25934/
+│   │   ├── XYZ_14e25934-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_14e25934-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_14e25934-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_15613b7d/
+│   │   ├── XYZ_15613b7d-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_15613b7d-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_15613b7d-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_1d6fc3f3/
+│   │   ├── XYZ_1d6fc3f3-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_1d6fc3f3-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_1d6fc3f3-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_220102a7/
+│   │   ├── XYZ_220102a7-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_220102a7-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_220102a7-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_233799d2/
+│   │   ├── XYZ_233799d2-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_233799d2-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_233799d2-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_23b8cac9/
+│   │   ├── XYZ_23b8cac9-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_23b8cac9-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_23b8cac9-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_25920447/
+│   │   ├── XYZ_25920447-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_25920447-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_25920447-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_2aee681a/
+│   │   ├── XYZ_2aee681a-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_2aee681a-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_2aee681a-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_2d7ed423/
+│   │   ├── XYZ_2d7ed423-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_2d7ed423-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_2d7ed423-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_31438726/
+│   │   ├── XYZ_31438726-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_31438726-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_31438726-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_314640b0/
+│   │   ├── XYZ_314640b0-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_314640b0-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_314640b0-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_3e58b0cf/
+│   │   ├── XYZ_3e58b0cf-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_3e58b0cf-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_3e58b0cf-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_40ab339d/
+│   │   ├── XYZ_40ab339d-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_40ab339d-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_40ab339d-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_42fc4770/
+│   │   ├── XYZ_42fc4770-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_42fc4770-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_42fc4770-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_43610d5b/
+│   │   ├── XYZ_43610d5b-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_43610d5b-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_43610d5b-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_4505f14b/
+│   │   ├── XYZ_4505f14b-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_4505f14b-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_4505f14b-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_49aeace7/
+│   │   ├── XYZ_49aeace7-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_49aeace7-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_49aeace7-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_4a31e811/
+│   │   ├── XYZ_4a31e811-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_4a31e811-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_4a31e811-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_4bfeeaee/
+│   │   ├── XYZ_4bfeeaee-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_4bfeeaee-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_4bfeeaee-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_4d66e72a/
+│   │   ├── XYZ_4d66e72a-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_4d66e72a-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_4d66e72a-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_5080ae0f/
+│   │   ├── XYZ_5080ae0f-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_5080ae0f-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_5080ae0f-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_56010127/
+│   │   ├── XYZ_56010127-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_56010127-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_56010127-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_5933f406/
+│   │   ├── XYZ_5933f406-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_5933f406-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_5933f406-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_5bfe8212/
+│   │   ├── XYZ_5bfe8212-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_5bfe8212-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_5bfe8212-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_61bebb01/
+│   │   ├── XYZ_61bebb01-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_61bebb01-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_61bebb01-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_63b8ac7f/
+│   │   ├── XYZ_63b8ac7f-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_63b8ac7f-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_63b8ac7f-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_67e6d540/
+│   │   ├── XYZ_67e6d540-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_67e6d540-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_67e6d540-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_684b4573/
+│   │   ├── XYZ_684b4573-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_684b4573-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_684b4573-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_68a63d13/
+│   │   ├── XYZ_68a63d13-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_68a63d13-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_68a63d13-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_6a7c5747/
+│   │   ├── XYZ_6a7c5747-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_6a7c5747-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_6a7c5747-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_71ea833f/
+│   │   ├── XYZ_71ea833f-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_71ea833f-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_71ea833f-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_7839a617/
+│   │   ├── XYZ_7839a617-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_7839a617-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_7839a617-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_7fb2ee25/
+│   │   ├── XYZ_7fb2ee25-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_7fb2ee25-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_7fb2ee25-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_855ac680/
+│   │   ├── XYZ_855ac680-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_855ac680-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_855ac680-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_8732df60/
+│   │   ├── XYZ_8732df60-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8732df60-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_8732df60-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_89e54dd5/
+│   │   ├── XYZ_89e54dd5-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_89e54dd5-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_89e54dd5-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_8a00e19f/
+│   │   ├── XYZ_8a00e19f-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8a00e19f-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_8a00e19f-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_8c3febc7/
+│   │   ├── XYZ_8c3febc7-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8c3febc7-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_8c3febc7-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_8d9c1f58/
+│   │   ├── XYZ_8d9c1f58-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8d9c1f58-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_8d9c1f58-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_8dda4e6e/
+│   │   ├── XYZ_8dda4e6e-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8dda4e6e-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_8dda4e6e-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_8f0ba191/
+│   │   ├── XYZ_8f0ba191-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8f0ba191-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_8f0ba191-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_8fab22ec/
+│   │   ├── XYZ_8fab22ec-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_8fab22ec-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_8fab22ec-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_911f0d75/
+│   │   ├── XYZ_911f0d75-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_911f0d75-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_911f0d75-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_924cd754/
+│   │   ├── XYZ_924cd754-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_924cd754-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_924cd754-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_9873e53b/
+│   │   ├── XYZ_9873e53b-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_9873e53b-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_9873e53b-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_9aaaa640/
+│   │   ├── XYZ_9aaaa640-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_9aaaa640-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_9aaaa640-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_a99daba7/
+│   │   ├── XYZ_a99daba7-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_a99daba7-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_a99daba7-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_ad11302a/
+│   │   ├── XYZ_ad11302a-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_ad11302a-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_ad11302a-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_b75f01e2/
+│   │   ├── XYZ_b75f01e2-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_b75f01e2-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_b75f01e2-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_b79b51e6/
+│   │   ├── XYZ_b79b51e6-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_b79b51e6-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_b79b51e6-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_c390d6b5/
+│   │   ├── XYZ_c390d6b5-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_c390d6b5-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_c390d6b5-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_c6a9e589/
+│   │   ├── XYZ_c6a9e589-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_c6a9e589-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_c6a9e589-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_c7bd5e27/
+│   │   ├── XYZ_c7bd5e27-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_c7bd5e27-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_c7bd5e27-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_cefe8091/
+│   │   ├── XYZ_cefe8091-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_cefe8091-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_cefe8091-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_d2ed8629/
+│   │   ├── XYZ_d2ed8629-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_d2ed8629-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_d2ed8629-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_d769e1f0/
+│   │   ├── XYZ_d769e1f0-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_d769e1f0-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_d769e1f0-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_d84a3af2/
+│   │   ├── XYZ_d84a3af2-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_d84a3af2-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_d84a3af2-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_e3db372b/
+│   │   ├── XYZ_e3db372b-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_e3db372b-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_e3db372b-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_e6d506f7/
+│   │   ├── XYZ_e6d506f7-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6d506f7-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_e6d506f7-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_e6da0e82/
+│   │   ├── XYZ_e6da0e82-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_e6da0e82-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_e6da0e82-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_e7444b5d/
+│   │   ├── XYZ_e7444b5d-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7444b5d-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_e7444b5d-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_e7b08061/
+│   │   ├── XYZ_e7b08061-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_e7b08061-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_e7b08061-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_eba74d7d/
+│   │   ├── XYZ_eba74d7d-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_eba74d7d-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_eba74d7d-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_ec00eea1/
+│   │   ├── XYZ_ec00eea1-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec00eea1-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_ec00eea1-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_ec1374ea/
+│   │   ├── XYZ_ec1374ea-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_ec1374ea-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_ec1374ea-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_eec645de/
+│   │   ├── XYZ_eec645de-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_eec645de-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_eec645de-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_f0f8229a/
+│   │   ├── XYZ_f0f8229a-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_f0f8229a-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_f0f8229a-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_f451f31b/
+│   │   ├── XYZ_f451f31b-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_f451f31b-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_f451f31b-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_f4cbeff3/
+│   │   ├── XYZ_f4cbeff3-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_f4cbeff3-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_f4cbeff3-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── XYZ_f8a209fc/
+│   │   ├── XYZ_f8a209fc-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── XYZ_f8a209fc-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── XYZ_f8a209fc-as_of_2025-11-30T230000+0000-data.parquet
+│   └── XYZ_fac41f35/
+│       ├── XYZ_fac41f35-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-02-29T230000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-03-31T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-04-30T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-05-31T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-06-30T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-07-31T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-08-31T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-09-30T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-10-31T230000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-11-30T230000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2024-12-31T230000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2025-01-31T230000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2025-02-28T230000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2025-03-31T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2025-04-30T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2025-05-31T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2025-06-30T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2025-07-31T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2025-08-31T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2025-09-30T220000+0000-data.parquet
+│       ├── XYZ_fac41f35-as_of_2025-10-31T230000+0000-data.parquet
+│       └── XYZ_fac41f35-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
-│   ├── AZ_drikkevarer-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── AZ_omsetning-metadata.json
-│   ├── More Prices and Volumes-metadata.json
+│   ├── ABC-metadata.json
 │   ├── PQR-metadata.json
-│   ├── Prices and Volumes-metadata.json
+│   ├── probe-pollution-metadata.json
 │   ├── Sample Data-metadata.json
-│   └── XYZ-metadata.json
-├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
-│   ├── PQR/
-│   │   └── PQR-latest-data.parquet
-│   └── XYZ/
-│       └── XYZ-latest-data.parquet
-└── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
-    ├── AZ_drikkevarer/
-    │   └── AZ_drikkevarer-latest-data.parquet
-    ├── AZ_drinks/
-    │   └── AZ_drinks-latest-data.parquet
-    ├── AZ_omsetning/
-    │   └── AZ_omsetning-latest-data.parquet
-    └── More Prices and Volumes/
-        └── More Prices and Volumes-latest-data.parquet
+│   ├── x-metadata.json
+│   ├── XYZ-metadata.json
+│   ├── XYZ_01467351-metadata.json
+│   ├── XYZ_06690c35-metadata.json
+│   ├── XYZ_07f5ed8c-metadata.json
+│   ├── XYZ_08c7fb95-metadata.json
+│   ├── XYZ_0fb6f4d4-metadata.json
+│   ├── XYZ_10ef582f-metadata.json
+│   ├── XYZ_1296b25d-metadata.json
+│   ├── XYZ_133efd09-metadata.json
+│   ├── XYZ_138928c9-metadata.json
+│   ├── XYZ_14e25934-metadata.json
+│   ├── XYZ_15613b7d-metadata.json
+│   ├── XYZ_1d6fc3f3-metadata.json
+│   ├── XYZ_220102a7-metadata.json
+│   ├── XYZ_233799d2-metadata.json
+│   ├── XYZ_23b8cac9-metadata.json
+│   ├── XYZ_25920447-metadata.json
+│   ├── XYZ_2aee681a-metadata.json
+│   ├── XYZ_2d7ed423-metadata.json
+│   ├── XYZ_31438726-metadata.json
+│   ├── XYZ_314640b0-metadata.json
+│   ├── XYZ_3e58b0cf-metadata.json
+│   ├── XYZ_40ab339d-metadata.json
+│   ├── XYZ_42fc4770-metadata.json
+│   ├── XYZ_43610d5b-metadata.json
+│   ├── XYZ_4505f14b-metadata.json
+│   ├── XYZ_49aeace7-metadata.json
+│   ├── XYZ_4a31e811-metadata.json
+│   ├── XYZ_4bfeeaee-metadata.json
+│   ├── XYZ_4d66e72a-metadata.json
+│   ├── XYZ_5080ae0f-metadata.json
+│   ├── XYZ_56010127-metadata.json
+│   ├── XYZ_5933f406-metadata.json
+│   ├── XYZ_5bfe8212-metadata.json
+│   ├── XYZ_61bebb01-metadata.json
+│   ├── XYZ_63b8ac7f-metadata.json
+│   ├── XYZ_67e6d540-metadata.json
+│   ├── XYZ_684b4573-metadata.json
+│   ├── XYZ_68a63d13-metadata.json
+│   ├── XYZ_6a7c5747-metadata.json
+│   ├── XYZ_71ea833f-metadata.json
+│   ├── XYZ_7839a617-metadata.json
+│   ├── XYZ_7fb2ee25-metadata.json
+│   ├── XYZ_855ac680-metadata.json
+│   ├── XYZ_8732df60-metadata.json
+│   ├── XYZ_89e54dd5-metadata.json
+│   ├── XYZ_8a00e19f-metadata.json
+│   ├── XYZ_8c3febc7-metadata.json
+│   ├── XYZ_8d9c1f58-metadata.json
+│   ├── XYZ_8dda4e6e-metadata.json
+│   ├── XYZ_8f0ba191-metadata.json
+│   ├── XYZ_8fab22ec-metadata.json
+│   ├── XYZ_911f0d75-metadata.json
+│   ├── XYZ_924cd754-metadata.json
+│   ├── XYZ_9873e53b-metadata.json
+│   ├── XYZ_9aaaa640-metadata.json
+│   ├── XYZ_a99daba7-metadata.json
+│   ├── XYZ_ad11302a-metadata.json
+│   ├── XYZ_b75f01e2-metadata.json
+│   ├── XYZ_b79b51e6-metadata.json
+│   ├── XYZ_c390d6b5-metadata.json
+│   ├── XYZ_c6a9e589-metadata.json
+│   ├── XYZ_c7bd5e27-metadata.json
+│   ├── XYZ_cefe8091-metadata.json
+│   ├── XYZ_d2ed8629-metadata.json
+│   ├── XYZ_d769e1f0-metadata.json
+│   ├── XYZ_d84a3af2-metadata.json
+│   ├── XYZ_e3db372b-metadata.json
+│   ├── XYZ_e6d506f7-metadata.json
+│   ├── XYZ_e6da0e82-metadata.json
+│   ├── XYZ_e7444b5d-metadata.json
+│   ├── XYZ_e7b08061-metadata.json
+│   ├── XYZ_eba74d7d-metadata.json
+│   ├── XYZ_ec00eea1-metadata.json
+│   ├── XYZ_ec1374ea-metadata.json
+│   ├── XYZ_eec645de-metadata.json
+│   ├── XYZ_f0f8229a-metadata.json
+│   ├── XYZ_f451f31b-metadata.json
+│   ├── XYZ_f4cbeff3-metadata.json
+│   ├── XYZ_f8a209fc-metadata.json
+│   └── XYZ_fac41f35-metadata.json
+└── NONE_AT/
+    ├── A Sample Dataset/
+    │   └── A Sample Dataset-latest-data.parquet
+    ├── PQR/
+    │   └── PQR-latest-data.parquet
+    ├── probe-pollution/
+    │   └── probe-pollution-latest-data.parquet
+    ├── Sample Data/
+    │   └── Sample Data-latest-data.parquet
+    ├── x/
+    │   └── x-latest-data.parquet
+    └── XYZ/
+        └── XYZ-latest-data.parquet
 
 </pre>
 
@@ -660,7 +2774,7 @@ def test_success():
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;32m.&#91;0m&#91;32m                                                                        &#91;100%&#93;&#91;0m
 =================================== Overview ===================================
 Passed Tests:
-&#91;1m&#91;32m&#91;22m✓&#91;0m&#91;0m notebooks/meta-basics.py::test_success
+✓ notebooks/meta-basics.py::test_success
 
 Summary:
 Total: 1, Passed: 1, Failed: 0, Errors: 0, Skipped: 0
