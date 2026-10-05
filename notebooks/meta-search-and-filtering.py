@@ -63,6 +63,42 @@ def _():
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    The catalog searches below need data to find.
+    This guide creates the two datasets it queries, so it can be read on its own.
+    """
+    )
+    return
+
+
+@app.cell
+def _(Dataset):
+    # Aliased to avoid clashing with the SeriesType and create_df definitions
+    # further down, which marimo rejects as multiple definitions.
+    import ssb_timeseries.sample_data as _sample_data
+    import ssb_timeseries.types as _types
+
+    searchable_data = Dataset(
+        name = 'Sample Data',
+        data_type = _types.SeriesType(_types.Versioning.NONE, _types.Temporality.AT),
+        data = _sample_data.create_df(['p','q','r'], start_date='2020-01-01', end_date='2025-06-01', freq='D'),
+    )
+    searchable_data.tag_series('p', tags={'product': 'coffee'})
+    searchable_data.tag_series('q', tags={'product': 'crispbread'})
+    searchable_data.tag_series('r', tags={'product': 'brown cheese'})
+    searchable_data.save()
+
+    xyz_data = Dataset(
+        name = 'XYZ',
+        data_type = _types.SeriesType(_types.Versioning.NONE, _types.Temporality.AT),
+        data = _sample_data.create_df(['x','y','z'], start_date='2020-01-01', end_date='2025-06-01', freq='D'),
+    )
+    xyz_data.save()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     The timeseries "catalog"
     ------------------------
     """)
@@ -229,8 +265,8 @@ def _(mo):
 
 @app.cell
 def _(Dataset):
-    xyz = Dataset('Sample Data')
-    return (xyz,)
+    sample_set = Dataset('Sample Data')
+    return (sample_set,)
 
 
 @app.cell(hide_code=True)
@@ -242,8 +278,8 @@ def _(mo):
 
 
 @app.cell
-def _(xyz):
-    xyz.tags
+def _(sample_set):
+    sample_set.tags
     return
 
 
@@ -257,8 +293,8 @@ def _(mo):
 
 
 @app.cell
-def _(xyz):
-    xyz['x','y'].plot()
+def _(sample_set):
+    sample_set['p','q'].plot()
     return
 
 
@@ -271,8 +307,8 @@ def _(mo):
 
 
 @app.cell
-def _(xyz):
-    xyz[{'area':'z'}].plot()
+def _(sample_set):
+    sample_set[{'product':'coffee'}].plot()
     return
 
 

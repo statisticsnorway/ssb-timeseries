@@ -164,6 +164,23 @@ def _repository_test_config(path: Path) -> dict[str, str]:
                 "options": {"path": str(path / "metadata_test_2")},
             },
         },
+        # Some notebooks read repositories['tutorials'], the name the shipped
+        # notebook configurations use. Declaring it here lets those notebooks
+        # run against this fixture instead of the hardcoded paths on disk.
+        # 'test_1' stays the default, so nothing else changes meaning.
+        "tutorials": {
+            "name": "tutorials",
+            "directory": {
+                "handler": "simple-parquet",
+                "options": {
+                    "path": str(path / "series_tutorials"),
+                },
+            },
+            "catalog": {
+                "handler": "json",
+                "options": {"path": str(path / "metadata_tutorials")},
+            },
+        },
     }
 
 

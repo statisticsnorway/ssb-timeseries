@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.24.0"
+__generated_with = "0.24.2"
 app = marimo.App()
 
 
@@ -271,9 +271,9 @@ def _(mo):
 def _(sample_set):
     sample_set.tag_dataset(tags={'variable': 'price','product group': 'essential'})
 
-    sample_set.tag_series('x',tags={'product': 'coffee'})
-    sample_set.tag_series('y',tags={'product': 'crispbread'})
-    sample_set.tag_series('z',tags={'product': 'brown cheese'})
+    sample_set.tag_series('p',tags={'product': 'coffee'})
+    sample_set.tag_series('q',tags={'product': 'crispbread'})
+    sample_set.tag_series('r',tags={'product': 'brown cheese'})
 
     sample_set.save()
     sample_set.tags
@@ -290,13 +290,13 @@ def _(mo):
 
 @app.cell
 def _(Dataset):
-    xyz = Dataset('Sample Data')
-    return (xyz,)
+    pqr = Dataset('Sample Data')
+    return (pqr,)
 
 
 @app.cell
-def _(xyz):
-    xyz.tags
+def _(pqr):
+    pqr.tags
     return
 
 
@@ -311,8 +311,8 @@ def _(mo):
 
 
 @app.cell
-def _(xyz):
-    xyz['x','y'].plot()
+def _(pqr):
+    pqr['p','q'].plot()
     return
 
 
@@ -325,8 +325,8 @@ def _(mo):
 
 
 @app.cell
-def _(xyz):
-    xyz[{'area': 'z'}].plot()
+def _(pqr):
+    pqr[{'product': 'coffee'}].plot()
     return
 
 
