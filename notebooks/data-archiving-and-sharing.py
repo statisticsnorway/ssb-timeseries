@@ -165,6 +165,43 @@ def _(data_path, tree):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Archiving and sharing apply to any dataset, not only the one created above.
+    The two datasets used by the other guides are created here so that this guide runs on its own.
+    """)
+    return
+
+
+@app.cell
+def _(ts, xyz_at):
+    from ssb_timeseries.sample_data import create_df
+
+    # Archiving and sharing apply to any dataset, not only the one created above.
+    # The datasets used by the other guides are created here, from the same
+    # generators, so that this guide runs on its own and writes identical data.
+    for name, data in (
+        ("XYZ", xyz_at()),
+        (
+            "PQR",
+            create_df(
+                ["p", "q", "r"],
+                start_date="2020-01-01",
+                end_date="2025-06-01",
+                freq="D",
+                temporality="AT",
+            ),
+        ),
+    ):
+        ts.dataset.Dataset(
+            name = name,
+            data_type = ts.types.SeriesType('NONE','AT'),
+            data = data,
+        ).save()
+    return
+
+
 @app.cell
 def _(ts):
     # let us differentiate sharing

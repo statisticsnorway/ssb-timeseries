@@ -188,9 +188,10 @@ def _(create_df):
     def mock_interval_data_from_file_or_query(start, end):
         a_to_z = [chr(i) for i in range(ord('a'), ord('z') + 1)]
         variables = ['volume', 'price']
-        goods = ['coffe', 'tea', 'softdrinks', 'beer', 'wine']
+        products = ['coffee', 'tea', 'soft-drinks', 'beer', 'wine']
+        regions = ['N', 'E', 'W', 'S', 'NE', 'NW', 'SE', 'SW']
         return create_df(
-            a_to_z, variables, goods,
+            a_to_z, variables, products, regions,
             start_date=start,
             end_date=end,
             freq='M',
@@ -216,10 +217,10 @@ def _(bigger_data):
 @app.cell
 def _(Dataset, bigger_data, interval_data):
     az = Dataset(
-        name = 'AZ Drinks',
+        name = 'AZ_drinks',
         data_type = interval_data,
         data = bigger_data,
-        attributes=['store','variable','product'], # <-- this is the clever part
+        attributes=['store','variable','product', 'region'], # <-- this is the clever part
     )
     az.save()
     return (az,)
@@ -267,8 +268,8 @@ def _(mo):
 
 @app.cell
 def _(Dataset):
-    prices = Dataset('AZ Drinks')[{'variable':'price'}]
-    volumes = Dataset('AZ Drinks')[{'variable':'volume'}]
+    prices = Dataset('AZ_drinks')[{'variable':'price'}]
+    volumes = Dataset('AZ_drinks')[{'variable':'volume'}]
     revenues = prices * volumes
     return (revenues,)
 
@@ -313,7 +314,7 @@ def _(mo):
 @app.cell
 def _(revenues):
     # DEBUG: tags are lost in selects above, hence not flowing through
-    revenues.tags["series"]["a_revenue_beer"]
+    revenues.tags["series"]["a_revenue_beer_E"]
     return
 
 
@@ -321,7 +322,7 @@ def _(revenues):
 def _(revenues):
     # ... tag maintenance is likely to be necessary after calculations:
     revenues.replace_tags(({'variable':'price'},{'variable':'revenue'}))
-    revenues.tags["series"]["a_revenue_beer"]
+    revenues.tags["series"]["a_revenue_beer_E"]
     return
 
 
@@ -522,12 +523,12 @@ def _(az, az_selection, pqr, revenues):
         assert pqr.tags["series"]["r"]["vare"] == "brunost"
 
     def test_autotagging_expands_all_attribute_combinations():
-        # 26 letters times 2 variables times 5 goods is 260 series, as reported.
-        assert len(az.series) == 26 * 2 * 5
+        # 26 letters times 2 variables times 5 goods times 8 regions is 2080 series, as reported.
+        assert len(az.series) == 26 * 2 * 5 * 8
 
     def test_selecting_one_variable_and_product_narrows_the_series():
-        # tea + price over 26 letters is 26 series.
-        assert len(az_selection.series) == 26
+        # tea + price over 26 letters and 8 regions is 208 series.
+        assert len(az_selection.series) == 26 * 8
         assert all("tea" in name for name in az_selection.series)
         assert all("price" in name for name in az_selection.series)
 
@@ -536,7 +537,7 @@ def _(az, az_selection, pqr, revenues):
         # are lost through the select, so replace_tags has to restore them.
         assert revenues.name == "AZ Revenue"
         assert all("revenue" in name for name in revenues.series)
-        assert revenues.tags["series"]["a_revenue_beer"]["variable"] == "revenue"
+        assert revenues.tags["series"]["a_revenue_beer_E"]["variable"] == "revenue"
 
     return (
         test_autotagging_expands_all_attribute_combinations,

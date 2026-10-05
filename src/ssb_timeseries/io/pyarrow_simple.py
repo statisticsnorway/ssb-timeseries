@@ -140,8 +140,6 @@ class FileSystem:
                 file_name = f"{dataset.name}-as_of_{safe_timestamp}-data.parquet"
             case "NONE":
                 file_name = f"{dataset.name}-latest-data.parquet"
-            case "NAMED":
-                file_name = f"{dataset.name}-NAMED-data.parquet"
             case _:
                 raise ValueError("Unhandled versioning.")
 

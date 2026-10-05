@@ -81,12 +81,17 @@ def _():
 
 @app.cell
 def _():
-    from ssb_timeseries.types import SeriesType
-    from ssb_timeseries.sample_data import create_df
-    from itertools import product
     from datetime import date
+    from itertools import product
 
-    return SeriesType, create_df, date, product
+    import numpy as np
+
+    from ssb_timeseries.sample_data import POPU06_MAIN_COUNTRIES
+    from ssb_timeseries.sample_data import create_df
+    from ssb_timeseries.sample_data import popu06
+    from ssb_timeseries.types import SeriesType
+
+    return POPU06_MAIN_COUNTRIES, SeriesType, create_df, date, np, popu06, product
 
 
 @app.cell(hide_code=True)
@@ -98,48 +103,58 @@ def _(mo):
 
 
 @app.cell
-def _(Dataset, SeriesType, create_df, date):
-    def create_some_example_data(
-        set_name: str,
+def _(Dataset, SeriesType, date, np, popu06):
+    def create_popu06_versions(
         as_of_dates: list[date],
-        series_tags: dict[str,list[str]],
+        countries: tuple[str, ...],
+        noise: float = 0.002,
+        seed: int = 20251001,
     ):
-        """Generate and save some sample data."""
-        set_tags = { "Country": "Norway" }
-        for d in as_of_dates:
-            df = create_df(
-                *[value for value in series_tags.values()],
-                temporality= 'AT',
-                start_date="2025-01-01",
-                end_date="2026-12-01",
-                freq="D",
-            )
+        """Save one version of the Nordic population projections for each as-of date.
+
+        The projections themselves are static and reproducible, so a small seeded
+        perturbation is applied to give each version its own values.
+        Without it every version would hold identical numbers and calculating
+        between two versions would yield nothing but zeros.
+        """
+        base = popu06(countries=countries, start_year=2027, end_year=2046)
+        generator = np.random.default_rng(seed)
+        for as_of in as_of_dates:
+            version = base.copy()
+            for country in countries:
+                jitter = 1 + noise * generator.standard_normal(len(version))
+                version[country] = (
+                    version[country].to_numpy() * jitter
+                ).round().astype("int64")
             Dataset(
-                name=set_name,
-                data_type=SeriesType('AS_OF', 'AT'),
-                as_of_tz=str(d),
-                data=df,
-                tags = set_tags,
-                attributes = series_tags.keys(),
+                name="POPU06",
+                data_type=SeriesType("AS_OF", "AT"),
+                as_of_tz=str(as_of),
+                data=version,
+                tags={
+                    "source": "POPU06",
+                    "table": "Population projections by age and sex, total",
+                },
             ).save()
 
-    return (create_some_example_data,)
+    return (create_popu06_versions,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    We will generate random data for all permutations of some descriptive metadata,
+    We will store the population projections published in the Nordic Statistics database table
+    [POPU06](https://pxweb.nordicstatistics.org), one series per country.
+    The same projections are stored once per `as_of`-date, so that versions can be compared.
     """)
     return
 
 
 @app.cell
-def _(create_some_example_data, date, product):
-    create_some_example_data(
-        set_name="Sample Data",
-        as_of_dates = [date(*d) for d in product({2024,2025}, range(1,13), {1})],
-        series_tags = {'area': ["x", "y","z"]}
+def _(POPU06_MAIN_COUNTRIES, create_popu06_versions, date, product):
+    create_popu06_versions(
+        as_of_dates=[date(*d) for d in product({2024, 2025}, range(1, 13), {1})],
+        countries=POPU06_MAIN_COUNTRIES,
     )
     return
 
@@ -156,7 +171,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Our dataset "Prices and Volumes" contain *prices* and *volumes* for a number of *products*.
+    Our dataset "POPU06" contains *population projections* for the Nordic countries.
 
     [Basic arithmetic](calc-basic-arithmetic) may be performed on same size data:
     """)
@@ -165,8 +180,8 @@ def _(mo):
 
 @app.cell
 def _(Dataset):
-    jul = Dataset(name="Sample Data", as_of_tz="2025-07-01")
-    feb = Dataset(name="Sample Data", as_of_tz="2025-02-01")
+    jul = Dataset(name="POPU06", as_of_tz="2025-07-01")
+    feb = Dataset(name="POPU06", as_of_tz="2025-02-01")
 
     change_from_feb_to_july = jul - feb
     return change_from_feb_to_july, jul
@@ -245,8 +260,8 @@ def _(mo):
 def _(date):
     import polars as pl
 
-    d_from = date(2024, 2, 22)
-    d_to = pl.date(2024, 3, 2)
+    d_from = date(2035, 1, 1)
+    d_to = pl.date(2039, 12, 31)
     return d_from, d_to, pl
 
 
@@ -308,8 +323,7 @@ def _(jul, pl):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Group by
-    --------
+    The projections are annual, so the data is aggregated over five year periods rather than quarters.
     """)
     return
 
@@ -322,13 +336,13 @@ def _(jul):
 
 @app.cell
 def _(jul):
-    quarterly = jul.groupby('Q','mean')
-    return (quarterly,)
+    five_year = jul.groupby('5Y','mean')
+    return (five_year,)
 
 
 @app.cell
-def _(quarterly):
-    quarterly.data
+def _(five_year):
+    five_year.data
     return
 
 
@@ -338,8 +352,8 @@ def _():
 
 
 @app.cell
-def _(quarterly):
-    quarterly.pd.plot()
+def _(five_year):
+    five_year.pd.plot()
     # sum --> strange first value because of tz conversion / and not full period
     return
 
@@ -354,14 +368,14 @@ def _(mo):
 
 
 @app.cell
-def _(quarterly):
-    rolling_4q_avg = quarterly.moving_average(-4,-1)
-    return (rolling_4q_avg,)
+def _(five_year):
+    rolling_5y_avg = five_year.moving_average(-4,-1)
+    return (rolling_5y_avg,)
 
 
 @app.cell
-def _(rolling_4q_avg):
-    rolling_4q_avg.data
+def _(rolling_5y_avg):
+    rolling_5y_avg.data
     return
 
 
@@ -380,18 +394,30 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _():
+def _(change_from_feb_to_july, feb, jul):
     # @supress
-    def test_true():
-        assert True
 
-    # add better tests in this cell and add to list in cell below!
-    return (test_true,)
+    def test_popu06_has_one_series_per_country():
+        assert set(jul.series) == {"Denmark", "Finland", "Iceland", "Norway", "Sweden"}
+
+    def test_popu06_spans_the_common_projection_period():
+        assert len(jul.data["valid_at"]) == 20
+        assert feb.series == jul.series
+
+    def test_popu06_versions_are_not_identical():
+        difference = change_from_feb_to_july.data["Norway"].to_pandas()
+        assert difference.abs().sum() > 0
+
+    return (test_popu06_has_one_series_per_country, test_popu06_spans_the_common_projection_period, test_popu06_versions_are_not_identical)
 
 
 @app.cell(hide_code=True)
-def _(test_true, testing):
-    testing.run_and_report([test_true])
+def _(test_popu06_has_one_series_per_country, test_popu06_spans_the_common_projection_period, test_popu06_versions_are_not_identical, testing):
+    testing.run_and_report([
+        test_popu06_has_one_series_per_country,
+        test_popu06_spans_the_common_projection_period,
+        test_popu06_versions_are_not_identical,
+    ])
     return
 
 

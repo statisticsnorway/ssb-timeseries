@@ -9,14 +9,19 @@ from pandas import DataFrame as PdDf
 from polars import DataFrame as PlDf
 from pyarrow import Table as PaTbl
 
+from ssb_timeseries.dataframes import _coalesce
 from ssb_timeseries.dataframes import are_equal
 from ssb_timeseries.dataframes import empty_frame
+from ssb_timeseries.dataframes import infer_datatype
 from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.dataframes import is_empty
 from ssb_timeseries.dataframes import merge_data
 from ssb_timeseries.dataframes.dates import datelike_to_utc
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import Temporality
+from ssb_timeseries.types import Versioning
 
 
 def test_empty_frame_call_with_no_parameters_returns_df_with_shape_0_0() -> None:
@@ -326,3 +331,72 @@ def test_merge_data_raises_error_on_different_temporalities(
 
     with pytest.raises(ValueError, match=r"No matching date columns;.*"):
         merge_data(at_df, from_to_df, ["valid_at"], temporality="AT")
+
+
+def test_coalesce_returns_the_first_non_none_argument() -> None:
+    """Verify that _coalesce selects a value rather than coercing it to a bool."""
+    assert _coalesce(None, Versioning.NONE) == Versioning.NONE
+    assert _coalesce(Temporality.FROM_TO, Temporality.AT) == Temporality.FROM_TO
+    assert _coalesce(None, None) is None
+
+
+@pytest.mark.parametrize(
+    ("columns", "temporality", "expected"),
+    [
+        (["x"], "AT", SeriesType(Versioning.NONE, Temporality.AT)),
+        (["x"], "FROM_TO", SeriesType(Versioning.NONE, Temporality.FROM_TO)),
+    ],
+)
+def test_infer_datatype_returns_enum_members(columns, temporality, expected):
+    """Verify that inference yields real enum members, not their truthiness.
+
+    The members are what the IO handlers match on when they build filenames,
+    so a bool here surfaces as ValueError('Unhandled versioning.') on save.
+    """
+    df = create_df(
+        columns,
+        start_date="2022-01-01",
+        end_date="2022-03-01",
+        freq="MS",
+        temporality=temporality,
+    )
+
+    inferred = infer_datatype(df)
+
+    assert inferred == expected
+    assert isinstance(inferred.versioning, Versioning)
+    assert isinstance(inferred.temporality, Temporality)
+
+
+def test_infer_datatype_detects_as_of_from_a_date_column() -> None:
+    df = create_df(["x"], start_date="2022-01-01", end_date="2022-03-01", freq="MS")
+    df = (
+        nw.from_native(df)
+        .with_columns(as_of=nw.lit(date_utc("2022-06-01")))
+        .to_native()
+    )
+
+    inferred = infer_datatype(df)
+
+    assert inferred == SeriesType(Versioning.AS_OF, Temporality.AT)
+
+
+def test_infer_datatype_ignores_as_of_kwargs_that_are_none() -> None:
+    """Verify that an as_of keyword only implies AS_OF when it carries a value.
+
+    Dataset.__init__ always forwards as_of_tz, so key presence alone would make
+    every dataset constructed without an explicit data_type AS_OF.
+    """
+    df = create_df(["x"], start_date="2022-01-01", end_date="2022-03-01", freq="MS")
+
+    inferred = infer_datatype(df, as_of_tz=None)
+
+    assert inferred == SeriesType(Versioning.NONE, Temporality.AT)
+
+
+def test_infer_datatype_honours_an_explicit_versioning_kwarg() -> None:
+    df = create_df(["x"], start_date="2022-01-01", end_date="2022-03-01", freq="MS")
+
+    inferred = infer_datatype(df, versioning=Versioning.AS_OF)
+
+    assert inferred == SeriesType(Versioning.AS_OF, Temporality.AT)

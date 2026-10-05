@@ -178,14 +178,6 @@ def test_marimo_data_archiving_and_sharing(notebook_config):
     assert result.returncode == 0
 
 
-# TODO: implement Versioning.NAMES in pyarrow_simple.py and drop this xfail.
-# The dead case at pyarrow_simple.py:143 matches "NAMED", but the member is
-# NAMES, and _version_from_file_name expects a "_v<name>" filename that the
-# writer never produces. Correcting the literal alone only moves the failure.
-@pytest.mark.xfail(
-    reason="Not in the published docs, and raises ValueError('Unhandled versioning.') "
-    "because Versioning.NAMES is unimplemented in the simple-parquet handler."
-)
 def test_marimo_data_types_and_storage(notebook_config):
     result = subprocess_run_marimo_notebook(
         "data-types-and-storage.py",

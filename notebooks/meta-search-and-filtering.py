@@ -78,7 +78,7 @@ def _(Dataset):
     import ssb_timeseries.types as _types
 
     searchable_data = Dataset(
-        name = 'Sample Data',
+        name = 'PQR',
         data_type = _types.SeriesType(_types.Versioning.NONE, _types.Temporality.AT),
         data = _sample_data.create_df(['p','q','r'], start_date='2020-01-01', end_date='2025-06-01', freq='D'),
     )
@@ -90,7 +90,7 @@ def _(Dataset):
     xyz_data = Dataset(
         name = 'XYZ',
         data_type = _types.SeriesType(_types.Versioning.NONE, _types.Temporality.AT),
-        data = _sample_data.create_df(['x','y','z'], start_date='2020-01-01', end_date='2025-06-01', freq='D'),
+        data = _sample_data.xyz_at(),
     )
     xyz_data.save()
     return
@@ -214,7 +214,7 @@ def _(mo):
 @app.cell
 def _(all_sets):
     all_sets_tag_dict = {s.object_name: s.object_tags for s in all_sets}
-    all_sets_tag_dict['Sample Data']
+    all_sets_tag_dict['PQR']
     return (all_sets_tag_dict,)
 
 
@@ -228,8 +228,8 @@ def _(mo):
 
 @app.cell
 def _(Dataset, all_sets_tag_dict):
-    sample_data = Dataset('Sample Data')
-    sample_data.tags == all_sets_tag_dict['Sample Data']
+    sample_data = Dataset('PQR')
+    sample_data.tags == all_sets_tag_dict['PQR']
     return
 
 
@@ -243,7 +243,7 @@ def _(mo):
 
 @app.cell
 def _(timeseries_catalog):
-    series = timeseries_catalog.series(tags={'dataset': ['Sample Data', 'XYZ']})
+    series = timeseries_catalog.series(tags={'dataset': ['PQR', 'XYZ']})
     [f"{s.repository_name}/{s.parent}/{s.object_name}" for s in series]
     return
 
@@ -265,7 +265,7 @@ def _(mo):
 
 @app.cell
 def _(Dataset):
-    sample_set = Dataset('Sample Data')
+    sample_set = Dataset('PQR')
     return (sample_set,)
 
 
