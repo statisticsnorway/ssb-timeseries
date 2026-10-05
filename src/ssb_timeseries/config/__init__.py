@@ -35,6 +35,7 @@ See :py:func:`ssb_timeseries.config.main` for details on the named options.
 from __future__ import annotations
 
 import copy
+import importlib
 import json
 import logging
 import os
@@ -54,6 +55,7 @@ except ImportError:
     from typing_extensions import TypedDict
 
 from typing import Any
+from typing import Literal
 from typing import TypeAlias
 from typing import get_origin
 from typing import get_type_hints
@@ -107,6 +109,95 @@ def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
     if wrong_type:
         msg = f"Configuration fields have wrong type: {wrong_type}"
         return (False, msg)
+
+    return (True, None)
+
+
+def validate_handlers(
+    configuration: ConfigDict,
+    *,
+    required: Literal["builtin", "all"] = "builtin",
+) -> tuple[bool, object]:
+    """Check that every configured IO handler names a class that resolves.
+
+    :py:func:`is_valid_config` establishes that a configuration is structurally
+    valid, which is not the same as being usable.
+    A handler is named by a string, and a string is a well-formed value whether or
+    not anything answers to it, so a handler naming a module that has been deleted
+    passes validation and then fails at the first read or write.
+
+    Handlers written outside this package are a supported feature rather than a
+    defect, so their absence is not treated as an error here.
+    A handler under this package's namespace cannot be absent for an innocent
+    reason, because the package is installed wherever the configuration is used,
+    so a failure to resolve one indicates a typo or a module that no longer exists.
+
+    Whether a handler satisfies the protocol it is registered for is not checked
+    here.
+    A handler must be instantiated before it can be compared against a protocol,
+    and the dispatcher already does that, naming the operations a handler lacks.
+
+    Args:
+        configuration: The configuration whose handlers to resolve.
+        required: Which handlers must resolve.
+            ``"builtin"`` requires only handlers under this package's namespace and
+            tolerates handlers written elsewhere, whose absence usually means only
+            that they are not installed in the environment asking.
+            ``"all"`` requires every handler, and is appropriate where the
+            environment is known to be complete.
+
+    Returns:
+        A tuple of whether every required handler resolves, and the reason one does
+        not, or ``None`` when they all do.
+
+    Examples:
+        >>> from ssb_timeseries.config import DEFAULTS, validate_handlers
+        >>> is_resolvable, reason = validate_handlers(DEFAULTS)
+        >>> is_resolvable
+        True
+    """
+    failures = []
+
+    for handler_name, handler_config in configuration.get("io_handlers", {}).items():
+        handler_path = handler_config.get("handler", "")
+        if not isinstance(handler_path, str) or "." not in handler_path:
+            failures.append(
+                f"'{handler_name}' is configured as {handler_path!r}, "
+                f"which is not a 'module.Class' path"
+            )
+            continue
+
+        module_path, _, class_name = handler_path.rpartition(".")
+        failure = None
+
+        try:
+            handler_class = getattr(importlib.import_module(module_path), class_name)
+        except (ImportError, AttributeError) as error:
+            failure = str(error)
+        else:
+            if not isinstance(handler_class, type):
+                # A module, a function or a constant satisfies `getattr`, and none of
+                # them can be instantiated into a handler. This is a wrong
+                # configuration wherever it is found, not an absent dependency.
+                failure = (
+                    f"it resolved to {type(handler_class).__name__}, not to a class"
+                )
+            else:
+                resolved_at = f"{handler_class.__module__}.{handler_class.__qualname__}"
+                if resolved_at != handler_path:
+                    failure = f"it resolved to {resolved_at}"
+
+        if failure is None:
+            continue
+
+        if required == "all" or module_path.split(".")[0] == PACKAGE_NAME:
+            failures.append(
+                f"'{handler_name}' is configured as {handler_path!r}, "
+                f"which does not resolve: {failure}"
+            )
+
+    if failures:
+        return (False, "; ".join(failures))
 
     return (True, None)
 
