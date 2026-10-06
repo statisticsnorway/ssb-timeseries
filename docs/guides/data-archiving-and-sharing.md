@@ -35,45 +35,59 @@ treee()
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── archives/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset_v1.parquet
-│   ├── PQR/
-│   │   └── PQR_v1.parquet
 │   ├── statistics/
 │   │   └── PQR/
-│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v1.parquet
-│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v2.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
 │   ├── The Sample Statistic/
 │   │   └── statistics/
 │   │       └── SampleDataset/
 │   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
 │   └── XYZ/
-│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
-│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v3.parquet
-│       └── XYZ_v1.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
+├── AS_OF_AT/
+│   └── POPU06/
+│       ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
 ├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── PQR-metadata.json
+│   ├── AZ_beverages-metadata.json
+│   ├── AZ_drinks-metadata.json
 │   ├── SampleDataset-metadata.json
-│   └── XYZ-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
 ├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
 │   ├── SampleDataset/
 │   │   └── SampleDataset-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
 └── shared/
     └── default/
         ├── statistics/
         │   └── PQR/
-        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v1.parquet
-        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v2.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
         └── XYZ/
-            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
-            └── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v3.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
@@ -86,45 +100,59 @@ treee()
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── archives/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset_v1.parquet
-│   ├── PQR/
-│   │   └── PQR_v1.parquet
 │   ├── statistics/
 │   │   └── PQR/
-│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v1.parquet
-│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v2.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
 │   ├── The Sample Statistic/
 │   │   └── statistics/
 │   │       └── SampleDataset/
 │   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
 │   └── XYZ/
-│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
-│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v3.parquet
-│       └── XYZ_v1.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
+├── AS_OF_AT/
+│   └── POPU06/
+│       ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
 ├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── PQR-metadata.json
+│   ├── AZ_beverages-metadata.json
+│   ├── AZ_drinks-metadata.json
 │   ├── SampleDataset-metadata.json
-│   └── XYZ-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
 ├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
 │   ├── SampleDataset/
 │   │   └── SampleDataset-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
 └── shared/
     └── default/
         ├── statistics/
         │   └── PQR/
-        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v1.parquet
-        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v2.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
         └── XYZ/
-            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
-            └── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v3.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
@@ -160,45 +188,59 @@ treee()
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── archives/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset_v1.parquet
-│   ├── PQR/
-│   │   └── PQR_v1.parquet
 │   ├── statistics/
 │   │   └── PQR/
-│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v1.parquet
-│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v2.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
 │   ├── The Sample Statistic/
 │   │   └── statistics/
 │   │       └── SampleDataset/
 │   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
 │   └── XYZ/
-│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
-│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v3.parquet
-│       └── XYZ_v1.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
+├── AS_OF_AT/
+│   └── POPU06/
+│       ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
 ├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── PQR-metadata.json
+│   ├── AZ_beverages-metadata.json
+│   ├── AZ_drinks-metadata.json
 │   ├── SampleDataset-metadata.json
-│   └── XYZ-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
 ├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
 │   ├── SampleDataset/
 │   │   └── SampleDataset-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
 └── shared/
     └── default/
         ├── statistics/
         │   └── PQR/
-        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v1.parquet
-        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v2.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
         └── XYZ/
-            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
-            └── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v3.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
@@ -231,23 +273,16 @@ print(tree(f'{data_path}/archives'))
 <!-- @output:qnkX -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">archives/
-├── A Sample Dataset/
-│   └── A Sample Dataset_v1.parquet
-├── PQR/
-│   └── PQR_v1.parquet
 ├── statistics/
 │   └── PQR/
-│       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v1.parquet
-│       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v2.parquet
+│       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
 ├── The Sample Statistic/
 │   └── statistics/
 │       └── SampleDataset/
 │           ├── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
 │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
 └── XYZ/
-    ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
-    ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v3.parquet
-    └── XYZ_v1.parquet
+    └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
@@ -307,12 +342,10 @@ print(tree(f'{data_path}/shared'))
 └── default/
     ├── statistics/
     │   └── PQR/
-    │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v1.parquet
-    │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v2.parquet
-    │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v3.parquet
+    │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+    │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
     └── XYZ/
         ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
-        ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v3.parquet
-        └── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v4.parquet
+        └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>

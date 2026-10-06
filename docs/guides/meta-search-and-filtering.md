@@ -77,14 +77,14 @@ catalog_item_list_to_df(all_sets)
 
 | repository_name | object_name | object_type | object_tags |
 | --- | --- | --- | --- |
-| tutorials | A Sample Dataset | dataset | {4 set tags + 3 series} |
-| tutorials | AZ_drikkevarer | dataset | {4 set tags + 260 series} |
+| tutorials | AZ_beverages | dataset | {4 set tags + 260 series} |
 | tutorials | AZ_drinks | dataset | {4 set tags + 2080 series} |
-| tutorials | AZ_omsetning | dataset | {5 set tags + 130 series} |
+| tutorials | BNO | dataset | {4 set tags + 2 series} |
 | tutorials | More Prices and Volumes | dataset | {4 set tags + 636 series} |
 | tutorials | POPU06 | dataset | {4 set tags + 5 series} |
 | tutorials | PQR | dataset | {8 set tags + 3 series} |
 | tutorials | Prices and Volumes | dataset | {4 set tags + 12 series} |
+| tutorials | SampleDataset | dataset | {4 set tags + 3 series} |
 | tutorials | XYZ | dataset | {4 set tags + 3 series} |
 
 Or the unique repositories:
@@ -111,7 +111,7 @@ everything = timeseries_catalog.items()
 
 <!-- @output:TqIu -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">3141</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">3013</pre>
 
 Or, to search for all `Datasets` that contain `Series` tagged with `{'product': 'coffee'}`, just return the `parent` for the `.series` search:
 
@@ -125,14 +125,14 @@ sets_that_have_series_tagged_with = {result.parent for result in timeseries_cata
 
 <!-- @output:ulZA -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;A Sample Dataset&#x27;,
- &#x27;AZ_drikkevarer&#x27;,
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;AZ_beverages&#x27;,
  &#x27;AZ_drinks&#x27;,
- &#x27;AZ_omsetning&#x27;,
+ &#x27;BNO&#x27;,
  &#x27;More Prices and Volumes&#x27;,
  &#x27;POPU06&#x27;,
  &#x27;PQR&#x27;,
  &#x27;Prices and Volumes&#x27;,
+ &#x27;SampleDataset&#x27;,
  &#x27;XYZ&#x27;&#93;</pre>
 
 To get a global tag dictionary:
@@ -145,12 +145,12 @@ all_sets_tag_dict['PQR']
 <!-- @output:Pvdt -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
- &#x27;product group&#x27;: &#x27;essential&#x27;,
+ &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
  &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;p&#x27;,
                   &#x27;product&#x27;: &#x27;coffee&#x27;,
-                  &#x27;product group&#x27;: &#x27;essential&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;vare&#x27;: &#x27;kaffe&#x27;,
@@ -161,7 +161,7 @@ all_sets_tag_dict['PQR']
             &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;q&#x27;,
                   &#x27;product&#x27;: &#x27;crispbread&#x27;,
-                  &#x27;product group&#x27;: &#x27;essential&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
@@ -172,7 +172,7 @@ all_sets_tag_dict['PQR']
             &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;r&#x27;,
                   &#x27;product&#x27;: &#x27;brown cheese&#x27;,
-                  &#x27;product group&#x27;: &#x27;essential&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;vare&#x27;: &#x27;brunost&#x27;,
@@ -221,271 +221,267 @@ catalog_item_list_to_df(everything)
 
 | repository_name | object_name | object_type | object_tags |
 | --- | --- | --- | --- |
-| tutorials | A Sample Dataset | dataset | {4 set tags + 3 series} |
-| tutorials | x | series | {2 series tags} |
-| tutorials | y | series | {2 series tags} |
-| tutorials | z | series | {2 series tags} |
-| tutorials | AZ_drikkevarer | dataset | {4 set tags + 260 series} |
-| tutorials | a_antall_brus | series | {8 series tags} |
-| tutorials | a_antall_kaffe | series | {8 series tags} |
-| tutorials | a_antall_te | series | {8 series tags} |
-| tutorials | a_antall_vin | series | {8 series tags} |
-| tutorials | a_antall_øl | series | {8 series tags} |
-| tutorials | a_pris_brus | series | {8 series tags} |
-| tutorials | a_pris_kaffe | series | {8 series tags} |
-| tutorials | a_pris_te | series | {8 series tags} |
-| tutorials | a_pris_vin | series | {8 series tags} |
-| tutorials | a_pris_øl | series | {8 series tags} |
-| tutorials | b_antall_brus | series | {8 series tags} |
-| tutorials | b_antall_kaffe | series | {8 series tags} |
-| tutorials | b_antall_te | series | {8 series tags} |
-| tutorials | b_antall_vin | series | {8 series tags} |
-| tutorials | b_antall_øl | series | {8 series tags} |
-| tutorials | b_pris_brus | series | {8 series tags} |
-| tutorials | b_pris_kaffe | series | {8 series tags} |
-| tutorials | b_pris_te | series | {8 series tags} |
-| tutorials | b_pris_vin | series | {8 series tags} |
-| tutorials | b_pris_øl | series | {8 series tags} |
-| tutorials | c_antall_brus | series | {8 series tags} |
-| tutorials | c_antall_kaffe | series | {8 series tags} |
-| tutorials | c_antall_te | series | {8 series tags} |
-| tutorials | c_antall_vin | series | {8 series tags} |
-| tutorials | c_antall_øl | series | {8 series tags} |
-| tutorials | c_pris_brus | series | {8 series tags} |
-| tutorials | c_pris_kaffe | series | {8 series tags} |
-| tutorials | c_pris_te | series | {8 series tags} |
-| tutorials | c_pris_vin | series | {8 series tags} |
-| tutorials | c_pris_øl | series | {8 series tags} |
-| tutorials | d_antall_brus | series | {8 series tags} |
-| tutorials | d_antall_kaffe | series | {8 series tags} |
-| tutorials | d_antall_te | series | {8 series tags} |
-| tutorials | d_antall_vin | series | {8 series tags} |
-| tutorials | d_antall_øl | series | {8 series tags} |
-| tutorials | d_pris_brus | series | {8 series tags} |
-| tutorials | d_pris_kaffe | series | {8 series tags} |
-| tutorials | d_pris_te | series | {8 series tags} |
-| tutorials | d_pris_vin | series | {8 series tags} |
-| tutorials | d_pris_øl | series | {8 series tags} |
-| tutorials | e_antall_brus | series | {8 series tags} |
-| tutorials | e_antall_kaffe | series | {8 series tags} |
-| tutorials | e_antall_te | series | {8 series tags} |
-| tutorials | e_antall_vin | series | {8 series tags} |
-| tutorials | e_antall_øl | series | {8 series tags} |
-| tutorials | e_pris_brus | series | {8 series tags} |
-| tutorials | e_pris_kaffe | series | {8 series tags} |
-| tutorials | e_pris_te | series | {8 series tags} |
-| tutorials | e_pris_vin | series | {8 series tags} |
-| tutorials | e_pris_øl | series | {8 series tags} |
-| tutorials | f_antall_brus | series | {8 series tags} |
-| tutorials | f_antall_kaffe | series | {8 series tags} |
-| tutorials | f_antall_te | series | {8 series tags} |
-| tutorials | f_antall_vin | series | {8 series tags} |
-| tutorials | f_antall_øl | series | {8 series tags} |
-| tutorials | f_pris_brus | series | {8 series tags} |
-| tutorials | f_pris_kaffe | series | {8 series tags} |
-| tutorials | f_pris_te | series | {8 series tags} |
-| tutorials | f_pris_vin | series | {8 series tags} |
-| tutorials | f_pris_øl | series | {8 series tags} |
-| tutorials | g_antall_brus | series | {8 series tags} |
-| tutorials | g_antall_kaffe | series | {8 series tags} |
-| tutorials | g_antall_te | series | {8 series tags} |
-| tutorials | g_antall_vin | series | {8 series tags} |
-| tutorials | g_antall_øl | series | {8 series tags} |
-| tutorials | g_pris_brus | series | {8 series tags} |
-| tutorials | g_pris_kaffe | series | {8 series tags} |
-| tutorials | g_pris_te | series | {8 series tags} |
-| tutorials | g_pris_vin | series | {8 series tags} |
-| tutorials | g_pris_øl | series | {8 series tags} |
-| tutorials | h_antall_brus | series | {8 series tags} |
-| tutorials | h_antall_kaffe | series | {8 series tags} |
-| tutorials | h_antall_te | series | {8 series tags} |
-| tutorials | h_antall_vin | series | {8 series tags} |
-| tutorials | h_antall_øl | series | {8 series tags} |
-| tutorials | h_pris_brus | series | {8 series tags} |
-| tutorials | h_pris_kaffe | series | {8 series tags} |
-| tutorials | h_pris_te | series | {8 series tags} |
-| tutorials | h_pris_vin | series | {8 series tags} |
-| tutorials | h_pris_øl | series | {8 series tags} |
-| tutorials | i_antall_brus | series | {8 series tags} |
-| tutorials | i_antall_kaffe | series | {8 series tags} |
-| tutorials | i_antall_te | series | {8 series tags} |
-| tutorials | i_antall_vin | series | {8 series tags} |
-| tutorials | i_antall_øl | series | {8 series tags} |
-| tutorials | i_pris_brus | series | {8 series tags} |
-| tutorials | i_pris_kaffe | series | {8 series tags} |
-| tutorials | i_pris_te | series | {8 series tags} |
-| tutorials | i_pris_vin | series | {8 series tags} |
-| tutorials | i_pris_øl | series | {8 series tags} |
-| tutorials | j_antall_brus | series | {8 series tags} |
-| tutorials | j_antall_kaffe | series | {8 series tags} |
-| tutorials | j_antall_te | series | {8 series tags} |
-| tutorials | j_antall_vin | series | {8 series tags} |
-| tutorials | j_antall_øl | series | {8 series tags} |
-| tutorials | j_pris_brus | series | {8 series tags} |
-| tutorials | j_pris_kaffe | series | {8 series tags} |
-| tutorials | j_pris_te | series | {8 series tags} |
-| tutorials | j_pris_vin | series | {8 series tags} |
-| tutorials | j_pris_øl | series | {8 series tags} |
-| tutorials | k_antall_brus | series | {8 series tags} |
-| tutorials | k_antall_kaffe | series | {8 series tags} |
-| tutorials | k_antall_te | series | {8 series tags} |
-| tutorials | k_antall_vin | series | {8 series tags} |
-| tutorials | k_antall_øl | series | {8 series tags} |
-| tutorials | k_pris_brus | series | {8 series tags} |
-| tutorials | k_pris_kaffe | series | {8 series tags} |
-| tutorials | k_pris_te | series | {8 series tags} |
-| tutorials | k_pris_vin | series | {8 series tags} |
-| tutorials | k_pris_øl | series | {8 series tags} |
-| tutorials | l_antall_brus | series | {8 series tags} |
-| tutorials | l_antall_kaffe | series | {8 series tags} |
-| tutorials | l_antall_te | series | {8 series tags} |
-| tutorials | l_antall_vin | series | {8 series tags} |
-| tutorials | l_antall_øl | series | {8 series tags} |
-| tutorials | l_pris_brus | series | {8 series tags} |
-| tutorials | l_pris_kaffe | series | {8 series tags} |
-| tutorials | l_pris_te | series | {8 series tags} |
-| tutorials | l_pris_vin | series | {8 series tags} |
-| tutorials | l_pris_øl | series | {8 series tags} |
-| tutorials | m_antall_brus | series | {8 series tags} |
-| tutorials | m_antall_kaffe | series | {8 series tags} |
-| tutorials | m_antall_te | series | {8 series tags} |
-| tutorials | m_antall_vin | series | {8 series tags} |
-| tutorials | m_antall_øl | series | {8 series tags} |
-| tutorials | m_pris_brus | series | {8 series tags} |
-| tutorials | m_pris_kaffe | series | {8 series tags} |
-| tutorials | m_pris_te | series | {8 series tags} |
-| tutorials | m_pris_vin | series | {8 series tags} |
-| tutorials | m_pris_øl | series | {8 series tags} |
-| tutorials | n_antall_brus | series | {8 series tags} |
-| tutorials | n_antall_kaffe | series | {8 series tags} |
-| tutorials | n_antall_te | series | {8 series tags} |
-| tutorials | n_antall_vin | series | {8 series tags} |
-| tutorials | n_antall_øl | series | {8 series tags} |
-| tutorials | n_pris_brus | series | {8 series tags} |
-| tutorials | n_pris_kaffe | series | {8 series tags} |
-| tutorials | n_pris_te | series | {8 series tags} |
-| tutorials | n_pris_vin | series | {8 series tags} |
-| tutorials | n_pris_øl | series | {8 series tags} |
-| tutorials | o_antall_brus | series | {8 series tags} |
-| tutorials | o_antall_kaffe | series | {8 series tags} |
-| tutorials | o_antall_te | series | {8 series tags} |
-| tutorials | o_antall_vin | series | {8 series tags} |
-| tutorials | o_antall_øl | series | {8 series tags} |
-| tutorials | o_pris_brus | series | {8 series tags} |
-| tutorials | o_pris_kaffe | series | {8 series tags} |
-| tutorials | o_pris_te | series | {8 series tags} |
-| tutorials | o_pris_vin | series | {8 series tags} |
-| tutorials | o_pris_øl | series | {8 series tags} |
-| tutorials | p_antall_brus | series | {8 series tags} |
-| tutorials | p_antall_kaffe | series | {8 series tags} |
-| tutorials | p_antall_te | series | {8 series tags} |
-| tutorials | p_antall_vin | series | {8 series tags} |
-| tutorials | p_antall_øl | series | {8 series tags} |
-| tutorials | p_pris_brus | series | {8 series tags} |
-| tutorials | p_pris_kaffe | series | {8 series tags} |
-| tutorials | p_pris_te | series | {8 series tags} |
-| tutorials | p_pris_vin | series | {8 series tags} |
-| tutorials | p_pris_øl | series | {8 series tags} |
-| tutorials | q_antall_brus | series | {8 series tags} |
-| tutorials | q_antall_kaffe | series | {8 series tags} |
-| tutorials | q_antall_te | series | {8 series tags} |
-| tutorials | q_antall_vin | series | {8 series tags} |
-| tutorials | q_antall_øl | series | {8 series tags} |
-| tutorials | q_pris_brus | series | {8 series tags} |
-| tutorials | q_pris_kaffe | series | {8 series tags} |
-| tutorials | q_pris_te | series | {8 series tags} |
-| tutorials | q_pris_vin | series | {8 series tags} |
-| tutorials | q_pris_øl | series | {8 series tags} |
-| tutorials | r_antall_brus | series | {8 series tags} |
-| tutorials | r_antall_kaffe | series | {8 series tags} |
-| tutorials | r_antall_te | series | {8 series tags} |
-| tutorials | r_antall_vin | series | {8 series tags} |
-| tutorials | r_antall_øl | series | {8 series tags} |
-| tutorials | r_pris_brus | series | {8 series tags} |
-| tutorials | r_pris_kaffe | series | {8 series tags} |
-| tutorials | r_pris_te | series | {8 series tags} |
-| tutorials | r_pris_vin | series | {8 series tags} |
-| tutorials | r_pris_øl | series | {8 series tags} |
-| tutorials | s_antall_brus | series | {8 series tags} |
-| tutorials | s_antall_kaffe | series | {8 series tags} |
-| tutorials | s_antall_te | series | {8 series tags} |
-| tutorials | s_antall_vin | series | {8 series tags} |
-| tutorials | s_antall_øl | series | {8 series tags} |
-| tutorials | s_pris_brus | series | {8 series tags} |
-| tutorials | s_pris_kaffe | series | {8 series tags} |
-| tutorials | s_pris_te | series | {8 series tags} |
-| tutorials | s_pris_vin | series | {8 series tags} |
-| tutorials | s_pris_øl | series | {8 series tags} |
-| tutorials | t_antall_brus | series | {8 series tags} |
-| tutorials | t_antall_kaffe | series | {8 series tags} |
-| tutorials | t_antall_te | series | {8 series tags} |
-| tutorials | t_antall_vin | series | {8 series tags} |
-| tutorials | t_antall_øl | series | {8 series tags} |
-| tutorials | t_pris_brus | series | {8 series tags} |
-| tutorials | t_pris_kaffe | series | {8 series tags} |
-| tutorials | t_pris_te | series | {8 series tags} |
-| tutorials | t_pris_vin | series | {8 series tags} |
-| tutorials | t_pris_øl | series | {8 series tags} |
-| tutorials | u_antall_brus | series | {8 series tags} |
-| tutorials | u_antall_kaffe | series | {8 series tags} |
-| tutorials | u_antall_te | series | {8 series tags} |
-| tutorials | u_antall_vin | series | {8 series tags} |
-| tutorials | u_antall_øl | series | {8 series tags} |
-| tutorials | u_pris_brus | series | {8 series tags} |
-| tutorials | u_pris_kaffe | series | {8 series tags} |
-| tutorials | u_pris_te | series | {8 series tags} |
-| tutorials | u_pris_vin | series | {8 series tags} |
-| tutorials | u_pris_øl | series | {8 series tags} |
-| tutorials | v_antall_brus | series | {8 series tags} |
-| tutorials | v_antall_kaffe | series | {8 series tags} |
-| tutorials | v_antall_te | series | {8 series tags} |
-| tutorials | v_antall_vin | series | {8 series tags} |
-| tutorials | v_antall_øl | series | {8 series tags} |
-| tutorials | v_pris_brus | series | {8 series tags} |
-| tutorials | v_pris_kaffe | series | {8 series tags} |
-| tutorials | v_pris_te | series | {8 series tags} |
-| tutorials | v_pris_vin | series | {8 series tags} |
-| tutorials | v_pris_øl | series | {8 series tags} |
-| tutorials | w_antall_brus | series | {8 series tags} |
-| tutorials | w_antall_kaffe | series | {8 series tags} |
-| tutorials | w_antall_te | series | {8 series tags} |
-| tutorials | w_antall_vin | series | {8 series tags} |
-| tutorials | w_antall_øl | series | {8 series tags} |
-| tutorials | w_pris_brus | series | {8 series tags} |
-| tutorials | w_pris_kaffe | series | {8 series tags} |
-| tutorials | w_pris_te | series | {8 series tags} |
-| tutorials | w_pris_vin | series | {8 series tags} |
-| tutorials | w_pris_øl | series | {8 series tags} |
-| tutorials | x_antall_brus | series | {8 series tags} |
-| tutorials | x_antall_kaffe | series | {8 series tags} |
-| tutorials | x_antall_te | series | {8 series tags} |
-| tutorials | x_antall_vin | series | {8 series tags} |
-| tutorials | x_antall_øl | series | {8 series tags} |
-| tutorials | x_pris_brus | series | {8 series tags} |
-| tutorials | x_pris_kaffe | series | {8 series tags} |
-| tutorials | x_pris_te | series | {8 series tags} |
-| tutorials | x_pris_vin | series | {8 series tags} |
-| tutorials | x_pris_øl | series | {8 series tags} |
-| tutorials | y_antall_brus | series | {8 series tags} |
-| tutorials | y_antall_kaffe | series | {8 series tags} |
-| tutorials | y_antall_te | series | {8 series tags} |
-| tutorials | y_antall_vin | series | {8 series tags} |
-| tutorials | y_antall_øl | series | {8 series tags} |
-| tutorials | y_pris_brus | series | {8 series tags} |
-| tutorials | y_pris_kaffe | series | {8 series tags} |
-| tutorials | y_pris_te | series | {8 series tags} |
-| tutorials | y_pris_vin | series | {8 series tags} |
-| tutorials | y_pris_øl | series | {8 series tags} |
-| tutorials | z_antall_brus | series | {8 series tags} |
-| tutorials | z_antall_kaffe | series | {8 series tags} |
-| tutorials | z_antall_te | series | {8 series tags} |
-| tutorials | z_antall_vin | series | {8 series tags} |
-| tutorials | z_antall_øl | series | {8 series tags} |
-| tutorials | z_pris_brus | series | {8 series tags} |
-| tutorials | z_pris_kaffe | series | {8 series tags} |
-| tutorials | z_pris_te | series | {8 series tags} |
-| tutorials | z_pris_vin | series | {8 series tags} |
-| tutorials | z_pris_øl | series | {8 series tags} |
+| tutorials | AZ_beverages | dataset | {4 set tags + 260 series} |
+| tutorials | a_price_beer | series | {8 series tags} |
+| tutorials | a_price_coffee | series | {8 series tags} |
+| tutorials | a_price_soda | series | {8 series tags} |
+| tutorials | a_price_tea | series | {8 series tags} |
+| tutorials | a_price_wine | series | {8 series tags} |
+| tutorials | a_quantity_beer | series | {8 series tags} |
+| tutorials | a_quantity_coffee | series | {8 series tags} |
+| tutorials | a_quantity_soda | series | {8 series tags} |
+| tutorials | a_quantity_tea | series | {8 series tags} |
+| tutorials | a_quantity_wine | series | {8 series tags} |
+| tutorials | b_price_beer | series | {8 series tags} |
+| tutorials | b_price_coffee | series | {8 series tags} |
+| tutorials | b_price_soda | series | {8 series tags} |
+| tutorials | b_price_tea | series | {8 series tags} |
+| tutorials | b_price_wine | series | {8 series tags} |
+| tutorials | b_quantity_beer | series | {8 series tags} |
+| tutorials | b_quantity_coffee | series | {8 series tags} |
+| tutorials | b_quantity_soda | series | {8 series tags} |
+| tutorials | b_quantity_tea | series | {8 series tags} |
+| tutorials | b_quantity_wine | series | {8 series tags} |
+| tutorials | c_price_beer | series | {8 series tags} |
+| tutorials | c_price_coffee | series | {8 series tags} |
+| tutorials | c_price_soda | series | {8 series tags} |
+| tutorials | c_price_tea | series | {8 series tags} |
+| tutorials | c_price_wine | series | {8 series tags} |
+| tutorials | c_quantity_beer | series | {8 series tags} |
+| tutorials | c_quantity_coffee | series | {8 series tags} |
+| tutorials | c_quantity_soda | series | {8 series tags} |
+| tutorials | c_quantity_tea | series | {8 series tags} |
+| tutorials | c_quantity_wine | series | {8 series tags} |
+| tutorials | d_price_beer | series | {8 series tags} |
+| tutorials | d_price_coffee | series | {8 series tags} |
+| tutorials | d_price_soda | series | {8 series tags} |
+| tutorials | d_price_tea | series | {8 series tags} |
+| tutorials | d_price_wine | series | {8 series tags} |
+| tutorials | d_quantity_beer | series | {8 series tags} |
+| tutorials | d_quantity_coffee | series | {8 series tags} |
+| tutorials | d_quantity_soda | series | {8 series tags} |
+| tutorials | d_quantity_tea | series | {8 series tags} |
+| tutorials | d_quantity_wine | series | {8 series tags} |
+| tutorials | e_price_beer | series | {8 series tags} |
+| tutorials | e_price_coffee | series | {8 series tags} |
+| tutorials | e_price_soda | series | {8 series tags} |
+| tutorials | e_price_tea | series | {8 series tags} |
+| tutorials | e_price_wine | series | {8 series tags} |
+| tutorials | e_quantity_beer | series | {8 series tags} |
+| tutorials | e_quantity_coffee | series | {8 series tags} |
+| tutorials | e_quantity_soda | series | {8 series tags} |
+| tutorials | e_quantity_tea | series | {8 series tags} |
+| tutorials | e_quantity_wine | series | {8 series tags} |
+| tutorials | f_price_beer | series | {8 series tags} |
+| tutorials | f_price_coffee | series | {8 series tags} |
+| tutorials | f_price_soda | series | {8 series tags} |
+| tutorials | f_price_tea | series | {8 series tags} |
+| tutorials | f_price_wine | series | {8 series tags} |
+| tutorials | f_quantity_beer | series | {8 series tags} |
+| tutorials | f_quantity_coffee | series | {8 series tags} |
+| tutorials | f_quantity_soda | series | {8 series tags} |
+| tutorials | f_quantity_tea | series | {8 series tags} |
+| tutorials | f_quantity_wine | series | {8 series tags} |
+| tutorials | g_price_beer | series | {8 series tags} |
+| tutorials | g_price_coffee | series | {8 series tags} |
+| tutorials | g_price_soda | series | {8 series tags} |
+| tutorials | g_price_tea | series | {8 series tags} |
+| tutorials | g_price_wine | series | {8 series tags} |
+| tutorials | g_quantity_beer | series | {8 series tags} |
+| tutorials | g_quantity_coffee | series | {8 series tags} |
+| tutorials | g_quantity_soda | series | {8 series tags} |
+| tutorials | g_quantity_tea | series | {8 series tags} |
+| tutorials | g_quantity_wine | series | {8 series tags} |
+| tutorials | h_price_beer | series | {8 series tags} |
+| tutorials | h_price_coffee | series | {8 series tags} |
+| tutorials | h_price_soda | series | {8 series tags} |
+| tutorials | h_price_tea | series | {8 series tags} |
+| tutorials | h_price_wine | series | {8 series tags} |
+| tutorials | h_quantity_beer | series | {8 series tags} |
+| tutorials | h_quantity_coffee | series | {8 series tags} |
+| tutorials | h_quantity_soda | series | {8 series tags} |
+| tutorials | h_quantity_tea | series | {8 series tags} |
+| tutorials | h_quantity_wine | series | {8 series tags} |
+| tutorials | i_price_beer | series | {8 series tags} |
+| tutorials | i_price_coffee | series | {8 series tags} |
+| tutorials | i_price_soda | series | {8 series tags} |
+| tutorials | i_price_tea | series | {8 series tags} |
+| tutorials | i_price_wine | series | {8 series tags} |
+| tutorials | i_quantity_beer | series | {8 series tags} |
+| tutorials | i_quantity_coffee | series | {8 series tags} |
+| tutorials | i_quantity_soda | series | {8 series tags} |
+| tutorials | i_quantity_tea | series | {8 series tags} |
+| tutorials | i_quantity_wine | series | {8 series tags} |
+| tutorials | j_price_beer | series | {8 series tags} |
+| tutorials | j_price_coffee | series | {8 series tags} |
+| tutorials | j_price_soda | series | {8 series tags} |
+| tutorials | j_price_tea | series | {8 series tags} |
+| tutorials | j_price_wine | series | {8 series tags} |
+| tutorials | j_quantity_beer | series | {8 series tags} |
+| tutorials | j_quantity_coffee | series | {8 series tags} |
+| tutorials | j_quantity_soda | series | {8 series tags} |
+| tutorials | j_quantity_tea | series | {8 series tags} |
+| tutorials | j_quantity_wine | series | {8 series tags} |
+| tutorials | k_price_beer | series | {8 series tags} |
+| tutorials | k_price_coffee | series | {8 series tags} |
+| tutorials | k_price_soda | series | {8 series tags} |
+| tutorials | k_price_tea | series | {8 series tags} |
+| tutorials | k_price_wine | series | {8 series tags} |
+| tutorials | k_quantity_beer | series | {8 series tags} |
+| tutorials | k_quantity_coffee | series | {8 series tags} |
+| tutorials | k_quantity_soda | series | {8 series tags} |
+| tutorials | k_quantity_tea | series | {8 series tags} |
+| tutorials | k_quantity_wine | series | {8 series tags} |
+| tutorials | l_price_beer | series | {8 series tags} |
+| tutorials | l_price_coffee | series | {8 series tags} |
+| tutorials | l_price_soda | series | {8 series tags} |
+| tutorials | l_price_tea | series | {8 series tags} |
+| tutorials | l_price_wine | series | {8 series tags} |
+| tutorials | l_quantity_beer | series | {8 series tags} |
+| tutorials | l_quantity_coffee | series | {8 series tags} |
+| tutorials | l_quantity_soda | series | {8 series tags} |
+| tutorials | l_quantity_tea | series | {8 series tags} |
+| tutorials | l_quantity_wine | series | {8 series tags} |
+| tutorials | m_price_beer | series | {8 series tags} |
+| tutorials | m_price_coffee | series | {8 series tags} |
+| tutorials | m_price_soda | series | {8 series tags} |
+| tutorials | m_price_tea | series | {8 series tags} |
+| tutorials | m_price_wine | series | {8 series tags} |
+| tutorials | m_quantity_beer | series | {8 series tags} |
+| tutorials | m_quantity_coffee | series | {8 series tags} |
+| tutorials | m_quantity_soda | series | {8 series tags} |
+| tutorials | m_quantity_tea | series | {8 series tags} |
+| tutorials | m_quantity_wine | series | {8 series tags} |
+| tutorials | n_price_beer | series | {8 series tags} |
+| tutorials | n_price_coffee | series | {8 series tags} |
+| tutorials | n_price_soda | series | {8 series tags} |
+| tutorials | n_price_tea | series | {8 series tags} |
+| tutorials | n_price_wine | series | {8 series tags} |
+| tutorials | n_quantity_beer | series | {8 series tags} |
+| tutorials | n_quantity_coffee | series | {8 series tags} |
+| tutorials | n_quantity_soda | series | {8 series tags} |
+| tutorials | n_quantity_tea | series | {8 series tags} |
+| tutorials | n_quantity_wine | series | {8 series tags} |
+| tutorials | o_price_beer | series | {8 series tags} |
+| tutorials | o_price_coffee | series | {8 series tags} |
+| tutorials | o_price_soda | series | {8 series tags} |
+| tutorials | o_price_tea | series | {8 series tags} |
+| tutorials | o_price_wine | series | {8 series tags} |
+| tutorials | o_quantity_beer | series | {8 series tags} |
+| tutorials | o_quantity_coffee | series | {8 series tags} |
+| tutorials | o_quantity_soda | series | {8 series tags} |
+| tutorials | o_quantity_tea | series | {8 series tags} |
+| tutorials | o_quantity_wine | series | {8 series tags} |
+| tutorials | p_price_beer | series | {8 series tags} |
+| tutorials | p_price_coffee | series | {8 series tags} |
+| tutorials | p_price_soda | series | {8 series tags} |
+| tutorials | p_price_tea | series | {8 series tags} |
+| tutorials | p_price_wine | series | {8 series tags} |
+| tutorials | p_quantity_beer | series | {8 series tags} |
+| tutorials | p_quantity_coffee | series | {8 series tags} |
+| tutorials | p_quantity_soda | series | {8 series tags} |
+| tutorials | p_quantity_tea | series | {8 series tags} |
+| tutorials | p_quantity_wine | series | {8 series tags} |
+| tutorials | q_price_beer | series | {8 series tags} |
+| tutorials | q_price_coffee | series | {8 series tags} |
+| tutorials | q_price_soda | series | {8 series tags} |
+| tutorials | q_price_tea | series | {8 series tags} |
+| tutorials | q_price_wine | series | {8 series tags} |
+| tutorials | q_quantity_beer | series | {8 series tags} |
+| tutorials | q_quantity_coffee | series | {8 series tags} |
+| tutorials | q_quantity_soda | series | {8 series tags} |
+| tutorials | q_quantity_tea | series | {8 series tags} |
+| tutorials | q_quantity_wine | series | {8 series tags} |
+| tutorials | r_price_beer | series | {8 series tags} |
+| tutorials | r_price_coffee | series | {8 series tags} |
+| tutorials | r_price_soda | series | {8 series tags} |
+| tutorials | r_price_tea | series | {8 series tags} |
+| tutorials | r_price_wine | series | {8 series tags} |
+| tutorials | r_quantity_beer | series | {8 series tags} |
+| tutorials | r_quantity_coffee | series | {8 series tags} |
+| tutorials | r_quantity_soda | series | {8 series tags} |
+| tutorials | r_quantity_tea | series | {8 series tags} |
+| tutorials | r_quantity_wine | series | {8 series tags} |
+| tutorials | s_price_beer | series | {8 series tags} |
+| tutorials | s_price_coffee | series | {8 series tags} |
+| tutorials | s_price_soda | series | {8 series tags} |
+| tutorials | s_price_tea | series | {8 series tags} |
+| tutorials | s_price_wine | series | {8 series tags} |
+| tutorials | s_quantity_beer | series | {8 series tags} |
+| tutorials | s_quantity_coffee | series | {8 series tags} |
+| tutorials | s_quantity_soda | series | {8 series tags} |
+| tutorials | s_quantity_tea | series | {8 series tags} |
+| tutorials | s_quantity_wine | series | {8 series tags} |
+| tutorials | t_price_beer | series | {8 series tags} |
+| tutorials | t_price_coffee | series | {8 series tags} |
+| tutorials | t_price_soda | series | {8 series tags} |
+| tutorials | t_price_tea | series | {8 series tags} |
+| tutorials | t_price_wine | series | {8 series tags} |
+| tutorials | t_quantity_beer | series | {8 series tags} |
+| tutorials | t_quantity_coffee | series | {8 series tags} |
+| tutorials | t_quantity_soda | series | {8 series tags} |
+| tutorials | t_quantity_tea | series | {8 series tags} |
+| tutorials | t_quantity_wine | series | {8 series tags} |
+| tutorials | u_price_beer | series | {8 series tags} |
+| tutorials | u_price_coffee | series | {8 series tags} |
+| tutorials | u_price_soda | series | {8 series tags} |
+| tutorials | u_price_tea | series | {8 series tags} |
+| tutorials | u_price_wine | series | {8 series tags} |
+| tutorials | u_quantity_beer | series | {8 series tags} |
+| tutorials | u_quantity_coffee | series | {8 series tags} |
+| tutorials | u_quantity_soda | series | {8 series tags} |
+| tutorials | u_quantity_tea | series | {8 series tags} |
+| tutorials | u_quantity_wine | series | {8 series tags} |
+| tutorials | v_price_beer | series | {8 series tags} |
+| tutorials | v_price_coffee | series | {8 series tags} |
+| tutorials | v_price_soda | series | {8 series tags} |
+| tutorials | v_price_tea | series | {8 series tags} |
+| tutorials | v_price_wine | series | {8 series tags} |
+| tutorials | v_quantity_beer | series | {8 series tags} |
+| tutorials | v_quantity_coffee | series | {8 series tags} |
+| tutorials | v_quantity_soda | series | {8 series tags} |
+| tutorials | v_quantity_tea | series | {8 series tags} |
+| tutorials | v_quantity_wine | series | {8 series tags} |
+| tutorials | w_price_beer | series | {8 series tags} |
+| tutorials | w_price_coffee | series | {8 series tags} |
+| tutorials | w_price_soda | series | {8 series tags} |
+| tutorials | w_price_tea | series | {8 series tags} |
+| tutorials | w_price_wine | series | {8 series tags} |
+| tutorials | w_quantity_beer | series | {8 series tags} |
+| tutorials | w_quantity_coffee | series | {8 series tags} |
+| tutorials | w_quantity_soda | series | {8 series tags} |
+| tutorials | w_quantity_tea | series | {8 series tags} |
+| tutorials | w_quantity_wine | series | {8 series tags} |
+| tutorials | x_price_beer | series | {8 series tags} |
+| tutorials | x_price_coffee | series | {8 series tags} |
+| tutorials | x_price_soda | series | {8 series tags} |
+| tutorials | x_price_tea | series | {8 series tags} |
+| tutorials | x_price_wine | series | {8 series tags} |
+| tutorials | x_quantity_beer | series | {8 series tags} |
+| tutorials | x_quantity_coffee | series | {8 series tags} |
+| tutorials | x_quantity_soda | series | {8 series tags} |
+| tutorials | x_quantity_tea | series | {8 series tags} |
+| tutorials | x_quantity_wine | series | {8 series tags} |
+| tutorials | y_price_beer | series | {8 series tags} |
+| tutorials | y_price_coffee | series | {8 series tags} |
+| tutorials | y_price_soda | series | {8 series tags} |
+| tutorials | y_price_tea | series | {8 series tags} |
+| tutorials | y_price_wine | series | {8 series tags} |
+| tutorials | y_quantity_beer | series | {8 series tags} |
+| tutorials | y_quantity_coffee | series | {8 series tags} |
+| tutorials | y_quantity_soda | series | {8 series tags} |
+| tutorials | y_quantity_tea | series | {8 series tags} |
+| tutorials | y_quantity_wine | series | {8 series tags} |
+| tutorials | z_price_beer | series | {8 series tags} |
+| tutorials | z_price_coffee | series | {8 series tags} |
+| tutorials | z_price_soda | series | {8 series tags} |
+| tutorials | z_price_tea | series | {8 series tags} |
+| tutorials | z_price_wine | series | {8 series tags} |
+| tutorials | z_quantity_beer | series | {8 series tags} |
+| tutorials | z_quantity_coffee | series | {8 series tags} |
+| tutorials | z_quantity_soda | series | {8 series tags} |
+| tutorials | z_quantity_tea | series | {8 series tags} |
+| tutorials | z_quantity_wine | series | {8 series tags} |
 | tutorials | AZ_drinks | dataset | {4 set tags + 2080 series} |
 | tutorials | a_price_beer_E | series | {9 series tags} |
 | tutorials | a_price_beer_N | series | {9 series tags} |
@@ -2567,137 +2563,9 @@ catalog_item_list_to_df(everything)
 | tutorials | z_volume_wine_SE | series | {9 series tags} |
 | tutorials | z_volume_wine_SW | series | {9 series tags} |
 | tutorials | z_volume_wine_W | series | {9 series tags} |
-| tutorials | AZ_omsetning | dataset | {5 set tags + 130 series} |
-| tutorials | a_omsetning_brus | series | {8 series tags} |
-| tutorials | a_omsetning_kaffe | series | {8 series tags} |
-| tutorials | a_omsetning_te | series | {8 series tags} |
-| tutorials | a_omsetning_vin | series | {8 series tags} |
-| tutorials | a_omsetning_øl | series | {8 series tags} |
-| tutorials | b_omsetning_brus | series | {8 series tags} |
-| tutorials | b_omsetning_kaffe | series | {8 series tags} |
-| tutorials | b_omsetning_te | series | {8 series tags} |
-| tutorials | b_omsetning_vin | series | {8 series tags} |
-| tutorials | b_omsetning_øl | series | {8 series tags} |
-| tutorials | c_omsetning_brus | series | {8 series tags} |
-| tutorials | c_omsetning_kaffe | series | {8 series tags} |
-| tutorials | c_omsetning_te | series | {8 series tags} |
-| tutorials | c_omsetning_vin | series | {8 series tags} |
-| tutorials | c_omsetning_øl | series | {8 series tags} |
-| tutorials | d_omsetning_brus | series | {8 series tags} |
-| tutorials | d_omsetning_kaffe | series | {8 series tags} |
-| tutorials | d_omsetning_te | series | {8 series tags} |
-| tutorials | d_omsetning_vin | series | {8 series tags} |
-| tutorials | d_omsetning_øl | series | {8 series tags} |
-| tutorials | e_omsetning_brus | series | {8 series tags} |
-| tutorials | e_omsetning_kaffe | series | {8 series tags} |
-| tutorials | e_omsetning_te | series | {8 series tags} |
-| tutorials | e_omsetning_vin | series | {8 series tags} |
-| tutorials | e_omsetning_øl | series | {8 series tags} |
-| tutorials | f_omsetning_brus | series | {8 series tags} |
-| tutorials | f_omsetning_kaffe | series | {8 series tags} |
-| tutorials | f_omsetning_te | series | {8 series tags} |
-| tutorials | f_omsetning_vin | series | {8 series tags} |
-| tutorials | f_omsetning_øl | series | {8 series tags} |
-| tutorials | g_omsetning_brus | series | {8 series tags} |
-| tutorials | g_omsetning_kaffe | series | {8 series tags} |
-| tutorials | g_omsetning_te | series | {8 series tags} |
-| tutorials | g_omsetning_vin | series | {8 series tags} |
-| tutorials | g_omsetning_øl | series | {8 series tags} |
-| tutorials | h_omsetning_brus | series | {8 series tags} |
-| tutorials | h_omsetning_kaffe | series | {8 series tags} |
-| tutorials | h_omsetning_te | series | {8 series tags} |
-| tutorials | h_omsetning_vin | series | {8 series tags} |
-| tutorials | h_omsetning_øl | series | {8 series tags} |
-| tutorials | i_omsetning_brus | series | {8 series tags} |
-| tutorials | i_omsetning_kaffe | series | {8 series tags} |
-| tutorials | i_omsetning_te | series | {8 series tags} |
-| tutorials | i_omsetning_vin | series | {8 series tags} |
-| tutorials | i_omsetning_øl | series | {8 series tags} |
-| tutorials | j_omsetning_brus | series | {8 series tags} |
-| tutorials | j_omsetning_kaffe | series | {8 series tags} |
-| tutorials | j_omsetning_te | series | {8 series tags} |
-| tutorials | j_omsetning_vin | series | {8 series tags} |
-| tutorials | j_omsetning_øl | series | {8 series tags} |
-| tutorials | k_omsetning_brus | series | {8 series tags} |
-| tutorials | k_omsetning_kaffe | series | {8 series tags} |
-| tutorials | k_omsetning_te | series | {8 series tags} |
-| tutorials | k_omsetning_vin | series | {8 series tags} |
-| tutorials | k_omsetning_øl | series | {8 series tags} |
-| tutorials | l_omsetning_brus | series | {8 series tags} |
-| tutorials | l_omsetning_kaffe | series | {8 series tags} |
-| tutorials | l_omsetning_te | series | {8 series tags} |
-| tutorials | l_omsetning_vin | series | {8 series tags} |
-| tutorials | l_omsetning_øl | series | {8 series tags} |
-| tutorials | m_omsetning_brus | series | {8 series tags} |
-| tutorials | m_omsetning_kaffe | series | {8 series tags} |
-| tutorials | m_omsetning_te | series | {8 series tags} |
-| tutorials | m_omsetning_vin | series | {8 series tags} |
-| tutorials | m_omsetning_øl | series | {8 series tags} |
-| tutorials | n_omsetning_brus | series | {8 series tags} |
-| tutorials | n_omsetning_kaffe | series | {8 series tags} |
-| tutorials | n_omsetning_te | series | {8 series tags} |
-| tutorials | n_omsetning_vin | series | {8 series tags} |
-| tutorials | n_omsetning_øl | series | {8 series tags} |
-| tutorials | o_omsetning_brus | series | {8 series tags} |
-| tutorials | o_omsetning_kaffe | series | {8 series tags} |
-| tutorials | o_omsetning_te | series | {8 series tags} |
-| tutorials | o_omsetning_vin | series | {8 series tags} |
-| tutorials | o_omsetning_øl | series | {8 series tags} |
-| tutorials | p_omsetning_brus | series | {8 series tags} |
-| tutorials | p_omsetning_kaffe | series | {8 series tags} |
-| tutorials | p_omsetning_te | series | {8 series tags} |
-| tutorials | p_omsetning_vin | series | {8 series tags} |
-| tutorials | p_omsetning_øl | series | {8 series tags} |
-| tutorials | q_omsetning_brus | series | {8 series tags} |
-| tutorials | q_omsetning_kaffe | series | {8 series tags} |
-| tutorials | q_omsetning_te | series | {8 series tags} |
-| tutorials | q_omsetning_vin | series | {8 series tags} |
-| tutorials | q_omsetning_øl | series | {8 series tags} |
-| tutorials | r_omsetning_brus | series | {8 series tags} |
-| tutorials | r_omsetning_kaffe | series | {8 series tags} |
-| tutorials | r_omsetning_te | series | {8 series tags} |
-| tutorials | r_omsetning_vin | series | {8 series tags} |
-| tutorials | r_omsetning_øl | series | {8 series tags} |
-| tutorials | s_omsetning_brus | series | {8 series tags} |
-| tutorials | s_omsetning_kaffe | series | {8 series tags} |
-| tutorials | s_omsetning_te | series | {8 series tags} |
-| tutorials | s_omsetning_vin | series | {8 series tags} |
-| tutorials | s_omsetning_øl | series | {8 series tags} |
-| tutorials | t_omsetning_brus | series | {8 series tags} |
-| tutorials | t_omsetning_kaffe | series | {8 series tags} |
-| tutorials | t_omsetning_te | series | {8 series tags} |
-| tutorials | t_omsetning_vin | series | {8 series tags} |
-| tutorials | t_omsetning_øl | series | {8 series tags} |
-| tutorials | u_omsetning_brus | series | {8 series tags} |
-| tutorials | u_omsetning_kaffe | series | {8 series tags} |
-| tutorials | u_omsetning_te | series | {8 series tags} |
-| tutorials | u_omsetning_vin | series | {8 series tags} |
-| tutorials | u_omsetning_øl | series | {8 series tags} |
-| tutorials | v_omsetning_brus | series | {8 series tags} |
-| tutorials | v_omsetning_kaffe | series | {8 series tags} |
-| tutorials | v_omsetning_te | series | {8 series tags} |
-| tutorials | v_omsetning_vin | series | {8 series tags} |
-| tutorials | v_omsetning_øl | series | {8 series tags} |
-| tutorials | w_omsetning_brus | series | {8 series tags} |
-| tutorials | w_omsetning_kaffe | series | {8 series tags} |
-| tutorials | w_omsetning_te | series | {8 series tags} |
-| tutorials | w_omsetning_vin | series | {8 series tags} |
-| tutorials | w_omsetning_øl | series | {8 series tags} |
-| tutorials | x_omsetning_brus | series | {8 series tags} |
-| tutorials | x_omsetning_kaffe | series | {8 series tags} |
-| tutorials | x_omsetning_te | series | {8 series tags} |
-| tutorials | x_omsetning_vin | series | {8 series tags} |
-| tutorials | x_omsetning_øl | series | {8 series tags} |
-| tutorials | y_omsetning_brus | series | {8 series tags} |
-| tutorials | y_omsetning_kaffe | series | {8 series tags} |
-| tutorials | y_omsetning_te | series | {8 series tags} |
-| tutorials | y_omsetning_vin | series | {8 series tags} |
-| tutorials | y_omsetning_øl | series | {8 series tags} |
-| tutorials | z_omsetning_brus | series | {8 series tags} |
-| tutorials | z_omsetning_kaffe | series | {8 series tags} |
-| tutorials | z_omsetning_te | series | {8 series tags} |
-| tutorials | z_omsetning_vin | series | {8 series tags} |
-| tutorials | z_omsetning_øl | series | {8 series tags} |
+| tutorials | BNO | dataset | {4 set tags + 2 series} |
+| tutorials | coffee_quantity | series | {2 series tags} |
+| tutorials | tea_quantity | series | {2 series tags} |
 | tutorials | More Prices and Volumes | dataset | {4 set tags + 636 series} |
 | tutorials | price_bread_1.1.1 | series | {8 series tags} |
 | tutorials | price_bread_1.1.2 | series | {8 series tags} |
@@ -3358,6 +3226,10 @@ catalog_item_list_to_df(everything)
 | tutorials | volume_ham | series | {7 series tags} |
 | tutorials | volume_juice | series | {7 series tags} |
 | tutorials | volume_milk | series | {7 series tags} |
+| tutorials | SampleDataset | dataset | {4 set tags + 3 series} |
+| tutorials | x | series | {2 series tags} |
+| tutorials | y | series | {2 series tags} |
+| tutorials | z | series | {2 series tags} |
 | tutorials | XYZ | dataset | {4 set tags + 3 series} |
 | tutorials | x | series | {2 series tags} |
 | tutorials | y | series | {2 series tags} |
@@ -3379,12 +3251,12 @@ sample_set.tags
 <!-- @output:TRpd -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
- &#x27;product group&#x27;: &#x27;essential&#x27;,
+ &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
  &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;p&#x27;,
                   &#x27;product&#x27;: &#x27;coffee&#x27;,
-                  &#x27;product group&#x27;: &#x27;essential&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;vare&#x27;: &#x27;kaffe&#x27;,
@@ -3395,7 +3267,7 @@ sample_set.tags
             &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;q&#x27;,
                   &#x27;product&#x27;: &#x27;crispbread&#x27;,
-                  &#x27;product group&#x27;: &#x27;essential&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
@@ -3406,7 +3278,7 @@ sample_set.tags
             &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;r&#x27;,
                   &#x27;product&#x27;: &#x27;brown cheese&#x27;,
-                  &#x27;product group&#x27;: &#x27;essential&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
                   &#x27;vare&#x27;: &#x27;brunost&#x27;,
@@ -3493,14 +3365,3 @@ az_selection.series
  &#x27;q_price_wine_NW&#x27;&#93;</pre>
 
 ...
-
-<!-- @output:jxvo -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;32m.&#91;0m&#91;32m                                                                        &#91;100%&#93;&#91;0m
-=================================== Overview ===================================
-Passed Tests:
-✓ notebooks/meta-search-and-filtering.py::test_true
-
-Summary:
-Total: 1, Passed: 1, Failed: 0, Errors: 0, Skipped: 0
-</pre>

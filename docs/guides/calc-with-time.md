@@ -278,16 +278,3 @@ valid_at: &#91;&#91;56,57,58,59,60,...,71,72,73,74,75&#93;&#93;</pre>
 ```
 
 See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-metadata.md).
-
-<!-- @output:dGlV -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;32m.&#91;0m&#91;32m.&#91;0m&#91;32m.&#91;0m&#91;32m                                                                      &#91;100%&#93;&#91;0m
-=================================== Overview ===================================
-Passed Tests:
-✓ notebooks/calc-with-time.py::test_popu06_has_one_series_per_country
-✓ notebooks/calc-with-time.py::test_popu06_spans_the_common_projection_period
-✓ notebooks/calc-with-time.py::test_popu06_versions_are_not_identical
-
-Summary:
-Total: 3, Passed: 3, Failed: 0, Errors: 0, Skipped: 0
-</pre>

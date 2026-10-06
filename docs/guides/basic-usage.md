@@ -56,17 +56,17 @@ df
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2022-01-01 00:00:00+01:00 | 90.0 | 110.0 | 110.0 |
-| 2022-02-01 00:00:00+01:00 | 100.0 | 90.0 | 90.0 |
-| 2022-03-01 00:00:00+01:00 | 100.0 | 90.0 | 100.0 |
-| 2022-04-01 00:00:00+02:00 | 100.0 | 110.0 | 110.0 |
-| 2022-05-01 00:00:00+02:00 | 100.0 | 80.0 | 90.0 |
+| 2022-01-01 00:00:00+01:00 | 110.0 | 100.0 | 110.0 |
+| 2022-02-01 00:00:00+01:00 | 120.0 | 110.0 | 100.0 |
+| 2022-03-01 00:00:00+01:00 | 90.0 | 110.0 | 90.0 |
+| 2022-04-01 00:00:00+02:00 | 100.0 | 100.0 | 90.0 |
+| 2022-05-01 00:00:00+02:00 | 100.0 | 100.0 | 90.0 |
 | ... | ... | ... | ... |
-| 2022-08-01 00:00:00+02:00 | 110.0 | 100.0 | 100.0 |
-| 2022-09-01 00:00:00+02:00 | 120.0 | 90.0 | 100.0 |
-| 2022-10-01 00:00:00+02:00 | 100.0 | 90.0 | 80.0 |
-| 2022-11-01 00:00:00+01:00 | 90.0 | 90.0 | 110.0 |
-| 2022-12-01 00:00:00+01:00 | 120.0 | 90.0 | 100.0 |
+| 2022-08-01 00:00:00+02:00 | 80.0 | 90.0 | 100.0 |
+| 2022-09-01 00:00:00+02:00 | 110.0 | 100.0 | 100.0 |
+| 2022-10-01 00:00:00+02:00 | 90.0 | 110.0 | 110.0 |
+| 2022-11-01 00:00:00+01:00 | 100.0 | 100.0 | 100.0 |
+| 2022-12-01 00:00:00+01:00 | 100.0 | 90.0 | 100.0 |
 
 Note the structure: one shared `valid_at` column and one column for each of the series  `x`, `y` and `z`. The single date signifies a "point in time" *temporality*, `Temporality.AT`.
 
@@ -103,7 +103,7 @@ repr(xyz)
 
 <!-- @output:ROlb -->
 
-<marimo-json-output data-json-data='{"name":"XYZ","data_type":"text/plain:NONE_AT","tags":{"name":"XYZ","versioning":"NONE","temporality":"AT","series":{"x":{"dataset":"XYZ","name":"x"},"y":{"dataset":"XYZ","name":"y"},"z":{"dataset":"XYZ","name":"z"}},"repository":"tutorials"},"repository":"tutorials","product":"","process_stage":"","sharing":[],"as_of_utc":null,"data":"text/html:\u003ctable border=\"1\" class=\"dataframe\"\u003e\u003cthead\u003e\u003ctr style=\"text-align: right;\"\u003e\u003cth\u003e\u003c/th\u003e\u003cth\u003evalid_at\u003c/th\u003e\u003cth\u003ex\u003c/th\u003e\u003cth\u003ey\u003c/th\u003e\u003cth\u003ez\u003c/th\u003e\u003c/tr\u003e\u003c/thead\u003e\u003ctbody\u003e\u003ctr\u003e\u003cth\u003e0\u003c/th\u003e\u003ctd\u003e2021-12-31 23:00:00+00:00\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e1\u003c/th\u003e\u003ctd\u003e2022-01-31 23:00:00+00:00\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e2\u003c/th\u003e\u003ctd\u003e2022-02-28 23:00:00+00:00\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e3\u003c/th\u003e\u003ctd\u003e2022-03-31 22:00:00+00:00\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e4\u003c/th\u003e\u003ctd\u003e2022-04-30 22:00:00+00:00\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e80.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e...\u003c/th\u003e\u003ctd\u003e...\u003c/td\u003e\u003ctd\u003e...\u003c/td\u003e\u003ctd\u003e...\u003c/td\u003e\u003ctd\u003e...\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e7\u003c/th\u003e\u003ctd\u003e2022-07-31 22:00:00+00:00\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e8\u003c/th\u003e\u003ctd\u003e2022-08-31 22:00:00+00:00\u003c/td\u003e\u003ctd\u003e120.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e9\u003c/th\u003e\u003ctd\u003e2022-09-30 22:00:00+00:00\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e80.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e10\u003c/th\u003e\u003ctd\u003e2022-10-31 23:00:00+00:00\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e11\u003c/th\u003e\u003ctd\u003e2022-11-30 23:00:00+00:00\u003c/td\u003e\u003ctd\u003e120.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003c/tr\u003e\u003c/tbody\u003e\u003c/table\u003e\u003cp\u003e12 rows × 4 columns\u003c/p\u003e","auto_tag_config":{"attributes":[],"separator":"_","regex":""}}' data-value-types='"python"'></marimo-json-output>
+<marimo-json-output data-json-data='{"name":"XYZ","data_type":"text/plain:NONE_AT","tags":{"name":"XYZ","versioning":"NONE","temporality":"AT","series":{"x":{"dataset":"XYZ","name":"x"},"y":{"dataset":"XYZ","name":"y"},"z":{"dataset":"XYZ","name":"z"}},"repository":"tutorials"},"repository":"tutorials","product":"","process_stage":"","sharing":[],"as_of_utc":null,"data":"text/html:\u003ctable border=\"1\" class=\"dataframe\"\u003e\u003cthead\u003e\u003ctr style=\"text-align: right;\"\u003e\u003cth\u003e\u003c/th\u003e\u003cth\u003evalid_at\u003c/th\u003e\u003cth\u003ex\u003c/th\u003e\u003cth\u003ey\u003c/th\u003e\u003cth\u003ez\u003c/th\u003e\u003c/tr\u003e\u003c/thead\u003e\u003ctbody\u003e\u003ctr\u003e\u003cth\u003e0\u003c/th\u003e\u003ctd\u003e2021-12-31 23:00:00+00:00\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e1\u003c/th\u003e\u003ctd\u003e2022-01-31 23:00:00+00:00\u003c/td\u003e\u003ctd\u003e120.0\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e2\u003c/th\u003e\u003ctd\u003e2022-02-28 23:00:00+00:00\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e3\u003c/th\u003e\u003ctd\u003e2022-03-31 22:00:00+00:00\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e4\u003c/th\u003e\u003ctd\u003e2022-04-30 22:00:00+00:00\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e...\u003c/th\u003e\u003ctd\u003e...\u003c/td\u003e\u003ctd\u003e...\u003c/td\u003e\u003ctd\u003e...\u003c/td\u003e\u003ctd\u003e...\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e7\u003c/th\u003e\u003ctd\u003e2022-07-31 22:00:00+00:00\u003c/td\u003e\u003ctd\u003e80.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e8\u003c/th\u003e\u003ctd\u003e2022-08-31 22:00:00+00:00\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e9\u003c/th\u003e\u003ctd\u003e2022-09-30 22:00:00+00:00\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003ctd\u003e110.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e10\u003c/th\u003e\u003ctd\u003e2022-10-31 23:00:00+00:00\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003cth\u003e11\u003c/th\u003e\u003ctd\u003e2022-11-30 23:00:00+00:00\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003ctd\u003e90.0\u003c/td\u003e\u003ctd\u003e100.0\u003c/td\u003e\u003c/tr\u003e\u003c/tbody\u003e\u003c/table\u003e\u003cp\u003e12 rows × 4 columns\u003c/p\u003e","auto_tag_config":{"attributes":[],"separator":"_","regex":""}}' data-value-types='"python"'></marimo-json-output>
 
 ### Write a dataset
 <!---->
@@ -125,18 +125,18 @@ We find `df` as `Dataset.data`.
 
 |    | valid_at                  |   x |   y |   z |
 |---:|:--------------------------|----:|----:|----:|
-|  0 | 2021-12-31 23:00:00+00:00 |  90 | 110 | 110 |
-|  1 | 2022-01-31 23:00:00+00:00 | 100 |  90 |  90 |
-|  2 | 2022-02-28 23:00:00+00:00 | 100 |  90 | 100 |
-|  3 | 2022-03-31 22:00:00+00:00 | 100 | 110 | 110 |
-|  4 | 2022-04-30 22:00:00+00:00 | 100 |  80 |  90 |
-|  5 | 2022-05-31 22:00:00+00:00 | 110 |  90 |  70 |
-|  6 | 2022-06-30 22:00:00+00:00 | 100 | 110 | 100 |
-|  7 | 2022-07-31 22:00:00+00:00 | 110 | 100 | 100 |
-|  8 | 2022-08-31 22:00:00+00:00 | 120 |  90 | 100 |
-|  9 | 2022-09-30 22:00:00+00:00 | 100 |  90 |  80 |
-| 10 | 2022-10-31 23:00:00+00:00 |  90 |  90 | 110 |
-| 11 | 2022-11-30 23:00:00+00:00 | 120 |  90 | 100 |
+|  0 | 2021-12-31 23:00:00+00:00 | 110 | 100 | 110 |
+|  1 | 2022-01-31 23:00:00+00:00 | 120 | 110 | 100 |
+|  2 | 2022-02-28 23:00:00+00:00 |  90 | 110 |  90 |
+|  3 | 2022-03-31 22:00:00+00:00 | 100 | 100 |  90 |
+|  4 | 2022-04-30 22:00:00+00:00 | 100 | 100 |  90 |
+|  5 | 2022-05-31 22:00:00+00:00 | 120 | 100 | 110 |
+|  6 | 2022-06-30 22:00:00+00:00 | 100 | 100 | 100 |
+|  7 | 2022-07-31 22:00:00+00:00 |  80 |  90 | 100 |
+|  8 | 2022-08-31 22:00:00+00:00 | 110 | 100 | 100 |
+|  9 | 2022-09-30 22:00:00+00:00 |  90 | 110 | 110 |
+| 10 | 2022-10-31 23:00:00+00:00 | 100 | 100 | 100 |
+| 11 | 2022-11-30 23:00:00+00:00 | 100 |  90 | 100 |
 
 Note that the original type of `.data` is not persisted over saving and reading back, or calculations.
 That should not matter for operations on the dataset itself,
@@ -247,7 +247,10 @@ big_xyz.plot()
 
 ![png](basic-usage_assets/figure-1.png)
 
-Planned: Iterators
-------------------
+Iterating over Series
+---------------------
 
-While many of the most used calculation features are implemented for the `Dataset` objects, iterating over `Series` ... --> TODO.
+Iterating over a `Dataset` yields one `Series` per series name.
+Each `Series` is an independent projection: its own value column plus the temporal columns, and `as_of_utc` when the dataset is `AS_OF` versioned.
+Tags and technical properties stay controlled through the `Dataset`.
+Mutating a `Series` does not change the `Dataset`, and later changes to the `Dataset` do not reach `Series` objects already produced.
