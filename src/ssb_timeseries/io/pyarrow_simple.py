@@ -294,8 +294,8 @@ class FileSystem:
             dataset: The dataset to list versions for.
             file_pattern: Glob selecting the files to inspect, which is a
                 property of this handler's storage rather than of the dataset.
-                The default, None, reads it from the repository `options` and
-                falls back to "*.parquet", the only suffix this handler writes.
+                The default, None, reads it from the repository ``options`` and
+                falls back to ``"*.parquet"``, the only suffix this handler writes.
         """
         if file_pattern is None:
             file_pattern = self.options.get("file_pattern", "*.parquet")

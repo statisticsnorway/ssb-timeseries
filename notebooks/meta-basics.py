@@ -40,7 +40,7 @@ def _(mo):
     This guide explains how metadata works in SSB Timeseries.
     It covers key concepts like:
 
-    - [Repositories, Datasets and Series](#)
+    - [Repositories, Datasets and Series](#repositories-datasets-and-series)
     - the type system
     - tag inheritance from `Dataset` to `Series` objects
 
@@ -83,7 +83,7 @@ def _(mo):
     ---------------------------------
 
     Repositories, Datasets and Series are the building blocks of a hierarchy.
-    `Repositories` are unique within the universe held within a [configuration](..configuring-io).
+    `Repositories` are unique within the universe held within a [configuration](../configure-io.md).
     Repositories contain `Datasets`.
     Datasets must be uniquely identified within their repository.
     Similarly, `Series` must be uniquely identified within the Datasets they are part of.

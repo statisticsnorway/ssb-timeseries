@@ -116,7 +116,7 @@ These and other *infix* operators for element-wise arithmetic and comparisons wo
 <!---->
 The behaviour for all of them is element-wise, corresponding to the Numpy defaults.
 <!---->
-The implementations for the mathematical operators follows a pattern: a wrapper function that uses the [interoperability](nteroperability) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
+The implementations for the mathematical operators follows a pattern: a wrapper function that uses the [interoperability](interoperability.md) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
 
 There are several points to unpack.
 <!---->
@@ -355,7 +355,7 @@ newly_created
 
 <!-- @output:IpqN -->
 
-``` <class 'Warning'>
+```{warning}
 Be careful!
 `.vectors()` blindly assigns to variables outside its own scope.
 That can have nasty side effects if column names happen to match to variables or objects that already exist.
@@ -387,7 +387,7 @@ The vector variables may be used for calculations directly, using Narwhals funct
 
 <!-- @output:IWgg -->
 
-``` <class 'Warning'>
+```{warning}
 Caveats:
 Note that `.vectors()` is an experimental feature and the Narwhals library is not aimed at end users.
 The behaviour of the `vectors()` and in particular Narwhals series as returntype, is up for consideration and may be changed later.
@@ -406,7 +406,7 @@ price_eggs.to_numpy()
        120., 110., 100., 110., 110.,  90., 110., 120.,  90., 100.,  90.,
        100.,  90.,  90.&#93;)</pre>
 
-See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-meta-tags).
+See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-metadata.md).
 
 ```python {.marimo name="test_true"}
 # @supress

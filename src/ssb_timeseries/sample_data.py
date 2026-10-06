@@ -124,10 +124,10 @@ def create_df(
         A DataFrame or similar object (Numpy array, Arrow table, dict) containing sample data.
 
     Example:
-    ```
-    # Generate sample data with no specified start or end date (defaults to +/- infinity)
-    sample_data = generate_sample_df(List1, List2, freq='D')
-    ```
+        ::
+
+            # Generate sample data with no specified start or end date (defaults to +/- infinity)
+            sample_data = generate_sample_df(List1, List2, freq='D')
     """
     if not start_date:
         start_date = date_round(datetime.now()) - timedelta(days=364)
@@ -756,11 +756,11 @@ def popu06(
         ValueError: If the requested period contains no projection year.
 
     Example:
-        ```
-        from ssb_timeseries.sample_data import POPU06_MAIN_COUNTRIES, popu06
+        ::
 
-        nordic = popu06(countries=POPU06_MAIN_COUNTRIES, start_year=2030)
-        ```
+            from ssb_timeseries.sample_data import POPU06_MAIN_COUNTRIES, popu06
+
+            nordic = popu06(countries=POPU06_MAIN_COUNTRIES, start_year=2030)
     """
     if countries is None:
         selected = list(POPU06_POPULATION)

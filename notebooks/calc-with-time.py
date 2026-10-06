@@ -388,7 +388,7 @@ def _():
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(f"""
-    See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-meta-tags).
+    See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-metadata.md).
     """)
     return
 

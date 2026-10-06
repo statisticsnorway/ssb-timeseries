@@ -229,7 +229,7 @@ def _(mo):
 
     The most important role of the configuration is to specify one or more "repositories" where data and meta data are stored, and associated with the "handlers" that implement the read and write functionality.
 
-    This is explained in more detail in the [Configure IO](..configure-io) guide.
+    This is explained in more detail in the [Configure IO](../configure-io.md) guide.
 
     A minimal working example for version 0.7.0 and above may look like this:
     """)

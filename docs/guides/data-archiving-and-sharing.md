@@ -4,7 +4,7 @@ marimo-version: 0.24.0
 ---
 
 Archiving and sharing
----------------------
+=====================
 
 To comply with legal requirements, Statistics Norway commits itself to working according to a formal process model.
 For the sake of transparency and process reviews, at certain points in the process data has to be persisted.

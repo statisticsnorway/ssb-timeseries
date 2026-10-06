@@ -17,6 +17,8 @@ CONFIG = get_configuration()
 import subprocess
 ```
 
+# Data types and storage
+
 ## Setup
 
 ```python {.marimo}

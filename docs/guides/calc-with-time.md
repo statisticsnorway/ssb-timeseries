@@ -253,7 +253,7 @@ valid_at: &#91;&#91;219,220,221,222,223,224,225,226,227&#93;&#93;</pre>
 # Observe BUG: valid_at as period_index converted to number
 ```
 
-See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-meta-tags).
+See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-metadata.md).
 
 <!-- @output:dGlV -->
 

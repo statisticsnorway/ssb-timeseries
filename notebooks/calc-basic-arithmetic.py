@@ -271,7 +271,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    The implementations for the mathematical operators follows a pattern: a wrapper function that uses the [interoperability](nteroperability) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
+    The implementations for the mathematical operators follows a pattern: a wrapper function that uses the [interoperability](interoperability.md) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
 
     There are several points to unpack.
     """)
@@ -559,8 +559,8 @@ def _(variables_in_memory):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(f"""
-    ``` {Warning}
+    mo.md(r"""
+    ```{warning}
     Be careful!
     `.vectors()` blindly assigns to variables outside its own scope.
     That can have nasty side effects if column names happen to match to variables or objects that already exist.
@@ -605,8 +605,8 @@ def _(price_eggs, volume_eggs):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(rf"""
-    ``` {Warning}
+    mo.md(r"""
+    ```{warning}
     Caveats:
     Note that `.vectors()` is an experimental feature and the Narwhals library is not aimed at end users.
     The behaviour of the `vectors()` and in particular Narwhals series as returntype, is up for consideration and may be changed later.
@@ -632,7 +632,7 @@ def _(price_eggs):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(f"""
-    See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-meta-tags).
+    See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-metadata.md).
     """)
     return
 
