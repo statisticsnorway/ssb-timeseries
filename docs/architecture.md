@@ -4,12 +4,16 @@ This document provides a high-level overview of the `ssb-timeseries` library's i
 
 ## Core User Interfaces
 
-A user primarily interacts with the library through two main entry points.
+A user primarily interacts with the library through the following entry points.
 These are designed to separate the acts of *working with* data from *finding* data.
 
 -   **The `Dataset` class**: This is the central point of interaction.
     It represents a single time series dataset, bringing together its data and metadata.
     It provides a rich API for I/O, calculations, and data manipulation.
+-   **The `Series` class**: This is the per-series view obtained by iterating a `Dataset`.
+    Iterating yields one `Series` per series name, an independent copy carrying the temporal columns and that series' value column, plus `as_of_utc` when the dataset is `AS_OF` versioned.
+    The projection is detached in both directions: mutating a `Series` does not change the `Dataset`, and changes to the `Dataset` after iteration do not reach `Series` objects already produced.
+    Frame adapters (`nw`, `pa`, `pd`, `pl` and `nixtla()`) expose the projected data to other libraries.
 -   **The `Catalog` module**: This provides functions for discovery and search within all datasets by name or metadata (tags) across all configured storage locations (repositories).
     The `get_catalog()` function acts as a simple facade, hiding the complexity of reading the configuration and instantiating the `Catalog` and `Repository` objects.
 

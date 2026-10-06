@@ -1084,7 +1084,12 @@ class Dataset:
         self.data = nw_self.with_columns(expressions).to_native()
 
     def __iter__(self) -> Iterator[Series]:
-        """Return a Series iterator for the Dataset."""
+        """Yield one Series projection per series name.
+
+        Each projection carries the temporal columns and the series' own value column, copied out of the Dataset's frame.
+        `as_of_utc` is set only when the Dataset is `AS_OF` versioned, and tags are the series' own tags.
+        Projections are detached in both directions: mutating a Series does not change the Dataset, and changes to the Dataset after iteration do not reach Series already produced.
+        """
         date_cols = self.datetime_columns
         for series_name in self.series:
             yield Series(
