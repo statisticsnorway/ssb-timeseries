@@ -34,5 +34,23 @@
                 }
             }
         }
+    },
+    "archives": {
+        "default": {
+            "directory": {
+                "handler": "archive",
+                "options": {"path": "/home/bernhard/timeseries/archives"}
+            },
+            "options": {"archive_format": "ssb"}
+        }
+    },
+    "sharing": {
+        "default": {
+            "directory": {
+                "handler": "archive",
+                "options": {"path": "/home/bernhard/timeseries/shared/default"}
+            },
+            "options": {"archive_format": "ssb"}
+        }
     }
 }

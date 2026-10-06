@@ -1,6 +1,6 @@
 ---
 title: Meta Basics
-marimo-version: 0.24.0
+marimo-version: 0.24.2
 ---
 
 # Metadata fundamentals
@@ -11,7 +11,7 @@ Scope
 This guide explains how metadata works in SSB Timeseries.
 It covers key concepts like:
 
-- [Repositories, Datasets and Series](#)
+- [Repositories, Datasets and Series](#repositories-datasets-and-series)
 - the type system
 - tag inheritance from `Dataset` to `Series` objects
 
@@ -44,7 +44,7 @@ Repositories, Datasets and Series
 ---------------------------------
 
 Repositories, Datasets and Series are the building blocks of a hierarchy.
-`Repositories` are unique within the universe held within a [configuration](..configuring-io).
+`Repositories` are unique within the universe held within a [configuration](../configure-io.md).
 Repositories contain `Datasets`.
 Datasets must be uniquely identified within their repository.
 Similarly, `Series` must be uniquely identified within the Datasets they are part of.
@@ -114,7 +114,7 @@ If not specified, the configuration will determine which one is used, if there i
 
 ```python {.marimo}
 sample_set = Dataset(
-    name = 'Sample Data',
+    name = 'PQR',
     data_type = SeriesType(Versioning.NONE, Temporality.AT),
     data = some_data,
 )
@@ -127,7 +127,7 @@ print(repr(sample_set))
 
 <!-- @output:ZHCJ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;Sample Data&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=None)
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;PQR&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=None)
 </pre>
 
 These attributes are technically significant.
@@ -141,39 +141,47 @@ sample_set.tags
 
 <!-- @output:qnkX -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;Sample Data&#x27;,
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
  &#x27;product group&#x27;: &#x27;essential&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;x&#x27;: {&#x27;area&#x27;: &#x27;x&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;x&#x27;,
+ &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;p&#x27;,
                   &#x27;product&#x27;: &#x27;coffee&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;y&#x27;: {&#x27;area&#x27;: &#x27;y&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;y&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;q&#x27;,
                   &#x27;product&#x27;: &#x27;crispbread&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;z&#x27;: {&#x27;area&#x27;: &#x27;z&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;z&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;r&#x27;,
                   &#x27;product&#x27;: &#x27;brown cheese&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}},
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+ &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+ &#x27;variabel&#x27;: &#x27;pris&#x27;,
  &#x27;variable&#x27;: &#x27;price&#x27;,
- &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}</pre>
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
 Note how `Dataset.name` becomes `Series.dataset` in the tags, while the technical properties are inherited directly.
 The datatype dimensions are reflected in both in `.versioning` and the single `valid_at` column in `.data`:
@@ -186,26 +194,26 @@ sample_set.data
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2020-01-01 | 110.0 | 110.0 | 110.0 |
-| 2020-01-02 | 90.0 | 100.0 | 90.0 |
-| 2020-01-03 | 90.0 | 100.0 | 90.0 |
-| 2020-01-04 | 90.0 | 100.0 | 110.0 |
-| 2020-01-05 | 80.0 | 100.0 | 110.0 |
+| 2019-12-31 23:00:00+00:00 | 110.0 | 110.0 | 100.0 |
+| 2020-01-01 23:00:00+00:00 | 90.0 | 90.0 | 110.0 |
+| 2020-01-02 23:00:00+00:00 | 80.0 | 80.0 | 100.0 |
+| 2020-01-03 23:00:00+00:00 | 100.0 | 120.0 | 100.0 |
+| 2020-01-04 23:00:00+00:00 | 90.0 | 110.0 | 100.0 |
 | ... | ... | ... | ... |
-| 2025-05-28 | 100.0 | 90.0 | 100.0 |
-| 2025-05-29 | 100.0 | 100.0 | 100.0 |
-| 2025-05-30 | 90.0 | 110.0 | 100.0 |
-| 2025-05-31 | 110.0 | 100.0 | 90.0 |
-| 2025-06-01 | 100.0 | 90.0 | 110.0 |
+| 2025-05-27 22:00:00+00:00 | 90.0 | 90.0 | 110.0 |
+| 2025-05-28 22:00:00+00:00 | 90.0 | 100.0 | 100.0 |
+| 2025-05-29 22:00:00+00:00 | 100.0 | 90.0 | 100.0 |
+| 2025-05-30 22:00:00+00:00 | 110.0 | 90.0 | 90.0 |
+| 2025-05-31 22:00:00+00:00 | 90.0 | 100.0 | 110.0 |
 
 To apply more than the minimal set of technical tags, we need to "tag" the dataset and series.
 
 ```python {.marimo}
 sample_set.tag_dataset(tags={'variable': 'price','product group': 'essential'})
 
-sample_set.tag_series('x',tags={'product': 'coffee'})
-sample_set.tag_series('y',tags={'product': 'crispbread'})
-sample_set.tag_series('z',tags={'product': 'brown cheese'})
+sample_set.tag_series('p',tags={'product': 'coffee'})
+sample_set.tag_series('q',tags={'product': 'crispbread'})
+sample_set.tag_series('r',tags={'product': 'brown cheese'})
 
 sample_set.save()
 sample_set.tags
@@ -213,92 +221,108 @@ sample_set.tags
 
 <!-- @output:ulZA -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;Sample Data&#x27;,
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
  &#x27;product group&#x27;: &#x27;essential&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;x&#x27;: {&#x27;area&#x27;: &#x27;x&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;x&#x27;,
+ &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;p&#x27;,
                   &#x27;product&#x27;: &#x27;coffee&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;y&#x27;: {&#x27;area&#x27;: &#x27;y&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;y&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;q&#x27;,
                   &#x27;product&#x27;: &#x27;crispbread&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;z&#x27;: {&#x27;area&#x27;: &#x27;z&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;z&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;r&#x27;,
                   &#x27;product&#x27;: &#x27;brown cheese&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}},
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+ &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+ &#x27;variabel&#x27;: &#x27;pris&#x27;,
  &#x27;variable&#x27;: &#x27;price&#x27;,
- &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}</pre>
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
 Initialising a variable for an existing `Dataset`, we retrieve the previously stored metadata.
 
 ```python {.marimo}
-xyz = Dataset('Sample Data')
+pqr = Dataset('PQR')
 ```
 
 ```python {.marimo}
-xyz.tags
+pqr.tags
 ```
 
 <!-- @output:ZBYS -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;Sample Data&#x27;,
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
  &#x27;product group&#x27;: &#x27;essential&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;x&#x27;: {&#x27;area&#x27;: &#x27;x&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;x&#x27;,
+ &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;p&#x27;,
                   &#x27;product&#x27;: &#x27;coffee&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;y&#x27;: {&#x27;area&#x27;: &#x27;y&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;y&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;q&#x27;,
                   &#x27;product&#x27;: &#x27;crispbread&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
-            &#x27;z&#x27;: {&#x27;area&#x27;: &#x27;z&#x27;,
-                  &#x27;dataset&#x27;: &#x27;Sample Data&#x27;,
-                  &#x27;name&#x27;: &#x27;z&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;r&#x27;,
                   &#x27;product&#x27;: &#x27;brown cheese&#x27;,
                   &#x27;product group&#x27;: &#x27;essential&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
-                  &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}},
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+ &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+ &#x27;variabel&#x27;: &#x27;pris&#x27;,
  &#x27;variable&#x27;: &#x27;price&#x27;,
- &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}</pre>
+ &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
 ## Selecting series
 
 Series can be selected from the dataset by name, regex patterns or tags.
 
 ```python {.marimo}
-xyz['x','y'].plot()
+pqr['p','q'].plot()
 ```
 
 <!-- @output:nHfw -->
@@ -308,7 +332,7 @@ xyz['x','y'].plot()
 And tags as well:
 
 ```python {.marimo}
-xyz[{'area': 'z'}].plot()
+pqr[{'product': 'coffee'}].plot()
 ```
 
 <!-- @output:AjVT -->
@@ -533,16 +557,15 @@ type(all_the_datasets[0])
 
 <!-- @output:xvXZ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;AZ_drikkevarer&#x27;,
- &#x27;Prices and Volumes&#x27;,
- &#x27;A Sample Dataset&#x27;,
- &#x27;PQR&#x27;,
- &#x27;Sample Data&#x27;,
- &#x27;AZ Drinks&#x27;,
- &#x27;XYZ&#x27;,
- &#x27;More Prices and Volumes&#x27;,
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;A Sample Dataset&#x27;,
+ &#x27;AZ_drikkevarer&#x27;,
+ &#x27;AZ_drinks&#x27;,
  &#x27;AZ_omsetning&#x27;,
- &#x27;AZ_drinks&#x27;&#93;</pre>
+ &#x27;More Prices and Volumes&#x27;,
+ &#x27;POPU06&#x27;,
+ &#x27;PQR&#x27;,
+ &#x27;Prices and Volumes&#x27;,
+ &#x27;XYZ&#x27;&#93;</pre>
 
 ```python {.marimo disabled="true"}
 import pandas as pd
@@ -554,32 +577,42 @@ The list above should correspond to what we find in our file based repository:
 <!-- @output:cEAS -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
+├── archives/
+│   ├── A Sample Dataset/
+│   │   ├── A Sample Dataset_v1.parquet
+│   │   └── A Sample Dataset_v2.parquet
+│   ├── PQR/
+│   │   ├── PQR_v1.parquet
+│   │   └── PQR_v2.parquet
+│   └── XYZ/
+│       ├── XYZ_v1.parquet
+│       └── XYZ_v2.parquet
 ├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
+│   ├── POPU06/
+│   │   ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-02-29T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-03-31T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-04-30T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-05-31T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-06-30T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-07-31T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-08-31T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-09-30T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-10-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-11-30T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-01-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-02-28T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-03-31T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-04-30T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-05-31T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-06-30T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-07-31T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-08-31T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-09-30T220000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│   │   └── POPU06-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -616,14 +649,13 @@ The list above should correspond to what we find in our file based repository:
 │       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
 │   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
 │   ├── AZ_drikkevarer-metadata.json
 │   ├── AZ_drinks-metadata.json
 │   ├── AZ_omsetning-metadata.json
 │   ├── More Prices and Volumes-metadata.json
+│   ├── POPU06-metadata.json
 │   ├── PQR-metadata.json
 │   ├── Prices and Volumes-metadata.json
-│   ├── Sample Data-metadata.json
 │   └── XYZ-metadata.json
 ├── NONE_AT/
 │   ├── A Sample Dataset/
@@ -633,8 +665,6 @@ The list above should correspond to what we find in our file based repository:
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 └── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
     ├── AZ_drikkevarer/
     │   └── AZ_drikkevarer-latest-data.parquet
     ├── AZ_drinks/
@@ -660,7 +690,7 @@ def test_success():
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;32m.&#91;0m&#91;32m                                                                        &#91;100%&#93;&#91;0m
 =================================== Overview ===================================
 Passed Tests:
-&#91;1m&#91;32m&#91;22m✓&#91;0m&#91;0m notebooks/meta-basics.py::test_success
+✓ notebooks/meta-basics.py::test_success
 
 Summary:
 Total: 1, Passed: 1, Failed: 0, Errors: 0, Skipped: 0

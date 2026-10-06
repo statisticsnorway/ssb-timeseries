@@ -21,20 +21,24 @@ Example:
     >>> # doctest: -SKIP
     >>> cfg.activate()
 
-For switching between preset configurations, use the `timeseries-config` command from a terminal::
+For switching between preset configurations, apply the preset, then save and activate it::
 
-    poetry run timeseries-config <option>
+    cfg = Config(preset="defaults")
+    cfg.save()
+    cfg.activate()
 
-which is equivalent to::
+:py:func:`main` performs those three steps for a named preset.
+From a terminal, :py:mod:`ssb_timeseries.cli.config` inspects configurations without changing them::
 
-    python ./config.py <option>
-
-See :py:func:`ssb_timeseries.config.main` for details on the named options.
+    ts config list
+    ts config show defaults
+    ts config path
 """
 
 from __future__ import annotations
 
 import copy
+import importlib
 import json
 import logging
 import os
@@ -54,6 +58,7 @@ except ImportError:
     from typing_extensions import TypedDict
 
 from typing import Any
+from typing import Literal
 from typing import TypeAlias
 from typing import get_origin
 from typing import get_type_hints
@@ -111,6 +116,95 @@ def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
     return (True, None)
 
 
+def validate_handlers(
+    configuration: ConfigDict,
+    *,
+    required: Literal["builtin", "all"] = "builtin",
+) -> tuple[bool, object]:
+    """Check that every configured IO handler names a class that resolves.
+
+    :py:func:`is_valid_config` establishes that a configuration is structurally
+    valid, which is not the same as being usable.
+    A handler is named by a string, and a string is a well-formed value whether or
+    not anything answers to it, so a handler naming a module that has been deleted
+    passes validation and then fails at the first read or write.
+
+    Handlers written outside this package are a supported feature rather than a
+    defect, so their absence is not treated as an error here.
+    A handler under this package's namespace cannot be absent for an innocent
+    reason, because the package is installed wherever the configuration is used,
+    so a failure to resolve one indicates a typo or a module that no longer exists.
+
+    Whether a handler satisfies the protocol it is registered for is not checked
+    here.
+    A handler must be instantiated before it can be compared against a protocol,
+    and the dispatcher already does that, naming the operations a handler lacks.
+
+    Args:
+        configuration: The configuration whose handlers to resolve.
+        required: Which handlers must resolve.
+            ``"builtin"`` requires only handlers under this package's namespace and
+            tolerates handlers written elsewhere, whose absence usually means only
+            that they are not installed in the environment asking.
+            ``"all"`` requires every handler, and is appropriate where the
+            environment is known to be complete.
+
+    Returns:
+        A tuple of whether every required handler resolves, and the reason one does
+        not, or ``None`` when they all do.
+
+    Examples:
+        >>> from ssb_timeseries.config import DEFAULTS, validate_handlers
+        >>> is_resolvable, reason = validate_handlers(DEFAULTS)
+        >>> is_resolvable
+        True
+    """
+    failures = []
+
+    for handler_name, handler_config in configuration.get("io_handlers", {}).items():
+        handler_path = handler_config.get("handler", "")
+        if not isinstance(handler_path, str) or "." not in handler_path:
+            failures.append(
+                f"'{handler_name}' is configured as {handler_path!r}, "
+                f"which is not a 'module.Class' path"
+            )
+            continue
+
+        module_path, _, class_name = handler_path.rpartition(".")
+        failure = None
+
+        try:
+            handler_class = getattr(importlib.import_module(module_path), class_name)
+        except (ImportError, AttributeError) as error:
+            failure = str(error)
+        else:
+            if not isinstance(handler_class, type):
+                # A module, a function or a constant satisfies `getattr`, and none of
+                # them can be instantiated into a handler. This is a wrong
+                # configuration wherever it is found, not an absent dependency.
+                failure = (
+                    f"it resolved to {type(handler_class).__name__}, not to a class"
+                )
+            else:
+                resolved_at = f"{handler_class.__module__}.{handler_class.__qualname__}"
+                if resolved_at != handler_path:
+                    failure = f"it resolved to {resolved_at}"
+
+        if failure is None:
+            continue
+
+        if required == "all" or module_path.split(".")[0] == PACKAGE_NAME:
+            failures.append(
+                f"'{handler_name}' is configured as {handler_path!r}, "
+                f"which does not resolve: {failure}"
+            )
+
+    if failures:
+        return (False, "; ".join(failures))
+
+    return (True, None)
+
+
 def unset_env_var() -> str:
     """Unset the environment variable :py:const:`ENV_VAR_NAME` and return the value that was unset."""
     return os.environ.pop(ENV_VAR_NAME, "")
@@ -143,7 +237,7 @@ class Config:
 
     _active: Self
     configuration_file: PathStr
-    """The path to the configuRation file."""
+    """The path to the configuration file."""
     repositories: dict[str, Repository]
     """Defines storage locations for time series data and metadata."""
     archives: dict[str, ArchiveConfig]
@@ -161,15 +255,14 @@ class Config:
         Keyword Arguments:
             preset (str): Optional. Name of a preset configuration. If provided, the preset configuration is loaded, and no other parameters are considered.
             configuration_file (str): Path to the configuration file. If the parameter is not provided, the environment variable :py:const:`ENV_VAR_NAME` is used. If the environment variable is not set, the default configuration file location is used.
-            repositories (list[FileBasedRepository]): New in version 0.5.0. Replaces bucket, timeseries_root and catalog.
-            log_file (str): Path to the log file.
-            bucket (str): Name of the GCS bucket.
-            ignore_file (bool):
+            repositories (dict[str, Repository]): New in version 0.5.0. Replaces bucket, timeseries_root and catalog.
+            ignore_file (bool): Read a missing `configuration_file` as an empty file, merged over the defaults, instead of raising.
+            log_file (str): Deprecated and discarded. Configure a file handler under `logging` instead.
+            bucket (str): Name of the GCS bucket. Stored on the instance for callers to read; this module does not use it.
 
         Raises:
-            :py:exc:`FileNotFoundError`: If the configuration file as implied by provided or not provided parameters does not exist.   # noqa: DAR402
+            :py:exc:`FileNotFoundError`: If a `configuration_file` is specified and does not exist.   # noqa: DAR402
             :py:exc:`ValidationError`: If the resulting configuration is not valid.   # noqa: DAR402
-            :py:exc:`EnvVarNotDefinedeError`: If the environment variable :py:const:`ENV_VAR_NAME` is not defined.
 
         Examples:
             To load an existing preset configuration:
@@ -238,7 +331,14 @@ class Config:
         self.apply(config_values)
 
     def apply(self, configuration: dict) -> None:
-        """Set configuration values from a dictionary."""
+        """Set configuration values from a dictionary.
+
+        The dictionary is validated first.
+        A deprecated `log_file` key is dropped with a warning, and a `snapshots` section is reported as renamed to `archives`.
+
+        Raises:
+            ValidationError: If the configuration is not valid.
+        """
         log_config = configuration.get("logging", {})
         if not log_config:
             configuration["logging"] = {}
@@ -348,7 +448,17 @@ class Config:
         or `.refresh()` to reload the active configuration from its file.
 
         Args:
-            path (PathStr): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable :py:const:`ENV_VAR_NAME` before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
+            path (PathStr): Full path of the JSON file to save to.
+                If not specified, :attr:`.configuration_file` is used.
+                That attribute is set when the configuration is created:
+                from the `configuration_file` parameter,
+                from the file identified by the environment variable :py:const:`ENV_VAR_NAME`,
+                from a preset,
+                or from the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
+                A configuration file contributes its own `configuration_file` value,
+                which need not be the path it was found at.
+                Note that a preset carries its own `configuration_file`,
+                so the environment variable does not redirect where a preset configuration is saved.
 
         Raises:
             ValueError: If `path` is not provided and :attr:`configuration_file` is not set.
@@ -414,8 +524,14 @@ class DictObject(object):  # noqa
 def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100
     """Retrieve a preset configuration dictionary.
 
+    Args:
+        named_config: Preset name, matched case-insensitively against :py:data:`PRESETS`.
+
+    Returns:
+        A copy of the preset, safe to modify.
+
     Raises:
-        ValueError: If args is not 'home' | 'daplalab'.
+        KeyError: If :py:data:`PRESETS` has no entry of that name.
     """
     p = named_config.lower()
     if p in PRESETS:
@@ -427,22 +543,20 @@ def presets(named_config: str) -> dict | ConfigDict:  # noqa: RUF100
 
 
 def main(*args: str | PathStr) -> None:
-    """Set configurations to predefined defaults when run from command line.
+    """Apply, save and activate a named preset configuration.
 
-    Use:
-        ```
-        poetry run timeseries-config <option>
-        ```
-    or
-        ```
-        python ./config.py <option>`
-        ```
+    The preset name comes from the first positional argument,
+    or from ``sys.argv[1]`` when no argument is passed.
+
+    The ``ts config`` subcommands inspect configurations but do not apply them,
+    so this function is how a named preset is switched to from Python.
 
     Args:
-        *args (str): 'home' | 'default' | 'daplalab'.
+        *args: Name of a preset, matched case-insensitively against :py:data:`PRESETS`.
 
     Raises:
-        ValueError: If args is not 'home' | 'default' | 'daplalab'. # noqa: DAR402
+        ValueError: If no preset name is given. # noqa: DAR402
+        KeyError: If :py:data:`PRESETS` has no entry of that name.
 
     """
     if args:
@@ -472,9 +586,17 @@ def path_str(*args) -> str:
 
 
 def activate_discovered_config(fail_on_no_config: bool = False) -> None:
-    """Try to find the config.
+    """Activate the configuration file named by :py:const:`ENV_VAR_NAME`, if there is one.
 
-    And take appropriate action if it can not be found.
+    This runs once, when this module is imported.
+
+    Args:
+        fail_on_no_config: Raise instead of continuing without a configuration
+            when :py:const:`ENV_VAR_NAME` is not defined.
+
+    Raises:
+        MissingEnvironmentVariableError: If `fail_on_no_config` is set and :py:const:`ENV_VAR_NAME` is not defined.
+        FileNotFoundError: If :py:const:`ENV_VAR_NAME` is defined but names a file that does not exist.
     """
     from ..io import fs
 
@@ -484,6 +606,15 @@ def activate_discovered_config(fail_on_no_config: bool = False) -> None:
         _cfg.activate()
         fs.touch(_cfg.log_file)
 
+    elif DAPLA_TEAM_CONTEXT and fs.is_gcs(_config_file):
+        # in a DAPLA automated context, it is severe if configs are missing.
+        # unless DAPLALAB: it may be OK that the config file does not exist
+
+        _config_logger.warning(
+            "%s: No configuration file was found at %s.",
+            DAPLA_TEAM_CONTEXT,
+            _config_file,
+        )
     elif fail_on_no_config:
         raise MissingEnvironmentVariableError(
             f"Environment variable {ENV_VAR_NAME} must be defined."
@@ -491,16 +622,6 @@ def activate_discovered_config(fail_on_no_config: bool = False) -> None:
     elif _config_file and not fs.exists(_config_file):
         raise FileNotFoundError(
             f"The configuration file {_config_file} was identified by {ENV_VAR_NAME}, but could not be found."
-        )
-
-    # elif DAPLALAB: ... # it may be OK that the config file does not exist
-    elif DAPLA_TEAM_CONTEXT and fs.is_gcs(_config_file):
-        # """On DAPLA we consider it more severe if configs are missing."""
-
-        _config_logger.warning(
-            "%s: No configuration file was found at %s.",
-            DAPLA_TEAM_CONTEXT,
-            _config_file,
         )
 
 

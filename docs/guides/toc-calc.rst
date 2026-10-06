@@ -14,9 +14,6 @@ Here we will take look at the built in matematical support.
    Calculations with metadata <calc-with-metadata>
    Interoperability <interoperability>
 
-.. include:: issue.md
-   :parser: myst_parser.sphinx_
-
 .. .. include:: ../../notebooks/html/calc-basic-arithmetic.html
 
 .. .. raw:: html

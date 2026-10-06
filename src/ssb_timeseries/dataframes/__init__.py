@@ -26,8 +26,8 @@ from .dates import standardize_dates
 
 
 def _coalesce(*args):
-    """Return first value that evaluates to True."""
-    return next((bool(arg) for arg in args if arg is not None), None)
+    """Return the first argument that is not None."""
+    return next((arg for arg in args if arg is not None), None)
 
 
 def copy(df: FrameT) -> Any:
@@ -123,7 +123,11 @@ def infer_datatype(df: IntoFrame, **kwargs) -> SeriesType:
     columns = set(nw_df.columns)
 
     vs_explicit = kwargs.get("versioning")
-    vs_from_kwargs = Versioning.AS_OF if vs_markers & set(kwargs.keys()) else None
+    vs_from_kwargs = (
+        Versioning.AS_OF
+        if vs_markers & {key for key, value in kwargs.items() if value is not None}
+        else None
+    )
     vs_from_column = Versioning.AS_OF if vs_markers & columns else None
     versioning = _coalesce(vs_explicit, vs_from_column, vs_from_kwargs, Versioning.NONE)
 

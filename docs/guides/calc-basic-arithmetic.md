@@ -1,6 +1,6 @@
 ---
 title: Calc Basic Arithmetic
-marimo-version: 0.24.0
+marimo-version: 0.24.2
 ---
 
 Basic arithmetic
@@ -116,7 +116,7 @@ These and other *infix* operators for element-wise arithmetic and comparisons wo
 <!---->
 The behaviour for all of them is element-wise, corresponding to the Numpy defaults.
 <!---->
-The implementations for the mathematical operators follows a pattern: a wrapper function that uses the [interoperability](nteroperability) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
+The implementations for the mathematical operators follows a pattern: a wrapper function that uses the [interoperability](interoperability.md) library [Narwhals](https://narwhals-dev.github.io/narwhals/) to standardize input and pass on the actual work to Numpy.
 
 There are several points to unpack.
 <!---->
@@ -168,7 +168,7 @@ type(feb.pd.set_index(['valid_from','valid_to'])**2)
 
 <!-- @output:yCnT -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;class &#x27;pandas.DataFrame&#x27;&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;class &#x27;pandas.core.frame.DataFrame&#x27;&gt;</pre>
 
 ```python {.marimo}
 feb.pd.iloc[0,:]
@@ -182,14 +182,14 @@ feb.pd.iloc[0,:]
 | 2023-12-31 23:00:00+00:00 |
 | 2024-01-31 23:00:00+00:00 |
 | 100.0 |
-| 120.0 |
-| 90.0 |
+| 110.0 |
+| 110.0 |
 | ... |
 | 100.0 |
 | 110.0 |
 | 100.0 |
-| 110.0 |
 | 90.0 |
+| 100.0 |
 
 ```python {.marimo}
 x = feb
@@ -235,7 +235,7 @@ x_row
 | valid_from | valid_to | price_bread | price_cheese | price_eggs | price_ham | price_juice | price_milk | volume_bread | volume_cheese | volume_eggs | volume_ham | volume_juice | volume_milk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | datetime[ns, UTC] | datetime[ns, UTC] | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 |
-| 2024-01-31 23:00:00 UTC | 2024-02-29 23:00:00 UTC | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 90.0 | 90.0 |
+| 2024-01-31 23:00:00 UTC | 2024-02-29 23:00:00 UTC | 110.0 | 110.0 | 90.0 | 100.0 | 100.0 | 90.0 | 110.0 | 120.0 | 80.0 | 100.0 | 100.0 | 100.0 |
 
 Broadcasting
 ------------
@@ -277,8 +277,8 @@ print(broadcast.data.shape)
 <!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">pyarrow.Table
-valid_from: timestamp&#91;ns, tz=UTC&#93; not null
-valid_to: timestamp&#91;ns, tz=UTC&#93; not null
+valid_from: timestamp&#91;ns, tz=UTC&#93;
+valid_to: timestamp&#91;ns, tz=UTC&#93;
 price_bread: bool
 price_cheese: bool
 price_eggs: bool
@@ -294,14 +294,14 @@ volume_milk: bool
 ----
 valid_from: &#91;&#91;2023-12-31 23:00:00.000000000Z,2024-01-31 23:00:00.000000000Z,2024-02-29 23:00:00.000000000Z,2024-03-31 22:00:00.000000000Z,2024-04-30 22:00:00.000000000Z,...,2026-07-31 22:00:00.000000000Z,2026-08-31 22:00:00.000000000Z,2026-09-30 22:00:00.000000000Z,2026-10-31 23:00:00.000000000Z,2026-11-30 23:00:00.000000000Z&#93;&#93;
 valid_to: &#91;&#91;2024-01-31 23:00:00.000000000Z,2024-02-29 23:00:00.000000000Z,2024-03-31 22:00:00.000000000Z,2024-04-30 22:00:00.000000000Z,2024-05-31 22:00:00.000000000Z,...,2026-08-31 22:00:00.000000000Z,2026-09-30 22:00:00.000000000Z,2026-10-31 23:00:00.000000000Z,2026-11-30 23:00:00.000000000Z,2026-12-31 23:00:00.000000000Z&#93;&#93;
-price_bread: &#91;&#91;false,true,false,true,false,...,false,false,true,false,false&#93;&#93;
-price_cheese: &#91;&#91;false,true,false,true,false,...,false,false,false,true,true&#93;&#93;
-price_eggs: &#91;&#91;false,true,true,true,false,...,false,true,false,false,true&#93;&#93;
-price_ham: &#91;&#91;true,true,false,false,false,...,false,false,false,false,false&#93;&#93;
-price_juice: &#91;&#91;false,true,false,false,false,...,false,true,false,false,false&#93;&#93;
-price_milk: &#91;&#91;false,true,false,false,false,...,true,true,false,false,true&#93;&#93;
-volume_bread: &#91;&#91;false,true,false,false,false,...,false,false,false,false,false&#93;&#93;
-volume_cheese: &#91;&#91;true,true,false,false,false,...,false,true,false,true,false&#93;&#93;
+price_bread: &#91;&#91;false,true,false,false,false,...,false,false,true,false,false&#93;&#93;
+price_cheese: &#91;&#91;true,true,true,true,false,...,false,false,false,false,true&#93;&#93;
+price_eggs: &#91;&#91;false,true,true,false,false,...,false,true,false,false,false&#93;&#93;
+price_ham: &#91;&#91;false,true,false,false,true,...,false,false,false,false,false&#93;&#93;
+price_juice: &#91;&#91;false,true,false,false,false,...,true,false,true,false,false&#93;&#93;
+price_milk: &#91;&#91;true,true,false,false,false,...,false,true,false,true,false&#93;&#93;
+volume_bread: &#91;&#91;true,true,false,false,false,...,false,true,false,false,false&#93;&#93;
+volume_cheese: &#91;&#91;false,true,true,false,false,...,false,true,false,false,false&#93;&#93;
 ...</pre>
 
 (Note how for the second row, matching `x_row` all values of the comparison are `True`.)
@@ -351,16 +351,14 @@ newly_created
 
 <!-- @output:kLmu -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;revenue_ham&#x27;, &#x27;revenue_eggs&#x27;, &#x27;revenue_juice&#x27;, &#x27;revenue_bread&#x27;, &#x27;revenue_cheese&#x27;, &#x27;variables_in_memory&#x27;, &#x27;revenue_milk&#x27;, &#x27;valid_to&#x27;, &#x27;valid_from&#x27;}</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;revenue_eggs&#x27;, &#x27;valid_from&#x27;, &#x27;revenue_juice&#x27;, &#x27;revenue_ham&#x27;, &#x27;revenue_cheese&#x27;, &#x27;revenue_milk&#x27;, &#x27;revenue_bread&#x27;, &#x27;valid_to&#x27;, &#x27;variables_in_memory&#x27;}</pre>
 
-<!-- @output:IpqN -->
-
-``` <class 'Warning'>
+```{warning}
 Be careful!
 `.vectors()` blindly assigns to variables outside its own scope.
 That can have nasty side effects if column names happen to match to variables or objects that already exist.
 ```
-
+<!---->
 Vectors accepts filter parameters. The following will behave the same as  `jul['*eggs*'].vectors()`, but will not create an intermediate dataset object.
 
 ```python {.marimo}
@@ -383,16 +381,14 @@ The vector variables may be used for calculations directly, using Narwhals funct
 
 <!-- @output:IaQp -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">10144.444444444445</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">9833.333333333334</pre>
 
-<!-- @output:IWgg -->
-
-``` <class 'Warning'>
+```{warning}
 Caveats:
 Note that `.vectors()` is an experimental feature and the Narwhals library is not aimed at end users.
 The behaviour of the `vectors()` and in particular Narwhals series as returntype, is up for consideration and may be changed later.
 ```
-
+<!---->
 Or, convert with `.to_list()` or `.to_numpy()`.
 
 ```python {.marimo}
@@ -401,12 +397,12 @@ price_eggs.to_numpy()
 
 <!-- @output:LkGn -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">array(&#91; 80., 110., 100., 100.,  90.,  90.,  90.,  90., 110., 110., 100.,
-       100.,  90., 110.,  90., 110.,  90., 110., 100., 100.,  80., 110.,
-       120., 110., 100., 110., 110.,  90., 110., 120.,  90., 100.,  90.,
-       100.,  90.,  90.&#93;)</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">array(&#91;100., 110.,  80., 110.,  90.,  90., 110., 100., 100., 120.,  90.,
+        90., 100., 110., 100.,  90., 100.,  80., 110., 100.,  90., 110.,
+       100.,  80.,  90., 100., 100., 100., 100., 100., 100., 100., 110.,
+       100., 100., 100.&#93;)</pre>
 
-See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-meta-tags).
+See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-metadata.md).
 
 ```python {.marimo name="test_true"}
 # @supress
@@ -420,7 +416,7 @@ def test_true():
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;32m.&#91;0m&#91;32m                                                                        &#91;100%&#93;&#91;0m
 =================================== Overview ===================================
 Passed Tests:
-&#91;1m&#91;32m&#91;22m✓&#91;0m&#91;0m notebooks/calc-basic-arithmetic.py::test_true
+✓ notebooks/calc-basic-arithmetic.py::test_true
 
 Summary:
 Total: 1, Passed: 1, Failed: 0, Errors: 0, Skipped: 0

@@ -101,15 +101,29 @@ def group_by(
     """Aggregate over time axes.
 
     The grouping axis is derived from a temporal column, and the grouping labels depend on
-    `freq`, identically for the pandas, Polars, and PyArrow backends:
+    ``freq``, identically for the pandas, Polars, and PyArrow backends:
 
-    | `freq` | accepted aliases | group label |
-    |---|---|---|
-    | year | `y`, `yr`, `year` | `2024` |
-    | month | `m`, `mth`, `month` | `2024-01` |
-    | quarter | `q`, `quarter` | `2024-Q1` |
-    | ISO week | `w`, `wk`, `week` | `2024-01` |
-    | pre-formatted | `raw` | the value in the time column |
+    .. list-table::
+       :header-rows: 1
+
+       * - ``freq``
+         - accepted aliases
+         - group label
+       * - year
+         - ``y``, ``yr``, ``year``
+         - ``2024``
+       * - month
+         - ``m``, ``mth``, ``month``
+         - ``2024-01``
+       * - quarter
+         - ``q``, ``quarter``
+         - ``2024-Q1``
+       * - ISO week
+         - ``w``, ``wk``, ``week``
+         - ``2024-01``
+       * - pre-formatted
+         - ``raw``
+         - the value in the time column
 
     ISO weeks are labelled by ISO year and ISO week number, so the week containing 1 January is
     labelled with the ISO year it belongs to. `func` is a function name or a list of function

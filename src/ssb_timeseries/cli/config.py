@@ -11,7 +11,7 @@ from ..config.constants import ENV_VAR_NAME
 
 @click.group()
 def config() -> None:
-    """Inspect and query configuration."""
+    """Inspect the active configuration and the available presets."""
 
 
 @config.command()
@@ -21,6 +21,7 @@ def show(preset: str | None) -> None:
 
     Without PRESET, show the active configuration. With PRESET, show the
     configuration defined by that preset without activating it.
+    The output is JSON.
     """
     if preset is None:
         cfg = Config.active()
@@ -51,6 +52,9 @@ def list_presets() -> None:
 
 @config.command()
 def path() -> None:
-    """Print the path of the active configuration file."""
+    """Print the path of the active configuration file.
+
+    This is where a call to `.save()` without an explicit path writes.
+    """
     cfg = Config.active()
     click.echo(cfg.configuration_file)

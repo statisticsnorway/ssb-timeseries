@@ -7,8 +7,9 @@ app = marimo.App()
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
+    import testing
 
-    return (mo,)
+    return (mo, testing)
 
 
 @app.cell(hide_code=True)
@@ -187,9 +188,10 @@ def _(create_df):
     def mock_interval_data_from_file_or_query(start, end):
         a_to_z = [chr(i) for i in range(ord('a'), ord('z') + 1)]
         variables = ['volume', 'price']
-        goods = ['coffe', 'tea', 'softdrinks', 'beer', 'wine']
+        products = ['coffee', 'tea', 'soft-drinks', 'beer', 'wine']
+        regions = ['N', 'E', 'W', 'S', 'NE', 'NW', 'SE', 'SW']
         return create_df(
-            a_to_z, variables, goods,
+            a_to_z, variables, products, regions,
             start_date=start,
             end_date=end,
             freq='M',
@@ -215,10 +217,10 @@ def _(bigger_data):
 @app.cell
 def _(Dataset, bigger_data, interval_data):
     az = Dataset(
-        name = 'AZ Drinks',
+        name = 'AZ_drinks',
         data_type = interval_data,
         data = bigger_data,
-        attributes=['store','variable','product'], # <-- this is the clever part
+        attributes=['store','variable','product', 'region'], # <-- this is the clever part
     )
     az.save()
     return (az,)
@@ -266,8 +268,8 @@ def _(mo):
 
 @app.cell
 def _(Dataset):
-    prices = Dataset('AZ Drinks')[{'variable':'price'}]
-    volumes = Dataset('AZ Drinks')[{'variable':'volume'}]
+    prices = Dataset('AZ_drinks')[{'variable':'price'}]
+    volumes = Dataset('AZ_drinks')[{'variable':'volume'}]
     revenues = prices * volumes
     return (revenues,)
 
@@ -312,7 +314,7 @@ def _(mo):
 @app.cell
 def _(revenues):
     # DEBUG: tags are lost in selects above, hence not flowing through
-    revenues.tags["series"]["a_revenue_beer"]
+    revenues.tags["series"]["a_revenue_beer_E"]
     return
 
 
@@ -320,7 +322,7 @@ def _(revenues):
 def _(revenues):
     # ... tag maintenance is likely to be necessary after calculations:
     revenues.replace_tags(({'variable':'price'},{'variable':'revenue'}))
-    revenues.tags["series"]["a_revenue_beer"]
+    revenues.tags["series"]["a_revenue_beer_E"]
     return
 
 
@@ -489,6 +491,81 @@ def _():
 @app.cell
 def _():
     #klass157 == file157
+    return
+
+
+@app.cell(hide_code=True)
+def _(az, az_selection, pqr, revenues):
+    def test_manual_tagging_is_readable_immediately():
+        # tag_dataset propagates recursively by default, so the set-level tags
+        # and the per-series tags are both visible in pqr.tags right away.
+        assert pqr.tags["variabel"] == "pris"
+        assert pqr.tags["varegruppe"] == "nødvendigheter"
+        assert pqr.tags["series"]["p"]["vare"] == "kaffe"
+        assert pqr.tags["series"]["r"]["vare"] == "brunost"
+        assert all(
+            pqr.tags["series"][name]["variabel"] == "pris" for name in ("p", "q", "r")
+        )
+
+    def test_detagging_applies_positional_args_set_wide_and_kwargs_selectively():
+        # detag_series applies its two argument forms by different rules: a
+        # positional attribute is removed from every series, while a keyword
+        # argument is removed only where its value matches. So the varegruppe
+        # added by the recursive tag_dataset call goes from p and r as well,
+        # not only from the selected series. detag_series rewrites
+        # tags['series'] and never the set level, which keeps that tag.
+        assert "vare" not in pqr.tags["series"]["q"]
+        assert "varegruppe" not in pqr.tags["series"]["q"]
+        assert "varegruppe" not in pqr.tags["series"]["p"]
+        assert "varegruppe" not in pqr.tags["series"]["r"]
+        assert pqr.tags["varegruppe"] == "nødvendigheter"
+        assert pqr.tags["series"]["p"]["vare"] == "kaffe"
+        assert pqr.tags["series"]["r"]["vare"] == "brunost"
+
+    def test_autotagging_expands_all_attribute_combinations():
+        # 26 letters times 2 variables times 5 goods times 8 regions is 2080 series, as reported.
+        assert len(az.series) == 26 * 2 * 5 * 8
+
+    def test_selecting_one_variable_and_product_narrows_the_series():
+        # tea + price over 26 letters and 8 regions is 208 series.
+        assert len(az_selection.series) == 26 * 8
+        assert all("tea" in name for name in az_selection.series)
+        assert all("price" in name for name in az_selection.series)
+
+    def test_renamed_revenues_carry_the_replacement_tag():
+        # Series names are inherited from the inputs and then renamed, and tags
+        # are lost through the select, so replace_tags has to restore them.
+        assert revenues.name == "AZ Revenue"
+        assert all("revenue" in name for name in revenues.series)
+        assert revenues.tags["series"]["a_revenue_beer_E"]["variable"] == "revenue"
+
+    return (
+        test_autotagging_expands_all_attribute_combinations,
+        test_detagging_applies_positional_args_set_wide_and_kwargs_selectively,
+        test_manual_tagging_is_readable_immediately,
+        test_renamed_revenues_carry_the_replacement_tag,
+        test_selecting_one_variable_and_product_narrows_the_series,
+    )
+
+
+@app.cell(hide_code=True)
+def _(
+    test_autotagging_expands_all_attribute_combinations,
+    test_detagging_applies_positional_args_set_wide_and_kwargs_selectively,
+    test_manual_tagging_is_readable_immediately,
+    test_renamed_revenues_carry_the_replacement_tag,
+    test_selecting_one_variable_and_product_narrows_the_series,
+    testing,
+):
+    testing.run_and_report(
+        [
+            test_manual_tagging_is_readable_immediately,
+            test_detagging_applies_positional_args_set_wide_and_kwargs_selectively,
+            test_autotagging_expands_all_attribute_combinations,
+            test_selecting_one_variable_and_product_narrows_the_series,
+            test_renamed_revenues_carry_the_replacement_tag,
+        ]
+    )
     return
 
 

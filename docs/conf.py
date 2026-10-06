@@ -61,8 +61,10 @@ myst_enable_extensions = [
 # marimo_default_height = '600px'
 # marimo_default_width = '100%'
 
-# because calc-with-metadata.md is in both calc and meta toctrees
-suppress_warnings = ["toc.duplicate"]
+# calc-with-metadata.md is in both the calc and the meta toctree
+# data-archiving-and-sharing.md and data-types-and-storage.md are not in any
+# toctree yet, pending a revision of their content.
+suppress_warnings = ["toc.duplicate", "toc.not_included"]
 
 # ---------------------------------------------------------------------------
 

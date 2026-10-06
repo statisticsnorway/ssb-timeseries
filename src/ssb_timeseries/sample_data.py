@@ -124,10 +124,10 @@ def create_df(
         A DataFrame or similar object (Numpy array, Arrow table, dict) containing sample data.
 
     Example:
-    ```
-    # Generate sample data with no specified start or end date (defaults to +/- infinity)
-    sample_data = generate_sample_df(List1, List2, freq='D')
-    ```
+        ::
+
+            # Generate sample data with no specified start or end date (defaults to +/- infinity)
+            sample_data = generate_sample_df(List1, List2, freq='D')
     """
     if not start_date:
         start_date = date_round(datetime.now()) - timedelta(days=364)
@@ -150,23 +150,40 @@ def create_df(
     )
     data_dict = {**dates, **{name: numbers[:, i] for i, name in enumerate(series)}}
 
+    return _as_implementation(data_dict, implementation, tz)
+
+
+def _as_implementation(
+    data_dict: dict[str, Any], implementation: str, tz: str | TimeZone
+) -> Any:
+    """Return a data dictionary converted to the requested dataframe implementation.
+
+    Args:
+        data_dict (dict[str, Any]): Column names mapped to column values.
+        implementation: Narwhals supported dataframe library or object type.
+        tz: Timezone to convert date columns to.
+
+    Returns:
+        The data as a dict if implementation is 'dict', otherwise a dataframe of the requested type.
+
+    """
     if implementation == "dict":
         return data_dict
-    else:
-        nw_df = nw.from_dict(data_dict, backend=implementation)
-        match implementation.lower():
-            case "pyarrow" | "arrow" | "pa":
-                out = nw_df.to_arrow()  # type: ignore[assignment]
-            case "numpy" | "np":
-                out = nw_df.to_numpy()  # type: ignore[assignment]
-            case "polars" | "pl":
-                out = nw_df.to_polars()  # type: ignore[assignment]
-            case "narwhals" | "nw":
-                out = nw_df  # type: ignore[assignment]
-            case "pandas" | "pd" | _:
-                out = nw_df.to_pandas().reset_index(drop=True)  # type: ignore[assignment]
-                out.set_index(temporal_columns(nw_df))
-        return datelike_convert_timezone(out, tz)
+
+    nw_df = nw.from_dict(data_dict, backend=implementation)
+    match implementation.lower():
+        case "pyarrow" | "arrow" | "pa":
+            out = nw_df.to_arrow()  # type: ignore[assignment]
+        case "numpy" | "np":
+            out = nw_df.to_numpy()  # type: ignore[assignment]
+        case "polars" | "pl":
+            out = nw_df.to_polars()  # type: ignore[assignment]
+        case "narwhals" | "nw":
+            out = nw_df  # type: ignore[assignment]
+        case "pandas" | "pd" | _:
+            out = nw_df.to_pandas().reset_index(drop=True)  # type: ignore[assignment]
+            out.set_index(temporal_columns(nw_df))
+    return datelike_convert_timezone(out, tz)
 
 
 def date_ranges(
@@ -271,3 +288,504 @@ def xyz_from_to(implementation: str = "pandas") -> Any:
         implementation=implementation,
     )
     return df
+
+
+POPU06_SOURCE = (
+    "https://pxweb.nordicstatistics.org/api/v1/en/Nordic Statistics"
+    "/Demography/Population projections/POPU06.px"
+)
+"""Table the static :py:const:`POPU06_POPULATION` values are copied from."""
+
+POPU06_MAIN_COUNTRIES = ("Denmark", "Finland", "Iceland", "Norway", "Sweden")
+"""The five Nordic countries reported in POPU06.
+
+Every one of them is projected for 2027 to 2046, the longest span shared by all reporting countries.
+Denmark, Iceland, Norway and Sweden are projected all the way to 2070.
+"""
+
+POPU06_YEARS = tuple(range(2027, 2071))
+
+POPU06_POPULATION: dict[str, tuple[int | None, ...]] = {
+    "Denmark": (
+        5999093,
+        6015949,
+        6032459,
+        6048419,
+        6063759,
+        6078384,
+        6092268,
+        6105380,
+        6117690,
+        6129258,
+        6140055,
+        6150065,
+        6159310,
+        6167755,
+        6175400,
+        6182235,
+        6188367,
+        6193777,
+        6198609,
+        6202891,
+        6206735,
+        6210124,
+        6213100,
+        6215670,
+        6217831,
+        6219556,
+        6220859,
+        6221808,
+        6222540,
+        6223157,
+        6223827,
+        6224663,
+        6225758,
+        6227268,
+        6229222,
+        6231720,
+        6234763,
+        6238385,
+        6242630,
+        6247434,
+        6252770,
+        6258573,
+        6264738,
+        6271185,
+    ),
+    "Faroe Islands": (
+        55754,
+        55949,
+        56142,
+        56341,
+        56527,
+        56696,
+        56862,
+        57021,
+        57180,
+        57323,
+        57452,
+        57588,
+        57719,
+        57837,
+        57968,
+        58085,
+        58192,
+        58304,
+        58388,
+        58462,
+        58547,
+        58612,
+        58680,
+        58743,
+        58803,
+        58847,
+        58890,
+        58946,
+        58968,
+        58994,
+        59022,
+        59049,
+        59088,
+        59124,
+        59149,
+        59174,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+    ),
+    "Greenland": (
+        56553,
+        56358,
+        56158,
+        55938,
+        55709,
+        55472,
+        55205,
+        54930,
+        54647,
+        54347,
+        54040,
+        53731,
+        53419,
+        53104,
+        52795,
+        52476,
+        52161,
+        51838,
+        51520,
+        51189,
+        50881,
+        50560,
+        50242,
+        49932,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+    ),
+    "Finland": (
+        5694785,
+        5719048,
+        5742996,
+        5766603,
+        5789834,
+        5812631,
+        5834984,
+        5856950,
+        5878470,
+        5899586,
+        5920285,
+        5940582,
+        5960452,
+        5979959,
+        5999124,
+        6017961,
+        6036526,
+        6054829,
+        6072912,
+        6090802,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+    ),
+    "Åland": (
+        30884,
+        30990,
+        31074,
+        31152,
+        31219,
+        31273,
+        31325,
+        31370,
+        31406,
+        31437,
+        31462,
+        31482,
+        31500,
+        31515,
+        31529,
+        31542,
+        31560,
+        31573,
+        31589,
+        31596,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+    ),
+    "Iceland": (
+        405087,
+        412681,
+        420191,
+        427648,
+        434998,
+        442187,
+        449133,
+        455936,
+        462605,
+        469125,
+        475449,
+        481565,
+        487486,
+        493055,
+        498312,
+        503411,
+        508243,
+        512868,
+        517252,
+        521450,
+        525422,
+        528783,
+        532013,
+        535058,
+        537918,
+        540536,
+        543007,
+        545351,
+        547338,
+        549085,
+        550657,
+        552064,
+        553397,
+        554672,
+        555868,
+        556840,
+        557684,
+        558353,
+        558803,
+        559129,
+        559236,
+        559059,
+        558789,
+        558277,
+    ),
+    "Norway": (
+        5666689,
+        5694657,
+        5722427,
+        5749712,
+        5776723,
+        5803284,
+        5829350,
+        5855072,
+        5880318,
+        5905184,
+        5928866,
+        5951491,
+        5973100,
+        5993766,
+        6013501,
+        6032325,
+        6050194,
+        6067121,
+        6083032,
+        6097893,
+        6111684,
+        6124356,
+        6135899,
+        6146321,
+        6155675,
+        6164001,
+        6171378,
+        6177963,
+        6183882,
+        6189267,
+        6194227,
+        6198859,
+        6203245,
+        6207476,
+        6211611,
+        6215719,
+        6219837,
+        6224021,
+        6228297,
+        6232688,
+        6237195,
+        6241817,
+        6246521,
+        6251240,
+    ),
+    "Sweden": (
+        10617229,
+        10590195,
+        10595683,
+        10607632,
+        10633822,
+        10660739,
+        10688729,
+        10717978,
+        10747029,
+        10776335,
+        10806015,
+        10836448,
+        10867945,
+        10900804,
+        10935214,
+        10970081,
+        11005383,
+        11041168,
+        11077299,
+        11113669,
+        11150098,
+        11186370,
+        11222294,
+        11257590,
+        11292060,
+        11325460,
+        11357521,
+        11388169,
+        11417275,
+        11444857,
+        11470900,
+        11495591,
+        11519087,
+        11541712,
+        11563698,
+        11585398,
+        11607075,
+        11629002,
+        11651376,
+        11674358,
+        11698073,
+        11722553,
+        11747835,
+        11773818,
+    ),
+    "EU": (
+        453274061,
+        453059422,
+        452876789,
+        452700101,
+        452518492,
+        452333305,
+        452162740,
+        451999756,
+        451991345,
+        451961872,
+        451909715,
+        451834154,
+        451724179,
+        451592188,
+        451422951,
+        451213715,
+        450962160,
+        450665270,
+        450322278,
+        449939037,
+        449500166,
+        449013584,
+        448468711,
+        447877407,
+        447240312,
+        446560342,
+        445840783,
+        445095614,
+        444312273,
+        443507120,
+        442668664,
+        441811204,
+        440936678,
+        440054110,
+        439173683,
+        438307890,
+        437459259,
+        436629071,
+        435822969,
+        435051043,
+        434296631,
+        433567057,
+        432868315,
+        432202794,
+    ),
+}
+
+
+def popu06(
+    countries: list[str] | tuple[str, ...] | None = None,
+    start_year: int | None = None,
+    end_year: int | None = None,
+    implementation: str = "pandas",
+    tz: str | TimeZone = DEFAULT_TZ,
+) -> Any:
+    """Return Nordic population projections from the static POPU06 table.
+
+    Unlike the randomly generated helpers in this module, the values are real and reproducible.
+    One series is returned per reporting country, so the series names are country names.
+
+    Projections are not published for every country for every year.
+    Countries with a shorter projection than the requested period yield None for the missing years.
+
+    Args:
+        countries: Reporting countries to include, one series each.
+            Defaults to every country in :py:const:`POPU06_POPULATION`.
+        start_year: First projection year to include.
+            Defaults to the first year in :py:const:`POPU06_YEARS`.
+        end_year: Last projection year to include.
+            Defaults to the last year in :py:const:`POPU06_YEARS`.
+        implementation: Narwhals supported dataframe library or object type.
+        tz: Timezone of the generated date column.
+
+    Returns:
+        A dataframe with a 'valid_at' column and one column per country.
+
+    Raises:
+        ValueError: If a requested country is not in :py:const:`POPU06_POPULATION`.
+        ValueError: If the requested period contains no projection year.
+
+    Example:
+        ::
+
+            from ssb_timeseries.sample_data import POPU06_MAIN_COUNTRIES, popu06
+
+            nordic = popu06(countries=POPU06_MAIN_COUNTRIES, start_year=2030)
+    """
+    if countries is None:
+        selected = list(POPU06_POPULATION)
+    else:
+        selected = list(countries)
+        unknown = [name for name in selected if name not in POPU06_POPULATION]
+        if unknown:
+            raise ValueError(f"Unknown POPU06 countries: {', '.join(unknown)}")
+
+    years = [
+        year
+        for year in POPU06_YEARS
+        if (start_year is None or year >= start_year)
+        and (end_year is None or year <= end_year)
+    ]
+    if not years:
+        raise ValueError("The requested period contains no POPU06 projection year.")
+
+    first = POPU06_YEARS.index(years[0])
+    last = POPU06_YEARS.index(years[-1]) + 1
+
+    data_dict: dict[str, Any] = {
+        "valid_at": [date_tz(datetime(year, 1, 1), tz) for year in years]
+    }
+    for name in selected:
+        data_dict[name] = list(POPU06_POPULATION[name][first:last])
+
+    return _as_implementation(data_dict, implementation, tz)

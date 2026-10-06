@@ -153,7 +153,7 @@ def _(mo):
 @app.cell
 def _(Dataset, SeriesType, Temporality, Versioning, some_data):
     sample_set = Dataset(
-        name = 'Sample Data',
+        name = 'PQR',
         data_type = SeriesType(Versioning.NONE, Temporality.AT),
         data = some_data,
     )
@@ -230,7 +230,7 @@ def _(mo):
 
 @app.cell
 def _(Dataset):
-    x = Dataset('Sample Data')
+    x = Dataset('PQR')
     return (x,)
 
 

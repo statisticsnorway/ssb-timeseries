@@ -124,7 +124,7 @@ def _(SeriesType, Temporality, Versioning, mo):
     mo.md(f"""
     `SeriesType('NONE', 'AT')` is a shorthand that resolves to `{repr(SeriesType(Versioning.NONE, Temporality.AT))}`.
 
-    See the [core concepts](..info-model) and [the datatypes tutorial]()-types-and-storage for more about data types.
+    See the [core concepts](../info-model.md) and [the datatypes tutorial](data-types-and-storage.md) for more about data types.
     """)
     return
 
@@ -248,7 +248,7 @@ def _(mo, xyz):
 def _(mo):
     mo.md(r"""
     For our sample set, we have not made any effort to descrtibe our data, so only a minimal set of technical attributes are applied.
-    Descriptive attributes, or "tags" can be specified as well. See [tag maintenance](tag-maintenance).
+    Descriptive attributes, or "tags" can be specified as well. See [tag maintenance](meta-tag-maintenance.md).
     """)
     return
 
@@ -266,7 +266,7 @@ def _(mo):
     mo.md(r"""
     Tags apply at both the `Dataset` and `Series` levels.
     The technical implementation for the tags is a key-value structure in the form of a Python `dictionary`.
-    Some rules and conventions that apply are described in the [core concepts](..info-model), and other guides go deeper into [search and filtering](meta-search-and-filtering), [tag maintenance](meta-tag-maintenance) and [calculations with metadata](calc-with-metadata).
+    Some rules and conventions that apply are described in the [core concepts](../info-model.md), and other guides go deeper into [search and filtering](meta-search-and-filtering), [tag maintenance](meta-tag-maintenance) and [calculations with metadata](calc-with-metadata).
     """)
     return
 
@@ -381,11 +381,11 @@ def _(mo):
     The new dataset object got a new name automatically generated.
     The same thing can be observed for the filter and multiplication below.
 
-    A new dataset object with a new name is the standard behaviour for all [calculations](calculations.md) performed by the library.
+    A new dataset object with a new name is the standard behaviour for all [calculations](calc-basic-arithmetic.md) performed by the library.
     The new name is an important safeguard against destroying data.
-    The "lineage naming" that tells which operations were performed hints about the larger topic of [data lineage](lineage.md).
+    The "lineage naming" that tells which operations were performed hints about the larger topic of [data lineage](../workflow.md#data-lineage).
 
-    In real production code, the calculation of any dataset that we intend to save should be followed by a `Dataset.rename()` and updating the [descriptive metadata]() to reflect whichever calculations where performed.
+    In real production code, the calculation of any dataset that we intend to save should be followed by a `Dataset.rename()` and updating the [descriptive metadata](meta-tag-maintenance.md) to reflect whichever calculations where performed.
     Functions and guidelines for [metadata maintenance](meta-tag-maintenance) is a topic in itself.
     """)
     return

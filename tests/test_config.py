@@ -21,6 +21,7 @@ Running with a predefined configuration file depnds on:
 Fixtures
 """
 
+import json
 import logging
 import os
 import uuid
@@ -29,6 +30,7 @@ from pathlib import Path
 import pytest
 
 # import ssb_timeseries as ts
+import ssb_timeseries.io.archiving
 from ssb_timeseries import config
 from ssb_timeseries.io import fs
 from tests.conftest import Helpers
@@ -207,6 +209,140 @@ def test_is_valid_config_requires_the_mandatory_fields(missing_key: str) -> None
 
     assert is_valid is False
     assert missing_key in str(reason)
+
+
+def _handlers_config(*handlers: tuple[str, object]) -> dict:
+    """A structurally valid configuration declaring only the given handlers."""
+    return {
+        **MINIMAL_VALID_CONFIG,
+        "io_handlers": {
+            name: {"handler": path, "options": {}} for name, path in handlers
+        },
+    }
+
+
+def test_a_builtin_handler_that_no_longer_resolves_is_reported() -> None:
+    """A deleted module must fail validation, not the first read that needs it.
+
+    `is_valid_config` cannot catch this, because a handler is named by a string
+    and a string is well formed whether or not anything answers to it.
+    """
+    configuration = _handlers_config(
+        ("archive", "ssb_timeseries.io.snapshot.FileSystem")
+    )
+
+    is_valid, reason = config.validate_handlers(configuration)
+
+    assert is_valid is False
+    assert "archive" in str(reason)
+    assert "ssb_timeseries.io.snapshot.FileSystem" in str(reason)
+
+
+def test_a_builtin_handler_renamed_within_its_module_is_reported() -> None:
+    """A renamed class leaves the module importable, so the module alone is not enough."""
+    configuration = _handlers_config(
+        ("json", "ssb_timeseries.io.json_metadata.NoSuchMetaIO")
+    )
+
+    is_valid, reason = config.validate_handlers(configuration)
+
+    assert is_valid is False
+    assert "NoSuchMetaIO" in str(reason)
+
+
+@pytest.mark.parametrize("handler_path", [42, None, "json_metadata"])
+def test_a_handler_that_is_not_a_module_class_path_is_reported(
+    handler_path: object,
+) -> None:
+    """A value with nothing to resolve cannot be resolved by anyone."""
+    configuration = _handlers_config(("json", handler_path))
+
+    is_valid, reason = config.validate_handlers(configuration)
+
+    assert is_valid is False
+    assert "module.Class" in str(reason)
+
+
+def test_a_handler_that_resolves_to_something_other_than_a_class_is_reported() -> None:
+    """A module satisfies `getattr`, and cannot be instantiated into a handler.
+
+    `ssb_timeseries.io` exposes its submodules, so the path is well formed and the
+    module exists, yet nothing about it can serve as a handler.
+    """
+    configuration = _handlers_config(("json", "ssb_timeseries.io.json_metadata"))
+
+    is_valid, reason = config.validate_handlers(configuration)
+
+    assert is_valid is False
+    assert "not to a class" in str(reason)
+
+
+def test_a_handler_that_resolves_to_an_alias_under_another_name_is_reported(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Resolution is not enough if the class is not the one the path names.
+
+    A registry or configuration entry naming a class where it happens to be
+    importable from resolves, and then reports a path that is not where the class
+    is defined, which is the same defect as a typo in the class name.
+    """
+    monkeypatch.setattr(
+        ssb_timeseries.io.archiving,
+        "Archived",
+        ssb_timeseries.io.archiving.Archive,
+        raising=False,
+    )
+    configuration = _handlers_config(
+        ("archive", "ssb_timeseries.io.archiving.Archived")
+    )
+
+    is_valid, reason = config.validate_handlers(configuration)
+
+    assert is_valid is False
+    assert "ssb_timeseries.io.archiving.Archive" in str(reason)
+
+
+def test_a_handler_from_another_package_is_not_required_to_resolve() -> None:
+    """A plugin absent from this environment is not a defect in the configuration.
+
+    Handlers written outside the library are a supported feature, so a
+    configuration naming one is valid even where that one is not installed.
+    Requiring it to resolve would report a plugin author's own configuration as
+    broken, in the one function meant to help diagnose configuration.
+    """
+    configuration = _handlers_config(("acme", "acme.io.parquet.AcmeFileSystem"))
+
+    is_valid, reason = config.validate_handlers(configuration)
+
+    assert is_valid is True, reason
+    assert reason is None
+
+
+def test_requiring_every_handler_surfaces_a_plugin_that_is_absent() -> None:
+    """The strict policy exists for environments known to be complete."""
+    configuration = _handlers_config(("acme", "acme.io.parquet.AcmeFileSystem"))
+
+    is_valid, reason = config.validate_handlers(configuration, required="all")
+
+    assert is_valid is False
+    assert "acme" in str(reason)
+
+
+def test_every_builtin_handler_named_in_the_registry_resolves() -> None:
+    """The registry and the modules must agree, which is the contract the tests above protect.
+
+    A wrong class name in `BUILTIN_IO_HANDLERS` went unnoticed for as long as the
+    registry and the modules happened to agree, so the registry is checked through
+    the same function that checks a configuration file.
+    """
+    is_valid, reason = config.validate_handlers(
+        {
+            **MINIMAL_VALID_CONFIG,
+            "io_handlers": config.BUILTIN_IO_HANDLERS,
+        }
+    )
+
+    assert is_valid is True, reason
 
 
 def test_a_configuration_still_named_snapshots_warns_that_it_is_ignored() -> None:
@@ -480,3 +616,86 @@ def test_init_w_no_params_and_env_var_pointing_to_non_existing_file_raises_error
     with pytest.raises(FileNotFoundError):
         configuration = cfg.Config()
         test_logger.debug(f"Created configuration: {configuration}")
+
+
+# ============================ SAVE(): WHERE IT WRITES ============================
+
+
+def complete_config(configuration_file: Path, **overrides: object) -> dict:
+    """Build a complete valid configuration pointing at `configuration_file`.
+
+    The result can be passed to `Config()` as keyword arguments,
+    which is what keeps a configuration file out of the lookup.
+    """
+    payload = config.presets("default")
+    payload["configuration_file"] = str(configuration_file)
+    payload.update(overrides)
+    return payload
+
+
+def test_save_without_path_writes_to_the_configuration_file(
+    tmp_path: Path,
+) -> None:
+    """A configuration without an explicit path saves to its own configuration_file."""
+    cfg_file = tmp_path / "own.json"
+    cfg = config.Config(**complete_config(cfg_file))
+
+    cfg.save()
+
+    assert json.loads(cfg_file.read_text())["configuration_file"] == str(cfg_file)
+
+
+def test_save_with_path_writes_there_and_adopts_that_path(
+    tmp_path: Path,
+) -> None:
+    """An explicit path wins over the current configuration_file, and replaces it."""
+    cfg = config.Config(**complete_config(tmp_path / "own.json"))
+    elsewhere = tmp_path / "elsewhere.json"
+
+    cfg.save(path=str(elsewhere))
+
+    assert cfg.configuration_file == str(elsewhere)
+    assert json.loads(elsewhere.read_text())["configuration_file"] == str(elsewhere)
+    assert not (tmp_path / "own.json").exists()
+
+
+def test_save_without_a_path_and_without_a_configuration_file_raises() -> None:
+    """Saving has nowhere to write when neither argument nor configuration_file says so."""
+    cfg = config.Config(configuration_file="")
+
+    with pytest.raises(ValueError, match="must have a value"):
+        cfg.save()
+
+
+def test_a_configuration_file_contributes_its_own_configuration_file_value(
+    tmp_path: Path,
+) -> None:
+    """The file found through the environment variable decides where a save goes."""
+    read_from = tmp_path / "a.json"
+    write_to = tmp_path / "b.json"
+    read_from.write_text(json.dumps(complete_config(write_to)))
+
+    config.active_file(str(read_from))
+    cfg = config.Config()
+    read_from_before = read_from.read_text()
+
+    assert cfg.configuration_file == str(write_to)
+    cfg.save()
+    assert read_from.read_text() == read_from_before
+    assert json.loads(write_to.read_text())["configuration_file"] == str(write_to)
+
+
+def test_a_preset_configuration_ignores_the_environment_variable(
+    tmp_path: Path,
+) -> None:
+    """A preset carries its own configuration_file, whatever the environment variable says."""
+    named_by_env_var = tmp_path / "named_by_env_var.json"
+    named_by_env_var.write_text(json.dumps(complete_config(named_by_env_var)))
+    config.active_file(str(named_by_env_var))
+
+    cfg = config.Config(preset="defaults")
+
+    assert cfg.configuration_file == str(
+        config.PRESETS["defaults"]["configuration_file"]
+    )
+    assert cfg.configuration_file != str(named_by_env_var)

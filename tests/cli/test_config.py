@@ -1,8 +1,9 @@
-"""Test cases for the __main__ module."""
+"""Test cases for the config subcommand of the command line interface."""
 
 from __future__ import annotations
 
 import json
+import os
 
 import pytest
 from click.testing import CliRunner
@@ -38,7 +39,7 @@ def test_config_show(runner):
     assert json.loads(result.output) == config.Config.active().__dict__
 
 
-def test_config_show_preset(runner):
+def test_config_show_preset(runner: CliRunner) -> None:
     result_daplalab = runner.invoke(main, ["config", "show", "daplalab"])
     result_defaults = runner.invoke(main, ["config", "show", "defaults"])
 
@@ -46,6 +47,27 @@ def test_config_show_preset(runner):
     assert json.loads(result_daplalab.output) == config.PRESETS["daplalab"]
     assert json.loads(result_defaults.output) == config.PRESETS["defaults"]
     assert result_defaults.output != result_daplalab.output
+
+
+def test_config_show_preset_leaves_the_active_configuration_alone(
+    runner: CliRunner,
+) -> None:
+    """Showing a preset must not change what is active, nor the environment variable."""
+    active_before = json.dumps(
+        config.Config.active().__dict__, indent=2, default=str, sort_keys=True
+    )
+    env_var_before = os.environ.get(config.ENV_VAR_NAME)
+
+    result = runner.invoke(main, ["config", "show", "daplalab"])
+
+    assert result.exit_code == 0
+    assert (
+        json.dumps(
+            config.Config.active().__dict__, indent=2, default=str, sort_keys=True
+        )
+        == active_before
+    )
+    assert os.environ.get(config.ENV_VAR_NAME) == env_var_before
 
 
 def test_config_show_unknown_preset(runner):

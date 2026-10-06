@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.24.0"
+__generated_with = "0.24.2"
 app = marimo.App()
 
 
@@ -40,7 +40,7 @@ def _(mo):
     This guide explains how metadata works in SSB Timeseries.
     It covers key concepts like:
 
-    - [Repositories, Datasets and Series](#)
+    - [Repositories, Datasets and Series](#repositories-datasets-and-series)
     - the type system
     - tag inheritance from `Dataset` to `Series` objects
 
@@ -83,7 +83,7 @@ def _(mo):
     ---------------------------------
 
     Repositories, Datasets and Series are the building blocks of a hierarchy.
-    `Repositories` are unique within the universe held within a [configuration](..configuring-io).
+    `Repositories` are unique within the universe held within a [configuration](../configure-io.md).
     Repositories contain `Datasets`.
     Datasets must be uniquely identified within their repository.
     Similarly, `Series` must be uniquely identified within the Datasets they are part of.
@@ -212,7 +212,7 @@ def _(mo):
 @app.cell
 def _(Dataset, SeriesType, Temporality, Versioning, some_data):
     sample_set = Dataset(
-        name = 'Sample Data',
+        name = 'PQR',
         data_type = SeriesType(Versioning.NONE, Temporality.AT),
         data = some_data,
     )
@@ -271,9 +271,9 @@ def _(mo):
 def _(sample_set):
     sample_set.tag_dataset(tags={'variable': 'price','product group': 'essential'})
 
-    sample_set.tag_series('x',tags={'product': 'coffee'})
-    sample_set.tag_series('y',tags={'product': 'crispbread'})
-    sample_set.tag_series('z',tags={'product': 'brown cheese'})
+    sample_set.tag_series('p',tags={'product': 'coffee'})
+    sample_set.tag_series('q',tags={'product': 'crispbread'})
+    sample_set.tag_series('r',tags={'product': 'brown cheese'})
 
     sample_set.save()
     sample_set.tags
@@ -290,13 +290,13 @@ def _(mo):
 
 @app.cell
 def _(Dataset):
-    xyz = Dataset('Sample Data')
-    return (xyz,)
+    pqr = Dataset('PQR')
+    return (pqr,)
 
 
 @app.cell
-def _(xyz):
-    xyz.tags
+def _(pqr):
+    pqr.tags
     return
 
 
@@ -311,8 +311,8 @@ def _(mo):
 
 
 @app.cell
-def _(xyz):
-    xyz['x','y'].plot()
+def _(pqr):
+    pqr['p','q'].plot()
     return
 
 
@@ -325,8 +325,8 @@ def _(mo):
 
 
 @app.cell
-def _(xyz):
-    xyz[{'area': 'z'}].plot()
+def _(pqr):
+    pqr[{'product': 'coffee'}].plot()
     return
 
 

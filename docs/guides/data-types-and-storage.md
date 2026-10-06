@@ -1,6 +1,6 @@
 ---
 title: Data Types And Storage
-marimo-version: 0.24.0
+marimo-version: 0.24.2
 ---
 
 ```python {.marimo}
@@ -13,9 +13,7 @@ from ssb_timeseries import get_configuration
 CONFIG = get_configuration()
 ```
 
-```python {.marimo}
-import subprocess
-```
+# Data types and storage
 
 ## Setup
 
@@ -25,112 +23,19 @@ data_path = CONFIG.repositories['tutorials']['directory']['options']['path']
 print(data_path)
 ```
 
-<!-- @output:lEQa -->
+<!-- @output:bkHC -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">/home/bernhard/timeseries
 </pre>
-
-```python {.marimo}
-demo_product = 'demo-data-produkt'
-```
 
 ```python {.marimo}
 # what is there before we start?
 print(tree(data_path))
 ```
 
-<!-- @output:Xref -->
+<!-- @output:lEQa -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
-├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
-│   └── XYZ/
-│       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-02T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-03T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
-│       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
-├── AS_OF_FROM_TO/
-│   └── Prices and Volumes/
-│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-02-29T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-10-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-11-30T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-02-28T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
-│       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
-├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
-│   ├── AZ_drikkevarer-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── AZ_omsetning-metadata.json
-│   ├── More Prices and Volumes-metadata.json
-│   ├── PQR-metadata.json
-│   ├── Prices and Volumes-metadata.json
-│   ├── Sample Data-metadata.json
-│   └── XYZ-metadata.json
-├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
-│   ├── PQR/
-│   │   └── PQR-latest-data.parquet
-│   └── XYZ/
-│       └── XYZ-latest-data.parquet
-└── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
-    ├── AZ_drikkevarer/
-    │   └── AZ_drikkevarer-latest-data.parquet
-    ├── AZ_drinks/
-    │   └── AZ_drinks-latest-data.parquet
-    ├── AZ_omsetning/
-    │   └── AZ_omsetning-latest-data.parquet
-    └── More Prices and Volumes/
-        └── More Prices and Volumes-latest-data.parquet
 
 </pre>
 
@@ -142,7 +47,7 @@ from ssb_timeseries.types import SeriesType, Versioning, Temporality
 ```python {.marimo}
 from datetime import timedelta
 
-from ssb_timeseries.sample_data import create_df,date_ranges
+from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.dates import ensure_datetime, date_utc
 ```
 
@@ -151,9 +56,9 @@ import polars as pl
 from datetime import datetime
 ```
 
-## Lasting av data
+## Saving data
 <!---->
-### Eksempel: momentane data, *uten* versjonering
+### Example: point-in-time data, *without* versioning
 
 ```python {.marimo}
 point_in_time_data = SeriesType('NONE', 'AT')
@@ -170,24 +75,24 @@ print(type(pqr_df))
 pqr_df
 ```
 
-<!-- @output:iLit -->
+<!-- @output:Hstk -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;class &#x27;pandas.DataFrame&#x27;&gt;
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;class &#x27;pandas.core.frame.DataFrame&#x27;&gt;
 </pre>
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2020-01-01 | 90.0 | 100.0 | 110.0 |
-| 2020-01-02 | 90.0 | 100.0 | 100.0 |
-| 2020-01-03 | 90.0 | 100.0 | 90.0 |
-| 2020-01-04 | 120.0 | 100.0 | 80.0 |
-| 2020-01-05 | 100.0 | 110.0 | 110.0 |
+| 2020-01-01 00:00:00+01:00 | 90.0 | 110.0 | 100.0 |
+| 2020-01-02 00:00:00+01:00 | 80.0 | 100.0 | 90.0 |
+| 2020-01-03 00:00:00+01:00 | 90.0 | 90.0 | 110.0 |
+| 2020-01-04 00:00:00+01:00 | 120.0 | 100.0 | 110.0 |
+| 2020-01-05 00:00:00+01:00 | 100.0 | 90.0 | 110.0 |
 | ... | ... | ... | ... |
-| 2025-05-28 | 80.0 | 100.0 | 120.0 |
-| 2025-05-29 | 100.0 | 90.0 | 100.0 |
-| 2025-05-30 | 110.0 | 90.0 | 100.0 |
-| 2025-05-31 | 130.0 | 100.0 | 90.0 |
-| 2025-06-01 | 110.0 | 90.0 | 90.0 |
+| 2025-05-28 00:00:00+02:00 | 90.0 | 110.0 | 100.0 |
+| 2025-05-29 00:00:00+02:00 | 100.0 | 100.0 | 100.0 |
+| 2025-05-30 00:00:00+02:00 | 100.0 | 100.0 | 100.0 |
+| 2025-05-31 00:00:00+02:00 | 110.0 | 90.0 | 90.0 |
+| 2025-06-01 00:00:00+02:00 | 100.0 | 100.0 | 120.0 |
 
 ```python {.marimo}
 pqr = Dataset(
@@ -201,7 +106,7 @@ pqr = Dataset(
 type(pqr)
 ```
 
-<!-- @output:ROlb -->
+<!-- @output:iLit -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;class &#x27;ssb_timeseries.dataset.Dataset&#x27;&gt;</pre>
 
@@ -209,100 +114,77 @@ type(pqr)
 pqr.data
 ```
 
-<!-- @output:qnkX -->
+<!-- @output:ZHCJ -->
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2020-01-01 | 90.0 | 100.0 | 110.0 |
-| 2020-01-02 | 90.0 | 100.0 | 100.0 |
-| 2020-01-03 | 90.0 | 100.0 | 90.0 |
-| 2020-01-04 | 120.0 | 100.0 | 80.0 |
-| 2020-01-05 | 100.0 | 110.0 | 110.0 |
+| 2019-12-31 23:00:00+00:00 | 90.0 | 110.0 | 100.0 |
+| 2020-01-01 23:00:00+00:00 | 80.0 | 100.0 | 90.0 |
+| 2020-01-02 23:00:00+00:00 | 90.0 | 90.0 | 110.0 |
+| 2020-01-03 23:00:00+00:00 | 120.0 | 100.0 | 110.0 |
+| 2020-01-04 23:00:00+00:00 | 100.0 | 90.0 | 110.0 |
 | ... | ... | ... | ... |
-| 2025-05-28 | 80.0 | 100.0 | 120.0 |
-| 2025-05-29 | 100.0 | 90.0 | 100.0 |
-| 2025-05-30 | 110.0 | 90.0 | 100.0 |
-| 2025-05-31 | 130.0 | 100.0 | 90.0 |
-| 2025-06-01 | 110.0 | 90.0 | 90.0 |
+| 2025-05-27 22:00:00+00:00 | 90.0 | 110.0 | 100.0 |
+| 2025-05-28 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
+| 2025-05-29 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
+| 2025-05-30 22:00:00+00:00 | 110.0 | 90.0 | 90.0 |
+| 2025-05-31 22:00:00+00:00 | 100.0 | 100.0 | 120.0 |
 
 ```python {.marimo}
 pqr.tags
 ```
 
-<!-- @output:TqIu -->
+<!-- @output:ROlb -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
-                  &#x27;name&#x27;: &#x27;p&#x27;,
-                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
-                  &#x27;name&#x27;: &#x27;q&#x27;,
-                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
-                  &#x27;name&#x27;: &#x27;r&#x27;,
-                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                  &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
+ &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;p&#x27;},
+            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;q&#x27;},
+            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;r&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
- &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
- &#x27;variabel&#x27;: &#x27;pris&#x27;,
  &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
 ```python {.marimo}
-pqr.tag_dataset(tags={'variabel': 'pris','varegruppe': 'nødvendigheter'})
+pqr.tag_dataset(tags={'variable': 'price','product group': 'essentials'})
 
-pqr.tag_series('p',tags={'vare': 'kaffe'})
-pqr.tag_series('q',tags={'vare': 'knekkebrød'})
-pqr.tag_series('r',tags={'vare': 'brunost'})
+pqr.tag_series('p',tags={'product': 'coffee'})
+pqr.tag_series('q',tags={'product': 'crispbread'})
+pqr.tag_series('r',tags={'product': 'brown cheese'})
 
 pqr.tags
 ```
 
-<!-- @output:Vxnm -->
+<!-- @output:qnkX -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
+ &#x27;product group&#x27;: &#x27;essentials&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
  &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;p&#x27;,
+                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                  &#x27;product group&#x27;: &#x27;essentials&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;},
             &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;q&#x27;,
+                  &#x27;product&#x27;: &#x27;crispbread&#x27;,
+                  &#x27;product group&#x27;: &#x27;essentials&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;},
             &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;r&#x27;,
+                  &#x27;product&#x27;: &#x27;brown cheese&#x27;,
+                  &#x27;product group&#x27;: &#x27;essentials&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
- &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
- &#x27;variabel&#x27;: &#x27;pris&#x27;,
+ &#x27;variable&#x27;: &#x27;price&#x27;,
  &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
 ```python {.marimo}
@@ -310,54 +192,13 @@ pqr.save()
 ```
 
 ```python {.marimo}
-pqr.io.data_dir
-```
-
-<!-- @output:ulZA -->
-
-<pre class="stderr" style="white-space: pre-wrap; overflow-wrap: break-word;">Traceback (most recent call last):
-  File &quot;/tmp/marimo_516146/__marimo__cell_ulZA_.py&quot;, line 1, in
-    pqr.io.data_dir
-    ^^^^^^
-AttributeError: &#x27;Dataset&#x27; object has no attribute &#x27;io&#x27;
-
-</pre>
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">exception: &#x27;Dataset&#x27; object has no attribute &#x27;io&#x27;</pre>
-
-```python {.marimo}
 print(tree(data_path))
 ```
 
-<!-- @output:UmEG -->
+<!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -366,93 +207,23 @@ print(tree(data_path))
 │       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
 │       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
-├── AS_OF_FROM_TO/
-│   └── Prices and Volumes/
-│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-02-29T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-10-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-11-30T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-02-28T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
-│       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
-│   ├── AZ_drikkevarer-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── AZ_omsetning-metadata.json
-│   ├── More Prices and Volumes-metadata.json
+│   ├── AZ_beverages-metadata.json
 │   ├── PQR-metadata.json
-│   ├── Prices and Volumes-metadata.json
-│   ├── Sample Data-metadata.json
 │   └── XYZ-metadata.json
 ├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
-│   ├── PQR/
-│   │   └── PQR-latest-data.parquet
-│   └── XYZ/
-│       └── XYZ-latest-data.parquet
+│   └── PQR/
+│       └── PQR-latest-data.parquet
 └── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
-    ├── AZ_drikkevarer/
-    │   └── AZ_drikkevarer-latest-data.parquet
-    ├── AZ_drinks/
-    │   └── AZ_drinks-latest-data.parquet
-    ├── AZ_omsetning/
-    │   └── AZ_omsetning-latest-data.parquet
-    └── More Prices and Volumes/
-        └── More Prices and Volumes-latest-data.parquet
+    └── AZ_beverages/
+        └── AZ_beverages-latest-data.parquet
 
 </pre>
 
-<!-- @output:UmEG -->
+<!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -461,93 +232,23 @@ print(tree(data_path))
 │       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
 │       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
-├── AS_OF_FROM_TO/
-│   └── Prices and Volumes/
-│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-02-29T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-10-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-11-30T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-02-28T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
-│       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
-│   ├── AZ_drikkevarer-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── AZ_omsetning-metadata.json
-│   ├── More Prices and Volumes-metadata.json
+│   ├── AZ_beverages-metadata.json
 │   ├── PQR-metadata.json
-│   ├── Prices and Volumes-metadata.json
-│   ├── Sample Data-metadata.json
 │   └── XYZ-metadata.json
 ├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
-│   ├── PQR/
-│   │   └── PQR-latest-data.parquet
-│   └── XYZ/
-│       └── XYZ-latest-data.parquet
+│   └── PQR/
+│       └── PQR-latest-data.parquet
 └── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
-    ├── AZ_drikkevarer/
-    │   └── AZ_drikkevarer-latest-data.parquet
-    ├── AZ_drinks/
-    │   └── AZ_drinks-latest-data.parquet
-    ├── AZ_omsetning/
-    │   └── AZ_omsetning-latest-data.parquet
-    └── More Prices and Volumes/
-        └── More Prices and Volumes-latest-data.parquet
+    └── AZ_beverages/
+        └── AZ_beverages-latest-data.parquet
 
 </pre>
 
-<!-- @output:UmEG -->
+<!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -556,93 +257,23 @@ print(tree(data_path))
 │       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
 │       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
-├── AS_OF_FROM_TO/
-│   └── Prices and Volumes/
-│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-02-29T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-10-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-11-30T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-02-28T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
-│       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
-│   ├── AZ_drikkevarer-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── AZ_omsetning-metadata.json
-│   ├── More Prices and Volumes-metadata.json
+│   ├── AZ_beverages-metadata.json
 │   ├── PQR-metadata.json
-│   ├── Prices and Volumes-metadata.json
-│   ├── Sample Data-metadata.json
 │   └── XYZ-metadata.json
 ├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
-│   ├── PQR/
-│   │   └── PQR-latest-data.parquet
-│   └── XYZ/
-│       └── XYZ-latest-data.parquet
+│   └── PQR/
+│       └── PQR-latest-data.parquet
 └── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
-    ├── AZ_drikkevarer/
-    │   └── AZ_drikkevarer-latest-data.parquet
-    ├── AZ_drinks/
-    │   └── AZ_drinks-latest-data.parquet
-    ├── AZ_omsetning/
-    │   └── AZ_omsetning-latest-data.parquet
-    └── More Prices and Volumes/
-        └── More Prices and Volumes-latest-data.parquet
+    └── AZ_beverages/
+        └── AZ_beverages-latest-data.parquet
 
 </pre>
 
-<!-- @output:UmEG -->
+<!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -651,93 +282,23 @@ print(tree(data_path))
 │       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
 │       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
-├── AS_OF_FROM_TO/
-│   └── Prices and Volumes/
-│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-02-29T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-10-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-11-30T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-02-28T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
-│       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
-│   ├── AZ_drikkevarer-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── AZ_omsetning-metadata.json
-│   ├── More Prices and Volumes-metadata.json
+│   ├── AZ_beverages-metadata.json
 │   ├── PQR-metadata.json
-│   ├── Prices and Volumes-metadata.json
-│   ├── Sample Data-metadata.json
 │   └── XYZ-metadata.json
 ├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
-│   ├── PQR/
-│   │   └── PQR-latest-data.parquet
-│   └── XYZ/
-│       └── XYZ-latest-data.parquet
+│   └── PQR/
+│       └── PQR-latest-data.parquet
 └── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
-    ├── AZ_drikkevarer/
-    │   └── AZ_drikkevarer-latest-data.parquet
-    ├── AZ_drinks/
-    │   └── AZ_drinks-latest-data.parquet
-    ├── AZ_omsetning/
-    │   └── AZ_omsetning-latest-data.parquet
-    └── More Prices and Volumes/
-        └── More Prices and Volumes-latest-data.parquet
+    └── AZ_beverages/
+        └── AZ_beverages-latest-data.parquet
 
 </pre>
 
-<!-- @output:UmEG -->
+<!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
@@ -746,61 +307,16 @@ print(tree(data_path))
 │       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
 │       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
-├── AS_OF_FROM_TO/
-│   └── Prices and Volumes/
-│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-02-29T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-10-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-11-30T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-02-28T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
-│       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
-│   ├── AZ_drikkevarer-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── AZ_omsetning-metadata.json
-│   ├── More Prices and Volumes-metadata.json
+│   ├── AZ_beverages-metadata.json
 │   ├── PQR-metadata.json
-│   ├── Prices and Volumes-metadata.json
-│   ├── Sample Data-metadata.json
 │   └── XYZ-metadata.json
 ├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
-│   ├── PQR/
-│   │   └── PQR-latest-data.parquet
-│   └── XYZ/
-│       └── XYZ-latest-data.parquet
+│   └── PQR/
+│       └── PQR-latest-data.parquet
 └── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
-    ├── AZ_drikkevarer/
-    │   └── AZ_drikkevarer-latest-data.parquet
-    ├── AZ_drinks/
-    │   └── AZ_drinks-latest-data.parquet
-    ├── AZ_omsetning/
-    │   └── AZ_omsetning-latest-data.parquet
-    └── More Prices and Volumes/
-        └── More Prices and Volumes-latest-data.parquet
+    └── AZ_beverages/
+        └── AZ_beverages-latest-data.parquet
 
 </pre>
 
@@ -810,44 +326,44 @@ x = Dataset('PQR')
 x.data    # ... now an Arrow table
 ```
 
-<!-- @output:Pvdt -->
+<!-- @output:DnEU -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">pyarrow.Table
-valid_at: timestamp&#91;ns, tz=UTC&#93; not null
+valid_at: timestamp&#91;ns, tz=UTC&#93;
 p: double
 q: double
 r: double
 ----
 valid_at: &#91;&#91;2019-12-31 23:00:00.000000000Z,2020-01-01 23:00:00.000000000Z,2020-01-02 23:00:00.000000000Z,2020-01-03 23:00:00.000000000Z,2020-01-04 23:00:00.000000000Z,...,2025-05-27 22:00:00.000000000Z,2025-05-28 22:00:00.000000000Z,2025-05-29 22:00:00.000000000Z,2025-05-30 22:00:00.000000000Z,2025-05-31 22:00:00.000000000Z&#93;&#93;
-p: &#91;&#91;90,90,90,120,100,...,80,100,110,130,110&#93;&#93;
-q: &#91;&#91;100,100,100,100,110,...,100,90,90,100,90&#93;&#93;
-r: &#91;&#91;110,100,90,80,110,...,120,100,100,90,90&#93;&#93;</pre>
+p: &#91;&#91;90,80,90,120,100,...,90,100,100,110,100&#93;&#93;
+q: &#91;&#91;110,100,90,100,90,...,110,100,100,90,100&#93;&#93;
+r: &#91;&#91;100,90,110,110,110,...,100,100,100,90,120&#93;&#93;</pre>
 
 ```python {.marimo}
 x.nw.to_pandas()
 ```
 
-<!-- @output:ZBYS -->
+<!-- @output:ulZA -->
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2019-12-31 23:00:00+00:00 | 90.0 | 100.0 | 110.0 |
-| 2020-01-01 23:00:00+00:00 | 90.0 | 100.0 | 100.0 |
-| 2020-01-02 23:00:00+00:00 | 90.0 | 100.0 | 90.0 |
-| 2020-01-03 23:00:00+00:00 | 120.0 | 100.0 | 80.0 |
-| 2020-01-04 23:00:00+00:00 | 100.0 | 110.0 | 110.0 |
+| 2019-12-31 23:00:00+00:00 | 90.0 | 110.0 | 100.0 |
+| 2020-01-01 23:00:00+00:00 | 80.0 | 100.0 | 90.0 |
+| 2020-01-02 23:00:00+00:00 | 90.0 | 90.0 | 110.0 |
+| 2020-01-03 23:00:00+00:00 | 120.0 | 100.0 | 110.0 |
+| 2020-01-04 23:00:00+00:00 | 100.0 | 90.0 | 110.0 |
 | ... | ... | ... | ... |
-| 2025-05-27 22:00:00+00:00 | 80.0 | 100.0 | 120.0 |
-| 2025-05-28 22:00:00+00:00 | 100.0 | 90.0 | 100.0 |
-| 2025-05-29 22:00:00+00:00 | 110.0 | 90.0 | 100.0 |
-| 2025-05-30 22:00:00+00:00 | 130.0 | 100.0 | 90.0 |
-| 2025-05-31 22:00:00+00:00 | 110.0 | 90.0 | 90.0 |
+| 2025-05-27 22:00:00+00:00 | 90.0 | 110.0 | 100.0 |
+| 2025-05-28 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
+| 2025-05-29 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
+| 2025-05-30 22:00:00+00:00 | 110.0 | 90.0 | 90.0 |
+| 2025-05-31 22:00:00+00:00 | 100.0 | 100.0 | 120.0 |
 
 ```python {.marimo}
 x.plot()
 ```
 
-<!-- @output:aLJB -->
+<!-- @output:ecfG -->
 
 ![png](data-types-and-storage_assets/figure-1.png)
 
@@ -856,21 +372,21 @@ more_pqr_data = some_simple_data_from_file_or_query('2025-05-29','2025-08-15')
 more_pqr_data
 ```
 
-<!-- @output:nHfw -->
+<!-- @output:Pvdt -->
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2025-05-29 | 100.0 | 100.0 | 90.0 |
-| 2025-05-30 | 110.0 | 120.0 | 100.0 |
-| 2025-05-31 | 110.0 | 100.0 | 80.0 |
-| 2025-06-01 | 100.0 | 100.0 | 90.0 |
-| 2025-06-02 | 100.0 | 90.0 | 100.0 |
+| 2025-05-29 00:00:00+02:00 | 90.0 | 100.0 | 100.0 |
+| 2025-05-30 00:00:00+02:00 | 100.0 | 100.0 | 100.0 |
+| 2025-05-31 00:00:00+02:00 | 110.0 | 110.0 | 130.0 |
+| 2025-06-01 00:00:00+02:00 | 110.0 | 100.0 | 100.0 |
+| 2025-06-02 00:00:00+02:00 | 100.0 | 120.0 | 100.0 |
 | ... | ... | ... | ... |
-| 2025-08-11 | 100.0 | 110.0 | 100.0 |
-| 2025-08-12 | 100.0 | 100.0 | 100.0 |
-| 2025-08-13 | 100.0 | 110.0 | 90.0 |
-| 2025-08-14 | 100.0 | 80.0 | 110.0 |
-| 2025-08-15 | 90.0 | 100.0 | 90.0 |
+| 2025-08-11 00:00:00+02:00 | 90.0 | 100.0 | 90.0 |
+| 2025-08-12 00:00:00+02:00 | 90.0 | 100.0 | 110.0 |
+| 2025-08-13 00:00:00+02:00 | 90.0 | 110.0 | 100.0 |
+| 2025-08-14 00:00:00+02:00 | 70.0 | 80.0 | 110.0 |
+| 2025-08-15 00:00:00+02:00 | 100.0 | 100.0 | 90.0 |
 
 ```python {.marimo}
 pqr_second_write = Dataset(
@@ -881,9 +397,9 @@ pqr_second_write = Dataset(
 print(pqr_second_write.tags)
 ```
 
-<!-- @output:xXTn -->
+<!-- @output:ZBYS -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;p&#x27;, &#x27;variabel&#x27;: &#x27;pris&#x27;, &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;vare&#x27;: &#x27;kaffe&#x27;}, &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;q&#x27;, &#x27;variabel&#x27;: &#x27;pris&#x27;, &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;vare&#x27;: &#x27;knekkebrød&#x27;}, &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;r&#x27;, &#x27;variabel&#x27;: &#x27;pris&#x27;, &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;vare&#x27;: &#x27;brunost&#x27;}}, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;variabel&#x27;: &#x27;pris&#x27;, &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;}
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;p&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#x27;essentials&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;product&#x27;: &#x27;coffee&#x27;}, &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;q&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#x27;essentials&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;product&#x27;: &#x27;crispbread&#x27;}, &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;r&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#x27;essentials&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;product&#x27;: &#x27;brown cheese&#x27;}}, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#x27;essentials&#x27;}
 </pre>
 
 ```python {.marimo}
@@ -896,34 +412,34 @@ print(pqr.data)
 print(pqr_second_write.data)
 ```
 
-<!-- @output:pHFh -->
+<!-- @output:nHfw -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">       valid_at      p      q      r
-0    2020-01-01   90.0  100.0  110.0
-1    2020-01-02   90.0  100.0  100.0
-2    2020-01-03   90.0  100.0   90.0
-3    2020-01-04  120.0  100.0   80.0
-4    2020-01-05  100.0  110.0  110.0
-...         ...    ...    ...    ...
-1974 2025-05-28   80.0  100.0  120.0
-1975 2025-05-29  100.0   90.0  100.0
-1976 2025-05-30  110.0   90.0  100.0
-1977 2025-05-31  130.0  100.0   90.0
-1978 2025-06-01  110.0   90.0   90.0
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">                      valid_at      p      q      r
+0    2019-12-31 23:00:00+00:00   90.0  110.0  100.0
+1    2020-01-01 23:00:00+00:00   80.0  100.0   90.0
+2    2020-01-02 23:00:00+00:00   90.0   90.0  110.0
+3    2020-01-03 23:00:00+00:00  120.0  100.0  110.0
+4    2020-01-04 23:00:00+00:00  100.0   90.0  110.0
+...                        ...    ...    ...    ...
+1974 2025-05-27 22:00:00+00:00   90.0  110.0  100.0
+1975 2025-05-28 22:00:00+00:00  100.0  100.0  100.0
+1976 2025-05-29 22:00:00+00:00  100.0  100.0  100.0
+1977 2025-05-30 22:00:00+00:00  110.0   90.0   90.0
+1978 2025-05-31 22:00:00+00:00  100.0  100.0  120.0
 
 &#91;1979 rows x 4 columns&#93;
-     valid_at      p      q      r
-0  2025-05-29  100.0  100.0   90.0
-1  2025-05-30  110.0  120.0  100.0
-2  2025-05-31  110.0  100.0   80.0
-3  2025-06-01  100.0  100.0   90.0
-4  2025-06-02  100.0   90.0  100.0
-..        ...    ...    ...    ...
-74 2025-08-11  100.0  110.0  100.0
-75 2025-08-12  100.0  100.0  100.0
-76 2025-08-13  100.0  110.0   90.0
-77 2025-08-14  100.0   80.0  110.0
-78 2025-08-15   90.0  100.0   90.0
+                    valid_at      p      q      r
+0  2025-05-28 22:00:00+00:00   90.0  100.0  100.0
+1  2025-05-29 22:00:00+00:00  100.0  100.0  100.0
+2  2025-05-30 22:00:00+00:00  110.0  110.0  130.0
+3  2025-05-31 22:00:00+00:00  110.0  100.0  100.0
+4  2025-06-01 22:00:00+00:00  100.0  120.0  100.0
+..                       ...    ...    ...    ...
+74 2025-08-10 22:00:00+00:00   90.0  100.0   90.0
+75 2025-08-11 22:00:00+00:00   90.0  100.0  110.0
+76 2025-08-12 22:00:00+00:00   90.0  110.0  100.0
+77 2025-08-13 22:00:00+00:00   70.0   80.0  110.0
+78 2025-08-14 22:00:00+00:00  100.0  100.0   90.0
 
 &#91;79 rows x 4 columns&#93;
 </pre>
@@ -933,22 +449,22 @@ y = Dataset('PQR')
 y.nw.to_polars()
 ```
 
-<!-- @output:NCOB -->
+<!-- @output:xXTn -->
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
 | datetime[ns, UTC] | f64 | f64 | f64 |
-| 2019-12-31 23:00:00 UTC | 90.0 | 100.0 | 110.0 |
-| 2020-01-01 23:00:00 UTC | 90.0 | 100.0 | 100.0 |
-| 2020-01-02 23:00:00 UTC | 90.0 | 100.0 | 90.0 |
-| 2020-01-03 23:00:00 UTC | 120.0 | 100.0 | 80.0 |
-| 2020-01-04 23:00:00 UTC | 100.0 | 110.0 | 110.0 |
+| 2019-12-31 23:00:00 UTC | 90.0 | 110.0 | 100.0 |
+| 2020-01-01 23:00:00 UTC | 80.0 | 100.0 | 90.0 |
+| 2020-01-02 23:00:00 UTC | 90.0 | 90.0 | 110.0 |
+| 2020-01-03 23:00:00 UTC | 120.0 | 100.0 | 110.0 |
+| 2020-01-04 23:00:00 UTC | 100.0 | 90.0 | 110.0 |
 | … | … | … | … |
-| 2025-05-27 22:00:00 UTC | 80.0 | 100.0 | 120.0 |
-| 2025-05-28 22:00:00 UTC | 100.0 | 90.0 | 100.0 |
-| 2025-05-29 22:00:00 UTC | 110.0 | 90.0 | 100.0 |
-| 2025-05-30 22:00:00 UTC | 130.0 | 100.0 | 90.0 |
-| 2025-05-31 22:00:00 UTC | 110.0 | 90.0 | 90.0 |
+| 2025-08-10 22:00:00 UTC | 90.0 | 100.0 | 90.0 |
+| 2025-08-11 22:00:00 UTC | 90.0 | 100.0 | 110.0 |
+| 2025-08-12 22:00:00 UTC | 90.0 | 110.0 | 100.0 |
+| 2025-08-13 22:00:00 UTC | 70.0 | 80.0 | 110.0 |
+| 2025-08-14 22:00:00 UTC | 100.0 | 100.0 | 90.0 |
 
 ```python {.marimo}
 # ... but the data file has been overwritten:
@@ -957,112 +473,29 @@ y.nw.to_polars().filter(
 )
 ```
 
-<!-- @output:aqbW -->
+<!-- @output:AjVT -->
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
 | datetime[ns, UTC] | f64 | f64 | f64 |
-| 2025-05-29 22:00:00 UTC | 110.0 | 90.0 | 100.0 |
-| 2025-05-30 22:00:00 UTC | 130.0 | 100.0 | 90.0 |
-| 2025-05-31 22:00:00 UTC | 110.0 | 90.0 | 90.0 |
+| 2025-05-29 22:00:00 UTC | 100.0 | 100.0 | 100.0 |
+| 2025-05-30 22:00:00 UTC | 110.0 | 110.0 | 130.0 |
+| 2025-05-31 22:00:00 UTC | 110.0 | 100.0 | 100.0 |
+| 2025-06-01 22:00:00 UTC | 100.0 | 120.0 | 100.0 |
 
 ```python {.marimo}
 # note that for unversioned type: we operate on the same files all the way
 print(tree(data_path))
 ```
 
-<!-- @output:TRpd -->
+<!-- @output:pHFh -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
-├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
-│   └── XYZ/
-│       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-02T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-03T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
-│       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
-├── AS_OF_FROM_TO/
-│   └── Prices and Volumes/
-│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-02-29T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-10-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-11-30T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-02-28T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
-│       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
-│   ├── AZ_drikkevarer-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── AZ_omsetning-metadata.json
-│   ├── More Prices and Volumes-metadata.json
-│   ├── PQR-metadata.json
-│   ├── Prices and Volumes-metadata.json
-│   ├── Sample Data-metadata.json
-│   └── XYZ-metadata.json
-├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
-│   ├── PQR/
-│   │   └── PQR-latest-data.parquet
-│   └── XYZ/
-│       └── XYZ-latest-data.parquet
-└── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
-    ├── AZ_drikkevarer/
-    │   └── AZ_drikkevarer-latest-data.parquet
-    ├── AZ_drinks/
-    │   └── AZ_drinks-latest-data.parquet
-    ├── AZ_omsetning/
-    │   └── AZ_omsetning-latest-data.parquet
-    └── More Prices and Volumes/
-        └── More Prices and Volumes-latest-data.parquet
+│   └── PQR-metadata.json
+└── NONE_AT/
+    └── PQR/
+        └── PQR-latest-data.parquet
 
 </pre>
 
@@ -1078,32 +511,32 @@ xx = x.groupby('Q','sum')
 xx
 ```
 
-<!-- @output:dNNg -->
+<!-- @output:aqbW -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;(PQR.groupby(Q,sum)&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=None)</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;(PQR.groupby(Q,sum))&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=None)</pre>
 
 ```python {.marimo}
 xx.data
 ```
 
-<!-- @output:yCnT -->
+<!-- @output:TRpd -->
 
 | p | q | r |
 | --- | --- | --- |
 |  |  |  |
-| 90.0 | 100.0 | 110.0 |
-| 9200.0 | 9180.0 | 9010.0 |
-| 9240.0 | 9150.0 | 9110.0 |
-| 9170.0 | 9200.0 | 9120.0 |
-| 9320.0 | 9290.0 | 9340.0 |
+| 90.0 | 110.0 | 100.0 |
+| 9200.0 | 9110.0 | 9080.0 |
+| 9070.0 | 9000.0 | 9100.0 |
+| 9300.0 | 9290.0 | 9230.0 |
+| 9310.0 | 9360.0 | 9340.0 |
 | ... | ... | ... |
-| 9150.0 | 9110.0 | 9010.0 |
-| 9380.0 | 9090.0 | 9230.0 |
-| 9180.0 | 9170.0 | 9270.0 |
-| 9060.0 | 9150.0 | 9040.0 |
-| 6100.0 | 6120.0 | 6090.0 |
+| 9090.0 | 8870.0 | 9210.0 |
+| 9150.0 | 9350.0 | 9330.0 |
+| 9150.0 | 9150.0 | 9240.0 |
+| 9050.0 | 8900.0 | 8990.0 |
+| 6070.0 | 6130.0 | 5940.0 |
 
-### Eksempel: data for periode / intervall
+### Example: data for periods, *without* versioning
 
 ```python {.marimo}
 interval_data = SeriesType(Versioning.NONE, Temporality.FROM_TO)
@@ -1112,8 +545,8 @@ interval_data = SeriesType(Versioning.NONE, Temporality.FROM_TO)
 ```python {.marimo}
 def mock_interval_data_from_file_or_query(start, end):
     a_to_z = [chr(i) for i in range(ord('a'), ord('z') + 1)]
-    variables = ['antall', 'pris']
-    goods = ['kaffe', 'te', 'brus', 'øl', 'vin']
+    variables = ['quantity', 'price']
+    goods = ['coffee', 'tea', 'soda', 'beer', 'wine']
     return create_df(
         a_to_z, variables, goods,
         start_date=start,
@@ -1129,7 +562,7 @@ bigger_data = mock_interval_data_from_file_or_query(start='2025-01-01', end='202
 bigger_data.shape
 ```
 
-<!-- @output:rEll -->
+<!-- @output:wlCL -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;6, 262&#93;</pre>
 
@@ -1137,24 +570,24 @@ bigger_data.shape
 bigger_data
 ```
 
-<!-- @output:dGlV -->
+<!-- @output:kqZH -->
 
-| valid_from | valid_to | a_antall_kaffe | a_antall_te | a_antall_brus | a_antall_øl | a_antall_vin | a_pris_kaffe | a_pris_te | a_pris_brus | a_pris_øl | a_pris_vin | b_antall_kaffe | b_antall_te | b_antall_brus | b_antall_øl | b_antall_vin | b_pris_kaffe | b_pris_te | b_pris_brus | b_pris_øl | b_pris_vin | c_antall_kaffe | c_antall_te | c_antall_brus | c_antall_øl | c_antall_vin | c_pris_kaffe | c_pris_te | c_pris_brus | c_pris_øl | c_pris_vin | d_antall_kaffe | d_antall_te | d_antall_brus | d_antall_øl | d_antall_vin | … | w_antall_øl | w_antall_vin | w_pris_kaffe | w_pris_te | w_pris_brus | w_pris_øl | w_pris_vin | x_antall_kaffe | x_antall_te | x_antall_brus | x_antall_øl | x_antall_vin | x_pris_kaffe | x_pris_te | x_pris_brus | x_pris_øl | x_pris_vin | y_antall_kaffe | y_antall_te | y_antall_brus | y_antall_øl | y_antall_vin | y_pris_kaffe | y_pris_te | y_pris_brus | y_pris_øl | y_pris_vin | z_antall_kaffe | z_antall_te | z_antall_brus | z_antall_øl | z_antall_vin | z_pris_kaffe | z_pris_te | z_pris_brus | z_pris_øl | z_pris_vin |
+| valid_from | valid_to | a_quantity_coffee | a_quantity_tea | a_quantity_soda | a_quantity_beer | a_quantity_wine | a_price_coffee | a_price_tea | a_price_soda | a_price_beer | a_price_wine | b_quantity_coffee | b_quantity_tea | b_quantity_soda | b_quantity_beer | b_quantity_wine | b_price_coffee | b_price_tea | b_price_soda | b_price_beer | b_price_wine | c_quantity_coffee | c_quantity_tea | c_quantity_soda | c_quantity_beer | c_quantity_wine | c_price_coffee | c_price_tea | c_price_soda | c_price_beer | c_price_wine | d_quantity_coffee | d_quantity_tea | d_quantity_soda | d_quantity_beer | d_quantity_wine | … | w_quantity_beer | w_quantity_wine | w_price_coffee | w_price_tea | w_price_soda | w_price_beer | w_price_wine | x_quantity_coffee | x_quantity_tea | x_quantity_soda | x_quantity_beer | x_quantity_wine | x_price_coffee | x_price_tea | x_price_soda | x_price_beer | x_price_wine | y_quantity_coffee | y_quantity_tea | y_quantity_soda | y_quantity_beer | y_quantity_wine | y_price_coffee | y_price_tea | y_price_soda | y_price_beer | y_price_wine | z_quantity_coffee | z_quantity_tea | z_quantity_soda | z_quantity_beer | z_quantity_wine | z_price_coffee | z_price_tea | z_price_soda | z_price_beer | z_price_wine |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| datetime[μs] | datetime[μs] | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | … | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 |
-| 2025-01-01 00:00:00 | 2025-02-01 00:00:00 | 110.0 | 90.0 | 80.0 | 100.0 | 90.0 | 120.0 | 120.0 | 90.0 | 130.0 | 90.0 | 80.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 110.0 | 110.0 | 90.0 | 80.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 120.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 100.0 | 100.0 | … | 110.0 | 90.0 | 80.0 | 100.0 | 100.0 | 80.0 | 110.0 | 110.0 | 100.0 | 90.0 | 90.0 | 80.0 | 130.0 | 90.0 | 110.0 | 90.0 | 90.0 | 110.0 | 100.0 | 90.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 | 90.0 | 110.0 | 80.0 | 110.0 |
-| 2025-02-01 00:00:00 | 2025-03-01 00:00:00 | 80.0 | 120.0 | 100.0 | 100.0 | 90.0 | 90.0 | 80.0 | 120.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 80.0 | 90.0 | 90.0 | 110.0 | 100.0 | 80.0 | 110.0 | 90.0 | 90.0 | 90.0 | 90.0 | 100.0 | 100.0 | 90.0 | 80.0 | 80.0 | 100.0 | 110.0 | 100.0 | 110.0 | … | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 120.0 | 110.0 | 110.0 | 110.0 | 120.0 | 80.0 | 100.0 | 80.0 | 90.0 | 120.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 120.0 |
-| 2025-03-01 00:00:00 | 2025-04-01 00:00:00 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 80.0 | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 80.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 120.0 | 110.0 | 110.0 | 80.0 | 110.0 | 110.0 | 100.0 | 90.0 | 100.0 | … | 100.0 | 80.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 110.0 | 110.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 90.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 |
-| 2025-04-01 00:00:00 | 2025-05-01 00:00:00 | 90.0 | 120.0 | 90.0 | 80.0 | 110.0 | 90.0 | 120.0 | 110.0 | 80.0 | 110.0 | 110.0 | 110.0 | 80.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 110.0 | 90.0 | 130.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 120.0 | 110.0 | 100.0 | 110.0 | 80.0 | 100.0 | 90.0 | 120.0 | 110.0 | … | 120.0 | 120.0 | 100.0 | 110.0 | 80.0 | 110.0 | 100.0 | 110.0 | 90.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 110.0 | 110.0 | 110.0 | 90.0 | 110.0 | 110.0 | 80.0 | 100.0 | 90.0 | 80.0 | 110.0 | 110.0 | 90.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 | 110.0 | 100.0 | 110.0 | 90.0 | 90.0 |
-| 2025-05-01 00:00:00 | 2025-06-01 00:00:00 | 80.0 | 90.0 | 110.0 | 90.0 | 90.0 | 100.0 | 70.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 80.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 120.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 110.0 | … | 80.0 | 90.0 | 100.0 | 80.0 | 100.0 | 120.0 | 100.0 | 110.0 | 90.0 | 100.0 | 100.0 | 70.0 | 100.0 | 90.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 120.0 | 110.0 | 110.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 110.0 | 120.0 | 110.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 90.0 |
-| 2025-06-01 00:00:00 | 2025-07-01 00:00:00 | 90.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 110.0 | 110.0 | 80.0 | 100.0 | 120.0 | 90.0 | 120.0 | 100.0 | 90.0 | 120.0 | 90.0 | 100.0 | 110.0 | 90.0 | 110.0 | 110.0 | 110.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 110.0 | 110.0 | 120.0 | 110.0 | 100.0 | … | 120.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 110.0 | 90.0 | 120.0 | 100.0 | 100.0 | 110.0 | 90.0 | 100.0 | 110.0 | 110.0 | 90.0 | 90.0 | 100.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 100.0 | 110.0 | 90.0 | 100.0 |
+| datetime[μs, Europe/Oslo] | datetime[μs, Europe/Oslo] | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | … | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 |
+| 2025-01-01 00:00:00 CET | 2025-02-01 00:00:00 CET | 90.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 100.0 | 120.0 | 100.0 | 100.0 | 80.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 120.0 | 90.0 | 100.0 | … | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 70.0 | 110.0 | 100.0 | 90.0 | 100.0 | 120.0 | 110.0 | 100.0 | 100.0 | 110.0 | 80.0 | 100.0 | 100.0 | 90.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 70.0 | 90.0 |
+| 2025-02-01 00:00:00 CET | 2025-03-01 00:00:00 CET | 100.0 | 90.0 | 80.0 | 100.0 | 90.0 | 110.0 | 120.0 | 110.0 | 120.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 80.0 | 110.0 | 100.0 | … | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 80.0 | 90.0 | 120.0 | 110.0 | 90.0 | 100.0 | 90.0 | 120.0 | 90.0 | 110.0 | 90.0 | 110.0 | 90.0 | 110.0 | 100.0 | 130.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 80.0 | 110.0 | 100.0 | 90.0 | 100.0 | 80.0 | 90.0 |
+| 2025-03-01 00:00:00 CET | 2025-04-01 00:00:00 CEST | 110.0 | 100.0 | 100.0 | 100.0 | 120.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 110.0 | 120.0 | 100.0 | 100.0 | 90.0 | 80.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | … | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 90.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 80.0 | 90.0 | 90.0 | 90.0 | 90.0 | 100.0 | 100.0 | 80.0 | 120.0 | 110.0 | 100.0 | 90.0 | 90.0 |
+| 2025-04-01 00:00:00 CEST | 2025-05-01 00:00:00 CEST | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 100.0 | 90.0 | 120.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 70.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 120.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | … | 90.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 80.0 | 90.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 80.0 | 100.0 | 100.0 | 80.0 | 80.0 | 120.0 | 100.0 | 90.0 | 90.0 | 100.0 | 90.0 | 100.0 |
+| 2025-05-01 00:00:00 CEST | 2025-06-01 00:00:00 CEST | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 80.0 | 100.0 | 110.0 | 90.0 | 70.0 | 100.0 | 110.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | … | 90.0 | 90.0 | 120.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 110.0 | 90.0 | 110.0 | 120.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 | 90.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 90.0 | 100.0 | 80.0 | 90.0 | 110.0 |
+| 2025-06-01 00:00:00 CEST | 2025-07-01 00:00:00 CEST | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 90.0 | 120.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 110.0 | 80.0 | 100.0 | 90.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 90.0 | 80.0 | 110.0 | 90.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 130.0 | 120.0 | 110.0 | 110.0 | … | 80.0 | 90.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 100.0 | 120.0 | 110.0 | 100.0 | 120.0 | 90.0 | 90.0 | 120.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 130.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 |
 
 ```python {.marimo}
 az = Dataset(
-    name = 'AZ_drikkevarer',
+    name = 'AZ_beverages',
     data_type = interval_data,
     data = bigger_data,
-    attributes=['butikk','variabel','vare'],
+    attributes=['store','variable','product'],
 )
 ```
 
@@ -1162,4179 +595,2109 @@ az = Dataset(
 az.tags
 ```
 
-<!-- @output:urSm -->
+<!-- @output:rEll -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;AZ_drikkevarer&#x27;,
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;AZ_beverages&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;a_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;a_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;a_antall_kaffe&#x27;,
+ &#x27;series&#x27;: {&#x27;a_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;a_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;a&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;a_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;a_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;a&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;a_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;a_antall_vin&#x27;,
+            &#x27;a_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;a_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;a&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;a_antall_øl&#x27;,
+            &#x27;a_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;a_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;a&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;a_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;a_pris_kaffe&#x27;,
+            &#x27;a_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;a_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;a&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;a_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;a_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;a_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;b_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;b_antall_kaffe&#x27;,
+            &#x27;a_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;a_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;a&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;a_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;a_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;a&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;a_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;a_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;a&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;a_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;a_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;a&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;b_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;b_antall_vin&#x27;,
+            &#x27;a_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;a_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;a&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;b_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;b_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;b&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;b_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;b_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;b_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;b_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;b_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;b_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;c_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;c_antall_kaffe&#x27;,
+            &#x27;b_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;b_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;b&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;c_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;c_antall_vin&#x27;,
+            &#x27;b_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;b_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;b&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;c_antall_øl&#x27;,
+            &#x27;b_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;b_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;b&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;c_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;c_pris_kaffe&#x27;,
+            &#x27;b_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;b_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;b&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;c_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;c_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;c_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;d_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;d_antall_kaffe&#x27;,
+            &#x27;b_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;b_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;b&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;b_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;b_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;b&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;b_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;b_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;b&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;b_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;b_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;b&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;d_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;d_antall_vin&#x27;,
+            &#x27;b_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;b_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;b&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;c_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;c_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;c&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;d_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;d_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;d_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;d_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;d_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;d_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;e_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;e_antall_kaffe&#x27;,
+            &#x27;c_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;c_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;c&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;e_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;e_antall_vin&#x27;,
+            &#x27;c_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;c_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;c&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;e_antall_øl&#x27;,
+            &#x27;c_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;c_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;c&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;e_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;e_pris_kaffe&#x27;,
+            &#x27;c_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;c_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;c&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;e_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;e_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;e_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;f_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;f_antall_kaffe&#x27;,
+            &#x27;c_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;c_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;c&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;c_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;c_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;c&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;c_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;c_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;c&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;c_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;c_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;c&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;f_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;f_antall_vin&#x27;,
+            &#x27;c_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;c_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;c&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;d_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;d_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;d&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;f_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;f_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;f_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;f_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;f_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;f_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;g_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;g_antall_kaffe&#x27;,
+            &#x27;d_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;d_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;d&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;g_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;g_antall_vin&#x27;,
+            &#x27;d_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;d_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;d&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;g_antall_øl&#x27;,
+            &#x27;d_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;d_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;d&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;g_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;g_pris_kaffe&#x27;,
+            &#x27;d_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;d_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;d&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;g_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;g_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;g_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;h_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;h_antall_kaffe&#x27;,
+            &#x27;d_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;d_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;d&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;d_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;d_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;d&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;d_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;d_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;d&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;d_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;d_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;d&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;h_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;h_antall_vin&#x27;,
+            &#x27;d_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;d_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;d&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;e_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;e_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;e&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;h_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;h_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;h_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;h_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;h_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;h_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;i_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;i_antall_kaffe&#x27;,
+            &#x27;e_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;e_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;e&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;i_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;i_antall_vin&#x27;,
+            &#x27;e_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;e_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;e&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;i_antall_øl&#x27;,
+            &#x27;e_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;e_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;e&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;i_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;i_pris_kaffe&#x27;,
+            &#x27;e_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;e_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;e&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;i_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;i_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;i_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;j_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;j_antall_kaffe&#x27;,
+            &#x27;e_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;e_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;e&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;e_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;e_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;e&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;e_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;e_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;e&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;e_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;e_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;e&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;j_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;j_antall_vin&#x27;,
+            &#x27;e_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;e_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;e&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;f_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;f_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;f&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;j_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;j_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;j_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;j_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;j_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;j_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;k_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;k_antall_kaffe&#x27;,
+            &#x27;f_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;f_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;f&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;k_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;k_antall_vin&#x27;,
+            &#x27;f_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;f_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;f&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;k_antall_øl&#x27;,
+            &#x27;f_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;f_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;f&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;k_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;k_pris_kaffe&#x27;,
+            &#x27;f_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;f_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;f&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;k_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;k_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;k_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;l_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;l_antall_kaffe&#x27;,
+            &#x27;f_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;f_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;f&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;f_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;f_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;f&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;f_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;f_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;f&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;f_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;f_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;f&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;l_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;l_antall_vin&#x27;,
+            &#x27;f_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;f_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;f&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;g_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;g_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;g&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;l_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;l_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;l_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;l_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;l_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;l_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;m_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;m_antall_kaffe&#x27;,
+            &#x27;g_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;g_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;g&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;m_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;m_antall_vin&#x27;,
+            &#x27;g_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;g_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;g&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;m_antall_øl&#x27;,
+            &#x27;g_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;g_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;g&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;m_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;m_pris_kaffe&#x27;,
+            &#x27;g_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;g_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;g&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;m_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;m_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;m_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;n_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;n_antall_kaffe&#x27;,
+            &#x27;g_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;g_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;g&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;g_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;g_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;g&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;g_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;g_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;g&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;g_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;g_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;g&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;n_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;n_antall_vin&#x27;,
+            &#x27;g_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;g_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;g&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;h_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;h_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;h&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;n_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;n_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;n_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;n_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;n_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;n_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;o_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;o_antall_kaffe&#x27;,
+            &#x27;h_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;h_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;h&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;o_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;o_antall_vin&#x27;,
+            &#x27;h_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;h_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;h&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;o_antall_øl&#x27;,
+            &#x27;h_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;h_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;h&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;o_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;o_pris_kaffe&#x27;,
+            &#x27;h_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;h_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;h&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;o_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;o_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;o_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;p_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;p_antall_kaffe&#x27;,
+            &#x27;h_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;h_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;h&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;h_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;h_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;h&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;h_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;h_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;h&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;h_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;h_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;h&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;p_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;p_antall_vin&#x27;,
+            &#x27;h_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;h_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;h&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;i_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;i_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;i&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;p_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;p_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;p_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;p_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;p_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;p_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;q_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;q_antall_kaffe&#x27;,
+            &#x27;i_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;i_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;i&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;q_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;q_antall_vin&#x27;,
+            &#x27;i_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;i_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;i&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;q_antall_øl&#x27;,
+            &#x27;i_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;i_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;i&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;q_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;q_pris_kaffe&#x27;,
+            &#x27;i_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;i_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;i&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;q_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;q_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;q_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;r_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;r_antall_kaffe&#x27;,
+            &#x27;i_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;i_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;i&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;i_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;i_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;i&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;i_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;i_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;i&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;i_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;i_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;i&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;r_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;r_antall_vin&#x27;,
+            &#x27;i_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;i_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;i&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;j_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;j_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;j&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;r_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;r_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;r_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;r_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;r_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;r_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;s_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;s_antall_kaffe&#x27;,
+            &#x27;j_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;j_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;j&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;s_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;s_antall_vin&#x27;,
+            &#x27;j_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;j_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;j&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;s_antall_øl&#x27;,
+            &#x27;j_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;j_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;j&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;s_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;s_pris_kaffe&#x27;,
+            &#x27;j_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;j_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;j&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;s_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;s_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;s_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;t_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;t_antall_kaffe&#x27;,
+            &#x27;j_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;j_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;j&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;j_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;j_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;j&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;j_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;j_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;j&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;j_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;j_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;j&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;t_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;t_antall_vin&#x27;,
+            &#x27;j_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;j_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;j&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;k_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;k_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;k&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;t_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;t_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;t_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;t_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;t_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;t_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;u_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;u_antall_kaffe&#x27;,
+            &#x27;k_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;k_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;k&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;u_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;u_antall_vin&#x27;,
+            &#x27;k_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;k_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;k&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;u_antall_øl&#x27;,
+            &#x27;k_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;k_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;k&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;u_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;u_pris_kaffe&#x27;,
+            &#x27;k_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;k_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;k&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;u_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;u_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;u_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;v_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;v_antall_kaffe&#x27;,
+            &#x27;k_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;k_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;k&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;k_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;k_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;k&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;k_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;k_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;k&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;k_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;k_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;k&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;v_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;v_antall_vin&#x27;,
+            &#x27;k_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;k_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;k&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;l_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;l_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;l&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;v_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;v_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;v_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;v_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;v_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;v_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;w_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;w_antall_kaffe&#x27;,
+            &#x27;l_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;l_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;l&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;w_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;w_antall_vin&#x27;,
+            &#x27;l_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;l_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;l&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;w_antall_øl&#x27;,
+            &#x27;l_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;l_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;l&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;w_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;w_pris_kaffe&#x27;,
+            &#x27;l_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;l_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;l&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;w_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;w_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;w_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;x_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;x_antall_kaffe&#x27;,
+            &#x27;l_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;l_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;l&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;l_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;l_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;l&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;l_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;l_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;l&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;l_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;l_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;l&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;x_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;x_antall_vin&#x27;,
+            &#x27;l_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;l_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;l&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;m_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;m_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;m&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;x_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;x_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;x_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;x_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;x_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;x_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;y_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;y_antall_kaffe&#x27;,
+            &#x27;m_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;m_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;m&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;y_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;y_antall_vin&#x27;,
+            &#x27;m_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;m_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;m&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;y_antall_øl&#x27;,
+            &#x27;m_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;m_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;m&#x27;,
                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;y_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;y_pris_kaffe&#x27;,
+            &#x27;m_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;m_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;m&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;y_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;y_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;y_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;z_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;z_antall_kaffe&#x27;,
+            &#x27;m_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;m_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;m&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;m_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;m_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;m&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;m_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;m_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;m&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;m_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;m_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;m&#x27;,
                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;z_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;z_antall_vin&#x27;,
+            &#x27;m_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;m_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;m&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;n_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;n_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;n&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;z_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;z_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;z_pris_kaffe&#x27;,
+            &#x27;n_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;n_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;n&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;n_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;n_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;n&#x27;,
                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;z_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;z_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;z_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
+            &#x27;n_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;n_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;n&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;n_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;n_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;n&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;n_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;n_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;n&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;n_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;n_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;n&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;n_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;n_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;n&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;n_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;n_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;n&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;n_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;n_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;n&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;o_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;o_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;o&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;o_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;o_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;o&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;o_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;o_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;o&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;o_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;o_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;o&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;o_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;o_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;o&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;o_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;o_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;o&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;o_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;o_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;o&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;o_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;o_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;o&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;o_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;o_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;o&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;o_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;o_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;o&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;p_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;p_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;p&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;p_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;p_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;p&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;p_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;p_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;p&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;p_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;p_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;p&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;p_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;p_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;p&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;p_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;p_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;p&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;p_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;p_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;p&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;p_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;p_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;p&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;p_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;p_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;p&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;p_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;p_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;p&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;q_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;q&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;q_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;q&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;q_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;q&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;q_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;q&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;q_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;q&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;q_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;q&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;q_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;q&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;q_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;q&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;q_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;q&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;q_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;q&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;r_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;r&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;r_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;r&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;r_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;r&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;r_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;r&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;r_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;r&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;r_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;r&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;r_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;r&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;r_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;r&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;r_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;r&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;r_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;r&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;s_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;s_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;s&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;s_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;s_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;s&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;s_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;s_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;s&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;s_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;s_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;s&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;s_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;s_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;s&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;s_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;s_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;s&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;s_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;s_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;s&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;s_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;s_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;s&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;s_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;s_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;s&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;s_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;s_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;s&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;t_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;t_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;t&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;t_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;t_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;t&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;t_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;t_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;t&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;t_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;t_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;t&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;t_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;t_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;t&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;t_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;t_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;t&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;t_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;t_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;t&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;t_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;t_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;t&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;t_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;t_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;t&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;t_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;t_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;t&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;u_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;u_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;u&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;u_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;u_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;u&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;u_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;u_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;u&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;u_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;u_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;u&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;u_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;u_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;u&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;u_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;u_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;u&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;u_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;u_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;u&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;u_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;u_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;u&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;u_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;u_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;u&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;u_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;u_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;u&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;v_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;v_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;v&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;v_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;v_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;v&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;v_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;v_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;v&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;v_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;v_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;v&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;v_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;v_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;v&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;v_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;v_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;v&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;v_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;v_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;v&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;v_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;v_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;v&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;v_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;v_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;v&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;v_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;v_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;v&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;w_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;w_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;w&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;w_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;w_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;w&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;w_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;w_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;w&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;w_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;w_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;w&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;w_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;w_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;w&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;w_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;w_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;w&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;w_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;w_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;w&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;w_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;w_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;w&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;w_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;w_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;w&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;w_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;w_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;w&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;x_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;x_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;x&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;x_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;x_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;x&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;x_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;x_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;x&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;x_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;x_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;x&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;x_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;x_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;x&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;x_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;x_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;x&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;x_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;x_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;x&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;x_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;x_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;x&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;x_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;x_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;x&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;x_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;x_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;x&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;y_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;y_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;y&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;y_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;y_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;y&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;y_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;y_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;y&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;y_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;y_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;y&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;y_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;y_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;y&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;y_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;y_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;y&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;y_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;y_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;y&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;y_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;y_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;y&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;y_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;y_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;y&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;y_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;y_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;y&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;z_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;z_price_beer&#x27;,
+                             &#x27;product&#x27;: &#x27;beer&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;z&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;z_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;z_price_coffee&#x27;,
+                               &#x27;product&#x27;: &#x27;coffee&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;z&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;price&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;z_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;z_price_soda&#x27;,
+                             &#x27;product&#x27;: &#x27;soda&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;z&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;z_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                            &#x27;name&#x27;: &#x27;z_price_tea&#x27;,
+                            &#x27;product&#x27;: &#x27;tea&#x27;,
+                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                            &#x27;store&#x27;: &#x27;z&#x27;,
+                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                            &#x27;variable&#x27;: &#x27;price&#x27;,
+                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;z_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                             &#x27;name&#x27;: &#x27;z_price_wine&#x27;,
+                             &#x27;product&#x27;: &#x27;wine&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;store&#x27;: &#x27;z&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;price&#x27;,
+                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;z_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;z_quantity_beer&#x27;,
+                                &#x27;product&#x27;: &#x27;beer&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;z&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;z_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                  &#x27;name&#x27;: &#x27;z_quantity_coffee&#x27;,
+                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                  &#x27;store&#x27;: &#x27;z&#x27;,
+                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;z_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;z_quantity_soda&#x27;,
+                                &#x27;product&#x27;: &#x27;soda&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;z&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;z_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                               &#x27;name&#x27;: &#x27;z_quantity_tea&#x27;,
+                               &#x27;product&#x27;: &#x27;tea&#x27;,
+                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                               &#x27;store&#x27;: &#x27;z&#x27;,
+                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;z_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+                                &#x27;name&#x27;: &#x27;z_quantity_wine&#x27;,
+                                &#x27;product&#x27;: &#x27;wine&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;store&#x27;: &#x27;z&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
  &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
-<!-- @output:urSm -->
+```python {.marimo}
+# the periods need two date columns, since they have a duration:
+az.data
+```
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;AZ_drikkevarer&#x27;,
- &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;a_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;a_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;a_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;a_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;a_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;a_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;a_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;a_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;a_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;a_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;a&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;a_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;b_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;b_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;b_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;b_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;b_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;b_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;b_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;b_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;b_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;b&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;b_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;c_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;c_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;c_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;c_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;c_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;c_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;c_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;c_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;c_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;c&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;c_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;d_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;d_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;d_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;d_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;d_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;d_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;d_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;d_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;d_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;d&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;d_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;e_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;e_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;e_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;e_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;e_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;e_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;e_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;e_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;e_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;e&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;e_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;f_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;f_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;f_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;f_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;f_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;f_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;f_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;f_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;f_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;f&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;f_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;g_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;g_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;g_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;g_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;g_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;g_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;g_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;g_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;g_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;g&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;g_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;h_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;h_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;h_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;h_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;h_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;h_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;h_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;h_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;h_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;h&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;h_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;i_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;i_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;i_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;i_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;i_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;i_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;i_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;i_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;i_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;i&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;i_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;j_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;j_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;j_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;j_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;j_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;j_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;j_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;j_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;j_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;j&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;j_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;k_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;k_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;k_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;k_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;k_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;k_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;k_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;k_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;k_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;k&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;k_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;l_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;l_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;l_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;l_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;l_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;l_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;l_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;l_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;l_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;l&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;l_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;m_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;m_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;m_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;m_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;m_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;m_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;m_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;m_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;m_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;m&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;m_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;n_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;n_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;n_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;n_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;n_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;n_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;n_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;n_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;n_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;n&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;n_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;o_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;o_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;o_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;o_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;o_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;o_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;o_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;o_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;o_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;o&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;o_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;p_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;p_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;p_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;p_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;p_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;p_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;p_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;p_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;p_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;p&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;p_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;q_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;q_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;q_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;q_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;q_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;q_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;q_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;q_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;q_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;q&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;q_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;r_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;r_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;r_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;r_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;r_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;r_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;r_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;r_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;r_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;r&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;r_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;s_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;s_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;s_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;s_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;s_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;s_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;s_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;s_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;s_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;s&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;s_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;t_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;t_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;t_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;t_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;t_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;t_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;t_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;t_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;t_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;t&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;t_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;u_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;u_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;u_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;u_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;u_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;u_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;u_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;u_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;u_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;u&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;u_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;v_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;v_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;v_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;v_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;v_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;v_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;v_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;v_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;v_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;v&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;v_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;w_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;w_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;w_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;w_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;w_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;w_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;w_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;w_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;w_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;w&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;w_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;x_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;x_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;x_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;x_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;x_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;x_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;x_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;x_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;x_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;x&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;x_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;y_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;y_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;y_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;y_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;y_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;y_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;y_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;y_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;y_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;y&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;y_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_antall_brus&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                              &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                              &#x27;name&#x27;: &#x27;z_antall_brus&#x27;,
-                              &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                              &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                              &#x27;vare&#x27;: &#x27;brus&#x27;,
-                              &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                              &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_antall_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                               &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                               &#x27;name&#x27;: &#x27;z_antall_kaffe&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                               &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_antall_te&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;z_antall_te&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;te&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_antall_vin&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;z_antall_vin&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;vin&#x27;,
-                             &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_antall_øl&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;z_antall_øl&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;øl&#x27;,
-                            &#x27;variabel&#x27;: &#x27;antall&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_pris_brus&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                            &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                            &#x27;name&#x27;: &#x27;z_pris_brus&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;vare&#x27;: &#x27;brus&#x27;,
-                            &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_pris_kaffe&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                             &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                             &#x27;name&#x27;: &#x27;z_pris_kaffe&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                             &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_pris_te&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;z_pris_te&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;te&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_pris_vin&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                           &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                           &#x27;name&#x27;: &#x27;z_pris_vin&#x27;,
-                           &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                           &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                           &#x27;vare&#x27;: &#x27;vin&#x27;,
-                           &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                           &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_pris_øl&#x27;: {&#x27;butikk&#x27;: &#x27;z&#x27;,
-                          &#x27;dataset&#x27;: &#x27;AZ_drikkevarer&#x27;,
-                          &#x27;name&#x27;: &#x27;z_pris_øl&#x27;,
-                          &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                          &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                          &#x27;vare&#x27;: &#x27;øl&#x27;,
-                          &#x27;variabel&#x27;: &#x27;pris&#x27;,
-                          &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
- &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
- &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
+<!-- @output:dGlV -->
+
+| valid_from | valid_to | a_quantity_coffee | a_quantity_tea | a_quantity_soda | a_quantity_beer | a_quantity_wine | a_price_coffee | a_price_tea | a_price_soda | a_price_beer | a_price_wine | b_quantity_coffee | b_quantity_tea | b_quantity_soda | b_quantity_beer | b_quantity_wine | b_price_coffee | b_price_tea | b_price_soda | b_price_beer | b_price_wine | c_quantity_coffee | c_quantity_tea | c_quantity_soda | c_quantity_beer | c_quantity_wine | c_price_coffee | c_price_tea | c_price_soda | c_price_beer | c_price_wine | d_quantity_coffee | d_quantity_tea | d_quantity_soda | d_quantity_beer | d_quantity_wine | … | w_quantity_beer | w_quantity_wine | w_price_coffee | w_price_tea | w_price_soda | w_price_beer | w_price_wine | x_quantity_coffee | x_quantity_tea | x_quantity_soda | x_quantity_beer | x_quantity_wine | x_price_coffee | x_price_tea | x_price_soda | x_price_beer | x_price_wine | y_quantity_coffee | y_quantity_tea | y_quantity_soda | y_quantity_beer | y_quantity_wine | y_price_coffee | y_price_tea | y_price_soda | y_price_beer | y_price_wine | z_quantity_coffee | z_quantity_tea | z_quantity_soda | z_quantity_beer | z_quantity_wine | z_price_coffee | z_price_tea | z_price_soda | z_price_beer | z_price_wine |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| datetime[ns, UTC] | datetime[ns, UTC] | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | … | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 |
+| 2024-12-31 23:00:00 UTC | 2025-01-31 23:00:00 UTC | 90.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 100.0 | 120.0 | 100.0 | 100.0 | 80.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 120.0 | 90.0 | 100.0 | … | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 70.0 | 110.0 | 100.0 | 90.0 | 100.0 | 120.0 | 110.0 | 100.0 | 100.0 | 110.0 | 80.0 | 100.0 | 100.0 | 90.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 70.0 | 90.0 |
+| 2025-01-31 23:00:00 UTC | 2025-02-28 23:00:00 UTC | 100.0 | 90.0 | 80.0 | 100.0 | 90.0 | 110.0 | 120.0 | 110.0 | 120.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 80.0 | 110.0 | 100.0 | … | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 80.0 | 90.0 | 120.0 | 110.0 | 90.0 | 100.0 | 90.0 | 120.0 | 90.0 | 110.0 | 90.0 | 110.0 | 90.0 | 110.0 | 100.0 | 130.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 80.0 | 110.0 | 100.0 | 90.0 | 100.0 | 80.0 | 90.0 |
+| 2025-02-28 23:00:00 UTC | 2025-03-31 22:00:00 UTC | 110.0 | 100.0 | 100.0 | 100.0 | 120.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 110.0 | 120.0 | 100.0 | 100.0 | 90.0 | 80.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | … | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 90.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 80.0 | 90.0 | 90.0 | 90.0 | 90.0 | 100.0 | 100.0 | 80.0 | 120.0 | 110.0 | 100.0 | 90.0 | 90.0 |
+| 2025-03-31 22:00:00 UTC | 2025-04-30 22:00:00 UTC | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 100.0 | 90.0 | 120.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 70.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 120.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | … | 90.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 80.0 | 90.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 80.0 | 100.0 | 100.0 | 80.0 | 80.0 | 120.0 | 100.0 | 90.0 | 90.0 | 100.0 | 90.0 | 100.0 |
+| 2025-04-30 22:00:00 UTC | 2025-05-31 22:00:00 UTC | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 80.0 | 100.0 | 110.0 | 90.0 | 70.0 | 100.0 | 110.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | … | 90.0 | 90.0 | 120.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 110.0 | 90.0 | 110.0 | 120.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 | 90.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 90.0 | 100.0 | 80.0 | 90.0 | 110.0 |
+| 2025-05-31 22:00:00 UTC | 2025-06-30 22:00:00 UTC | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 90.0 | 120.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 110.0 | 80.0 | 100.0 | 90.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 90.0 | 80.0 | 110.0 | 90.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 130.0 | 120.0 | 110.0 | 110.0 | … | 80.0 | 90.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 100.0 | 120.0 | 110.0 | 100.0 | 120.0 | 90.0 | 90.0 | 120.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 130.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 |
 
 ```python {.marimo}
 print(tree(data_path))
@@ -5345,318 +2708,22 @@ az.save()
 print(tree(data_path))
 ```
 
-<!-- @output:fwwy -->
+<!-- @output:lgWD -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
-├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
-│   └── XYZ/
-│       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-02T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-03T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
-│       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
-├── AS_OF_FROM_TO/
-│   └── Prices and Volumes/
-│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-02-29T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-10-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-11-30T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-02-28T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
-│       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
 ├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
-│   ├── AZ_drikkevarer-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── AZ_omsetning-metadata.json
-│   ├── More Prices and Volumes-metadata.json
-│   ├── PQR-metadata.json
-│   ├── Prices and Volumes-metadata.json
-│   ├── Sample Data-metadata.json
-│   └── XYZ-metadata.json
+│   ├── AZ_beverages-metadata.json
+│   └── PQR-metadata.json
 ├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
-│   ├── PQR/
-│   │   └── PQR-latest-data.parquet
-│   └── XYZ/
-│       └── XYZ-latest-data.parquet
+│   └── PQR/
+│       └── PQR-latest-data.parquet
 └── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
-    ├── AZ_drikkevarer/
-    │   └── AZ_drikkevarer-latest-data.parquet
-    ├── AZ_drinks/
-    │   └── AZ_drinks-latest-data.parquet
-    ├── AZ_omsetning/
-    │   └── AZ_omsetning-latest-data.parquet
-    └── More Prices and Volumes/
-        └── More Prices and Volumes-latest-data.parquet
+    └── AZ_beverages/
+        └── AZ_beverages-latest-data.parquet
 
 </pre>
 
-#### Algebra
-
-```python {.marimo}
-az.tags
-```
-
-```python {.marimo}
-# bug: ValueError: Invalid dir_name: NONE_FROM_TO
-# priser = Dataset('AZ_drikkevarer')[{'variabel':'pris'}]
-# antall = Dataset('AZ_drikkevarer')[{'variabel':'antall'}]
-priser = az[{'variabel':'pris'}]
-antall = az[{'variabel':'antall'}]
-omsetning = (priser * antall)
-print(omsetning.name)
-type(omsetning)
-```
-
-<!-- @output:jxvo -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">(COPY of(AZ_drikkevarer SELECTED by names (), pattern: , regex:  tags: &#91;{&#x27;variabel&#x27;: &#x27;pris&#x27;}&#93;).multiply.COPY of(AZ_drikkevarer SELECTED by names (), pattern: , regex:  tags: &#91;{&#x27;variabel&#x27;: &#x27;antall&#x27;}&#93;))
-</pre>
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;class &#x27;ssb_timeseries.dataset.Dataset&#x27;&gt;</pre>
-
-```python {.marimo}
-omsetning.nw.to_pandas()
-```
-
-<!-- @output:mWxS -->
-
-| valid_from | valid_to | a_pris_brus | a_pris_kaffe | a_pris_te | a_pris_vin | a_pris_øl | b_pris_brus | b_pris_kaffe | b_pris_te | ... | y_pris_brus | y_pris_kaffe | y_pris_te | y_pris_vin | y_pris_øl | z_pris_brus | z_pris_kaffe | z_pris_te | z_pris_vin | z_pris_øl |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-01-01 | 2025-02-01 | 7200.0 | 13200.0 | 10800.0 | 8100.0 | 13000.0 | 12100.0 | 7200.0 | 11000.0 | ... | 9000.0 | 11000.0 | 10000.0 | 11000.0 | 11000.0 | 9900.0 | 11000.0 | 8100.0 | 12100.0 | 8000.0 |
-| 2025-02-01 | 2025-03-01 | 12000.0 | 7200.0 | 9600.0 | 9000.0 | 10000.0 | 9900.0 | 8800.0 | 8100.0 | ... | 11000.0 | 11000.0 | 11000.0 | 9600.0 | 12000.0 | 9900.0 | 10000.0 | 8800.0 | 12000.0 | 10800.0 |
-| 2025-03-01 | 2025-04-01 | 10000.0 | 11000.0 | 11000.0 | 9900.0 | 10000.0 | 8000.0 | 10000.0 | 8800.0 | ... | 12100.0 | 9000.0 | 12100.0 | 10000.0 | 10000.0 | 11000.0 | 9000.0 | 11000.0 | 12000.0 | 10000.0 |
-| 2025-04-01 | 2025-05-01 | 9900.0 | 8100.0 | 14400.0 | 12100.0 | 6400.0 | 8800.0 | 11000.0 | 9900.0 | ... | 12100.0 | 8100.0 | 8800.0 | 9000.0 | 8800.0 | 11000.0 | 9900.0 | 11000.0 | 10800.0 | 9000.0 |
-| 2025-05-01 | 2025-06-01 | 11000.0 | 8000.0 | 6300.0 | 9000.0 | 9900.0 | 8000.0 | 10000.0 | 12100.0 | ... | 13200.0 | 11000.0 | 9000.0 | 9900.0 | 12100.0 | 11000.0 | 12100.0 | 13200.0 | 9000.0 | 9000.0 |
-| 2025-06-01 | 2025-07-01 | 12100.0 | 8100.0 | 9900.0 | 11000.0 | 8000.0 | 12000.0 | 14400.0 | 8100.0 | ... | 8100.0 | 11000.0 | 9900.0 | 9900.0 | 10000.0 | 11000.0 | 8100.0 | 10000.0 | 11000.0 | 9000.0 |
-
-```python {.marimo}
-omsetning.rename('AZ_omsetning', ('pris', 'omsetning'))
-omsetning.replace_tags(({'variabel':'pris'},{'variabel':'omsetning'}))
-print(omsetning)
-```
-
-<!-- @output:CcZR -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;AZ_omsetning&#x27;, &#x27;data_type&#x27;: &#x27;NONE_FROM_TO&#x27;, &#x27;as_of_utc&#x27;: None, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;series&#x27;: &quot;&#91;&#x27;a_omsetning_brus&#x27;, &#x27;a_omsetning_kaffe&#x27;, &#x27;a_omsetning_te&#x27;, &#x27;a_omsetning_vin&#x27;, &#x27;a_omsetning_øl&#x27;, &#x27;b_omsetning_brus&#x27;, &#x27;b_omsetning_kaffe&#x27;, &#x27;b_omsetning_te&#x27;, &#x27;b_omsetning_vin&#x27;, &#x27;b_omsetning_øl&#x27;, &#x27;c_omsetning_brus&#x27;, &#x27;c_omsetning_kaffe&#x27;, &#x27;c_omsetning_te&#x27;, &#x27;c_omsetning_vin&#x27;, &#x27;c_omsetning_øl&#x27;, &#x27;d_omsetning_brus&#x27;, &#x27;d_omsetning_kaffe&#x27;, &#x27;d_omsetning_te&#x27;, &#x27;d_omsetning_vin&#x27;, &#x27;d_omsetning_øl&#x27;, &#x27;e_omsetning_brus&#x27;, &#x27;e_omsetning_kaffe&#x27;, &#x27;e_omsetning_te&#x27;, &#x27;e_omsetning_vin&#x27;, &#x27;e_omsetning_øl&#x27;, &#x27;f_omsetning_brus&#x27;, &#x27;f_omsetning_kaffe&#x27;, &#x27;f_omsetning_te&#x27;, &#x27;f_omsetning_vin&#x27;, &#x27;f_omsetning_øl&#x27;, &#x27;g_omsetning_brus&#x27;, &#x27;g_omsetning_kaffe&#x27;, &#x27;g_omsetning_te&#x27;, &#x27;g_omsetning_vin&#x27;, &#x27;g_omsetning_øl&#x27;, &#x27;h_omsetning_brus&#x27;, &#x27;h_omsetning_kaffe&#x27;, &#x27;h_omsetning_te&#x27;, &#x27;h_omsetning_vin&#x27;, &#x27;h_omsetning_øl&#x27;, &#x27;i_omsetning_brus&#x27;, &#x27;i_omsetning_kaffe&#x27;, &#x27;i_omsetning_te&#x27;, &#x27;i_omsetning_vin&#x27;, &#x27;i_omsetning_øl&#x27;, &#x27;j_omsetning_brus&#x27;, &#x27;j_omsetning_kaffe&#x27;, &#x27;j_omsetning_te&#x27;, &#x27;j_omsetning_vin&#x27;, &#x27;j_omsetning_øl&#x27;, &#x27;k_omsetning_brus&#x27;, &#x27;k_omsetning_kaffe&#x27;, &#x27;k_omsetning_te&#x27;, &#x27;k_omsetning_vin&#x27;, &#x27;k_omsetning_øl&#x27;, &#x27;l_omsetning_brus&#x27;, &#x27;l_omsetning_kaffe&#x27;, &#x27;l_omsetning_te&#x27;, &#x27;l_omsetning_vin&#x27;, &#x27;l_omsetning_øl&#x27;, &#x27;m_omsetning_brus&#x27;, &#x27;m_omsetning_kaffe&#x27;, &#x27;m_omsetning_te&#x27;, &#x27;m_omsetning_vin&#x27;, &#x27;m_omsetning_øl&#x27;, &#x27;n_omsetning_brus&#x27;, &#x27;n_omsetning_kaffe&#x27;, &#x27;n_omsetning_te&#x27;, &#x27;n_omsetning_vin&#x27;, &#x27;n_omsetning_øl&#x27;, &#x27;o_omsetning_brus&#x27;, &#x27;o_omsetning_kaffe&#x27;, &#x27;o_omsetning_te&#x27;, &#x27;o_omsetning_vin&#x27;, &#x27;o_omsetning_øl&#x27;, &#x27;p_omsetning_brus&#x27;, &#x27;p_omsetning_kaffe&#x27;, &#x27;p_omsetning_te&#x27;, &#x27;p_omsetning_vin&#x27;, &#x27;p_omsetning_øl&#x27;, &#x27;q_omsetning_brus&#x27;, &#x27;q_omsetning_kaffe&#x27;, &#x27;q_omsetning_te&#x27;, &#x27;q_omsetning_vin&#x27;, &#x27;q_omsetning_øl&#x27;, &#x27;r_omsetning_brus&#x27;, &#x27;r_omsetning_kaffe&#x27;, &#x27;r_omsetning_te&#x27;, &#x27;r_omsetning_vin&#x27;, &#x27;r_omsetning_øl&#x27;, &#x27;s_omsetning_brus&#x27;, &#x27;s_omsetning_kaffe&#x27;, &#x27;s_omsetning_te&#x27;, &#x27;s_omsetning_vin&#x27;, &#x27;s_omsetning_øl&#x27;, &#x27;t_omsetning_brus&#x27;, &#x27;t_omsetning_kaffe&#x27;, &#x27;t_omsetning_te&#x27;, &#x27;t_omsetning_vin&#x27;, &#x27;t_omsetning_øl&#x27;, &#x27;u_omsetning_brus&#x27;, &#x27;u_omsetning_kaffe&#x27;, &#x27;u_omsetning_te&#x27;, &#x27;u_omsetning_vin&#x27;, &#x27;u_omsetning_øl&#x27;, &#x27;v_omsetning_brus&#x27;, &#x27;v_omsetning_kaffe&#x27;, &#x27;v_omsetning_te&#x27;, &#x27;v_omsetning_vin&#x27;, &#x27;v_omsetning_øl&#x27;, &#x27;w_omsetning_brus&#x27;, &#x27;w_omsetning_kaffe&#x27;, &#x27;w_omsetning_te&#x27;, &#x27;w_omsetning_vin&#x27;, &#x27;w_omsetning_øl&#x27;, &#x27;x_omsetning_brus&#x27;, &#x27;x_omsetning_kaffe&#x27;, &#x27;x_omsetning_te&#x27;, &#x27;x_omsetning_vin&#x27;, &#x27;x_omsetning_øl&#x27;, &#x27;y_omsetning_brus&#x27;, &#x27;y_omsetning_kaffe&#x27;, &#x27;y_omsetning_te&#x27;, &#x27;y_omsetning_vin&#x27;, &#x27;y_omsetning_øl&#x27;, &#x27;z_omsetning_brus&#x27;, &#x27;z_omsetning_kaffe&#x27;, &#x27;z_omsetning_te&#x27;, &#x27;z_omsetning_vin&#x27;, &#x27;z_omsetning_øl&#x27;&#93;&quot;, &#x27;data&#x27;: (6, 132)}
-</pre>
-
-```python {.marimo}
-omsetning.save()
-print(tree(data_path))
-```
-
-<!-- @output:YWSi -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
-├── AS_OF_AT/
-│   ├── Sample Data/
-│   │   ├── Sample Data-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-02-29T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-10-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-11-30T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2024-12-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-01-31T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-02-28T230000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-03-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-04-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-05-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-06-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-07-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-08-31T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-09-30T220000+0000-data.parquet
-│   │   ├── Sample Data-as_of_2025-10-31T230000+0000-data.parquet
-│   │   └── Sample Data-as_of_2025-11-30T230000+0000-data.parquet
-│   └── XYZ/
-│       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-02T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-03T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
-│       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
-├── AS_OF_FROM_TO/
-│   └── Prices and Volumes/
-│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-02-29T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-10-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-11-30T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2024-12-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-01-31T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-02-28T230000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-03-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-04-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-06-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-07-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-08-31T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-09-30T220000+0000-data.parquet
-│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
-│       └── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
-├── metadata/
-│   ├── A Sample Dataset-metadata.json
-│   ├── AZ Drinks-metadata.json
-│   ├── AZ_drikkevarer-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── AZ_omsetning-metadata.json
-│   ├── More Prices and Volumes-metadata.json
-│   ├── PQR-metadata.json
-│   ├── Prices and Volumes-metadata.json
-│   ├── Sample Data-metadata.json
-│   └── XYZ-metadata.json
-├── NONE_AT/
-│   ├── A Sample Dataset/
-│   │   └── A Sample Dataset-latest-data.parquet
-│   ├── PQR/
-│   │   └── PQR-latest-data.parquet
-│   └── XYZ/
-│       └── XYZ-latest-data.parquet
-└── NONE_FROM_TO/
-    ├── AZ Drinks/
-    │   └── AZ Drinks-latest-data.parquet
-    ├── AZ_drikkevarer/
-    │   └── AZ_drikkevarer-latest-data.parquet
-    ├── AZ_drinks/
-    │   └── AZ_drinks-latest-data.parquet
-    ├── AZ_omsetning/
-    │   └── AZ_omsetning-latest-data.parquet
-    └── More Prices and Volumes/
-        └── More Prices and Volumes-latest-data.parquet
-
-</pre>
-
-```python {.marimo}
-# review the data
-print(priser.data)
-print(antall.data)
-print(str(omsetning))
-```
-
-<!-- @output:zlud -->
-
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">shape: (6, 132)
-┌───────────┬───────────┬───────────┬───────────┬───┬───────────┬───────────┬───────────┬──────────┐
-│ valid_fro ┆ valid_to  ┆ a_pris_br ┆ a_pris_ka ┆ … ┆ z_pris_ka ┆ z_pris_te ┆ z_pris_vi ┆ z_pris_ø │
-│ m         ┆ ---       ┆ us        ┆ ffe       ┆   ┆ ffe       ┆ ---       ┆ n         ┆ l        │
-│ ---       ┆ datetime&#91; ┆ ---       ┆ ---       ┆   ┆ ---       ┆ f64       ┆ ---       ┆ ---      │
-│ datetime&#91; ┆ μs&#93;       ┆ f64       ┆ f64       ┆   ┆ f64       ┆           ┆ f64       ┆ f64      │
-│ μs&#93;       ┆           ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-╞═══════════╪═══════════╪═══════════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪══════════╡
-│ 2025-01-0 ┆ 2025-02-0 ┆ 90.0      ┆ 120.0     ┆ … ┆ 100.0     ┆ 90.0      ┆ 110.0     ┆ 80.0     │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-02-0 ┆ 2025-03-0 ┆ 120.0     ┆ 90.0      ┆ … ┆ 100.0     ┆ 110.0     ┆ 120.0     ┆ 90.0     │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-03-0 ┆ 2025-04-0 ┆ 100.0     ┆ 110.0     ┆ … ┆ 90.0      ┆ 110.0     ┆ 120.0     ┆ 100.0    │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-04-0 ┆ 2025-05-0 ┆ 110.0     ┆ 90.0      ┆ … ┆ 110.0     ┆ 100.0     ┆ 90.0      ┆ 90.0     │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-05-0 ┆ 2025-06-0 ┆ 100.0     ┆ 100.0     ┆ … ┆ 110.0     ┆ 110.0     ┆ 90.0      ┆ 90.0     │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-06-0 ┆ 2025-07-0 ┆ 110.0     ┆ 90.0      ┆ … ┆ 90.0      ┆ 100.0     ┆ 100.0     ┆ 90.0     │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-└───────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴──────────┘
-shape: (6, 132)
-┌───────────┬───────────┬───────────┬───────────┬───┬───────────┬───────────┬───────────┬──────────┐
-│ valid_fro ┆ valid_to  ┆ a_antall_ ┆ a_antall_ ┆ … ┆ z_antall_ ┆ z_antall_ ┆ z_antall_ ┆ z_antall │
-│ m         ┆ ---       ┆ brus      ┆ kaffe     ┆   ┆ kaffe     ┆ te        ┆ vin       ┆ _øl      │
-│ ---       ┆ datetime&#91; ┆ ---       ┆ ---       ┆   ┆ ---       ┆ ---       ┆ ---       ┆ ---      │
-│ datetime&#91; ┆ μs&#93;       ┆ f64       ┆ f64       ┆   ┆ f64       ┆ f64       ┆ f64       ┆ f64      │
-│ μs&#93;       ┆           ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-╞═══════════╪═══════════╪═══════════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪══════════╡
-│ 2025-01-0 ┆ 2025-02-0 ┆ 80.0      ┆ 110.0     ┆ … ┆ 110.0     ┆ 90.0      ┆ 110.0     ┆ 100.0    │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-02-0 ┆ 2025-03-0 ┆ 100.0     ┆ 80.0      ┆ … ┆ 100.0     ┆ 80.0      ┆ 100.0     ┆ 120.0    │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-03-0 ┆ 2025-04-0 ┆ 100.0     ┆ 100.0     ┆ … ┆ 100.0     ┆ 100.0     ┆ 100.0     ┆ 100.0    │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-04-0 ┆ 2025-05-0 ┆ 90.0      ┆ 90.0      ┆ … ┆ 90.0      ┆ 110.0     ┆ 120.0     ┆ 100.0    │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-05-0 ┆ 2025-06-0 ┆ 110.0     ┆ 80.0      ┆ … ┆ 110.0     ┆ 120.0     ┆ 100.0     ┆ 100.0    │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 2025-06-0 ┆ 2025-07-0 ┆ 110.0     ┆ 90.0      ┆ … ┆ 90.0      ┆ 100.0     ┆ 110.0     ┆ 100.0    │
-│ 1         ┆ 1         ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-│ 00:00:00  ┆ 00:00:00  ┆           ┆           ┆   ┆           ┆           ┆           ┆          │
-└───────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴──────────┘
-{&#x27;name&#x27;: &#x27;AZ_omsetning&#x27;, &#x27;data_type&#x27;: &#x27;NONE_FROM_TO&#x27;, &#x27;as_of_utc&#x27;: None, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;series&#x27;: &quot;&#91;&#x27;a_omsetning_brus&#x27;, &#x27;a_omsetning_kaffe&#x27;, &#x27;a_omsetning_te&#x27;, &#x27;a_omsetning_vin&#x27;, &#x27;a_omsetning_øl&#x27;, &#x27;b_omsetning_brus&#x27;, &#x27;b_omsetning_kaffe&#x27;, &#x27;b_omsetning_te&#x27;, &#x27;b_omsetning_vin&#x27;, &#x27;b_omsetning_øl&#x27;, &#x27;c_omsetning_brus&#x27;, &#x27;c_omsetning_kaffe&#x27;, &#x27;c_omsetning_te&#x27;, &#x27;c_omsetning_vin&#x27;, &#x27;c_omsetning_øl&#x27;, &#x27;d_omsetning_brus&#x27;, &#x27;d_omsetning_kaffe&#x27;, &#x27;d_omsetning_te&#x27;, &#x27;d_omsetning_vin&#x27;, &#x27;d_omsetning_øl&#x27;, &#x27;e_omsetning_brus&#x27;, &#x27;e_omsetning_kaffe&#x27;, &#x27;e_omsetning_te&#x27;, &#x27;e_omsetning_vin&#x27;, &#x27;e_omsetning_øl&#x27;, &#x27;f_omsetning_brus&#x27;, &#x27;f_omsetning_kaffe&#x27;, &#x27;f_omsetning_te&#x27;, &#x27;f_omsetning_vin&#x27;, &#x27;f_omsetning_øl&#x27;, &#x27;g_omsetning_brus&#x27;, &#x27;g_omsetning_kaffe&#x27;, &#x27;g_omsetning_te&#x27;, &#x27;g_omsetning_vin&#x27;, &#x27;g_omsetning_øl&#x27;, &#x27;h_omsetning_brus&#x27;, &#x27;h_omsetning_kaffe&#x27;, &#x27;h_omsetning_te&#x27;, &#x27;h_omsetning_vin&#x27;, &#x27;h_omsetning_øl&#x27;, &#x27;i_omsetning_brus&#x27;, &#x27;i_omsetning_kaffe&#x27;, &#x27;i_omsetning_te&#x27;, &#x27;i_omsetning_vin&#x27;, &#x27;i_omsetning_øl&#x27;, &#x27;j_omsetning_brus&#x27;, &#x27;j_omsetning_kaffe&#x27;, &#x27;j_omsetning_te&#x27;, &#x27;j_omsetning_vin&#x27;, &#x27;j_omsetning_øl&#x27;, &#x27;k_omsetning_brus&#x27;, &#x27;k_omsetning_kaffe&#x27;, &#x27;k_omsetning_te&#x27;, &#x27;k_omsetning_vin&#x27;, &#x27;k_omsetning_øl&#x27;, &#x27;l_omsetning_brus&#x27;, &#x27;l_omsetning_kaffe&#x27;, &#x27;l_omsetning_te&#x27;, &#x27;l_omsetning_vin&#x27;, &#x27;l_omsetning_øl&#x27;, &#x27;m_omsetning_brus&#x27;, &#x27;m_omsetning_kaffe&#x27;, &#x27;m_omsetning_te&#x27;, &#x27;m_omsetning_vin&#x27;, &#x27;m_omsetning_øl&#x27;, &#x27;n_omsetning_brus&#x27;, &#x27;n_omsetning_kaffe&#x27;, &#x27;n_omsetning_te&#x27;, &#x27;n_omsetning_vin&#x27;, &#x27;n_omsetning_øl&#x27;, &#x27;o_omsetning_brus&#x27;, &#x27;o_omsetning_kaffe&#x27;, &#x27;o_omsetning_te&#x27;, &#x27;o_omsetning_vin&#x27;, &#x27;o_omsetning_øl&#x27;, &#x27;p_omsetning_brus&#x27;, &#x27;p_omsetning_kaffe&#x27;, &#x27;p_omsetning_te&#x27;, &#x27;p_omsetning_vin&#x27;, &#x27;p_omsetning_øl&#x27;, &#x27;q_omsetning_brus&#x27;, &#x27;q_omsetning_kaffe&#x27;, &#x27;q_omsetning_te&#x27;, &#x27;q_omsetning_vin&#x27;, &#x27;q_omsetning_øl&#x27;, &#x27;r_omsetning_brus&#x27;, &#x27;r_omsetning_kaffe&#x27;, &#x27;r_omsetning_te&#x27;, &#x27;r_omsetning_vin&#x27;, &#x27;r_omsetning_øl&#x27;, &#x27;s_omsetning_brus&#x27;, &#x27;s_omsetning_kaffe&#x27;, &#x27;s_omsetning_te&#x27;, &#x27;s_omsetning_vin&#x27;, &#x27;s_omsetning_øl&#x27;, &#x27;t_omsetning_brus&#x27;, &#x27;t_omsetning_kaffe&#x27;, &#x27;t_omsetning_te&#x27;, &#x27;t_omsetning_vin&#x27;, &#x27;t_omsetning_øl&#x27;, &#x27;u_omsetning_brus&#x27;, &#x27;u_omsetning_kaffe&#x27;, &#x27;u_omsetning_te&#x27;, &#x27;u_omsetning_vin&#x27;, &#x27;u_omsetning_øl&#x27;, &#x27;v_omsetning_brus&#x27;, &#x27;v_omsetning_kaffe&#x27;, &#x27;v_omsetning_te&#x27;, &#x27;v_omsetning_vin&#x27;, &#x27;v_omsetning_øl&#x27;, &#x27;w_omsetning_brus&#x27;, &#x27;w_omsetning_kaffe&#x27;, &#x27;w_omsetning_te&#x27;, &#x27;w_omsetning_vin&#x27;, &#x27;w_omsetning_øl&#x27;, &#x27;x_omsetning_brus&#x27;, &#x27;x_omsetning_kaffe&#x27;, &#x27;x_omsetning_te&#x27;, &#x27;x_omsetning_vin&#x27;, &#x27;x_omsetning_øl&#x27;, &#x27;y_omsetning_brus&#x27;, &#x27;y_omsetning_kaffe&#x27;, &#x27;y_omsetning_te&#x27;, &#x27;y_omsetning_vin&#x27;, &#x27;y_omsetning_øl&#x27;, &#x27;z_omsetning_brus&#x27;, &#x27;z_omsetning_kaffe&#x27;, &#x27;z_omsetning_te&#x27;, &#x27;z_omsetning_vin&#x27;, &#x27;z_omsetning_øl&#x27;&#93;&quot;, &#x27;data&#x27;: (6, 132)}
-</pre>
-
-### Eksempel: momentane data, *med* versjonering
+### Example: point-in-time data, *with* versioning
 
 ```python {.marimo}
 estimated_point_in_time = SeriesType(Versioning.AS_OF, Temporality.AT)
@@ -5678,17 +2745,17 @@ n = 7
 data_for_n_days_prior('2024-03-15', n)
 ```
 
-<!-- @output:cEAS -->
+<!-- @output:jxvo -->
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2024-03-08 | 90.0 | 90.0 | 100.0 |
-| 2024-03-09 | 90.0 | 90.0 | 100.0 |
-| 2024-03-10 | 90.0 | 120.0 | 100.0 |
-| 2024-03-11 | 110.0 | 100.0 | 100.0 |
-| 2024-03-12 | 100.0 | 110.0 | 100.0 |
-| 2024-03-13 | 100.0 | 100.0 | 100.0 |
-| 2024-03-14 | 110.0 | 90.0 | 110.0 |
+| 2024-03-08 00:00:00+01:00 | 90.0 | 100.0 | 100.0 |
+| 2024-03-09 00:00:00+01:00 | 90.0 | 100.0 | 100.0 |
+| 2024-03-10 00:00:00+01:00 | 80.0 | 100.0 | 90.0 |
+| 2024-03-11 00:00:00+01:00 | 110.0 | 100.0 | 100.0 |
+| 2024-03-12 00:00:00+01:00 | 100.0 | 90.0 | 100.0 |
+| 2024-03-13 00:00:00+01:00 | 90.0 | 100.0 | 100.0 |
+| 2024-03-14 00:00:00+01:00 | 100.0 | 100.0 | 90.0 |
 
 ```python {.marimo}
 as_of_dates = ['2025-05-01','2025-06-01','2025-08-03','2025-08-04','2025-08-05','2025-08-06','2025-08-07']
@@ -5721,91 +2788,234 @@ specific = Dataset('XYZ', as_of_tz='2025-08-04')
 specific
 ```
 
-<!-- @output:kLmu -->
+<!-- @output:tZnO -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;XYZ&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=&quot;2025-08-03T22:00:00+00:00&quot;)</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;XYZ&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.AS_OF,Temporality.AT), as_of_tz=&quot;2025-08-03T22:00:00+00:00&quot;)</pre>
 
 ```python {.marimo}
 last
 ```
 
-<!-- @output:IpqN -->
+<!-- @output:xvXZ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;XYZ&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=&quot;2025-08-06T22:00:00+00:00&quot;)</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;XYZ&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.AS_OF,Temporality.AT), as_of_tz=&quot;2025-08-06T22:00:00+00:00&quot;)</pre>
 
 ```python {.marimo}
 first.nw.to_pandas()
 ```
 
-<!-- @output:dxZZ -->
+<!-- @output:CLip -->
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2021-12-31 23:00:00+00:00 | 90.0 | 110.0 | 120.0 |
-| 2022-01-31 23:00:00+00:00 | 90.0 | 100.0 | 90.0 |
-| 2022-02-28 23:00:00+00:00 | 130.0 | 100.0 | 90.0 |
-| 2022-03-31 22:00:00+00:00 | 100.0 | 80.0 | 110.0 |
-| 2022-04-30 22:00:00+00:00 | 100.0 | 100.0 | 90.0 |
-| ... | ... | ... | ... |
-| 2022-07-31 22:00:00+00:00 | 90.0 | 90.0 | 90.0 |
-| 2022-08-31 22:00:00+00:00 | 100.0 | 110.0 | 100.0 |
-| 2022-09-30 22:00:00+00:00 | 100.0 | 110.0 | 100.0 |
-| 2022-10-31 23:00:00+00:00 | 100.0 | 120.0 | 90.0 |
-| 2022-11-30 23:00:00+00:00 | 90.0 | 100.0 | 120.0 |
+| 2025-04-23 22:00:00+00:00 | 80.0 | 90.0 | 110.0 |
+| 2025-04-24 22:00:00+00:00 | 120.0 | 100.0 | 100.0 |
+| 2025-04-25 22:00:00+00:00 | 80.0 | 80.0 | 100.0 |
+| 2025-04-26 22:00:00+00:00 | 80.0 | 90.0 | 90.0 |
+| 2025-04-27 22:00:00+00:00 | 110.0 | 110.0 | 90.0 |
+| 2025-04-28 22:00:00+00:00 | 90.0 | 120.0 | 110.0 |
+| 2025-04-29 22:00:00+00:00 | 80.0 | 110.0 | 100.0 |
 
 ```python {.marimo}
 last.nw.to_pandas()
 ```
 
-<!-- @output:dlnW -->
+<!-- @output:YECM -->
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2021-12-31 23:00:00+00:00 | 90.0 | 110.0 | 120.0 |
-| 2022-01-31 23:00:00+00:00 | 90.0 | 100.0 | 90.0 |
-| 2022-02-28 23:00:00+00:00 | 130.0 | 100.0 | 90.0 |
-| 2022-03-31 22:00:00+00:00 | 100.0 | 80.0 | 110.0 |
-| 2022-04-30 22:00:00+00:00 | 100.0 | 100.0 | 90.0 |
-| ... | ... | ... | ... |
-| 2022-07-31 22:00:00+00:00 | 90.0 | 90.0 | 90.0 |
-| 2022-08-31 22:00:00+00:00 | 100.0 | 110.0 | 100.0 |
-| 2022-09-30 22:00:00+00:00 | 100.0 | 110.0 | 100.0 |
-| 2022-10-31 23:00:00+00:00 | 100.0 | 120.0 | 90.0 |
-| 2022-11-30 23:00:00+00:00 | 90.0 | 100.0 | 120.0 |
+| 2025-07-30 22:00:00+00:00 | 90.0 | 100.0 | 100.0 |
+| 2025-07-31 22:00:00+00:00 | 100.0 | 90.0 | 80.0 |
+| 2025-08-01 22:00:00+00:00 | 80.0 | 90.0 | 100.0 |
+| 2025-08-02 22:00:00+00:00 | 100.0 | 90.0 | 90.0 |
+| 2025-08-03 22:00:00+00:00 | 100.0 | 110.0 | 110.0 |
+| 2025-08-04 22:00:00+00:00 | 110.0 | 120.0 | 100.0 |
+| 2025-08-05 22:00:00+00:00 | 110.0 | 100.0 | 80.0 |
 
 ```python {.marimo}
 diff = last - first
 diff
 ```
 
-<!-- @output:TTti -->
+<!-- @output:cEAS -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;(XYZ.subtract.XYZ)&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=&quot;2025-08-06T22:00:00+00:00&quot;)</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;(XYZ.subtract.XYZ)&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.AS_OF,Temporality.AT), as_of_tz=&quot;2025-08-06T22:00:00+00:00&quot;)</pre>
 
 ```python {.marimo}
 diff.nw.to_pandas()
 ```
 
-<!-- @output:RKFZ -->
+<!-- @output:iXej -->
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2021-12-31 23:00:00+00:00 | 0.0 | 0.0 | 0.0 |
-| 2022-01-31 23:00:00+00:00 | 0.0 | 0.0 | 0.0 |
-| 2022-02-28 23:00:00+00:00 | 0.0 | 0.0 | 0.0 |
-| 2022-03-31 22:00:00+00:00 | 0.0 | 0.0 | 0.0 |
-| 2022-04-30 22:00:00+00:00 | 0.0 | 0.0 | 0.0 |
-| ... | ... | ... | ... |
-| 2022-07-31 22:00:00+00:00 | 0.0 | 0.0 | 0.0 |
-| 2022-08-31 22:00:00+00:00 | 0.0 | 0.0 | 0.0 |
-| 2022-09-30 22:00:00+00:00 | 0.0 | 0.0 | 0.0 |
-| 2022-10-31 23:00:00+00:00 | 0.0 | 0.0 | 0.0 |
-| 2022-11-30 23:00:00+00:00 | 0.0 | 0.0 | 0.0 |
+| 2025-07-30 22:00:00+00:00 | 10.0 | 10.0 | -10.0 |
+| 2025-07-31 22:00:00+00:00 | -20.0 | -10.0 | -20.0 |
+| 2025-08-01 22:00:00+00:00 | 0.0 | 10.0 | 0.0 |
+| 2025-08-02 22:00:00+00:00 | 20.0 | 0.0 | 0.0 |
+| 2025-08-03 22:00:00+00:00 | -10.0 | 0.0 | 20.0 |
+| 2025-08-04 22:00:00+00:00 | 20.0 | 0.0 | -10.0 |
+| 2025-08-05 22:00:00+00:00 | 30.0 | -10.0 | -20.0 |
 
-### Eksempel: data for periode/intervall, *med* versjonering
+### Example: data for periods, *with* versioning
 
 ```python {.marimo}
 estimated_interval_data = SeriesType(Versioning.AS_OF, Temporality.FROM_TO)
 ```
 
-... left as an excercise for the reader.
+```python {.marimo}
+def monthly_periods(start, end):
+    return create_df(
+        ['tea', 'coffee'],
+        ['quantity'],
+        start_date=start,
+        end_date=end,
+        freq='M',
+        temporality='FROM_TO',
+        implementation='polars'
+    )
+```
+
+```python {.marimo}
+beverage_periods = monthly_periods('2025-01-01', '2025-06-01')
+beverage_periods
+```
+
+<!-- @output:kLmu -->
+
+| valid_from | valid_to | tea_quantity | coffee_quantity |
+| --- | --- | --- | --- |
+| datetime[μs, Europe/Oslo] | datetime[μs, Europe/Oslo] | f64 | f64 |
+| 2025-01-01 00:00:00 CET | 2025-02-01 00:00:00 CET | 80.0 | 110.0 |
+| 2025-02-01 00:00:00 CET | 2025-03-01 00:00:00 CET | 120.0 | 110.0 |
+| 2025-03-01 00:00:00 CET | 2025-04-01 00:00:00 CEST | 120.0 | 100.0 |
+| 2025-04-01 00:00:00 CEST | 2025-05-01 00:00:00 CEST | 100.0 | 90.0 |
+| 2025-05-01 00:00:00 CEST | 2025-06-01 00:00:00 CEST | 100.0 | 100.0 |
+| 2025-06-01 00:00:00 CEST | 2025-07-01 00:00:00 CEST | 80.0 | 90.0 |
+
+```python {.marimo}
+bno = Dataset(
+    name = 'BNO',
+    data_type = estimated_interval_data,
+    data = beverage_periods,
+    attributes = ['product', 'variable'],
+)
+```
+
+```python {.marimo}
+bno.tags
+```
+
+<!-- @output:dxZZ -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;BNO&#x27;,
+ &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+ &#x27;series&#x27;: {&#x27;coffee_quantity&#x27;: {&#x27;dataset&#x27;: &#x27;BNO&#x27;,
+                                &#x27;name&#x27;: &#x27;coffee_quantity&#x27;,
+                                &#x27;product&#x27;: &#x27;coffee&#x27;,
+                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                                &#x27;versioning&#x27;: &#x27;AS_OF&#x27;},
+            &#x27;tea_quantity&#x27;: {&#x27;dataset&#x27;: &#x27;BNO&#x27;,
+                             &#x27;name&#x27;: &#x27;tea_quantity&#x27;,
+                             &#x27;product&#x27;: &#x27;tea&#x27;,
+                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+                             &#x27;variable&#x27;: &#x27;quantity&#x27;,
+                             &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}},
+ &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+ &#x27;versioning&#x27;: &#x27;AS_OF&#x27;}</pre>
+
+```python {.marimo}
+# the periods need two date columns, since they have a duration:
+bno.data
+```
+
+<!-- @output:dlnW -->
+
+| valid_from | valid_to | tea_quantity | coffee_quantity |
+| --- | --- | --- | --- |
+| datetime[ns, UTC] | datetime[ns, UTC] | f64 | f64 |
+| 2024-12-31 23:00:00 UTC | 2025-01-31 23:00:00 UTC | 80.0 | 110.0 |
+| 2025-01-31 23:00:00 UTC | 2025-02-28 23:00:00 UTC | 120.0 | 110.0 |
+| 2025-02-28 23:00:00 UTC | 2025-03-31 22:00:00 UTC | 120.0 | 100.0 |
+| 2025-03-31 22:00:00 UTC | 2025-04-30 22:00:00 UTC | 100.0 | 90.0 |
+| 2025-04-30 22:00:00 UTC | 2025-05-31 22:00:00 UTC | 100.0 | 100.0 |
+| 2025-05-31 22:00:00 UTC | 2025-06-30 22:00:00 UTC | 80.0 | 90.0 |
+
+```python {.marimo}
+# every production run writes a new file, named after the as of date
+for _as_of in ['2025-06-01', '2025-08-07']:
+    Dataset(
+        name = 'BNO',
+        data_type = estimated_interval_data,
+        as_of_tz=date_utc(_as_of),
+        data = beverage_periods,
+    ).save()
+```
+
+```python {.marimo}
+# versioning and temporality together decide the folder layout:
+print(tree(f'{data_path}/AS_OF_FROM_TO'))
+```
+
+<!-- @output:RKFZ -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">AS_OF_FROM_TO/
+└── BNO/
+    ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+    └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+
+</pre>
+
+```python {.marimo}
+bno_june = Dataset('BNO', as_of_tz='2025-06-01')
+```
+
+```python {.marimo}
+bno_june.nw.to_pandas()
+```
+
+<!-- @output:IWgg -->
+
+| valid_from | valid_to | coffee_quantity | tea_quantity |
+| --- | --- | --- | --- |
+| 2024-12-31 23:00:00+00:00 | 2025-01-31 23:00:00+00:00 | 110.0 | 80.0 |
+| 2025-01-31 23:00:00+00:00 | 2025-02-28 23:00:00+00:00 | 110.0 | 120.0 |
+| 2025-02-28 23:00:00+00:00 | 2025-03-31 22:00:00+00:00 | 100.0 | 120.0 |
+| 2025-03-31 22:00:00+00:00 | 2025-04-30 22:00:00+00:00 | 90.0 | 100.0 |
+| 2025-04-30 22:00:00+00:00 | 2025-05-31 22:00:00+00:00 | 100.0 | 100.0 |
+| 2025-05-31 22:00:00+00:00 | 2025-06-30 22:00:00+00:00 | 90.0 | 80.0 |
+
+```python {.marimo}
+# the as of date is not part of the data, it identifies the version:
+'as_of' in bno_june.nw.columns
+```
+
+<!-- @output:fCoF -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">False</pre>
+
+```python {.marimo}
+from ssb_timeseries.io import versions
+
+# ... it is the version marker of the file the data is read from:
+versions(bno_june)
+```
+
+<!-- @output:LkGn -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;2025-05-31 22:00:00+00:00&#x27;, &#x27;2025-08-06 22:00:00+00:00&#x27;&#93;</pre>
+
+### What the series type decides
+
+| series type | date columns in `.data` | stored as |
+|---|---|---|
+| `SeriesType(NONE, AT)` | `valid_at` | one file, `NONE_AT/<name>/<name>-latest-data.parquet` |
+| `SeriesType(NONE, FROM_TO)` | `valid_from`, `valid_to` | one file, `NONE_FROM_TO/<name>/<name>-latest-data.parquet` |
+| `SeriesType(AS_OF, AT)` | `valid_at` | one file per version, `AS_OF_AT/<name>/<name>-as_of_<timestamp>-data.parquet` |
+| `SeriesType(AS_OF, FROM_TO)` | `valid_from`, `valid_to` | one file per version, `AS_OF_FROM_TO/<name>/<name>-as_of_<timestamp>-data.parquet` |
+
+Without versioning, a save merges the new data into the single existing file, as seen above with PQR.
+With `AS_OF`, a save never overwrites: it adds a file, and the `as_of` column it writes there is a storage detail that `.data` does not expose.

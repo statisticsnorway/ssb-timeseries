@@ -19,16 +19,11 @@ def _():
     return CONFIG, tree
 
 
-@app.cell
-def _():
-    import subprocess
-
-    return
-
-
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    # Data types and storage
+
     ## Setup
     """)
     return
@@ -40,12 +35,6 @@ def _(CONFIG):
     data_path = CONFIG.repositories['tutorials']['directory']['options']['path']
     print(data_path)
     return (data_path,)
-
-
-@app.cell
-def _():
-    demo_product = 'demo-data-produkt'
-    return
 
 
 @app.cell
@@ -67,7 +56,7 @@ def _():
 def _():
     from datetime import timedelta
 
-    from ssb_timeseries.sample_data import create_df,date_ranges
+    from ssb_timeseries.sample_data import create_df
     from ssb_timeseries.dates import ensure_datetime, date_utc
 
     return create_df, date_utc, ensure_datetime, timedelta
@@ -78,13 +67,13 @@ def _():
     import polars as pl
     from datetime import datetime
 
-    return (pl,)
+    return pl, datetime
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Lasting av data
+    ## Saving data
     """)
     return
 
@@ -92,7 +81,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Eksempel: momentane data, *uten* versjonering
+    ### Example: point-in-time data, *without* versioning
     """)
     return
 
@@ -149,11 +138,11 @@ def _(pqr):
 
 @app.cell
 def _(pqr):
-    pqr.tag_dataset(tags={'variabel': 'pris','varegruppe': 'nødvendigheter'})
+    pqr.tag_dataset(tags={'variable': 'price','product group': 'essentials'})
 
-    pqr.tag_series('p',tags={'vare': 'kaffe'})
-    pqr.tag_series('q',tags={'vare': 'knekkebrød'})
-    pqr.tag_series('r',tags={'vare': 'brunost'})
+    pqr.tag_series('p',tags={'product': 'coffee'})
+    pqr.tag_series('q',tags={'product': 'crispbread'})
+    pqr.tag_series('r',tags={'product': 'brown cheese'})
 
     pqr.tags
     return
@@ -271,7 +260,7 @@ def _(xx):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Eksempel: data for periode / intervall
+    ### Example: data for periods, *without* versioning
     """)
     return
 
@@ -286,8 +275,8 @@ def _(SeriesType, Temporality, Versioning):
 def _(create_df):
     def mock_interval_data_from_file_or_query(start, end):
         a_to_z = [chr(i) for i in range(ord('a'), ord('z') + 1)]
-        variables = ['antall', 'pris']
-        goods = ['kaffe', 'te', 'brus', 'øl', 'vin']
+        variables = ['quantity', 'price']
+        goods = ['coffee', 'tea', 'soda', 'beer', 'wine']
         return create_df(
             a_to_z, variables, goods,
             start_date=start,
@@ -316,10 +305,10 @@ def _(bigger_data):
 @app.cell
 def _(Dataset, bigger_data, interval_data):
     az = Dataset(
-        name = 'AZ_drikkevarer',
+        name = 'AZ_beverages',
         data_type = interval_data,
         data = bigger_data,
-        attributes=['butikk','variabel','vare'],
+        attributes=['store','variable','product'],
     )
     return (az,)
 
@@ -327,6 +316,13 @@ def _(Dataset, bigger_data, interval_data):
 @app.cell
 def _(az):
     az.tags
+    return
+
+
+@app.cell
+def _(az):
+    # the periods need two date columns, since they have a duration:
+    az.data
     return
 
 
@@ -346,64 +342,7 @@ def _(az, data_path, tree):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    #### Algebra
-    """)
-    return
-
-
-@app.cell
-def _(az):
-    az.tags
-    return
-
-
-@app.cell
-def _(az):
-    # bug: ValueError: Invalid dir_name: NONE_FROM_TO
-    # priser = Dataset('AZ_drikkevarer')[{'variabel':'pris'}]
-    # antall = Dataset('AZ_drikkevarer')[{'variabel':'antall'}]
-    priser = az[{'variabel':'pris'}]
-    antall = az[{'variabel':'antall'}]
-    omsetning = (priser * antall)
-    print(omsetning.name)
-    type(omsetning)
-    return antall, omsetning, priser
-
-
-@app.cell
-def _(omsetning):
-    omsetning.nw.to_pandas()
-    return
-
-
-@app.cell
-def _(omsetning):
-    omsetning.rename('AZ_omsetning', ('pris', 'omsetning'))
-    omsetning.replace_tags(({'variabel':'pris'},{'variabel':'omsetning'}))
-    print(omsetning)
-    return
-
-
-@app.cell
-def _(data_path, omsetning, tree):
-    omsetning.save()
-    print(tree(data_path))
-    return
-
-
-@app.cell
-def _(antall, omsetning, priser):
-    # review the data
-    print(priser.data)
-    print(antall.data)
-    print(str(omsetning))
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Eksempel: momentane data, *med* versjonering
+    ### Example: point-in-time data, *with* versioning
     """)
     return
 
@@ -519,7 +458,7 @@ def _(diff):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Eksempel: data for periode/intervall, *med* versjonering
+    ### Example: data for periods, *with* versioning
     """)
     return
 
@@ -527,13 +466,118 @@ def _(mo):
 @app.cell
 def _(SeriesType, Temporality, Versioning):
     estimated_interval_data = SeriesType(Versioning.AS_OF, Temporality.FROM_TO)
+    return (estimated_interval_data,)
+
+
+@app.cell
+def _(create_df):
+    def monthly_periods(start, end):
+        return create_df(
+            ['tea', 'coffee'],
+            ['quantity'],
+            start_date=start,
+            end_date=end,
+            freq='M',
+            temporality='FROM_TO',
+            implementation='polars'
+        )
+
+    return (monthly_periods,)
+
+
+@app.cell
+def _(monthly_periods):
+    beverage_periods = monthly_periods('2025-01-01', '2025-06-01')
+    beverage_periods
+    return (beverage_periods,)
+
+
+@app.cell
+def _(Dataset, beverage_periods, estimated_interval_data):
+    bno = Dataset(
+        name = 'BNO',
+        data_type = estimated_interval_data,
+        data = beverage_periods,
+        attributes = ['product', 'variable'],
+    )
+    return (bno,)
+
+
+@app.cell
+def _(bno):
+    bno.tags
+    return
+
+
+@app.cell
+def _(bno):
+    # the periods need two date columns, since they have a duration:
+    bno.data
+    return
+
+
+@app.cell
+def _(Dataset, beverage_periods, date_utc, estimated_interval_data):
+    # every production run writes a new file, named after the as of date
+    for _as_of in ['2025-06-01', '2025-08-07']:
+        Dataset(
+            name = 'BNO',
+            data_type = estimated_interval_data,
+            as_of_tz=date_utc(_as_of),
+            data = beverage_periods,
+        ).save()
+    return
+
+
+@app.cell
+def _(data_path, tree):
+    # versioning and temporality together decide the folder layout:
+    print(tree(f'{data_path}/AS_OF_FROM_TO'))
+    return
+
+
+@app.cell
+def _(Dataset):
+    bno_june = Dataset('BNO', as_of_tz='2025-06-01')
+    return (bno_june,)
+
+
+@app.cell
+def _(bno_june):
+    bno_june.nw.to_pandas()
+    return
+
+
+@app.cell
+def _(bno_june):
+    # the as of date is not part of the data, it identifies the version:
+    'as_of' in bno_june.nw.columns
+    return
+
+
+@app.cell
+def _(bno_june):
+    from ssb_timeseries.io import versions
+
+    # ... it is the version marker of the file the data is read from:
+    versions(bno_june)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ... left as an excercise for the reader.
+    ### What the series type decides
+
+    | series type | date columns in `.data` | stored as |
+    |---|---|---|
+    | `SeriesType(NONE, AT)` | `valid_at` | one file, `NONE_AT/<name>/<name>-latest-data.parquet` |
+    | `SeriesType(NONE, FROM_TO)` | `valid_from`, `valid_to` | one file, `NONE_FROM_TO/<name>/<name>-latest-data.parquet` |
+    | `SeriesType(AS_OF, AT)` | `valid_at` | one file per version, `AS_OF_AT/<name>/<name>-as_of_<timestamp>-data.parquet` |
+    | `SeriesType(AS_OF, FROM_TO)` | `valid_from`, `valid_to` | one file per version, `AS_OF_FROM_TO/<name>/<name>-as_of_<timestamp>-data.parquet` |
+
+    Without versioning, a save merges the new data into the single existing file, as seen above with PQR.
+    With `AS_OF`, a save never overwrites: it adds a file, and the `as_of` column it writes there is a storage detail that `.data` does not expose.
     """)
     return
 

@@ -47,7 +47,9 @@ def dates_are_strings() -> list:
         pytest.param("dates_are_dates"),
         pytest.param(
             "dates_are_strings",
-            marks=pytest.mark.xfail(reason="Dates as trings are not supported."),
+            # Archiving without saving first raises FileNotFoundError before the strings
+            # reach pyarrow, so that test passes incidentally.
+            marks=pytest.mark.xfail(reason="Dates as strings are not supported."),
         ),
     ],
 )
