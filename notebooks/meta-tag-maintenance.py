@@ -286,7 +286,8 @@ def _(mo):
 @app.cell
 def _(revenues):
     print(revenues.name)
-    print(revenues.series)
+    print(len(revenues.series), 'series, first five:')
+    print(revenues.series[:5])
     return
 
 
@@ -299,7 +300,8 @@ def _():
 def _(revenues):
     revenues.rename('AZ Revenue', ('price', 'revenue'))
     print(revenues.name)
-    print(revenues.series)
+    print(len(revenues.series), 'series, first five:')
+    print(revenues.series[:5])
     return
 
 

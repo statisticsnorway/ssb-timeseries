@@ -11,10 +11,15 @@ The exported Markdown files are written to ``docs/guides/``.
 
 import os
 from pathlib import Path
+import re
 import sys
 import subprocess
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+MAX_OUTPUT_BLOCK = 10_000
+
+OUTPUT_BLOCK_RE = re.compile(r"<pre[^>]*>.*?</pre>", re.DOTALL)
 
 NOTEBOOK_NAMES = [
         "quickstart",
@@ -33,6 +38,31 @@ NOTEBOOKS_DIR = PROJECT_ROOT / "notebooks"
 EXPORT_SCRIPT = PROJECT_ROOT / "tools" / "marimo_to_md.py"
 TARGET_DIR = PROJECT_ROOT / "docs" / "guides"
 CONFIG_FILE = NOTEBOOKS_DIR / "minimal_configuration.json"
+
+
+def oversized_blocks(guide: Path) -> list[int]:
+    """Return the sizes of output blocks in one guide that exceed the limit."""
+    text = guide.read_text(encoding="utf-8")
+    return [
+        len(match.group(0))
+        for match in OUTPUT_BLOCK_RE.finditer(text)
+        if len(match.group(0)) > MAX_OUTPUT_BLOCK
+    ]
+
+
+def check_output_sizes(notebooks: list[Path]) -> None:
+    """Fail the export when a guide renders an output block that is too large."""
+    oversized = [
+        f"{guide.name}: {size} characters"
+        for guide in (TARGET_DIR / f"{notebook.stem}.md" for notebook in notebooks)
+        if guide.is_file()
+        for size in oversized_blocks(guide)
+    ]
+    if oversized:
+        raise SystemExit(
+            f"Output blocks larger than {MAX_OUTPUT_BLOCK} characters:\n"
+            + "\n".join(oversized)
+        )
 
 
 def main():
@@ -56,6 +86,8 @@ def main():
         env=environment,
         check=True,
     )
+
+    check_output_sizes(notebooks)
 
 if __name__ == "__main__":
     main()
