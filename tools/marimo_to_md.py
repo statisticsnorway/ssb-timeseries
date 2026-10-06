@@ -23,8 +23,33 @@ Overwrites if files already exist.
 from __future__ import annotations
 
 import argparse
+import re
 import subprocess
 from pathlib import Path
+
+PYTEST_REPORT_MARKERS = ("Passed Tests:", "Summary:")
+
+OUTPUT_BLOCK_RE = re.compile(
+    r"(?:<!-- @output:[^>\n]* -->\s*)?<pre[^>]*>.*?</pre>\s*",
+    re.DOTALL,
+)
+
+
+def strip_pytest_report(text: str) -> str:
+    """Drop marimo's pytest report blocks from exported Markdown.
+
+    The report is written to stdout after the body of a ``test_`` cell, so no
+    in-cell suppression exists.
+    The assertion still decides whether the export succeeds; only the rendered
+    report is removed.
+    """
+    def replace(match: re.Match[str]) -> str:
+        block = match.group(0)
+        if all(marker in block for marker in PYTEST_REPORT_MARKERS):
+            return ""
+        return block
+
+    return OUTPUT_BLOCK_RE.sub(replace, text)
 
 
 def export_notebook(notebook: Path, output: Path) -> None:
@@ -50,6 +75,11 @@ def export_notebook(notebook: Path, output: Path) -> None:
         ],
         check=True,
     )
+
+    exported = output.read_text(encoding="utf-8")
+    stripped = strip_pytest_report(exported)
+    if stripped != exported:
+        output.write_text(stripped, encoding="utf-8")
 
 
 def export_notebooks(notebooks: list[Path], target: Path) -> None:
