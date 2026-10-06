@@ -63,9 +63,15 @@ def subprocess_run_marimo_notebook(notebook_name: str, config: Config):
     """Helper to run notebook with config as other tests.
 
     Running as script via subprocess.
+
+    HOME is redirected to the temporary tree, because quickstart.py saves a configuration
+    to the path in the 'default' preset, which is built from the home directory when the
+    config module is imported. TIMESERIES_CONFIG cannot redirect that write, since the
+    preset sets the path itself.
     """
     environment = os.environ.copy()
     environment[ENV_VAR_NAME] = str(config.configuration_file)
+    environment["HOME"] = str(Path(config.configuration_file).parent)
     environment["PYTHONPATH"] = os.pathsep.join(
         [str(PROJECT_ROOT / "tools"), environment.get("PYTHONPATH", "")]
     )
@@ -109,12 +115,10 @@ def import_and_run_marimo_app(notebook_name: str, config: Config):
 
 @pytest.mark.xfail(
     strict=True,
-    reason="quickstart.py runs `Config(preset='default').save()`, and that preset hardcodes "
-    "`configuration_file` to the user's home config, so TIMESERIES_CONFIG cannot redirect it. "
-    "Importing the notebook in-process therefore overwrites ~/.config/ssb_timeseries with the "
-    "preset dump. It also imports `testing`, which is only importable with tools/ on sys.path. "
-    "test_marimo_quickstart runs the same notebook in a subprocess, where the guide's own advice "
-    "holds, but that overwrites the home config too.",
+    reason="quickstart.py runs `Config(preset='default').save()`, and the preset hardcodes "
+    "`configuration_file` to `$HOME/.config/ssb_timeseries/timeseries_config.json` when the "
+    "config module is imported. In a subprocess HOME can be redirected, but in-process the "
+    "path is already built, so the notebook would overwrite the user's own configuration.",
 )
 def test_marimo_quickstart_in_process(buildup_and_teardown):
     result = import_and_run_marimo_app(
