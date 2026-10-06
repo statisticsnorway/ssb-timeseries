@@ -1,15 +1,18 @@
 """Export Marimo notebooks to Markdown for the Sphinx documentation.
 
-The notebooks are executed and exported using the project's configured
-minimal timeseries configuration.
+The notebooks are executed and exported through ``tools/marimo_to_md.py``,
+which supplies the project's minimal timeseries configuration and anchors the
+working directory at the repository root.
 
 Usage:
     poetry run python tools/export_all_guides.py
 
 The exported Markdown files are written to ``docs/guides/``.
+This runs every notebook in ``NOTEBOOK_NAMES`` and is the CI convenience for
+checking that the full inventory still exports; rebuild only the guides whose
+notebooks changed while editing.
 """
 
-import os
 from pathlib import Path
 import re
 import sys
@@ -78,12 +81,8 @@ def main():
             + "\n".join(map(str, missing))
         )
 
-    environment = os.environ.copy()
-    environment["TIMESERIES_CONFIG"] = str(CONFIG_FILE)
-
     subprocess.run(
         [sys.executable, str(EXPORT_SCRIPT), *notebooks, str(TARGET_DIR)],
-        env=environment,
         check=True,
     )
 

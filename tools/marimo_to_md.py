@@ -18,14 +18,22 @@ md/
 └── datasets.md
 
 Overwrites if files already exist.
+
+Each notebook is exported with `TIMESERIES_CONFIG` pointing at
+`notebooks/minimal_configuration.json` and the working directory anchored at the
+repository root, so a single notebook can be rebuilt without any environment setup.
 """
 
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+CONFIG_FILE = PROJECT_ROOT / "notebooks" / "minimal_configuration.json"
 
 PYTEST_REPORT_MARKERS = ("Passed Tests:", "Summary:")
 
@@ -54,7 +62,12 @@ def strip_pytest_report(text: str) -> str:
 
 def export_notebook(notebook: Path, output: Path) -> None:
     """Export one Marimo notebook to a Markdown file."""
+    if not CONFIG_FILE.is_file():
+        raise FileNotFoundError(f"Notebook configuration does not exist: {CONFIG_FILE}")
+
     output.parent.mkdir(parents=True, exist_ok=True)
+    notebook = notebook.resolve()
+    output = output.resolve()
 
     # subprocess.run(
     #     [
@@ -67,6 +80,9 @@ def export_notebook(notebook: Path, output: Path) -> None:
     #     check=True,
     # )
 
+    environment = os.environ.copy()
+    environment["TIMESERIES_CONFIG"] = str(CONFIG_FILE)
+
     subprocess.run(
         [
             "marimo-md-export",
@@ -74,6 +90,8 @@ def export_notebook(notebook: Path, output: Path) -> None:
             str(output),
         ],
         check=True,
+        cwd=PROJECT_ROOT,
+        env=environment,
     )
 
     exported = output.read_text(encoding="utf-8")
