@@ -1,9 +1,8 @@
 """Tests for the configurations that ship with the notebooks.
 
-`notebooks/minimal_configuration.json` and `notebooks/sharing_config.json` are what a
-contributor's `marimo` session and `tools/export_all_guides.py` load, but the notebook
-tests point `TIMESERIES_CONFIG` at a fixture built in `tests/conftest.py` instead, so
-nothing exercised these two files.
+`notebooks/minimal_configuration.json` is what a contributor's `marimo` session and
+`tools/export_all_guides.py` load, but the notebook tests point `TIMESERIES_CONFIG` at a
+fixture built in `tests/conftest.py` instead, so nothing exercised that file.
 
 Both defects that reached the guides were silent rather than loud.
 `is_valid_config` accepted a handler string naming a module that had been deleted,
@@ -12,7 +11,7 @@ A configuration whose `snapshots` section had been renamed to `archives` archive
 nothing at all, because `io.archive` reads `Config.active()["archives"] or {}`, finds
 it empty and returns.
 
-These tests read the shipped files as committed, rather than a fixture standing in for
+These tests read the shipped file as committed, rather than a fixture standing in for
 one, so they cannot drift with the fixture in the way the issue describes.
 """
 
@@ -28,7 +27,7 @@ from ssb_timeseries.config import validate_handlers
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 NOTEBOOKS_DIR = PROJECT_ROOT / "notebooks"
 
-SHIPPED_CONFIGURATIONS = ["minimal_configuration.json", "sharing_config.json"]
+SHIPPED_CONFIGURATIONS = ["minimal_configuration.json"]
 
 
 def load_shipped_configuration(filename: str) -> dict:
@@ -89,8 +88,8 @@ def test_every_handler_a_shipped_configuration_uses_is_declared_in_it(
 
     `_handler_class` reads `config.io_handlers[name]` with no fallback to
     `BUILTIN_IO_HANDLERS`, so a name that is not declared cannot be reached at all.
-    `sharing_config.json` once declared `my_snapshot_handler`, which exists nowhere, and
-    pointed two of its sections at it.
+    A since deleted `sharing_config.json` declared `my_snapshot_handler`, which exists
+    nowhere, and pointed two of its sections at it.
     """
     configuration = load_shipped_configuration(filename)
     declared = set(configuration["io_handlers"])
@@ -106,8 +105,8 @@ def test_a_shipped_configuration_names_builtins_the_way_they_are_registered(
 ) -> None:
     """A hand-copied handler path is the defect these configurations are prone to.
 
-    The notebook configurations transcribe the handler strings rather than reading them
-    from `BUILTIN_IO_HANDLERS`, which is how they came to disagree with the registry.
+    The notebook configuration transcribes the handler strings rather than reading them
+    from `BUILTIN_IO_HANDLERS`, which is how it came to disagree with the registry.
     Comparing the two catches that before a read does.
     """
     configuration = load_shipped_configuration(filename)
@@ -128,20 +127,20 @@ def test_a_shipped_configuration_names_builtins_the_way_they_are_registered(
     )
 
 
-def test_the_sharing_configuration_declares_where_data_is_archived_and_shared() -> None:
+def test_a_shipped_configuration_declares_where_data_is_archived_and_shared() -> None:
     """The sections must be present, or persisting a dataset silently writes nothing.
 
     `io.archive` reads `Config.active()["archives"] or {}` and returns when it is empty,
     and the same holds for sharing, so a renamed or dropped section yields a guide that
     exports successfully and demonstrates no archiving.
     """
-    configuration = load_shipped_configuration("sharing_config.json")
+    configuration = load_shipped_configuration("minimal_configuration.json")
 
     assert configuration.get("archives"), (
-        "sharing_config.json declares no archive destination, so io.archive returns "
-        "without writing anything"
+        "minimal_configuration.json declares no archive destination, so io.archive "
+        "returns without writing anything"
     )
     assert configuration.get("sharing"), (
-        "sharing_config.json declares no sharing destination, so shared data is "
+        "minimal_configuration.json declares no sharing destination, so shared data is "
         "silently not shared"
     )
