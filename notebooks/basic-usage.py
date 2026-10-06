@@ -401,10 +401,13 @@ def _(xyz):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    Planned: Iterators
-    ------------------
+    Iterating over Series
+    ---------------------
 
-    While many of the most used calculation features are implemented for the `Dataset` objects, iterating over `Series` ... --> TODO.
+    Iterating over a `Dataset` yields one `Series` per series name.
+    Each `Series` is an independent projection: its own value column plus the temporal columns, and `as_of_utc` when the dataset is `AS_OF` versioned.
+    Tags and technical properties stay controlled through the `Dataset`.
+    Mutating a `Series` does not change the `Dataset`, and later changes to the `Dataset` do not reach `Series` objects already produced.
     """)
     return
 
