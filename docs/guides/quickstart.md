@@ -47,7 +47,8 @@ From a terminal, the main entry point is `ssb-timeseries` or the shorthand `ts`:
 ``` bash
 ts config path
 ```
-will show the value of the TIMESERIES_CONFIG environment variable, if it is set.
+will show the path of the active configuration file,
+which is what the TIMESERIES_CONFIG environment variable points at once it has been set by `.activate()`.
 
 ``` bash
 ts config show [option]
@@ -82,7 +83,7 @@ cfg.activate()
 
 <!-- @output:BYtC -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f876cd3bd90&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f69232dfed0&gt;</pre>
 
 The defaults may be OK for local use or testing.
 <!---->
@@ -98,8 +99,10 @@ The variable will be gone when the active shell session that Python runs within 
 On a linux-like system, setting it permanently may look like:
 
 ```bash
-echo 'export TIMESERIES_CONFIG="~/.config/ssb_timeseries/config.json"' >> .bashrc
+echo 'export TIMESERIES_CONFIG=~/.config/ssb_timeseries/timeseries_config.json' >> ~/.bashrc
 ```
+
+Note that the `~` must not be quoted, since a quoted `~` is not expanded by the shell.
 
 To inspect the active configuration, either open the JSON file, or access it via `.active()`:
 
@@ -109,7 +112,7 @@ Config.active()
 
 <!-- @output:nWHF -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f876cd3bd90&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f69232dfed0&gt;</pre>
 
 An alternative way is:
 
@@ -121,7 +124,7 @@ ts.get_configuration()
 
 <!-- @output:ZHCJ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f876cd3bd90&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f69232dfed0&gt;</pre>
 
 ```python {.marimo}
 cfg is Config.active()

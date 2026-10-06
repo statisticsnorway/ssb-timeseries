@@ -21,6 +21,7 @@ Running with a predefined configuration file depnds on:
 Fixtures
 """
 
+import json
 import logging
 import os
 import uuid
@@ -615,3 +616,86 @@ def test_init_w_no_params_and_env_var_pointing_to_non_existing_file_raises_error
     with pytest.raises(FileNotFoundError):
         configuration = cfg.Config()
         test_logger.debug(f"Created configuration: {configuration}")
+
+
+# ============================ SAVE(): WHERE IT WRITES ============================
+
+
+def complete_config(configuration_file: Path, **overrides: object) -> dict:
+    """Build a complete valid configuration pointing at `configuration_file`.
+
+    The result can be passed to `Config()` as keyword arguments,
+    which is what keeps a configuration file out of the lookup.
+    """
+    payload = config.presets("default")
+    payload["configuration_file"] = str(configuration_file)
+    payload.update(overrides)
+    return payload
+
+
+def test_save_without_path_writes_to_the_configuration_file(
+    tmp_path: Path,
+) -> None:
+    """A configuration without an explicit path saves to its own configuration_file."""
+    cfg_file = tmp_path / "own.json"
+    cfg = config.Config(**complete_config(cfg_file))
+
+    cfg.save()
+
+    assert json.loads(cfg_file.read_text())["configuration_file"] == str(cfg_file)
+
+
+def test_save_with_path_writes_there_and_adopts_that_path(
+    tmp_path: Path,
+) -> None:
+    """An explicit path wins over the current configuration_file, and replaces it."""
+    cfg = config.Config(**complete_config(tmp_path / "own.json"))
+    elsewhere = tmp_path / "elsewhere.json"
+
+    cfg.save(path=str(elsewhere))
+
+    assert cfg.configuration_file == str(elsewhere)
+    assert json.loads(elsewhere.read_text())["configuration_file"] == str(elsewhere)
+    assert not (tmp_path / "own.json").exists()
+
+
+def test_save_without_a_path_and_without_a_configuration_file_raises() -> None:
+    """Saving has nowhere to write when neither argument nor configuration_file says so."""
+    cfg = config.Config(configuration_file="")
+
+    with pytest.raises(ValueError, match="must have a value"):
+        cfg.save()
+
+
+def test_a_configuration_file_contributes_its_own_configuration_file_value(
+    tmp_path: Path,
+) -> None:
+    """The file found through the environment variable decides where a save goes."""
+    read_from = tmp_path / "a.json"
+    write_to = tmp_path / "b.json"
+    read_from.write_text(json.dumps(complete_config(write_to)))
+
+    config.active_file(str(read_from))
+    cfg = config.Config()
+    read_from_before = read_from.read_text()
+
+    assert cfg.configuration_file == str(write_to)
+    cfg.save()
+    assert read_from.read_text() == read_from_before
+    assert json.loads(write_to.read_text())["configuration_file"] == str(write_to)
+
+
+def test_a_preset_configuration_ignores_the_environment_variable(
+    tmp_path: Path,
+) -> None:
+    """A preset carries its own configuration_file, whatever the environment variable says."""
+    named_by_env_var = tmp_path / "named_by_env_var.json"
+    named_by_env_var.write_text(json.dumps(complete_config(named_by_env_var)))
+    config.active_file(str(named_by_env_var))
+
+    cfg = config.Config(preset="defaults")
+
+    assert cfg.configuration_file == str(
+        config.PRESETS["defaults"]["configuration_file"]
+    )
+    assert cfg.configuration_file != str(named_by_env_var)

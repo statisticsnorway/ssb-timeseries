@@ -18,7 +18,7 @@ from typing import TypeAlias
 
 
 class FileRepoConfig(TypedDict):
-    """Links a path and a IO handler for a single file based repository."""
+    """Links a path and an I/O handler for a single file based repository."""
 
     handler: Required[str]
     options: Required[dict[str, Any]]
@@ -49,7 +49,7 @@ class ArchiveConfig(TypedDict):
 
 
 class ConfigDict(TypedDict):
-    """Required attributes for configuration."""
+    """Top level configuration fields: the required ones and the optional ones."""
 
     configuration_file: Required[str]
     io_handlers: Required[dict[str, Any]]
@@ -61,7 +61,7 @@ class ConfigDict(TypedDict):
 
 
 class MissingEnvironmentVariableError(Exception):
-    """The environment variable TIMESEREIS_CONFIG must be defined."""
+    """The environment variable TIMESERIES_CONFIG must be defined."""
 
     ...
 

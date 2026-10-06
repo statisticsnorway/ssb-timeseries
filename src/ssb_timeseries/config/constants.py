@@ -8,21 +8,23 @@ In most cases, this would happen behind the scene when :py:mod:`ssb_timeseries.d
 Directly accessing the configuration module should only be required when manipulating configurations from Python code.
 
 Example:
+    >>> from ssb_timeseries.config import Config
+    >>> cfg = Config.active()
+
+    ... modify, eg. where a repository keeps its metadata catalog:
     >>> # doctest: +SKIP
-    >>> from ssb_timeseries.config import CONFIG
-    >>> CONFIG.catalog = 'gs://{bucket}/timeseries/metadata/'
-    >>> CONFIG.save()
+    >>> cfg.repositories["myteam"]["catalog"]["options"]["path"] = "gs://bucket/timeseries/metadata/"
+    >>> cfg.save()
     >>> # doctest: -SKIP
+    >>> cfg.activate()
 
-For switching between preset configurations, use the `timeseries-config` command::
+For switching between preset configurations, apply the preset, then save and activate it::
 
-    poetry run timeseries-config <option>
+    cfg = Config(preset="home")
+    cfg.save()
+    cfg.activate()
 
-which is equivalent to::
-
-    python ./config.py <option>
-
-See :py:func:`ssb_timeseries.config.main` for details on the named options.
+See :py:func:`ssb_timeseries.config.main` for those three steps as one call.
 """
 
 from __future__ import annotations
@@ -55,11 +57,11 @@ CONFIGFILE = "timeseries_config.json"
 PROJECT_ID = os.getenv("DAPLA_TEAM_GOOGLE_PROJECT_ID", "<team_name>")
 DAPLA_TEAM_CONTEXT = os.getenv("DAPLA_TEAM_CONTEXT", PROJECT_ID)
 DAPLA_ENV = os.getenv("DAPLA_ENVIRONMENT", "")
-"""Returns the Dapla environment: 'prod' | test | dev"""
+"""The Dapla environment name from DAPLA_ENVIRONMENT, empty outside Dapla."""
 DAPLA_TEAM = os.getenv("DAPLA_TEAM", PROJECT_ID)
-"""Returns the Dapla team/project name.'"""
+"""The Dapla team or project name, falling back to :py:const:`PROJECT_ID`."""
 DAPLA_BUCKET = f"gs://{DAPLA_TEAM}-data-produkt-{DAPLA_ENV.lower()}"
-"""Returns the Dapla product bucket name for the current environment: gs://{DAPLA_TEAM}-data-produkt{DAPLA_ENV}"""
+"""The Dapla product bucket for the current environment: ``gs://<team>-data-produkt-<env>``."""
 
 LOGGING_PRESETS = {
     "simple": {

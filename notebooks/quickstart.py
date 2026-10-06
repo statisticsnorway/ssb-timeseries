@@ -76,7 +76,8 @@ def _(mo):
     ``` bash
     ts config path
     ```
-    will show the value of the TIMESERIES_CONFIG environment variable, if it is set.
+    will show the path of the active configuration file,
+    which is what the TIMESERIES_CONFIG environment variable points at once it has been set by `.activate()`.
 
     ``` bash
     ts config show [option]
@@ -156,8 +157,10 @@ def _(ENV_VAR_NAME, mo):
     On a linux-like system, setting it permanently may look like:
 
     ```bash
-    echo 'export {ENV_VAR_NAME}="~/.config/ssb_timeseries/config.json"' >> .bashrc
+    echo 'export {ENV_VAR_NAME}=~/.config/ssb_timeseries/timeseries_config.json' >> ~/.bashrc
     ```
+
+    Note that the `~` must not be quoted, since a quoted `~` is not expanded by the shell.
     """)
     return
 
