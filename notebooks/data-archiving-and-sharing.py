@@ -23,8 +23,8 @@ def _(mo):
     That is contrary to the purpose of the SSB Timeseries library,
     which is the reason "archiving" and "sharing" are treated differently from ordinary reads and writes.
 
-    Configurations at the set level controls how a dataset is shared, but the actual sharing happens when data is persisted.
-    Since shared data must be persisted, the `.snapshot()` function takes care of both.
+    Configurations at the set level control how a dataset is archived and shared, but the actual writing happens when data is persisted.
+    Since an archive is a persisted copy, the `.archive()` function takes care of both.
     """)
     return
 
@@ -71,7 +71,7 @@ def _(treee):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Eksempel: momentane data, *uten* versjonering
+    ### Example: point-in-time data, *without* versioning
     """)
     return
 
@@ -79,8 +79,6 @@ def _(mo):
 @app.cell
 def _():
     from ssb_timeseries.sample_data import xyz_at
-    from ssb_timeseries.types import SeriesType
-    from ssb_timeseries.dataset import SeriesType
 
     return (xyz_at,)
 
@@ -94,7 +92,8 @@ def _():
 
 @app.cell
 def _():
-    set_name = 'A Sample Dataset'
+    # the ssb archive convention allows no spaces in a name:
+    set_name = 'SampleDataset'
     return (set_name,)
 
 
@@ -125,7 +124,18 @@ def _(set_name, ts):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ...
+    ## Archiving
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Archiving writes to the archive and, for each sharing key, to the
+    destination that key names.
+    The archive path is built from the tags, so `product` and `process_stage` are set
+    before the dataset is archived.
     """)
     return
 
@@ -133,41 +143,28 @@ def _(mo):
 @app.cell
 def _(q):
     statistics_product = 'The Sample Statistic'
-    q.process_stage = 'statistikk'
+    q.process_stage = 'statistics'
     q.product = statistics_product
     return (statistics_product,)
 
 
 @app.cell
-def _():
-    #q.snapshot()
-    return
-
-
-@app.cell
-def _(CONFIG):
-    CONFIG.configuration_file= '/home/bernhard/code/ssb-timeseries/notebooks/sharing_config.json'
-    CONFIG.activate()
-    CONFIG.refresh()
-    #CONFIG.__dict__
-    return
-
-
-@app.cell
 def _(q):
-    q.snapshot()
+    q.archive()
     return
 
 
 @app.cell
 def _(data_path, tree):
-    print(tree(data_path))
+    print(tree(f'{data_path}/archives'))
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ## Sharing
+
     Archiving and sharing apply to any dataset, not only the one created above.
     The two datasets used by the other guides are created here so that this guide runs on its own.
     """)
@@ -207,28 +204,23 @@ def _(ts):
     # let us differentiate sharing
     r = ts.dataset.Dataset("XYZ")
     r.sharing = ["s123", "s234"]
-    r.snapshot()
+    r.archive()
     return
 
 
 @app.cell
 def _(ts):
     s = ts.dataset.Dataset("PQR")
-    s.process_stage = "statistikk"
+    s.process_stage = "statistics"
     s.sharing = ["s234"]
-    s.snapshot()
+    s.archive()
     return
 
 
 @app.cell
-def _(treee):
-    treee()
-    return
-
-
-@app.cell(hide_code=True)
 def _(data_path, tree):
-    print(tree(data_path))
+    # each sharing key falls back to the destination configured as "default":
+    print(tree(f'{data_path}/shared'))
     return
 
 

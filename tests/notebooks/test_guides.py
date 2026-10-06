@@ -85,10 +85,18 @@ def import_and_run_marimo_app(notebook_name: str, config: Config):
     """Helper to run notebook with config as other tests.
 
     Import and run app directly.
+
+    The project root is added to `sys.path` because the module is imported by name,
+    and `pytest` as a console script does not put the root on the path the way
+    `python -m pytest` does.
     """
     from importlib import import_module
 
-    notebook = import_module(f"notebooks.{notebook_name}")
+    if str(PROJECT_ROOT) not in sys.path:
+        sys.path.insert(0, str(PROJECT_ROOT))
+
+    module_name = Path(notebook_name).stem
+    notebook = import_module(f"notebooks.{module_name}")
 
     outputs, definitions = notebook.app.run()
     print(outputs)
@@ -99,7 +107,6 @@ def import_and_run_marimo_app(notebook_name: str, config: Config):
 # ------------------------------------
 
 
-@pytest.mark.xfail(reason="Relative import from ../marimo fails.")
 def test_marimo_tutorial_getting_started_experimental(buildup_and_teardown):
     result = import_and_run_marimo_app(
         "getting_started.py",
@@ -156,19 +163,15 @@ def test_marimo_calc_with_metadata(notebook_config):
     assert result.returncode == 0
 
 
-# The two notebooks below are not in any Sphinx toctree: they are commented out
-# in docs/guides/toc-other.rst, so neither is reachable from the published docs.
-# tools/export_all_guides.py still exports them, so they must keep running once
-# fixed. Both have been broken since the marimo migration (029f822) and were
-# never noticed for that reason.
-
-
-# TODO: make the notebook resolve its configuration instead of hardcoding a path
-# that only exists on the machine that wrote it, and drop this xfail.
-@pytest.mark.xfail(
-    reason="Not in the published docs, and activates a hardcoded sharing_config.json "
-    "path that overrides the fixture this test injects."
-)
+# Both notebooks below were not in any Sphinx toctree: they were commented out
+# in docs/guides/toc-other.rst, so neither was reachable from the published docs.
+# Both are in the toctree again.
+#
+# data-archiving-and-sharing.py used to activate a hardcoded
+# notebooks/sharing_config.json path, which overrode the fixture this test injects
+# and wrote outside the temporary area. The archive and sharing destinations are
+# now declared in notebooks/minimal_configuration.json, so the notebook uses
+# whichever configuration TIMESERIES_CONFIG names and nothing else.
 def test_marimo_data_archiving_and_sharing(notebook_config):
     result = subprocess_run_marimo_notebook(
         "data-archiving-and-sharing.py",
