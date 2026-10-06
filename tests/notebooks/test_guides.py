@@ -56,7 +56,7 @@ def notebook_config(tmp_path):
         ignore_file=True,
     )
     configuration.save(config_file)
-    yield configuration
+    return configuration
 
 
 def subprocess_run_marimo_notebook(notebook_name: str, config: Config):
