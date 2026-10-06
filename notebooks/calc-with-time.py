@@ -35,7 +35,8 @@ def _(mo):
     - Calculating differeneces between versions identified by `as_of`-dates is simple arithmetics after retrieving a data.
     - Interval for data retrieval and simple filtering after retrieval of the data along the time axis using time aware functionality of other libararies.
     - Functions along the time axis:
-      - Sampling and aggregations (group by)
+      - Resampling to other frequencies.
+      - Sampling and aggregations (group by).
       - Changing types.
       - Moving average.
 
@@ -300,16 +301,68 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    Resample
+    --------
+    """)
+    return
 
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    [`Dataset.resample`](../reference/ssb_timeseries.dataset) alters the frequency of the data itself.
+    Upsampling to a higher frequency fills in the missing periods with a fill method, `ffill` or `bfill`.
+    Downsampling to a lower frequency aggregates the periods with one of the simple aggregations listed in the reference
+    (`min`, `max`, `sum`, `mean`, `median`, `std`, `var`, `count`, `first`, `last`).
     """)
     return
 
 
 @app.cell
+def _(jul):
+    yearly_to_daily = jul.resample("D", "ffill")
+    return (yearly_to_daily,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Forward fill carries each annual projection forward day by day until the next annual value arrives.
+    Backward fill (`bfill`) instead lets the next annual value populate the days before it; it suits calendars where the time point marks the end of a period.
+    Downsampling the daily data again averages the values inside each new period.
+    It reproduces the annual levels closely, but not exactly at the boundaries, because the daily grid and the annual time points do not coincide.
+    """)
+    return
+
+
+@app.cell
+def _(yearly_to_daily):
+    daily_to_yearly = yearly_to_daily.resample("YE", "mean")
+    return (daily_to_yearly,)
+
+
+@app.cell
+def _(daily_to_yearly):
+    daily_to_yearly.data
+    return
+
+
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Group by
     --------
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    [`Dataset.group_by`](../reference/ssb_timeseries.dataset) aggregates over *calendar* periods rather than changing the frequency.
+    `freq` is an alias enumerated in the group_by reference, with the same meaning on all backends:
+    `year` (`y`/`yr`), `month` (`m`/`mth`), `quarter` (`q`), `week` (`w`/`wk`), or `raw` for already-formatted values.
+    `func` may be a function name or a list of function names that apply to every series, or `agg_mapping` may map functions to specific series; `tz` converts the time column before grouping, and `time_col` picks the column to group on.
     """)
     return
 
@@ -320,41 +373,27 @@ def _(jul, pl):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    The projections are annual, so the data is aggregated over five year periods rather than quarters.
-    """)
+@app.cell
+def _(yearly_to_daily):
+    weekly = yearly_to_daily.group_by("week", "mean")
+    return (weekly,)
+
+
+@app.cell
+def _(weekly):
+    weekly.data.head(6)
     return
 
 
 @app.cell
-def _(jul):
-    jul.data = jul.pd # workaround for BUG!
-    return
+def _(yearly_to_daily):
+    quarterly = yearly_to_daily.group_by("quarter", "mean", tz="Europe/Oslo")
+    return (quarterly,)
 
 
 @app.cell
-def _(jul):
-    five_year = jul.groupby('5Y','mean')
-    return (five_year,)
-
-
-@app.cell
-def _(five_year):
-    five_year.data
-    return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _(five_year):
-    five_year.pd.plot()
-    # sum --> strange first value because of tz conversion / and not full period
+def _(quarterly):
+    quarterly.data.head(6)
     return
 
 
@@ -368,20 +407,20 @@ def _(mo):
 
 
 @app.cell
-def _(five_year):
-    rolling_5y_avg = five_year.moving_average(-4,-1)
-    return (rolling_5y_avg,)
+def _(weekly):
+    four_week_average = weekly.moving_average(-3, 0)
+    return (four_week_average,)
 
 
 @app.cell
-def _(rolling_5y_avg):
-    rolling_5y_avg.data
+def _(four_week_average):
+    four_week_average.data
     return
 
 
 @app.cell
-def _():
-    # Observe BUG: valid_at as period_index converted to number
+def _(four_week_average):
+    four_week_average.pd.plot()
     return
 
 

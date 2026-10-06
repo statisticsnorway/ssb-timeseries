@@ -17,7 +17,8 @@ We repeat ever so briefly some examples are covered in more detail elsewhere.
 - Calculating differeneces between versions identified by `as_of`-dates is simple arithmetics after retrieving a data.
 - Interval for data retrieval and simple filtering after retrieval of the data along the time axis using time aware functionality of other libararies.
 - Functions along the time axis:
-  - Sampling and aggregations (group by)
+  - Resampling to other frequencies.
+  - Sampling and aggregations (group by).
   - Changing types.
   - Moving average.
 
@@ -178,15 +179,61 @@ some_data = create_df(
     freq="MS",
     implementation="pandas").set_index('valid_at')
 some_data.info()
+<!---->
+Resample
+--------
+<!---->
+[`Dataset.resample`](../reference/ssb_timeseries.dataset) alters the frequency of the data itself.
+Upsampling to a higher frequency fills in the missing periods with a fill method, `ffill` or `bfill`.
+Downsampling to a lower frequency aggregates the periods with one of the simple aggregations listed in the reference
+(`min`, `max`, `sum`, `mean`, `median`, `std`, `var`, `count`, `first`, `last`).
+
+```python {.marimo}
+yearly_to_daily = jul.resample("D", "ffill")
+```
+
+Forward fill carries each annual projection forward day by day until the next annual value arrives.
+Backward fill (`bfill`) instead lets the next annual value populate the days before it; it suits calendars where the time point marks the end of a period.
+Downsampling the daily data again averages the values inside each new period.
+It reproduces the annual levels closely, but not exactly at the boundaries, because the daily grid and the annual time points do not coincide.
+
+```python {.marimo}
+daily_to_yearly = yearly_to_daily.resample("YE", "mean")
+```
+
+```python {.marimo}
+daily_to_yearly.data
+```
+
+<!-- @output:aqbW -->
+
+| valid_at | Denmark | Finland | Iceland | Norway | Sweden |
+| --- | --- | --- | --- | --- | --- |
+| 2027-12-30 23:00:00+00:00 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2028-12-30 23:00:00+00:00 | 5996705.0 | 5721457.0 | 412917.0 | 5684376.0 | 10625613.0 |
+| 2029-12-30 23:00:00+00:00 | 6027401.0 | 5716670.0 | 420793.0 | 5716418.0 | 10611853.0 |
+| 2030-12-30 23:00:00+00:00 | 6080182.0 | 5771599.0 | 427802.0 | 5722952.0 | 10591888.0 |
+| 2031-12-30 23:00:00+00:00 | 6050448.0 | 5766510.0 | 434670.0 | 5758831.0 | 10596849.0 |
+| ... | ... | ... | ... | ... | ... |
+| 2042-12-30 23:00:00+00:00 | 6183954.0 | 5987105.0 | 503685.0 | 6036619.0 | 10964012.0 |
+| 2043-12-30 23:00:00+00:00 | 6182232.0 | 6049960.0 | 506589.0 | 6043889.0 | 11004110.0 |
+| 2044-12-30 23:00:00+00:00 | 6208393.0 | 6045014.0 | 512525.0 | 6072128.0 | 11013343.0 |
+| 2045-12-30 23:00:00+00:00 | 6170663.0 | 6063181.0 | 519735.0 | 6085844.0 | 11114163.0 |
+| 2046-12-30 23:00:00+00:00 | 6195530.0 | 6089520.0 | 521892.0 | 6106436.0 | 11117373.0 |
 
 Group by
 --------
+<!---->
+[`Dataset.group_by`](../reference/ssb_timeseries.dataset) aggregates over *calendar* periods rather than changing the frequency.
+`freq` is an alias enumerated in the group_by reference, with the same meaning on all backends:
+`year` (`y`/`yr`), `month` (`m`/`mth`), `quarter` (`q`), `week` (`w`/`wk`), or `raw` for already-formatted values.
+`func` may be a function name or a list of function names that apply to every series, or `agg_mapping` may map functions to specific series; `tz` converts the time column before grouping, and `time_col` picks the column to group on.
 
 ```python {.marimo}
 jul.pl.describe().select(pl.col(["statistic", "valid_at"]))
 ```
 
-<!-- @output:AjVT -->
+<!-- @output:dNNg -->
 
 | statistic | valid_at |
 | --- | --- |
@@ -201,80 +248,78 @@ jul.pl.describe().select(pl.col(["statistic", "valid_at"]))
 | "75%" | "2040-12-31 23:00:00+00:00" |
 | "max" | "2045-12-31 23:00:00+00:00" |
 
-The projections are annual, so the data is aggregated over five year periods rather than quarters.
-
 ```python {.marimo}
-jul.data = jul.pd # workaround for BUG!
+weekly = yearly_to_daily.group_by("week", "mean")
 ```
 
 ```python {.marimo}
-five_year = jul.groupby('5Y','mean')
+weekly.data.head(6)
+```
+
+<!-- @output:wlCL -->
+
+| valid_at | Denmark_week_mean | Finland_week_mean | Iceland_week_mean | Norway_week_mean | Sweden_week_mean |
+| --- | --- | --- | --- | --- | --- |
+| 2026-53 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2027-01 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2027-02 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2027-03 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2027-04 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2027-05 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+
+```python {.marimo}
+quarterly = yearly_to_daily.group_by("quarter", "mean", tz="Europe/Oslo")
 ```
 
 ```python {.marimo}
-five_year.data
+quarterly.data.head(6)
 ```
 
-<!-- @output:TRpd -->
+<!-- @output:wAgl -->
 
-| Denmark | Finland | Iceland | Norway | Sweden |
-| --- | --- | --- | --- | --- |
-|  |  |  |  |  |
-| 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 5996705.0 | 5721457.0 | 412917.0 | 5684376.0 | 10625613.0 |
-| 6027401.0 | 5716670.0 | 420793.0 | 5716418.0 | 10611853.0 |
-| 6080182.0 | 5771599.0 | 427802.0 | 5722952.0 | 10591888.0 |
-| 6050448.0 | 5766510.0 | 434670.0 | 5758831.0 | 10596849.0 |
-| ... | ... | ... | ... | ... |
-| 6183954.0 | 5987105.0 | 503685.0 | 6036619.0 | 10964012.0 |
-| 6182232.0 | 6049960.0 | 506589.0 | 6043889.0 | 11004110.0 |
-| 6208393.0 | 6045014.0 | 512525.0 | 6072128.0 | 11013343.0 |
-| 6170663.0 | 6063181.0 | 519735.0 | 6085844.0 | 11114163.0 |
-| 6195530.0 | 6089520.0 | 521892.0 | 6106436.0 | 11117373.0 |
-
-```python {.marimo}
-
-```
-
-```python {.marimo}
-five_year.pd.plot()
-# sum --> strange first value because of tz conversion / and not full period
-```
-
-<!-- @output:dNNg -->
-
-![png](calc-with-time_assets/figure-2.png)
+| valid_at | Denmark_quarter_mean | Finland_quarter_mean | Iceland_quarter_mean | Norway_quarter_mean | Sweden_quarter_mean |
+| --- | --- | --- | --- | --- | --- |
+| 2027-Q1 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2027-Q2 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2027-Q3 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2027-Q4 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2028-Q1 | 5996705.0 | 5721457.0 | 412917.0 | 5684376.0 | 10625613.0 |
+| 2028-Q2 | 5996705.0 | 5721457.0 | 412917.0 | 5684376.0 | 10625613.0 |
 
 Moving average
 --------------
 
 ```python {.marimo}
-rolling_5y_avg = five_year.moving_average(-4,-1)
+four_week_average = weekly.moving_average(-3, 0)
 ```
 
 ```python {.marimo}
-rolling_5y_avg.data
+four_week_average.data
 ```
 
-<!-- @output:kqZH -->
+<!-- @output:SdmI -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">pyarrow.Table
-Denmark: double
-Finland: double
-Iceland: double
-Norway: double
-Sweden: double
-valid_at: extension&lt;pandas.period&lt;ArrowPeriodType&gt;&gt;
+valid_at: string
+Denmark_week_mean: double
+Finland_week_mean: double
+Iceland_week_mean: double
+Norway_week_mean: double
+Sweden_week_mean: double
 ----
-Denmark: &#91;&#91;nan,nan,nan,nan,6025911.75,...,6158955.75,6172438.75,6178687.25,6186581,6186310.5&#93;&#93;
-Finland: &#91;&#91;nan,nan,nan,nan,5720522.25,...,5979422.25,5990119.5,6008058,6024453.5,6036315&#93;&#93;
-Iceland: &#91;&#91;nan,nan,nan,nan,416956.25,...,489898.5,495879.25,500578,505516.25,510633.5&#93;&#93;
-Norway: &#91;&#91;nan,nan,nan,nan,5698424.25,...,5972349.25,5997015.75,6018876.5,6038651.5,6059620&#93;&#93;
-Sweden: &#91;&#91;nan,nan,nan,nan,10611247.5,...,10890970.75,10920766,10957883.75,10981308,11023907&#93;&#93;
-valid_at: &#91;&#91;56,57,58,59,60,...,71,72,73,74,75&#93;&#93;</pre>
+valid_at: &#91;&#91;&quot;2026-53&quot;,&quot;2027-01&quot;,&quot;2027-02&quot;,&quot;2027-03&quot;,&quot;2027-04&quot;,...,&quot;2045-49&quot;,&quot;2045-50&quot;,&quot;2045-51&quot;,&quot;2045-52&quot;,&quot;2046-01&quot;&#93;&#93;
+Denmark_week_mean: &#91;&#91;nan,nan,nan,5999359,5999359,...,6170663,6170663,6170663,6170663,6176879.75&#93;&#93;
+Finland_week_mean: &#91;&#91;nan,nan,nan,5672363,5672363,...,6063181,6063181,6063181,6063181,6069765.75&#93;&#93;
+Iceland_week_mean: &#91;&#91;nan,nan,nan,406313,406313,...,519735,519735,519735,519735,520274.25&#93;&#93;
+Norway_week_mean: &#91;&#91;nan,nan,nan,5669951,5669951,...,6085844,6085844,6085844,6085844,6090992&#93;&#93;
+Sweden_week_mean: &#91;&#91;nan,nan,nan,10615636,10615636,...,11114163,11114163,11114163,11114163,11114965.5&#93;&#93;</pre>
 
 ```python {.marimo}
-# Observe BUG: valid_at as period_index converted to number
+four_week_average.pd.plot()
 ```
+
+<!-- @output:lgWD -->
+
+![png](calc-with-time_assets/figure-2.png)
 
 See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-metadata.md).
