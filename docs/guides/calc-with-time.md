@@ -1,6 +1,6 @@
 ---
 title: Calc With Time
-marimo-version: 0.24.0
+marimo-version: 0.24.2
 ---
 
 Calculating with time
@@ -44,60 +44,75 @@ from ssb_timeseries.dataset import Dataset
 ```
 
 ```python {.marimo}
-from ssb_timeseries.types import SeriesType
-from ssb_timeseries.sample_data import create_df
-from itertools import product
 from datetime import date
+from itertools import product
+
+import numpy as np
+
+from ssb_timeseries.sample_data import POPU06_MAIN_COUNTRIES
+from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.sample_data import popu06
+from ssb_timeseries.types import SeriesType
 ```
 
 Generate some test data
 
 ```python {.marimo}
-def create_some_example_data(
-    set_name: str,
+def create_popu06_versions(
     as_of_dates: list[date],
-    series_tags: dict[str,list[str]],
+    countries: tuple[str, ...],
+    noise: float = 0.002,
+    seed: int = 20251001,
 ):
-    """Generate and save some sample data."""
-    set_tags = { "Country": "Norway" }
-    for d in as_of_dates:
-        df = create_df(
-            *[value for value in series_tags.values()],
-            temporality= 'AT',
-            start_date="2025-01-01",
-            end_date="2026-12-01",
-            freq="D",
-        )
+    """Save one version of the Nordic population projections for each as-of date.
+
+    The projections themselves are static and reproducible, so a small seeded
+    perturbation is applied to give each version its own values.
+    Without it every version would hold identical numbers and calculating
+    between two versions would yield nothing but zeros.
+    """
+    base = popu06(countries=countries, start_year=2027, end_year=2046)
+    generator = np.random.default_rng(seed)
+    for as_of in as_of_dates:
+        version = base.copy()
+        for country in countries:
+            jitter = 1 + noise * generator.standard_normal(len(version))
+            version[country] = (
+                version[country].to_numpy() * jitter
+            ).round().astype("int64")
         Dataset(
-            name=set_name,
-            data_type=SeriesType('AS_OF', 'AT'),
-            as_of_tz=str(d),
-            data=df,
-            tags = set_tags,
-            attributes = series_tags.keys(),
+            name="POPU06",
+            data_type=SeriesType("AS_OF", "AT"),
+            as_of_tz=str(as_of),
+            data=version,
+            tags={
+                "source": "POPU06",
+                "table": "Population projections by age and sex, total",
+            },
         ).save()
 ```
 
-We will generate random data for all permutations of some descriptive metadata,
+We will store the population projections published in the Nordic Statistics database table
+[POPU06](https://pxweb.nordicstatistics.org), one series per country.
+The same projections are stored once per `as_of`-date, so that versions can be compared.
 
 ```python {.marimo}
-create_some_example_data(
-    set_name="Sample Data",
-    as_of_dates = [date(*d) for d in product({2024,2025}, range(1,13), {1})],
-    series_tags = {'area': ["x", "y","z"]}
+create_popu06_versions(
+    as_of_dates=[date(*d) for d in product({2024, 2025}, range(1, 13), {1})],
+    countries=POPU06_MAIN_COUNTRIES,
 )
 ```
 
 Element-wise arithmetic
 --------------------------------
 <!---->
-Our dataset "Prices and Volumes" contain *prices* and *volumes* for a number of *products*.
+Our dataset "POPU06" contains *population projections* for the Nordic countries.
 
 [Basic arithmetic](calc-basic-arithmetic) may be performed on same size data:
 
 ```python {.marimo}
-jul = Dataset(name="Sample Data", as_of_tz="2025-07-01")
-feb = Dataset(name="Sample Data", as_of_tz="2025-02-01")
+jul = Dataset(name="POPU06", as_of_tz="2025-07-01")
+feb = Dataset(name="POPU06", as_of_tz="2025-02-01")
 
 change_from_feb_to_july = jul - feb
 ```
@@ -128,8 +143,8 @@ Interval support and filtering by dates is an underdeveloped area of functionali
 ```python {.marimo}
 import polars as pl
 
-d_from = date(2024, 2, 22)
-d_to = pl.date(2024, 3, 2)
+d_from = date(2035, 1, 1)
+d_to = pl.date(2039, 12, 31)
 ```
 
 ```python {.marimo}
@@ -142,9 +157,13 @@ x_row
 
 <!-- @output:ZBYS -->
 
-| valid_at | x | y | z |
-| --- | --- | --- | --- |
-| datetime[ns, UTC] | f64 | f64 | f64 |
+| valid_at | Denmark | Finland | Iceland | Norway | Sweden |
+| --- | --- | --- | --- | --- | --- |
+| datetime[ns, UTC] | f64 | f64 | f64 | f64 | f64 |
+| 2035-12-31 23:00:00 UTC | 6.134939e6 | 5.899144e6 | 468533.0 | 5.908382e6 | 1.0749026e7 |
+| 2036-12-31 23:00:00 UTC | 6.140989e6 | 5.921987e6 | 476381.0 | 5.95139e6 | 1.0811669e7 |
+| 2037-12-31 23:00:00 UTC | 6.130022e6 | 5.944316e6 | 479762.0 | 5.937953e6 | 1.0844831e7 |
+| 2038-12-31 23:00:00 UTC | 6.157238e6 | 5.978206e6 | 487794.0 | 5.956446e6 | 1.0855639e7 |
 
 \# bigger example - not needed?
 tags = {"Var": ["price", "volume"], \
@@ -172,52 +191,53 @@ jul.pl.describe().select(pl.col(["statistic", "valid_at"]))
 | statistic | valid_at |
 | --- | --- |
 | str | str |
-| "count" | "700" |
+| "count" | "20" |
 | "null_count" | "0" |
-| "mean" | "2025-12-16 10:24:00+00:00" |
+| "mean" | "2036-07-01 23:00:00+00:00" |
 | "std" | null |
-| "min" | "2024-12-31 23:00:00+00:00" |
-| "25%" | "2025-06-24 22:00:00+00:00" |
-| "50%" | "2025-12-16 23:00:00+00:00" |
-| "75%" | "2026-06-08 22:00:00+00:00" |
-| "max" | "2026-11-30 23:00:00+00:00" |
+| "min" | "2026-12-31 23:00:00+00:00" |
+| "25%" | "2031-12-31 23:00:00+00:00" |
+| "50%" | "2036-12-31 23:00:00+00:00" |
+| "75%" | "2040-12-31 23:00:00+00:00" |
+| "max" | "2045-12-31 23:00:00+00:00" |
 
-Group by
---------
+The projections are annual, so the data is aggregated over five year periods rather than quarters.
 
 ```python {.marimo}
 jul.data = jul.pd # workaround for BUG!
 ```
 
 ```python {.marimo}
-quarterly = jul.groupby('Q','mean')
+five_year = jul.groupby('5Y','mean')
 ```
 
 ```python {.marimo}
-quarterly.data
+five_year.data
 ```
 
 <!-- @output:TRpd -->
 
-| x | y | z |
-| --- | --- | --- |
-|  |  |  |
-| 100.000000 | 90.000000 | 100.000000 |
-| 100.444444 | 99.333333 | 100.222222 |
-| 96.373626 | 99.890110 | 98.901099 |
-| 101.847826 | 99.021739 | 100.000000 |
-| 100.326087 | 99.891304 | 101.956522 |
-| 99.666667 | 99.666667 | 100.111111 |
-| 99.230769 | 96.813187 | 100.329670 |
-| 97.826087 | 101.847826 | 100.000000 |
-| 100.655738 | 101.639344 | 99.672131 |
+| Denmark | Finland | Iceland | Norway | Sweden |
+| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
+| 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 5996705.0 | 5721457.0 | 412917.0 | 5684376.0 | 10625613.0 |
+| 6027401.0 | 5716670.0 | 420793.0 | 5716418.0 | 10611853.0 |
+| 6080182.0 | 5771599.0 | 427802.0 | 5722952.0 | 10591888.0 |
+| 6050448.0 | 5766510.0 | 434670.0 | 5758831.0 | 10596849.0 |
+| ... | ... | ... | ... | ... |
+| 6183954.0 | 5987105.0 | 503685.0 | 6036619.0 | 10964012.0 |
+| 6182232.0 | 6049960.0 | 506589.0 | 6043889.0 | 11004110.0 |
+| 6208393.0 | 6045014.0 | 512525.0 | 6072128.0 | 11013343.0 |
+| 6170663.0 | 6063181.0 | 519735.0 | 6085844.0 | 11114163.0 |
+| 6195530.0 | 6089520.0 | 521892.0 | 6106436.0 | 11117373.0 |
 
 ```python {.marimo}
 
 ```
 
 ```python {.marimo}
-quarterly.pd.plot()
+five_year.pd.plot()
 # sum --> strange first value because of tz conversion / and not full period
 ```
 
@@ -229,25 +249,29 @@ Moving average
 --------------
 
 ```python {.marimo}
-rolling_4q_avg = quarterly.moving_average(-4,-1)
+rolling_5y_avg = five_year.moving_average(-4,-1)
 ```
 
 ```python {.marimo}
-rolling_4q_avg.data
+rolling_5y_avg.data
 ```
 
 <!-- @output:kqZH -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">pyarrow.Table
-x: double
-y: double
-z: double
+Denmark: double
+Finland: double
+Iceland: double
+Norway: double
+Sweden: double
 valid_at: extension&lt;pandas.period&lt;ArrowPeriodType&gt;&gt;
 ----
-x: &#91;&#91;nan,nan,nan,nan,99.66647422625684,99.74799596538728,99.55355152094282,100.26783723522854,99.26240245261985&#93;&#93;
-y: &#91;&#91;nan,nan,nan,nan,97.0612955884695,99.53412167542604,99.61745500875936,98.84822423952859,99.55474597865901&#93;&#93;
-z: &#91;&#91;nan,nan,nan,nan,99.78083028083029,100.2699607156129,100.24218293783512,100.59932579497797,100.59932579497797&#93;&#93;
-valid_at: &#91;&#91;219,220,221,222,223,224,225,226,227&#93;&#93;</pre>
+Denmark: &#91;&#91;nan,nan,nan,nan,6025911.75,...,6158955.75,6172438.75,6178687.25,6186581,6186310.5&#93;&#93;
+Finland: &#91;&#91;nan,nan,nan,nan,5720522.25,...,5979422.25,5990119.5,6008058,6024453.5,6036315&#93;&#93;
+Iceland: &#91;&#91;nan,nan,nan,nan,416956.25,...,489898.5,495879.25,500578,505516.25,510633.5&#93;&#93;
+Norway: &#91;&#91;nan,nan,nan,nan,5698424.25,...,5972349.25,5997015.75,6018876.5,6038651.5,6059620&#93;&#93;
+Sweden: &#91;&#91;nan,nan,nan,nan,10611247.5,...,10890970.75,10920766,10957883.75,10981308,11023907&#93;&#93;
+valid_at: &#91;&#91;56,57,58,59,60,...,71,72,73,74,75&#93;&#93;</pre>
 
 ```python {.marimo}
 # Observe BUG: valid_at as period_index converted to number
@@ -257,11 +281,13 @@ See also [Calculating with time](calc-with-time) or [Calculating with metadata](
 
 <!-- @output:dGlV -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;32m.&#91;0m&#91;32m                                                                        &#91;100%&#93;&#91;0m
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;32m.&#91;0m&#91;32m.&#91;0m&#91;32m.&#91;0m&#91;32m                                                                      &#91;100%&#93;&#91;0m
 =================================== Overview ===================================
 Passed Tests:
-&#91;1m&#91;32m&#91;22m✓&#91;0m&#91;0m notebooks/calc-with-time.py::test_true
+✓ notebooks/calc-with-time.py::test_popu06_has_one_series_per_country
+✓ notebooks/calc-with-time.py::test_popu06_spans_the_common_projection_period
+✓ notebooks/calc-with-time.py::test_popu06_versions_are_not_identical
 
 Summary:
-Total: 1, Passed: 1, Failed: 0, Errors: 0, Skipped: 0
+Total: 3, Passed: 3, Failed: 0, Errors: 0, Skipped: 0
 </pre>

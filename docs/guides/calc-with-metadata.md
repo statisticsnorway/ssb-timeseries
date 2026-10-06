@@ -1,6 +1,6 @@
 ---
 title: Calc With Metadata
-marimo-version: 0.24.0
+marimo-version: 0.24.2
 ---
 
 # Calculations with metadata
@@ -256,3 +256,17 @@ Planned: Unit conversion
 ----------------------
 
 Automatic unit conversions based on tags require configurations to identify the name of the unit attribute.
+
+<!-- @output:TRpd -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;32m.&#91;0m&#91;32m.&#91;0m&#91;32m.&#91;0m&#91;32m.&#91;0m&#91;32m                                                                     &#91;100%&#93;&#91;0m
+=================================== Overview ===================================
+Passed Tests:
+✓ notebooks/calc-with-metadata.py::test_taxonomy_has_leaf_nodes
+✓ notebooks/calc-with-metadata.py::test_selection_yields_prices_and_volumes
+✓ notebooks/calc-with-metadata.py::test_revenue_series_match_renaming_and_retagging
+✓ notebooks/calc-with-metadata.py::test_aggregated_revenue_is_fewer_series_than_revenue
+
+Summary:
+Total: 4, Passed: 4, Failed: 0, Errors: 0, Skipped: 0
+</pre>

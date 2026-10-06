@@ -1,7 +1,6 @@
 ---
 title: Quickstart
-marimo-version: 0.24.0
-width: comnpact
+marimo-version: 0.24.2
 ---
 
 Quickstart Guide 2.0
@@ -83,7 +82,7 @@ cfg.activate()
 
 <!-- @output:BYtC -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fcf4d9b7ed0&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f876cd3bd90&gt;</pre>
 
 The defaults may be OK for local use or testing.
 <!---->
@@ -110,7 +109,7 @@ Config.active()
 
 <!-- @output:nWHF -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fcf4d9b7ed0&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f876cd3bd90&gt;</pre>
 
 An alternative way is:
 
@@ -122,7 +121,7 @@ ts.get_configuration()
 
 <!-- @output:ZHCJ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7fcf4d9b7ed0&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f876cd3bd90&gt;</pre>
 
 ```python {.marimo}
 cfg is Config.active()
@@ -165,7 +164,7 @@ mo.md(f"""
   },
   "logging": {},
   "repositories": {
-    "<teamname>": {
+    "<team_name>": {
       "catalog": {
         "handler": "json",
         "options": {
