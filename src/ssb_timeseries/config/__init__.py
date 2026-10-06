@@ -439,7 +439,15 @@ class Config:
         or `.refresh()` to reload the active configuration from its file.
 
         Args:
-            path (PathStr): Full path of the JSON file to save to. If not specified, it will attempt to use the environment variable :py:const:`ENV_VAR_NAME` before falling back to the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
+            path (PathStr): Full path of the JSON file to save to.
+                If not specified, :attr:`.configuration_file` is used.
+                That attribute is set when the configuration is created:
+                from the `configuration_file` parameter,
+                from the environment variable :py:const:`ENV_VAR_NAME`,
+                from a preset,
+                or from the default location `$HOME/.config/ssb_timeseries/timeseries_config.json`.
+                Note that a preset carries its own `configuration_file`,
+                so the environment variable does not redirect where a preset configuration is saved.
 
         Raises:
             ValueError: If `path` is not provided and :attr:`configuration_file` is not set.
