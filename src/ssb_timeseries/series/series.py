@@ -2,6 +2,9 @@
 
 Tags and technical properties are controlled through the Dataset.
 Series should generally only be initialized through the Dataset. The typical use case is `Dataset.__iter__`.
+Iterating yields one independent projection per series: the temporal columns and that series' value column, copied out of the Dataset's frame.
+`as_of_utc` is carried only when the Dataset is `AS_OF` versioned.
+The projection is detached in both directions: mutating a Series does not change the Dataset, and changes to the Dataset after iteration do not reach Series already produced.
 """
 
 from __future__ import annotations
@@ -23,7 +26,10 @@ if TYPE_CHECKING:
 
 
 class Series:
-    """An individual `Series` from a Dataset."""
+    """An individual `Series` from a Dataset.
+
+    A detached, read-only projection of one series, carrying its temporal columns and value column.
+    """
 
     def __init__(
         self,

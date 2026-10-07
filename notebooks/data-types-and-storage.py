@@ -315,7 +315,9 @@ def _(Dataset, bigger_data, interval_data):
 
 @app.cell
 def _(az):
-    az.tags
+    # the per-series entries make the full tag dictionary too large to show:
+    print({k: v for k, v in az.tags.items() if k != 'series'})
+    az.tags['series']['a_price_beer']
     return
 
 

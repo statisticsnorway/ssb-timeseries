@@ -30,7 +30,6 @@ repos:
         types: [python]
         #additional_dependencies: [pytest]
         pass_filenames: false
-        always_run: true
         stages: ["pre-commit",]
 
   # Ruff for Python Linting and Formatting.

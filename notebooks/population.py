@@ -13,11 +13,20 @@ def _():
 
 @app.cell
 def _():
+    import requests
     from pathlib import Path
     import polars as pl
 
     csv_file = Path("~")/"Downloads"/ "10211_20260915-010226.csv"
-    return csv_file, pl
+    return csv_file, pl, requests
+
+
+@app.cell(hide_code=True)
+def _(requests):
+    url = "https://data.ssb.no/api/pxwebapi/v2/tables/10211/data?lang=no&outputFormat=json-stat2&valuecodes[ContentsCode]=*&valuecodes[Tid]=*&valuecodes[Alder]=*&codelist[Alder]=vs_AlleAldre00B&valuecodes[Kjonn]=*&heading=ContentsCode,Tid,Kjonn&stub=Alder"
+    response = requests.get(url)
+    print(response.json())
+    return
 
 
 @app.cell
@@ -126,7 +135,7 @@ def _(wide):
     from ssb_timeseries.dataset import Dataset
     from ssb_timeseries.types import SeriesType
 
-    pop = Dataset(
+    population = Dataset(
         name="Norwegian population by age and sex",
         data_type = SeriesType('NONE','AT'),
         data = wide,
@@ -134,7 +143,7 @@ def _(wide):
         attributes=['sex','age'],
         substitutions= [('Males', 'M'), ('Females', 'F')],
     )
-    return (pop,)
+    return (population,)
 
 
 @app.cell
@@ -146,8 +155,8 @@ def _():
 
 
 @app.cell
-def _(pop):
-    pop.tags
+def _(population):
+    population.tags
     return
 
 
@@ -196,8 +205,9 @@ def _():
 
 
 @app.cell
-def _(pop):
-    m = pop.select(tags={'sex': 'Females'})
+def _(population):
+    f = population.select(tags={'sex': 'Females'})
+    f.data
     return
 
 

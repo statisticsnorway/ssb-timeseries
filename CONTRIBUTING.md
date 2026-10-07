@@ -40,17 +40,29 @@ The project uses a [src layout](https://packaging.python.org/en/latest/discussio
 | `notebooks/` | Marimo notebooks and their configurations. |
 | `tools/` | Development scripts that are not part of the package, covering notebook helpers and the export of notebook content to `docs/`. |
 
-The guides under `docs/guides/` are exported from `notebooks/` by `tools/export_all_guides.py`.
-That script holds the list of notebooks it covers.
+The guides under `docs/guides/` are exported from `notebooks/`, and the inventory of exported notebooks is `NOTEBOOK_NAMES` in `tools/export_all_guides.py`.
 Edits to an exported guide are lost on the next run, so edit the notebook instead.
-A guide the script does not list is hand-maintained.
-Rebuilding is a manual step, not a Nox session:
+A guide the inventory does not list is hand-maintained.
+
+Rebuild only the guides whose notebooks changed.
+Rebuilding everything is discouraged while editing, because several notebooks generate unseeded random data and a full run produces large diffs that hide the real change:
+
+```console
+poetry run python tools/marimo_to_md.py notebooks/quickstart.py docs/guides/quickstart.md
+```
+
+Name just the notebook you changed and write it over the existing guide.
+`tools/marimo_to_md.py` sets `TIMESERIES_CONFIG` to `notebooks/minimal_configuration.json` and runs from the repository root, so no environment setup is needed.
+It exports only what you name instead of executing all ten notebooks, which makes it the right command for the edit-review loop.
+
+Rebuilding is a manual step, not a Nox session.
+To export the whole inventory and check that every listed notebook still exports, run the full script:
 
 ```console
 poetry run python tools/export_all_guides.py
 ```
 
-Run it when a notebook or its configuration changes.
+Run it when a notebook or its configuration changes, and before opening a pull request.
 Commit the regenerated guides together with the change that produced them.
 
 Add a notebook to `tests/notebooks/test_guides.py` to have it run as part of the test suite, without regenerating anything in `docs/guides/`.

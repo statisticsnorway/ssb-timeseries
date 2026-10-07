@@ -83,7 +83,7 @@ cfg.activate()
 
 <!-- @output:BYtC -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f69232dfed0&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f80de0efed0&gt;</pre>
 
 The defaults may be OK for local use or testing.
 <!---->
@@ -112,7 +112,7 @@ Config.active()
 
 <!-- @output:nWHF -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f69232dfed0&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f80de0efed0&gt;</pre>
 
 An alternative way is:
 
@@ -124,7 +124,7 @@ ts.get_configuration()
 
 <!-- @output:ZHCJ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f69232dfed0&gt;</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.config.Config object at 0x7f80de0efed0&gt;</pre>
 
 ```python {.marimo}
 cfg is Config.active()

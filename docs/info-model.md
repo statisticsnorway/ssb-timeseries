@@ -111,6 +111,8 @@ While daily work and transparent versioning happen dynamically in the active rep
 - **Datasets** can consist of multiple series. (Later: possible extension with sets of sets.)
 - All series in a set must be of the same type.
 - **Series** are value columns in Datasets.data, rows identified by date(s) or index corresponding temporality.
+- Iterating a `Dataset` yields one `Series` per series name, as an independent projection: that series' value column plus the temporal columns, and `as_of_utc` when the dataset is `AS_OF` versioned.
+- The projection is detached in both directions: mutating a `Series` does not change the `Dataset`, and later changes to the `Dataset` do not reach `Series` objects already produced.
 - The combination `<Dataset.name>.<Series.name>` serves as a unique series identifier within a repository.
 - In simple IO implementations, `<Dataset.name>` identifies a "directory", hence must be unique. (Caveat: Directories per type creates room for error.)
 - `<Series.name>` (.data column name) must be unique within the set. It depends on IO implementations and coding patterns whether it can be safely changed. The general recommendation is to match on metadata tags rather than names.

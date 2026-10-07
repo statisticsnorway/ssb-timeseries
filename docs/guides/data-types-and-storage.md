@@ -36,6 +36,65 @@ print(tree(data_path))
 <!-- @output:lEQa -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
+├── archives/
+│   ├── statistics/
+│   │   └── PQR/
+│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+│   ├── The Sample Statistic/
+│   │   └── statistics/
+│   │       └── SampleDataset/
+│   │           ├── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
+│   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│   └── XYZ/
+│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
+├── AS_OF_AT/
+│   └── POPU06/
+│       ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
+├── metadata/
+│   ├── AZ_beverages-metadata.json
+│   ├── AZ_drinks-metadata.json
+│   ├── SampleDataset-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
+├── NONE_AT/
+│   ├── PQR/
+│   │   └── PQR-latest-data.parquet
+│   ├── SampleDataset/
+│   │   └── SampleDataset-latest-data.parquet
+│   └── XYZ/
+│       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
+└── shared/
+    └── default/
+        ├── statistics/
+        │   └── PQR/
+        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+        └── XYZ/
+            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
@@ -82,17 +141,17 @@ pqr_df
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2020-01-01 00:00:00+01:00 | 90.0 | 110.0 | 100.0 |
-| 2020-01-02 00:00:00+01:00 | 80.0 | 100.0 | 90.0 |
-| 2020-01-03 00:00:00+01:00 | 90.0 | 90.0 | 110.0 |
-| 2020-01-04 00:00:00+01:00 | 120.0 | 100.0 | 110.0 |
-| 2020-01-05 00:00:00+01:00 | 100.0 | 90.0 | 110.0 |
+| 2020-01-01 00:00:00+01:00 | 110.0 | 100.0 | 110.0 |
+| 2020-01-02 00:00:00+01:00 | 90.0 | 90.0 | 100.0 |
+| 2020-01-03 00:00:00+01:00 | 90.0 | 90.0 | 80.0 |
+| 2020-01-04 00:00:00+01:00 | 80.0 | 100.0 | 120.0 |
+| 2020-01-05 00:00:00+01:00 | 110.0 | 100.0 | 100.0 |
 | ... | ... | ... | ... |
-| 2025-05-28 00:00:00+02:00 | 90.0 | 110.0 | 100.0 |
-| 2025-05-29 00:00:00+02:00 | 100.0 | 100.0 | 100.0 |
-| 2025-05-30 00:00:00+02:00 | 100.0 | 100.0 | 100.0 |
-| 2025-05-31 00:00:00+02:00 | 110.0 | 90.0 | 90.0 |
-| 2025-06-01 00:00:00+02:00 | 100.0 | 100.0 | 120.0 |
+| 2025-05-28 00:00:00+02:00 | 90.0 | 120.0 | 90.0 |
+| 2025-05-29 00:00:00+02:00 | 110.0 | 100.0 | 80.0 |
+| 2025-05-30 00:00:00+02:00 | 100.0 | 120.0 | 110.0 |
+| 2025-05-31 00:00:00+02:00 | 100.0 | 100.0 | 100.0 |
+| 2025-06-01 00:00:00+02:00 | 100.0 | 100.0 | 90.0 |
 
 ```python {.marimo}
 pqr = Dataset(
@@ -118,17 +177,17 @@ pqr.data
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2019-12-31 23:00:00+00:00 | 90.0 | 110.0 | 100.0 |
-| 2020-01-01 23:00:00+00:00 | 80.0 | 100.0 | 90.0 |
-| 2020-01-02 23:00:00+00:00 | 90.0 | 90.0 | 110.0 |
-| 2020-01-03 23:00:00+00:00 | 120.0 | 100.0 | 110.0 |
-| 2020-01-04 23:00:00+00:00 | 100.0 | 90.0 | 110.0 |
+| 2019-12-31 23:00:00+00:00 | 110.0 | 100.0 | 110.0 |
+| 2020-01-01 23:00:00+00:00 | 90.0 | 90.0 | 100.0 |
+| 2020-01-02 23:00:00+00:00 | 90.0 | 90.0 | 80.0 |
+| 2020-01-03 23:00:00+00:00 | 80.0 | 100.0 | 120.0 |
+| 2020-01-04 23:00:00+00:00 | 110.0 | 100.0 | 100.0 |
 | ... | ... | ... | ... |
-| 2025-05-27 22:00:00+00:00 | 90.0 | 110.0 | 100.0 |
-| 2025-05-28 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
-| 2025-05-29 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
-| 2025-05-30 22:00:00+00:00 | 110.0 | 90.0 | 90.0 |
-| 2025-05-31 22:00:00+00:00 | 100.0 | 100.0 | 120.0 |
+| 2025-05-27 22:00:00+00:00 | 90.0 | 120.0 | 90.0 |
+| 2025-05-28 22:00:00+00:00 | 110.0 | 100.0 | 80.0 |
+| 2025-05-29 22:00:00+00:00 | 100.0 | 120.0 | 110.0 |
+| 2025-05-30 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
+| 2025-05-31 22:00:00+00:00 | 100.0 | 100.0 | 90.0 |
 
 ```python {.marimo}
 pqr.tags
@@ -137,11 +196,45 @@ pqr.tags
 <!-- @output:ROlb -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
+ &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;p&#x27;},
-            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;q&#x27;},
-            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;r&#x27;}},
+ &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;p&#x27;,
+                  &#x27;product&#x27;: &#x27;coffee&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
+                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;variable&#x27;: &#x27;price&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;q&#x27;,
+                  &#x27;product&#x27;: &#x27;crispbread&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
+                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;variable&#x27;: &#x27;price&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
+            &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
+                  &#x27;name&#x27;: &#x27;r&#x27;,
+                  &#x27;product&#x27;: &#x27;brown cheese&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
+                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
+                  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
+                  &#x27;variable&#x27;: &#x27;price&#x27;,
+                  &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+ &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+ &#x27;variabel&#x27;: &#x27;pris&#x27;,
+ &#x27;variable&#x27;: &#x27;price&#x27;,
  &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
 ```python {.marimo}
@@ -157,33 +250,44 @@ pqr.tags
 <!-- @output:qnkX -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
- &#x27;product group&#x27;: &#x27;essentials&#x27;,
+ &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
  &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;p&#x27;,
                   &#x27;product&#x27;: &#x27;coffee&#x27;,
-                  &#x27;product group&#x27;: &#x27;essentials&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;},
             &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;q&#x27;,
                   &#x27;product&#x27;: &#x27;crispbread&#x27;,
-                  &#x27;product group&#x27;: &#x27;essentials&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;},
             &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;r&#x27;,
                   &#x27;product&#x27;: &#x27;brown cheese&#x27;,
-                  &#x27;product group&#x27;: &#x27;essentials&#x27;,
+                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
+                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
+                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
+ &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
+ &#x27;variabel&#x27;: &#x27;pris&#x27;,
  &#x27;variable&#x27;: &#x27;price&#x27;,
  &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
@@ -198,125 +302,355 @@ print(tree(data_path))
 <!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
+├── archives/
+│   ├── statistics/
+│   │   └── PQR/
+│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+│   ├── The Sample Statistic/
+│   │   └── statistics/
+│   │       └── SampleDataset/
+│   │           ├── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
+│   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│   └── XYZ/
+│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 ├── AS_OF_AT/
+│   ├── POPU06/
+│   │   ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│   │   └── ...
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-02T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-03T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
-│       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
+│       ├── XYZ-as_of_2025-08-06T220000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
 ├── metadata/
 │   ├── AZ_beverages-metadata.json
-│   ├── PQR-metadata.json
-│   └── XYZ-metadata.json
+│   ├── AZ_drinks-metadata.json
+│   ├── SampleDataset-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
 ├── NONE_AT/
-│   └── PQR/
-│       └── PQR-latest-data.parquet
-└── NONE_FROM_TO/
-    └── AZ_beverages/
-        └── AZ_beverages-latest-data.parquet
+│   ├── PQR/
+│   │   └── PQR-latest-data.parquet
+│   ├── SampleDataset/
+│   │   └── SampleDataset-latest-data.parquet
+│   └── XYZ/
+│       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
+└── shared/
+    └── default/
+        ├── statistics/
+        │   └── PQR/
+        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+        └── XYZ/
+            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
 <!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
+├── archives/
+│   ├── statistics/
+│   │   └── PQR/
+│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+│   ├── The Sample Statistic/
+│   │   └── statistics/
+│   │       └── SampleDataset/
+│   │           ├── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
+│   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│   └── XYZ/
+│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 ├── AS_OF_AT/
+│   ├── POPU06/
+│   │   ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│   │   └── ...
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-02T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-03T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
-│       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
+│       ├── XYZ-as_of_2025-08-06T220000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
 ├── metadata/
 │   ├── AZ_beverages-metadata.json
-│   ├── PQR-metadata.json
-│   └── XYZ-metadata.json
+│   ├── AZ_drinks-metadata.json
+│   ├── SampleDataset-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
 ├── NONE_AT/
-│   └── PQR/
-│       └── PQR-latest-data.parquet
-└── NONE_FROM_TO/
-    └── AZ_beverages/
-        └── AZ_beverages-latest-data.parquet
+│   ├── PQR/
+│   │   └── PQR-latest-data.parquet
+│   ├── SampleDataset/
+│   │   └── SampleDataset-latest-data.parquet
+│   └── XYZ/
+│       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
+└── shared/
+    └── default/
+        ├── statistics/
+        │   └── PQR/
+        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+        └── XYZ/
+            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
 <!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
+├── archives/
+│   ├── statistics/
+│   │   └── PQR/
+│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+│   ├── The Sample Statistic/
+│   │   └── statistics/
+│   │       └── SampleDataset/
+│   │           ├── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
+│   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│   └── XYZ/
+│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 ├── AS_OF_AT/
+│   ├── POPU06/
+│   │   ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│   │   └── ...
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-02T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-03T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
-│       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
+│       ├── XYZ-as_of_2025-08-06T220000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
 ├── metadata/
 │   ├── AZ_beverages-metadata.json
-│   ├── PQR-metadata.json
-│   └── XYZ-metadata.json
+│   ├── AZ_drinks-metadata.json
+│   ├── SampleDataset-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
 ├── NONE_AT/
-│   └── PQR/
-│       └── PQR-latest-data.parquet
-└── NONE_FROM_TO/
-    └── AZ_beverages/
-        └── AZ_beverages-latest-data.parquet
+│   ├── PQR/
+│   │   └── PQR-latest-data.parquet
+│   ├── SampleDataset/
+│   │   └── SampleDataset-latest-data.parquet
+│   └── XYZ/
+│       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
+└── shared/
+    └── default/
+        ├── statistics/
+        │   └── PQR/
+        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+        └── XYZ/
+            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
 <!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
+├── archives/
+│   ├── statistics/
+│   │   └── PQR/
+│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+│   ├── The Sample Statistic/
+│   │   └── statistics/
+│   │       └── SampleDataset/
+│   │           ├── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
+│   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│   └── XYZ/
+│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 ├── AS_OF_AT/
+│   ├── POPU06/
+│   │   ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│   │   └── ...
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-02T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-03T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
-│       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
+│       ├── XYZ-as_of_2025-08-06T220000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
 ├── metadata/
 │   ├── AZ_beverages-metadata.json
-│   ├── PQR-metadata.json
-│   └── XYZ-metadata.json
+│   ├── AZ_drinks-metadata.json
+│   ├── SampleDataset-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
 ├── NONE_AT/
-│   └── PQR/
-│       └── PQR-latest-data.parquet
-└── NONE_FROM_TO/
-    └── AZ_beverages/
-        └── AZ_beverages-latest-data.parquet
+│   ├── PQR/
+│   │   └── PQR-latest-data.parquet
+│   ├── SampleDataset/
+│   │   └── SampleDataset-latest-data.parquet
+│   └── XYZ/
+│       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
+└── shared/
+    └── default/
+        ├── statistics/
+        │   └── PQR/
+        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+        └── XYZ/
+            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
 <!-- @output:YWSi -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
+├── archives/
+│   ├── statistics/
+│   │   └── PQR/
+│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+│   ├── The Sample Statistic/
+│   │   └── statistics/
+│   │       └── SampleDataset/
+│   │           ├── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
+│   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│   └── XYZ/
+│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 ├── AS_OF_AT/
+│   ├── POPU06/
+│   │   ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│   │   └── ...
 │   └── XYZ/
 │       ├── XYZ-as_of_2025-04-30T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-05-31T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-02T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-03T220000+0000-data.parquet
-│       ├── XYZ-as_of_2025-08-04T220000+0000-data.parquet
 │       ├── XYZ-as_of_2025-08-05T220000+0000-data.parquet
-│       └── XYZ-as_of_2025-08-06T220000+0000-data.parquet
+│       ├── XYZ-as_of_2025-08-06T220000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
 ├── metadata/
 │   ├── AZ_beverages-metadata.json
-│   ├── PQR-metadata.json
-│   └── XYZ-metadata.json
+│   ├── AZ_drinks-metadata.json
+│   ├── SampleDataset-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
 ├── NONE_AT/
-│   └── PQR/
-│       └── PQR-latest-data.parquet
-└── NONE_FROM_TO/
-    └── AZ_beverages/
-        └── AZ_beverages-latest-data.parquet
+│   ├── PQR/
+│   │   └── PQR-latest-data.parquet
+│   ├── SampleDataset/
+│   │   └── SampleDataset-latest-data.parquet
+│   └── XYZ/
+│       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
+└── shared/
+    └── default/
+        ├── statistics/
+        │   └── PQR/
+        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+        └── XYZ/
+            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
@@ -334,10 +668,10 @@ p: double
 q: double
 r: double
 ----
-valid_at: &#91;&#91;2019-12-31 23:00:00.000000000Z,2020-01-01 23:00:00.000000000Z,2020-01-02 23:00:00.000000000Z,2020-01-03 23:00:00.000000000Z,2020-01-04 23:00:00.000000000Z,...,2025-05-27 22:00:00.000000000Z,2025-05-28 22:00:00.000000000Z,2025-05-29 22:00:00.000000000Z,2025-05-30 22:00:00.000000000Z,2025-05-31 22:00:00.000000000Z&#93;&#93;
-p: &#91;&#91;90,80,90,120,100,...,90,100,100,110,100&#93;&#93;
-q: &#91;&#91;110,100,90,100,90,...,110,100,100,90,100&#93;&#93;
-r: &#91;&#91;100,90,110,110,110,...,100,100,100,90,120&#93;&#93;</pre>
+valid_at: &#91;&#91;2019-12-31 23:00:00.000000000Z,2020-01-01 23:00:00.000000000Z,2020-01-02 23:00:00.000000000Z,2020-01-03 23:00:00.000000000Z,2020-01-04 23:00:00.000000000Z,...,2025-08-10 22:00:00.000000000Z,2025-08-11 22:00:00.000000000Z,2025-08-12 22:00:00.000000000Z,2025-08-13 22:00:00.000000000Z,2025-08-14 22:00:00.000000000Z&#93;&#93;
+p: &#91;&#91;110,90,90,80,110,...,100,90,100,90,100&#93;&#93;
+q: &#91;&#91;100,90,90,100,100,...,60,100,80,100,100&#93;&#93;
+r: &#91;&#91;110,100,80,120,100,...,90,90,120,100,100&#93;&#93;</pre>
 
 ```python {.marimo}
 x.nw.to_pandas()
@@ -347,17 +681,17 @@ x.nw.to_pandas()
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2019-12-31 23:00:00+00:00 | 90.0 | 110.0 | 100.0 |
-| 2020-01-01 23:00:00+00:00 | 80.0 | 100.0 | 90.0 |
-| 2020-01-02 23:00:00+00:00 | 90.0 | 90.0 | 110.0 |
-| 2020-01-03 23:00:00+00:00 | 120.0 | 100.0 | 110.0 |
-| 2020-01-04 23:00:00+00:00 | 100.0 | 90.0 | 110.0 |
+| 2019-12-31 23:00:00+00:00 | 110.0 | 100.0 | 110.0 |
+| 2020-01-01 23:00:00+00:00 | 90.0 | 90.0 | 100.0 |
+| 2020-01-02 23:00:00+00:00 | 90.0 | 90.0 | 80.0 |
+| 2020-01-03 23:00:00+00:00 | 80.0 | 100.0 | 120.0 |
+| 2020-01-04 23:00:00+00:00 | 110.0 | 100.0 | 100.0 |
 | ... | ... | ... | ... |
-| 2025-05-27 22:00:00+00:00 | 90.0 | 110.0 | 100.0 |
-| 2025-05-28 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
-| 2025-05-29 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
-| 2025-05-30 22:00:00+00:00 | 110.0 | 90.0 | 90.0 |
-| 2025-05-31 22:00:00+00:00 | 100.0 | 100.0 | 120.0 |
+| 2025-08-10 22:00:00+00:00 | 100.0 | 60.0 | 90.0 |
+| 2025-08-11 22:00:00+00:00 | 90.0 | 100.0 | 90.0 |
+| 2025-08-12 22:00:00+00:00 | 100.0 | 80.0 | 120.0 |
+| 2025-08-13 22:00:00+00:00 | 90.0 | 100.0 | 100.0 |
+| 2025-08-14 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
 
 ```python {.marimo}
 x.plot()
@@ -376,16 +710,16 @@ more_pqr_data
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2025-05-29 00:00:00+02:00 | 90.0 | 100.0 | 100.0 |
+| 2025-05-29 00:00:00+02:00 | 110.0 | 90.0 | 100.0 |
 | 2025-05-30 00:00:00+02:00 | 100.0 | 100.0 | 100.0 |
-| 2025-05-31 00:00:00+02:00 | 110.0 | 110.0 | 130.0 |
-| 2025-06-01 00:00:00+02:00 | 110.0 | 100.0 | 100.0 |
-| 2025-06-02 00:00:00+02:00 | 100.0 | 120.0 | 100.0 |
+| 2025-05-31 00:00:00+02:00 | 110.0 | 110.0 | 100.0 |
+| 2025-06-01 00:00:00+02:00 | 100.0 | 90.0 | 100.0 |
+| 2025-06-02 00:00:00+02:00 | 90.0 | 90.0 | 100.0 |
 | ... | ... | ... | ... |
-| 2025-08-11 00:00:00+02:00 | 90.0 | 100.0 | 90.0 |
-| 2025-08-12 00:00:00+02:00 | 90.0 | 100.0 | 110.0 |
-| 2025-08-13 00:00:00+02:00 | 90.0 | 110.0 | 100.0 |
-| 2025-08-14 00:00:00+02:00 | 70.0 | 80.0 | 110.0 |
+| 2025-08-11 00:00:00+02:00 | 110.0 | 90.0 | 90.0 |
+| 2025-08-12 00:00:00+02:00 | 110.0 | 90.0 | 100.0 |
+| 2025-08-13 00:00:00+02:00 | 100.0 | 90.0 | 100.0 |
+| 2025-08-14 00:00:00+02:00 | 100.0 | 100.0 | 100.0 |
 | 2025-08-15 00:00:00+02:00 | 100.0 | 100.0 | 90.0 |
 
 ```python {.marimo}
@@ -399,7 +733,7 @@ print(pqr_second_write.tags)
 
 <!-- @output:ZBYS -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;p&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#x27;essentials&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;product&#x27;: &#x27;coffee&#x27;}, &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;q&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#x27;essentials&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;product&#x27;: &#x27;crispbread&#x27;}, &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;r&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#x27;essentials&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;product&#x27;: &#x27;brown cheese&#x27;}}, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#x27;essentials&#x27;}
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;p&#x27;, &#x27;variabel&#x27;: &#x27;pris&#x27;, &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;vare&#x27;: &#x27;kaffe&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;, &#x27;product&#x27;: &#x27;coffee&#x27;}, &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;q&#x27;, &#x27;variabel&#x27;: &#x27;pris&#x27;, &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;vare&#x27;: &#x27;knekkebrød&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;, &#x27;product&#x27;: &#x27;crispbread&#x27;}, &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;, &#x27;name&#x27;: &#x27;r&#x27;, &#x27;variabel&#x27;: &#x27;pris&#x27;, &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;AT&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;vare&#x27;: &#x27;brunost&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;, &#x27;product&#x27;: &#x27;brown cheese&#x27;}}, &#x27;repository&#x27;: &#x27;tutorials&#x27;, &#x27;variabel&#x27;: &#x27;pris&#x27;, &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;, &#x27;variable&#x27;: &#x27;price&#x27;, &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;}
 </pre>
 
 ```python {.marimo}
@@ -415,30 +749,30 @@ print(pqr_second_write.data)
 <!-- @output:nHfw -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">                      valid_at      p      q      r
-0    2019-12-31 23:00:00+00:00   90.0  110.0  100.0
-1    2020-01-01 23:00:00+00:00   80.0  100.0   90.0
-2    2020-01-02 23:00:00+00:00   90.0   90.0  110.0
-3    2020-01-03 23:00:00+00:00  120.0  100.0  110.0
-4    2020-01-04 23:00:00+00:00  100.0   90.0  110.0
+0    2019-12-31 23:00:00+00:00  110.0  100.0  110.0
+1    2020-01-01 23:00:00+00:00   90.0   90.0  100.0
+2    2020-01-02 23:00:00+00:00   90.0   90.0   80.0
+3    2020-01-03 23:00:00+00:00   80.0  100.0  120.0
+4    2020-01-04 23:00:00+00:00  110.0  100.0  100.0
 ...                        ...    ...    ...    ...
-1974 2025-05-27 22:00:00+00:00   90.0  110.0  100.0
-1975 2025-05-28 22:00:00+00:00  100.0  100.0  100.0
-1976 2025-05-29 22:00:00+00:00  100.0  100.0  100.0
-1977 2025-05-30 22:00:00+00:00  110.0   90.0   90.0
-1978 2025-05-31 22:00:00+00:00  100.0  100.0  120.0
+1974 2025-05-27 22:00:00+00:00   90.0  120.0   90.0
+1975 2025-05-28 22:00:00+00:00  110.0  100.0   80.0
+1976 2025-05-29 22:00:00+00:00  100.0  120.0  110.0
+1977 2025-05-30 22:00:00+00:00  100.0  100.0  100.0
+1978 2025-05-31 22:00:00+00:00  100.0  100.0   90.0
 
 &#91;1979 rows x 4 columns&#93;
                     valid_at      p      q      r
-0  2025-05-28 22:00:00+00:00   90.0  100.0  100.0
+0  2025-05-28 22:00:00+00:00  110.0   90.0  100.0
 1  2025-05-29 22:00:00+00:00  100.0  100.0  100.0
-2  2025-05-30 22:00:00+00:00  110.0  110.0  130.0
-3  2025-05-31 22:00:00+00:00  110.0  100.0  100.0
-4  2025-06-01 22:00:00+00:00  100.0  120.0  100.0
+2  2025-05-30 22:00:00+00:00  110.0  110.0  100.0
+3  2025-05-31 22:00:00+00:00  100.0   90.0  100.0
+4  2025-06-01 22:00:00+00:00   90.0   90.0  100.0
 ..                       ...    ...    ...    ...
-74 2025-08-10 22:00:00+00:00   90.0  100.0   90.0
-75 2025-08-11 22:00:00+00:00   90.0  100.0  110.0
-76 2025-08-12 22:00:00+00:00   90.0  110.0  100.0
-77 2025-08-13 22:00:00+00:00   70.0   80.0  110.0
+74 2025-08-10 22:00:00+00:00  110.0   90.0   90.0
+75 2025-08-11 22:00:00+00:00  110.0   90.0  100.0
+76 2025-08-12 22:00:00+00:00  100.0   90.0  100.0
+77 2025-08-13 22:00:00+00:00  100.0  100.0  100.0
 78 2025-08-14 22:00:00+00:00  100.0  100.0   90.0
 
 &#91;79 rows x 4 columns&#93;
@@ -454,16 +788,16 @@ y.nw.to_polars()
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
 | datetime[ns, UTC] | f64 | f64 | f64 |
-| 2019-12-31 23:00:00 UTC | 90.0 | 110.0 | 100.0 |
-| 2020-01-01 23:00:00 UTC | 80.0 | 100.0 | 90.0 |
-| 2020-01-02 23:00:00 UTC | 90.0 | 90.0 | 110.0 |
-| 2020-01-03 23:00:00 UTC | 120.0 | 100.0 | 110.0 |
-| 2020-01-04 23:00:00 UTC | 100.0 | 90.0 | 110.0 |
+| 2019-12-31 23:00:00 UTC | 110.0 | 100.0 | 110.0 |
+| 2020-01-01 23:00:00 UTC | 90.0 | 90.0 | 100.0 |
+| 2020-01-02 23:00:00 UTC | 90.0 | 90.0 | 80.0 |
+| 2020-01-03 23:00:00 UTC | 80.0 | 100.0 | 120.0 |
+| 2020-01-04 23:00:00 UTC | 110.0 | 100.0 | 100.0 |
 | … | … | … | … |
-| 2025-08-10 22:00:00 UTC | 90.0 | 100.0 | 90.0 |
-| 2025-08-11 22:00:00 UTC | 90.0 | 100.0 | 110.0 |
-| 2025-08-12 22:00:00 UTC | 90.0 | 110.0 | 100.0 |
-| 2025-08-13 22:00:00 UTC | 70.0 | 80.0 | 110.0 |
+| 2025-08-10 22:00:00 UTC | 110.0 | 90.0 | 90.0 |
+| 2025-08-11 22:00:00 UTC | 110.0 | 90.0 | 100.0 |
+| 2025-08-12 22:00:00 UTC | 100.0 | 90.0 | 100.0 |
+| 2025-08-13 22:00:00 UTC | 100.0 | 100.0 | 100.0 |
 | 2025-08-14 22:00:00 UTC | 100.0 | 100.0 | 90.0 |
 
 ```python {.marimo}
@@ -479,9 +813,9 @@ y.nw.to_polars().filter(
 | --- | --- | --- | --- |
 | datetime[ns, UTC] | f64 | f64 | f64 |
 | 2025-05-29 22:00:00 UTC | 100.0 | 100.0 | 100.0 |
-| 2025-05-30 22:00:00 UTC | 110.0 | 110.0 | 130.0 |
-| 2025-05-31 22:00:00 UTC | 110.0 | 100.0 | 100.0 |
-| 2025-06-01 22:00:00 UTC | 100.0 | 120.0 | 100.0 |
+| 2025-05-30 22:00:00 UTC | 110.0 | 110.0 | 100.0 |
+| 2025-05-31 22:00:00 UTC | 100.0 | 90.0 | 100.0 |
+| 2025-06-01 22:00:00 UTC | 90.0 | 90.0 | 100.0 |
 
 ```python {.marimo}
 # note that for unversioned type: we operate on the same files all the way
@@ -491,11 +825,65 @@ print(tree(data_path))
 <!-- @output:pHFh -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
+├── archives/
+│   ├── statistics/
+│   │   └── PQR/
+│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+│   ├── The Sample Statistic/
+│   │   └── statistics/
+│   │       └── SampleDataset/
+│   │           ├── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
+│   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│   └── XYZ/
+│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
+├── AS_OF_AT/
+│   └── POPU06/
+│       ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
 ├── metadata/
-│   └── PQR-metadata.json
-└── NONE_AT/
-    └── PQR/
-        └── PQR-latest-data.parquet
+│   ├── AZ_beverages-metadata.json
+│   ├── AZ_drinks-metadata.json
+│   ├── SampleDataset-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
+├── NONE_AT/
+│   ├── PQR/
+│   │   └── PQR-latest-data.parquet
+│   ├── SampleDataset/
+│   │   └── SampleDataset-latest-data.parquet
+│   └── XYZ/
+│       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
+└── shared/
+    └── default/
+        ├── statistics/
+        │   └── PQR/
+        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+        └── XYZ/
+            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
@@ -524,17 +912,17 @@ xx.data
 | p | q | r |
 | --- | --- | --- |
 |  |  |  |
-| 90.0 | 110.0 | 100.0 |
-| 9200.0 | 9110.0 | 9080.0 |
-| 9070.0 | 9000.0 | 9100.0 |
-| 9300.0 | 9290.0 | 9230.0 |
-| 9310.0 | 9360.0 | 9340.0 |
+| 110.0 | 100.0 | 110.0 |
+| 8960.0 | 9030.0 | 8940.0 |
+| 9160.0 | 9250.0 | 9020.0 |
+| 9260.0 | 9070.0 | 9340.0 |
+| 9270.0 | 9280.0 | 9330.0 |
 | ... | ... | ... |
-| 9090.0 | 8870.0 | 9210.0 |
-| 9150.0 | 9350.0 | 9330.0 |
-| 9150.0 | 9150.0 | 9240.0 |
-| 9050.0 | 8900.0 | 8990.0 |
-| 6070.0 | 6130.0 | 5940.0 |
+| 9330.0 | 9270.0 | 9050.0 |
+| 9200.0 | 9160.0 | 9130.0 |
+| 8880.0 | 9050.0 | 9100.0 |
+| 8970.0 | 9070.0 | 8920.0 |
+| 4520.0 | 4450.0 | 4490.0 |
 
 ### Example: data for periods, *without* versioning
 
@@ -575,12 +963,12 @@ bigger_data
 | valid_from | valid_to | a_quantity_coffee | a_quantity_tea | a_quantity_soda | a_quantity_beer | a_quantity_wine | a_price_coffee | a_price_tea | a_price_soda | a_price_beer | a_price_wine | b_quantity_coffee | b_quantity_tea | b_quantity_soda | b_quantity_beer | b_quantity_wine | b_price_coffee | b_price_tea | b_price_soda | b_price_beer | b_price_wine | c_quantity_coffee | c_quantity_tea | c_quantity_soda | c_quantity_beer | c_quantity_wine | c_price_coffee | c_price_tea | c_price_soda | c_price_beer | c_price_wine | d_quantity_coffee | d_quantity_tea | d_quantity_soda | d_quantity_beer | d_quantity_wine | … | w_quantity_beer | w_quantity_wine | w_price_coffee | w_price_tea | w_price_soda | w_price_beer | w_price_wine | x_quantity_coffee | x_quantity_tea | x_quantity_soda | x_quantity_beer | x_quantity_wine | x_price_coffee | x_price_tea | x_price_soda | x_price_beer | x_price_wine | y_quantity_coffee | y_quantity_tea | y_quantity_soda | y_quantity_beer | y_quantity_wine | y_price_coffee | y_price_tea | y_price_soda | y_price_beer | y_price_wine | z_quantity_coffee | z_quantity_tea | z_quantity_soda | z_quantity_beer | z_quantity_wine | z_price_coffee | z_price_tea | z_price_soda | z_price_beer | z_price_wine |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | datetime[μs, Europe/Oslo] | datetime[μs, Europe/Oslo] | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | … | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 |
-| 2025-01-01 00:00:00 CET | 2025-02-01 00:00:00 CET | 90.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 100.0 | 120.0 | 100.0 | 100.0 | 80.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 120.0 | 90.0 | 100.0 | … | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 70.0 | 110.0 | 100.0 | 90.0 | 100.0 | 120.0 | 110.0 | 100.0 | 100.0 | 110.0 | 80.0 | 100.0 | 100.0 | 90.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 70.0 | 90.0 |
-| 2025-02-01 00:00:00 CET | 2025-03-01 00:00:00 CET | 100.0 | 90.0 | 80.0 | 100.0 | 90.0 | 110.0 | 120.0 | 110.0 | 120.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 80.0 | 110.0 | 100.0 | … | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 80.0 | 90.0 | 120.0 | 110.0 | 90.0 | 100.0 | 90.0 | 120.0 | 90.0 | 110.0 | 90.0 | 110.0 | 90.0 | 110.0 | 100.0 | 130.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 80.0 | 110.0 | 100.0 | 90.0 | 100.0 | 80.0 | 90.0 |
-| 2025-03-01 00:00:00 CET | 2025-04-01 00:00:00 CEST | 110.0 | 100.0 | 100.0 | 100.0 | 120.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 110.0 | 120.0 | 100.0 | 100.0 | 90.0 | 80.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | … | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 90.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 80.0 | 90.0 | 90.0 | 90.0 | 90.0 | 100.0 | 100.0 | 80.0 | 120.0 | 110.0 | 100.0 | 90.0 | 90.0 |
-| 2025-04-01 00:00:00 CEST | 2025-05-01 00:00:00 CEST | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 100.0 | 90.0 | 120.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 70.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 120.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | … | 90.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 80.0 | 90.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 80.0 | 100.0 | 100.0 | 80.0 | 80.0 | 120.0 | 100.0 | 90.0 | 90.0 | 100.0 | 90.0 | 100.0 |
-| 2025-05-01 00:00:00 CEST | 2025-06-01 00:00:00 CEST | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 80.0 | 100.0 | 110.0 | 90.0 | 70.0 | 100.0 | 110.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | … | 90.0 | 90.0 | 120.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 110.0 | 90.0 | 110.0 | 120.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 | 90.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 90.0 | 100.0 | 80.0 | 90.0 | 110.0 |
-| 2025-06-01 00:00:00 CEST | 2025-07-01 00:00:00 CEST | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 90.0 | 120.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 110.0 | 80.0 | 100.0 | 90.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 90.0 | 80.0 | 110.0 | 90.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 130.0 | 120.0 | 110.0 | 110.0 | … | 80.0 | 90.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 100.0 | 120.0 | 110.0 | 100.0 | 120.0 | 90.0 | 90.0 | 120.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 130.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 |
+| 2025-01-01 00:00:00 CET | 2025-02-01 00:00:00 CET | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 80.0 | 90.0 | 110.0 | 110.0 | 100.0 | 90.0 | 110.0 | 110.0 | 110.0 | 110.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 120.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 | 130.0 | 100.0 | … | 90.0 | 90.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 80.0 | 100.0 | 110.0 | 100.0 | 110.0 | 80.0 | 100.0 | 110.0 | 90.0 | 110.0 | 100.0 | 80.0 | 100.0 | 110.0 | 90.0 | 120.0 | 80.0 | 80.0 | 90.0 | 100.0 | 110.0 | 110.0 | 100.0 |
+| 2025-02-01 00:00:00 CET | 2025-03-01 00:00:00 CET | 110.0 | 110.0 | 120.0 | 100.0 | 100.0 | 100.0 | 100.0 | 120.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 120.0 | 110.0 | 110.0 | 100.0 | 120.0 | 100.0 | 90.0 | 90.0 | 100.0 | 80.0 | 100.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 80.0 | 110.0 | 90.0 | … | 80.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 80.0 | 110.0 | 110.0 | 110.0 | 100.0 | 90.0 | 90.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | 120.0 | 120.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 70.0 | 100.0 | 90.0 |
+| 2025-03-01 00:00:00 CET | 2025-04-01 00:00:00 CEST | 80.0 | 100.0 | 100.0 | 100.0 | 100.0 | 120.0 | 100.0 | 90.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 120.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | … | 120.0 | 130.0 | 100.0 | 80.0 | 90.0 | 90.0 | 100.0 | 90.0 | 90.0 | 80.0 | 100.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 130.0 | 100.0 | 80.0 | 120.0 | 130.0 | 100.0 | 110.0 | 110.0 | 110.0 | 90.0 | 80.0 | 90.0 | 110.0 | 100.0 | 110.0 | 100.0 | 90.0 | 90.0 | 80.0 |
+| 2025-04-01 00:00:00 CEST | 2025-05-01 00:00:00 CEST | 90.0 | 90.0 | 110.0 | 100.0 | 70.0 | 60.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 90.0 | 120.0 | 110.0 | 90.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 90.0 | … | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 120.0 | 90.0 | 110.0 | 100.0 | 110.0 | 120.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 80.0 | 80.0 | 100.0 | 90.0 | 90.0 | 100.0 | 80.0 | 100.0 | 120.0 | 90.0 | 80.0 | 110.0 | 100.0 | 70.0 | 100.0 | 100.0 | 110.0 | 80.0 |
+| 2025-05-01 00:00:00 CEST | 2025-06-01 00:00:00 CEST | 120.0 | 90.0 | 120.0 | 100.0 | 90.0 | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 70.0 | 120.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 130.0 | 110.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 100.0 | 90.0 | 100.0 | 90.0 | … | 100.0 | 80.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 110.0 | 90.0 | 100.0 | 110.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 80.0 | 100.0 | 130.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 |
+| 2025-06-01 00:00:00 CEST | 2025-07-01 00:00:00 CEST | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 120.0 | 90.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 120.0 | 100.0 | 80.0 | 110.0 | 90.0 | 90.0 | 110.0 | 100.0 | 100.0 | 80.0 | 110.0 | … | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 80.0 | 90.0 | 110.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 120.0 | 110.0 | 100.0 | 110.0 | 110.0 | 90.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 |
 
 ```python {.marimo}
 az = Dataset(
@@ -592,2094 +980,23 @@ az = Dataset(
 ```
 
 ```python {.marimo}
-az.tags
+# the per-series entries make the full tag dictionary too large to show:
+print({k: v for k, v in az.tags.items() if k != 'series'})
+az.tags['series']['a_price_beer']
 ```
 
 <!-- @output:rEll -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;AZ_beverages&#x27;,
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;AZ_beverages&#x27;, &#x27;versioning&#x27;: &#x27;NONE&#x27;, &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;, &#x27;repository&#x27;: &#x27;tutorials&#x27;}
+</pre>
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
+ &#x27;name&#x27;: &#x27;a_price_beer&#x27;,
+ &#x27;product&#x27;: &#x27;beer&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
- &#x27;series&#x27;: {&#x27;a_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;a_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;a&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;a_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;a&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;a_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;a&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;a_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;a&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;a_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;a&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;a_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;a&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;a_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;a&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;a_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;a&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;a_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;a&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;a_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;a_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;a&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;b_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;b&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;b_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;b&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;b_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;b&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;b_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;b&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;b_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;b&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;b_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;b&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;b_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;b&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;b_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;b&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;b_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;b&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;b_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;b_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;b&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;c_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;c&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;c_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;c&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;c_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;c&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;c_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;c&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;c_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;c&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;c_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;c&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;c_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;c&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;c_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;c&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;c_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;c&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;c_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;c_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;c&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;d_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;d&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;d_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;d&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;d_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;d&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;d_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;d&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;d_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;d&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;d_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;d&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;d_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;d&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;d_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;d&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;d_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;d&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;d_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;d_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;d&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;e_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;e&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;e_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;e&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;e_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;e&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;e_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;e&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;e_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;e&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;e_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;e&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;e_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;e&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;e_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;e&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;e_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;e&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;e_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;e_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;e&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;f_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;f&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;f_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;f&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;f_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;f&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;f_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;f&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;f_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;f&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;f_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;f&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;f_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;f&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;f_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;f&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;f_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;f&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;f_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;f_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;f&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;g_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;g&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;g_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;g&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;g_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;g&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;g_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;g&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;g_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;g&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;g_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;g&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;g_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;g&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;g_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;g&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;g_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;g&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;g_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;g_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;g&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;h_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;h&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;h_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;h&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;h_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;h&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;h_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;h&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;h_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;h&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;h_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;h&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;h_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;h&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;h_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;h&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;h_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;h&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;h_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;h_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;h&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;i_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;i&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;i_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;i&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;i_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;i&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;i_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;i&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;i_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;i&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;i_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;i&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;i_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;i&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;i_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;i&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;i_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;i&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;i_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;i_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;i&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;j_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;j&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;j_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;j&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;j_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;j&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;j_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;j&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;j_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;j&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;j_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;j&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;j_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;j&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;j_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;j&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;j_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;j&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;j_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;j_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;j&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;k_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;k&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;k_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;k&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;k_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;k&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;k_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;k&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;k_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;k&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;k_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;k&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;k_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;k&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;k_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;k&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;k_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;k&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;k_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;k_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;k&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;l_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;l&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;l_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;l&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;l_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;l&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;l_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;l&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;l_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;l&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;l_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;l&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;l_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;l&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;l_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;l&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;l_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;l&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;l_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;l_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;l&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;m_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;m&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;m_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;m&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;m_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;m&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;m_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;m&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;m_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;m&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;m_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;m&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;m_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;m&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;m_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;m&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;m_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;m&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;m_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;m_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;m&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;n_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;n&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;n_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;n&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;n_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;n&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;n_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;n&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;n_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;n&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;n_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;n&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;n_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;n&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;n_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;n&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;n_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;n&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;n_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;n_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;n&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;o_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;o&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;o_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;o&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;o_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;o&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;o_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;o&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;o_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;o&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;o_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;o&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;o_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;o&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;o_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;o&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;o_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;o&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;o_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;o_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;o&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;p_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;p&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;p_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;p&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;p_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;p&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;p_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;p&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;p_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;p&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;p_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;p&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;p_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;p&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;p_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;p&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;p_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;p&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;p_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;p_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;p&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;q_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;q&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;q_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;q&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;q_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;q&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;q_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;q&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;q_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;q&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;q_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;q&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;q_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;q&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;q_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;q&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;q_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;q&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;q_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;q_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;q&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;r_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;r&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;r_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;r&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;r_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;r&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;r_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;r&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;r_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;r&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;r_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;r&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;r_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;r&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;r_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;r&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;r_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;r&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;r_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;r_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;r&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;s_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;s&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;s_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;s&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;s_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;s&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;s_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;s&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;s_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;s&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;s_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;s&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;s_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;s&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;s_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;s&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;s_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;s&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;s_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;s_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;s&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;t_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;t&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;t_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;t&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;t_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;t&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;t_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;t&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;t_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;t&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;t_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;t&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;t_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;t&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;t_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;t&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;t_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;t&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;t_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;t_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;t&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;u_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;u&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;u_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;u&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;u_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;u&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;u_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;u&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;u_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;u&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;u_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;u&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;u_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;u&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;u_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;u&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;u_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;u&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;u_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;u_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;u&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;v_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;v&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;v_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;v&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;v_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;v&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;v_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;v&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;v_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;v&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;v_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;v&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;v_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;v&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;v_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;v&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;v_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;v&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;v_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;v_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;v&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;w_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;w&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;w_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;w&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;w_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;w&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;w_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;w&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;w_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;w&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;w_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;w&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;w_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;w&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;w_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;w&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;w_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;w&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;w_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;w_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;w&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;x_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;x&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;x_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;x&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;x_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;x&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;x_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;x&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;x_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;x&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;x_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;x&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;x_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;x&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;x_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;x&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;x_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;x&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;x_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;x_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;x&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;y_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;y&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;y_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;y&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;y_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;y&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;y_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;y&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;y_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;y&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;y_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;y&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;y_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;y&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;y_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;y&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;y_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;y&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;y_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;y_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;y&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_price_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;z_price_beer&#x27;,
-                             &#x27;product&#x27;: &#x27;beer&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;z&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_price_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;z_price_coffee&#x27;,
-                               &#x27;product&#x27;: &#x27;coffee&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;z&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;price&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_price_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;z_price_soda&#x27;,
-                             &#x27;product&#x27;: &#x27;soda&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;z&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_price_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                            &#x27;name&#x27;: &#x27;z_price_tea&#x27;,
-                            &#x27;product&#x27;: &#x27;tea&#x27;,
-                            &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                            &#x27;store&#x27;: &#x27;z&#x27;,
-                            &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                            &#x27;variable&#x27;: &#x27;price&#x27;,
-                            &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_price_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                             &#x27;name&#x27;: &#x27;z_price_wine&#x27;,
-                             &#x27;product&#x27;: &#x27;wine&#x27;,
-                             &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                             &#x27;store&#x27;: &#x27;z&#x27;,
-                             &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                             &#x27;variable&#x27;: &#x27;price&#x27;,
-                             &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_quantity_beer&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;z_quantity_beer&#x27;,
-                                &#x27;product&#x27;: &#x27;beer&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;z&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_quantity_coffee&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                  &#x27;name&#x27;: &#x27;z_quantity_coffee&#x27;,
-                                  &#x27;product&#x27;: &#x27;coffee&#x27;,
-                                  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                  &#x27;store&#x27;: &#x27;z&#x27;,
-                                  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                  &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                  &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_quantity_soda&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;z_quantity_soda&#x27;,
-                                &#x27;product&#x27;: &#x27;soda&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;z&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_quantity_tea&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                               &#x27;name&#x27;: &#x27;z_quantity_tea&#x27;,
-                               &#x27;product&#x27;: &#x27;tea&#x27;,
-                               &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                               &#x27;store&#x27;: &#x27;z&#x27;,
-                               &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                               &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                               &#x27;versioning&#x27;: &#x27;NONE&#x27;},
-            &#x27;z_quantity_wine&#x27;: {&#x27;dataset&#x27;: &#x27;AZ_beverages&#x27;,
-                                &#x27;name&#x27;: &#x27;z_quantity_wine&#x27;,
-                                &#x27;product&#x27;: &#x27;wine&#x27;,
-                                &#x27;repository&#x27;: &#x27;tutorials&#x27;,
-                                &#x27;store&#x27;: &#x27;z&#x27;,
-                                &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
-                                &#x27;variable&#x27;: &#x27;quantity&#x27;,
-                                &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
+ &#x27;store&#x27;: &#x27;a&#x27;,
  &#x27;temporality&#x27;: &#x27;FROM_TO&#x27;,
+ &#x27;variable&#x27;: &#x27;price&#x27;,
  &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
 ```python {.marimo}
@@ -2692,12 +1009,12 @@ az.data
 | valid_from | valid_to | a_quantity_coffee | a_quantity_tea | a_quantity_soda | a_quantity_beer | a_quantity_wine | a_price_coffee | a_price_tea | a_price_soda | a_price_beer | a_price_wine | b_quantity_coffee | b_quantity_tea | b_quantity_soda | b_quantity_beer | b_quantity_wine | b_price_coffee | b_price_tea | b_price_soda | b_price_beer | b_price_wine | c_quantity_coffee | c_quantity_tea | c_quantity_soda | c_quantity_beer | c_quantity_wine | c_price_coffee | c_price_tea | c_price_soda | c_price_beer | c_price_wine | d_quantity_coffee | d_quantity_tea | d_quantity_soda | d_quantity_beer | d_quantity_wine | … | w_quantity_beer | w_quantity_wine | w_price_coffee | w_price_tea | w_price_soda | w_price_beer | w_price_wine | x_quantity_coffee | x_quantity_tea | x_quantity_soda | x_quantity_beer | x_quantity_wine | x_price_coffee | x_price_tea | x_price_soda | x_price_beer | x_price_wine | y_quantity_coffee | y_quantity_tea | y_quantity_soda | y_quantity_beer | y_quantity_wine | y_price_coffee | y_price_tea | y_price_soda | y_price_beer | y_price_wine | z_quantity_coffee | z_quantity_tea | z_quantity_soda | z_quantity_beer | z_quantity_wine | z_price_coffee | z_price_tea | z_price_soda | z_price_beer | z_price_wine |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | datetime[ns, UTC] | datetime[ns, UTC] | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | … | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 | f64 |
-| 2024-12-31 23:00:00 UTC | 2025-01-31 23:00:00 UTC | 90.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 100.0 | 120.0 | 100.0 | 100.0 | 80.0 | 100.0 | 90.0 | 110.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 120.0 | 90.0 | 100.0 | … | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 70.0 | 110.0 | 100.0 | 90.0 | 100.0 | 120.0 | 110.0 | 100.0 | 100.0 | 110.0 | 80.0 | 100.0 | 100.0 | 90.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 70.0 | 90.0 |
-| 2025-01-31 23:00:00 UTC | 2025-02-28 23:00:00 UTC | 100.0 | 90.0 | 80.0 | 100.0 | 90.0 | 110.0 | 120.0 | 110.0 | 120.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 80.0 | 110.0 | 100.0 | … | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 80.0 | 90.0 | 120.0 | 110.0 | 90.0 | 100.0 | 90.0 | 120.0 | 90.0 | 110.0 | 90.0 | 110.0 | 90.0 | 110.0 | 100.0 | 130.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 80.0 | 110.0 | 100.0 | 90.0 | 100.0 | 80.0 | 90.0 |
-| 2025-02-28 23:00:00 UTC | 2025-03-31 22:00:00 UTC | 110.0 | 100.0 | 100.0 | 100.0 | 120.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 110.0 | 120.0 | 100.0 | 100.0 | 90.0 | 80.0 | 100.0 | 100.0 | 100.0 | 90.0 | 90.0 | … | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 90.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 80.0 | 90.0 | 90.0 | 90.0 | 90.0 | 100.0 | 100.0 | 80.0 | 120.0 | 110.0 | 100.0 | 90.0 | 90.0 |
-| 2025-03-31 22:00:00 UTC | 2025-04-30 22:00:00 UTC | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 110.0 | 100.0 | 90.0 | 120.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 70.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 120.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | … | 90.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 90.0 | 110.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 80.0 | 90.0 | 100.0 | 100.0 | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 80.0 | 100.0 | 100.0 | 80.0 | 80.0 | 120.0 | 100.0 | 90.0 | 90.0 | 100.0 | 90.0 | 100.0 |
-| 2025-04-30 22:00:00 UTC | 2025-05-31 22:00:00 UTC | 110.0 | 90.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 80.0 | 100.0 | 110.0 | 90.0 | 70.0 | 100.0 | 110.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | … | 90.0 | 90.0 | 120.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 90.0 | 110.0 | 90.0 | 110.0 | 120.0 | 90.0 | 110.0 | 100.0 | 100.0 | 120.0 | 90.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 90.0 | 100.0 | 80.0 | 90.0 | 110.0 |
-| 2025-05-31 22:00:00 UTC | 2025-06-30 22:00:00 UTC | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 90.0 | 120.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 110.0 | 80.0 | 100.0 | 90.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 90.0 | 80.0 | 110.0 | 90.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 130.0 | 120.0 | 110.0 | 110.0 | … | 80.0 | 90.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 100.0 | 120.0 | 110.0 | 100.0 | 120.0 | 90.0 | 90.0 | 120.0 | 100.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 130.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 |
+| 2024-12-31 23:00:00 UTC | 2025-01-31 23:00:00 UTC | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 | 80.0 | 90.0 | 110.0 | 110.0 | 100.0 | 90.0 | 110.0 | 110.0 | 110.0 | 110.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 120.0 | 100.0 | 100.0 | 100.0 | 110.0 | 110.0 | 90.0 | 90.0 | 90.0 | 100.0 | 110.0 | 100.0 | 130.0 | 100.0 | … | 90.0 | 90.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 90.0 | 100.0 | 100.0 | 110.0 | 90.0 | 90.0 | 100.0 | 80.0 | 100.0 | 110.0 | 100.0 | 110.0 | 80.0 | 100.0 | 110.0 | 90.0 | 110.0 | 100.0 | 80.0 | 100.0 | 110.0 | 90.0 | 120.0 | 80.0 | 80.0 | 90.0 | 100.0 | 110.0 | 110.0 | 100.0 |
+| 2025-01-31 23:00:00 UTC | 2025-02-28 23:00:00 UTC | 110.0 | 110.0 | 120.0 | 100.0 | 100.0 | 100.0 | 100.0 | 120.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 120.0 | 110.0 | 110.0 | 100.0 | 120.0 | 100.0 | 90.0 | 90.0 | 100.0 | 80.0 | 100.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 80.0 | 110.0 | 90.0 | … | 80.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 80.0 | 110.0 | 110.0 | 110.0 | 100.0 | 90.0 | 90.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 110.0 | 120.0 | 120.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 70.0 | 100.0 | 90.0 |
+| 2025-02-28 23:00:00 UTC | 2025-03-31 22:00:00 UTC | 80.0 | 100.0 | 100.0 | 100.0 | 100.0 | 120.0 | 100.0 | 90.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 120.0 | 100.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | 110.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 100.0 | … | 120.0 | 130.0 | 100.0 | 80.0 | 90.0 | 90.0 | 100.0 | 90.0 | 90.0 | 80.0 | 100.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 130.0 | 100.0 | 80.0 | 120.0 | 130.0 | 100.0 | 110.0 | 110.0 | 110.0 | 90.0 | 80.0 | 90.0 | 110.0 | 100.0 | 110.0 | 100.0 | 90.0 | 90.0 | 80.0 |
+| 2025-03-31 22:00:00 UTC | 2025-04-30 22:00:00 UTC | 90.0 | 90.0 | 110.0 | 100.0 | 70.0 | 60.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 90.0 | 120.0 | 110.0 | 90.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 80.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 90.0 | 90.0 | 100.0 | 100.0 | 100.0 | 90.0 | … | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 120.0 | 90.0 | 110.0 | 100.0 | 110.0 | 120.0 | 90.0 | 100.0 | 90.0 | 100.0 | 110.0 | 80.0 | 80.0 | 100.0 | 90.0 | 90.0 | 100.0 | 80.0 | 100.0 | 120.0 | 90.0 | 80.0 | 110.0 | 100.0 | 70.0 | 100.0 | 100.0 | 110.0 | 80.0 |
+| 2025-04-30 22:00:00 UTC | 2025-05-31 22:00:00 UTC | 120.0 | 90.0 | 120.0 | 100.0 | 90.0 | 110.0 | 100.0 | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 100.0 | 70.0 | 120.0 | 90.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 130.0 | 110.0 | 100.0 | 90.0 | 110.0 | 100.0 | 100.0 | 100.0 | 100.0 | 80.0 | 100.0 | 90.0 | 100.0 | 90.0 | … | 100.0 | 80.0 | 100.0 | 110.0 | 110.0 | 110.0 | 100.0 | 110.0 | 110.0 | 90.0 | 100.0 | 110.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 90.0 | 110.0 | 100.0 | 110.0 | 90.0 | 100.0 | 80.0 | 100.0 | 130.0 | 100.0 | 90.0 | 90.0 | 100.0 | 110.0 | 90.0 | 100.0 | 90.0 | 110.0 | 100.0 |
+| 2025-05-31 22:00:00 UTC | 2025-06-30 22:00:00 UTC | 110.0 | 110.0 | 100.0 | 110.0 | 100.0 | 90.0 | 100.0 | 100.0 | 120.0 | 90.0 | 110.0 | 90.0 | 100.0 | 110.0 | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 120.0 | 100.0 | 80.0 | 110.0 | 90.0 | 90.0 | 110.0 | 100.0 | 100.0 | 80.0 | 110.0 | … | 100.0 | 100.0 | 100.0 | 90.0 | 100.0 | 100.0 | 110.0 | 80.0 | 90.0 | 110.0 | 110.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 90.0 | 110.0 | 100.0 | 90.0 | 100.0 | 90.0 | 110.0 | 120.0 | 110.0 | 100.0 | 110.0 | 110.0 | 90.0 | 110.0 | 90.0 | 110.0 | 100.0 | 100.0 | 110.0 | 100.0 | 110.0 |
 
 ```python {.marimo}
 print(tree(data_path))
@@ -2711,15 +1028,65 @@ print(tree(data_path))
 <!-- @output:lgWD -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
+├── archives/
+│   ├── statistics/
+│   │   └── PQR/
+│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+│   ├── The Sample Statistic/
+│   │   └── statistics/
+│   │       └── SampleDataset/
+│   │           ├── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
+│   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│   └── XYZ/
+│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
+├── AS_OF_AT/
+│   └── POPU06/
+│       ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
+├── AS_OF_FROM_TO/
+│   ├── BNO/
+│   │   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   │   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+│   └── Prices and Volumes/
+│       ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+│       ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+│       └── ...
 ├── metadata/
 │   ├── AZ_beverages-metadata.json
-│   └── PQR-metadata.json
+│   ├── AZ_drinks-metadata.json
+│   ├── SampleDataset-metadata.json
+│   ├── XYZ-metadata.json
+│   └── ...
 ├── NONE_AT/
-│   └── PQR/
-│       └── PQR-latest-data.parquet
-└── NONE_FROM_TO/
-    └── AZ_beverages/
-        └── AZ_beverages-latest-data.parquet
+│   ├── PQR/
+│   │   └── PQR-latest-data.parquet
+│   ├── SampleDataset/
+│   │   └── SampleDataset-latest-data.parquet
+│   └── XYZ/
+│       └── XYZ-latest-data.parquet
+├── NONE_FROM_TO/
+│   ├── AZ_beverages/
+│   │   └── AZ_beverages-latest-data.parquet
+│   ├── AZ_drinks/
+│   │   └── AZ_drinks-latest-data.parquet
+│   └── More Prices and Volumes/
+│       └── More Prices and Volumes-latest-data.parquet
+└── shared/
+    └── default/
+        ├── statistics/
+        │   └── PQR/
+        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+        └── XYZ/
+            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
 
 </pre>
 
@@ -2749,13 +1116,13 @@ data_for_n_days_prior('2024-03-15', n)
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2024-03-08 00:00:00+01:00 | 90.0 | 100.0 | 100.0 |
-| 2024-03-09 00:00:00+01:00 | 90.0 | 100.0 | 100.0 |
-| 2024-03-10 00:00:00+01:00 | 80.0 | 100.0 | 90.0 |
-| 2024-03-11 00:00:00+01:00 | 110.0 | 100.0 | 100.0 |
-| 2024-03-12 00:00:00+01:00 | 100.0 | 90.0 | 100.0 |
-| 2024-03-13 00:00:00+01:00 | 90.0 | 100.0 | 100.0 |
-| 2024-03-14 00:00:00+01:00 | 100.0 | 100.0 | 90.0 |
+| 2024-03-08 00:00:00+01:00 | 90.0 | 90.0 | 90.0 |
+| 2024-03-09 00:00:00+01:00 | 110.0 | 110.0 | 100.0 |
+| 2024-03-10 00:00:00+01:00 | 100.0 | 100.0 | 90.0 |
+| 2024-03-11 00:00:00+01:00 | 100.0 | 100.0 | 90.0 |
+| 2024-03-12 00:00:00+01:00 | 110.0 | 110.0 | 100.0 |
+| 2024-03-13 00:00:00+01:00 | 90.0 | 110.0 | 100.0 |
+| 2024-03-14 00:00:00+01:00 | 80.0 | 90.0 | 110.0 |
 
 ```python {.marimo}
 as_of_dates = ['2025-05-01','2025-06-01','2025-08-03','2025-08-04','2025-08-05','2025-08-06','2025-08-07']
@@ -2790,7 +1157,7 @@ specific
 
 <!-- @output:tZnO -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;XYZ&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.AS_OF,Temporality.AT), as_of_tz=&quot;2025-08-03T22:00:00+00:00&quot;)</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;XYZ&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=&quot;2025-08-03T22:00:00+00:00&quot;)</pre>
 
 ```python {.marimo}
 last
@@ -2798,7 +1165,7 @@ last
 
 <!-- @output:xvXZ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;XYZ&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.AS_OF,Temporality.AT), as_of_tz=&quot;2025-08-06T22:00:00+00:00&quot;)</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;XYZ&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=&quot;2025-08-06T22:00:00+00:00&quot;)</pre>
 
 ```python {.marimo}
 first.nw.to_pandas()
@@ -2808,13 +1175,17 @@ first.nw.to_pandas()
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2025-04-23 22:00:00+00:00 | 80.0 | 90.0 | 110.0 |
-| 2025-04-24 22:00:00+00:00 | 120.0 | 100.0 | 100.0 |
-| 2025-04-25 22:00:00+00:00 | 80.0 | 80.0 | 100.0 |
-| 2025-04-26 22:00:00+00:00 | 80.0 | 90.0 | 90.0 |
-| 2025-04-27 22:00:00+00:00 | 110.0 | 110.0 | 90.0 |
-| 2025-04-28 22:00:00+00:00 | 90.0 | 120.0 | 110.0 |
-| 2025-04-29 22:00:00+00:00 | 80.0 | 110.0 | 100.0 |
+| 2021-12-31 23:00:00+00:00 | 100.0 | 100.0 | 110.0 |
+| 2022-01-31 23:00:00+00:00 | 100.0 | 110.0 | 100.0 |
+| 2022-02-28 23:00:00+00:00 | 90.0 | 100.0 | 100.0 |
+| 2022-03-31 22:00:00+00:00 | 110.0 | 110.0 | 110.0 |
+| 2022-04-30 22:00:00+00:00 | 100.0 | 110.0 | 110.0 |
+| ... | ... | ... | ... |
+| 2022-07-31 22:00:00+00:00 | 100.0 | 100.0 | 90.0 |
+| 2022-08-31 22:00:00+00:00 | 80.0 | 110.0 | 110.0 |
+| 2022-09-30 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
+| 2022-10-31 23:00:00+00:00 | 100.0 | 100.0 | 100.0 |
+| 2022-11-30 23:00:00+00:00 | 100.0 | 110.0 | 100.0 |
 
 ```python {.marimo}
 last.nw.to_pandas()
@@ -2824,13 +1195,17 @@ last.nw.to_pandas()
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2025-07-30 22:00:00+00:00 | 90.0 | 100.0 | 100.0 |
-| 2025-07-31 22:00:00+00:00 | 100.0 | 90.0 | 80.0 |
-| 2025-08-01 22:00:00+00:00 | 80.0 | 90.0 | 100.0 |
-| 2025-08-02 22:00:00+00:00 | 100.0 | 90.0 | 90.0 |
-| 2025-08-03 22:00:00+00:00 | 100.0 | 110.0 | 110.0 |
-| 2025-08-04 22:00:00+00:00 | 110.0 | 120.0 | 100.0 |
-| 2025-08-05 22:00:00+00:00 | 110.0 | 100.0 | 80.0 |
+| 2021-12-31 23:00:00+00:00 | 100.0 | 100.0 | 110.0 |
+| 2022-01-31 23:00:00+00:00 | 100.0 | 110.0 | 100.0 |
+| 2022-02-28 23:00:00+00:00 | 90.0 | 100.0 | 100.0 |
+| 2022-03-31 22:00:00+00:00 | 110.0 | 110.0 | 110.0 |
+| 2022-04-30 22:00:00+00:00 | 100.0 | 110.0 | 110.0 |
+| ... | ... | ... | ... |
+| 2022-07-31 22:00:00+00:00 | 100.0 | 100.0 | 90.0 |
+| 2022-08-31 22:00:00+00:00 | 80.0 | 110.0 | 110.0 |
+| 2022-09-30 22:00:00+00:00 | 100.0 | 100.0 | 100.0 |
+| 2022-10-31 23:00:00+00:00 | 100.0 | 100.0 | 100.0 |
+| 2022-11-30 23:00:00+00:00 | 100.0 | 110.0 | 100.0 |
 
 ```python {.marimo}
 diff = last - first
@@ -2839,7 +1214,7 @@ diff
 
 <!-- @output:cEAS -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;(XYZ.subtract.XYZ)&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.AS_OF,Temporality.AT), as_of_tz=&quot;2025-08-06T22:00:00+00:00&quot;)</pre>
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;(XYZ.subtract.XYZ)&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=&quot;2025-08-06T22:00:00+00:00&quot;)</pre>
 
 ```python {.marimo}
 diff.nw.to_pandas()
@@ -2849,13 +1224,17 @@ diff.nw.to_pandas()
 
 | valid_at | x | y | z |
 | --- | --- | --- | --- |
-| 2025-07-30 22:00:00+00:00 | 10.0 | 10.0 | -10.0 |
-| 2025-07-31 22:00:00+00:00 | -20.0 | -10.0 | -20.0 |
-| 2025-08-01 22:00:00+00:00 | 0.0 | 10.0 | 0.0 |
-| 2025-08-02 22:00:00+00:00 | 20.0 | 0.0 | 0.0 |
-| 2025-08-03 22:00:00+00:00 | -10.0 | 0.0 | 20.0 |
-| 2025-08-04 22:00:00+00:00 | 20.0 | 0.0 | -10.0 |
-| 2025-08-05 22:00:00+00:00 | 30.0 | -10.0 | -20.0 |
+| 2021-12-31 23:00:00+00:00 | 0.0 | 0.0 | 0.0 |
+| 2022-01-31 23:00:00+00:00 | 0.0 | 0.0 | 0.0 |
+| 2022-02-28 23:00:00+00:00 | 0.0 | 0.0 | 0.0 |
+| 2022-03-31 22:00:00+00:00 | 0.0 | 0.0 | 0.0 |
+| 2022-04-30 22:00:00+00:00 | 0.0 | 0.0 | 0.0 |
+| ... | ... | ... | ... |
+| 2022-07-31 22:00:00+00:00 | 0.0 | 0.0 | 0.0 |
+| 2022-08-31 22:00:00+00:00 | 0.0 | 0.0 | 0.0 |
+| 2022-09-30 22:00:00+00:00 | 0.0 | 0.0 | 0.0 |
+| 2022-10-31 23:00:00+00:00 | 0.0 | 0.0 | 0.0 |
+| 2022-11-30 23:00:00+00:00 | 0.0 | 0.0 | 0.0 |
 
 ### Example: data for periods, *with* versioning
 
@@ -2886,12 +1265,12 @@ beverage_periods
 | valid_from | valid_to | tea_quantity | coffee_quantity |
 | --- | --- | --- | --- |
 | datetime[μs, Europe/Oslo] | datetime[μs, Europe/Oslo] | f64 | f64 |
-| 2025-01-01 00:00:00 CET | 2025-02-01 00:00:00 CET | 80.0 | 110.0 |
-| 2025-02-01 00:00:00 CET | 2025-03-01 00:00:00 CET | 120.0 | 110.0 |
-| 2025-03-01 00:00:00 CET | 2025-04-01 00:00:00 CEST | 120.0 | 100.0 |
-| 2025-04-01 00:00:00 CEST | 2025-05-01 00:00:00 CEST | 100.0 | 90.0 |
-| 2025-05-01 00:00:00 CEST | 2025-06-01 00:00:00 CEST | 100.0 | 100.0 |
-| 2025-06-01 00:00:00 CEST | 2025-07-01 00:00:00 CEST | 80.0 | 90.0 |
+| 2025-01-01 00:00:00 CET | 2025-02-01 00:00:00 CET | 100.0 | 90.0 |
+| 2025-02-01 00:00:00 CET | 2025-03-01 00:00:00 CET | 90.0 | 120.0 |
+| 2025-03-01 00:00:00 CET | 2025-04-01 00:00:00 CEST | 100.0 | 110.0 |
+| 2025-04-01 00:00:00 CEST | 2025-05-01 00:00:00 CEST | 100.0 | 100.0 |
+| 2025-05-01 00:00:00 CEST | 2025-06-01 00:00:00 CEST | 110.0 | 100.0 |
+| 2025-06-01 00:00:00 CEST | 2025-07-01 00:00:00 CEST | 110.0 | 100.0 |
 
 ```python {.marimo}
 bno = Dataset(
@@ -2937,12 +1316,12 @@ bno.data
 | valid_from | valid_to | tea_quantity | coffee_quantity |
 | --- | --- | --- | --- |
 | datetime[ns, UTC] | datetime[ns, UTC] | f64 | f64 |
-| 2024-12-31 23:00:00 UTC | 2025-01-31 23:00:00 UTC | 80.0 | 110.0 |
-| 2025-01-31 23:00:00 UTC | 2025-02-28 23:00:00 UTC | 120.0 | 110.0 |
-| 2025-02-28 23:00:00 UTC | 2025-03-31 22:00:00 UTC | 120.0 | 100.0 |
-| 2025-03-31 22:00:00 UTC | 2025-04-30 22:00:00 UTC | 100.0 | 90.0 |
-| 2025-04-30 22:00:00 UTC | 2025-05-31 22:00:00 UTC | 100.0 | 100.0 |
-| 2025-05-31 22:00:00 UTC | 2025-06-30 22:00:00 UTC | 80.0 | 90.0 |
+| 2024-12-31 23:00:00 UTC | 2025-01-31 23:00:00 UTC | 100.0 | 90.0 |
+| 2025-01-31 23:00:00 UTC | 2025-02-28 23:00:00 UTC | 90.0 | 120.0 |
+| 2025-02-28 23:00:00 UTC | 2025-03-31 22:00:00 UTC | 100.0 | 110.0 |
+| 2025-03-31 22:00:00 UTC | 2025-04-30 22:00:00 UTC | 100.0 | 100.0 |
+| 2025-04-30 22:00:00 UTC | 2025-05-31 22:00:00 UTC | 110.0 | 100.0 |
+| 2025-05-31 22:00:00 UTC | 2025-06-30 22:00:00 UTC | 110.0 | 100.0 |
 
 ```python {.marimo}
 # every production run writes a new file, named after the as of date
@@ -2963,9 +1342,15 @@ print(tree(f'{data_path}/AS_OF_FROM_TO'))
 <!-- @output:RKFZ -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">AS_OF_FROM_TO/
-└── BNO/
-    ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
-    └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+├── BNO/
+│   ├── BNO-as_of_2025-05-31T220000+0000-data.parquet
+│   └── BNO-as_of_2025-08-06T220000+0000-data.parquet
+└── Prices and Volumes/
+    ├── Prices and Volumes-as_of_2023-12-31T230000+0000-data.parquet
+    ├── Prices and Volumes-as_of_2024-01-31T230000+0000-data.parquet
+    ├── Prices and Volumes-as_of_2025-10-31T230000+0000-data.parquet
+    ├── Prices and Volumes-as_of_2025-11-30T230000+0000-data.parquet
+    └── ...
 
 </pre>
 
@@ -2981,12 +1366,12 @@ bno_june.nw.to_pandas()
 
 | valid_from | valid_to | coffee_quantity | tea_quantity |
 | --- | --- | --- | --- |
-| 2024-12-31 23:00:00+00:00 | 2025-01-31 23:00:00+00:00 | 110.0 | 80.0 |
-| 2025-01-31 23:00:00+00:00 | 2025-02-28 23:00:00+00:00 | 110.0 | 120.0 |
-| 2025-02-28 23:00:00+00:00 | 2025-03-31 22:00:00+00:00 | 100.0 | 120.0 |
-| 2025-03-31 22:00:00+00:00 | 2025-04-30 22:00:00+00:00 | 90.0 | 100.0 |
-| 2025-04-30 22:00:00+00:00 | 2025-05-31 22:00:00+00:00 | 100.0 | 100.0 |
-| 2025-05-31 22:00:00+00:00 | 2025-06-30 22:00:00+00:00 | 90.0 | 80.0 |
+| 2024-12-31 23:00:00+00:00 | 2025-01-31 23:00:00+00:00 | 90.0 | 100.0 |
+| 2025-01-31 23:00:00+00:00 | 2025-02-28 23:00:00+00:00 | 120.0 | 90.0 |
+| 2025-02-28 23:00:00+00:00 | 2025-03-31 22:00:00+00:00 | 110.0 | 100.0 |
+| 2025-03-31 22:00:00+00:00 | 2025-04-30 22:00:00+00:00 | 100.0 | 100.0 |
+| 2025-04-30 22:00:00+00:00 | 2025-05-31 22:00:00+00:00 | 100.0 | 110.0 |
+| 2025-05-31 22:00:00+00:00 | 2025-06-30 22:00:00+00:00 | 100.0 | 110.0 |
 
 ```python {.marimo}
 # the as of date is not part of the data, it identifies the version:
