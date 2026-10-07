@@ -26,7 +26,7 @@ Planned extensions:
   - Indexing
   - Diff, shift, cumsum
 
-Proper timeseries analysis and seasonal adjustment. (Planned integrations.)
+Proper timeseries analysis and seasonal adjustment are covered by external libraries, demonstrated later in this guide (see Timeseries analysis).
 <!---->
 The quintessential time functions work along the time axis.
 <!---->
@@ -321,5 +321,47 @@ four_week_average.pd.plot()
 <!-- @output:lgWD -->
 
 ![png](calc-with-time_assets/figure-2.png)
+
+Timeseries analysis
+-------------------
+<!---->
+Proper time series analysis and seasonal adjustment are beyond the scope of the library itself.
+SSB Timeseries manages storage, versioning and retrieval of the series, and defers the analysis to specialised libraries from the Python ecosystem:
+[Nixtla](https://nixtlaverse.nixtla.io/statsforecast/), [Darts](https://unit8co.github.io/darts/), [statsmodels](https://www.statsmodels.org/) and [Prophet](https://facebook.github.io/prophet/) are common choices.
+The [interoperability](interoperability) guide collects the available data exchange surfaces.
+The frame adapters, including `nixtla()`, live on the [`Series`](../reference/ssb_timeseries.series) objects that iteration over a `Dataset` yields.
+
+```python {.marimo}
+from statsforecast import StatsForecast
+from statsforecast.models import AutoARIMA
+```
+
+```python {.marimo}
+norway_series = next(s for s in jul if s.name == "Norway")
+```
+
+```python {.marimo}
+forecast = StatsForecast(
+    models=[AutoARIMA(season_length=1)],
+    freq="YE",
+).forecast(df=norway_series.nixtla(), h=5)
+```
+
+`nixtla()` returns the Nixtla long format (`unique_id`, `ds`, `y`), one table per series.
+Forecasts for several series can be combined by iterating the `Dataset` and calling `nixtla()` for each `Series` in turn.
+
+```python {.marimo}
+forecast
+```
+
+<!-- @output:CcZR -->
+
+| unique_id | ds | AutoARIMA |
+| --- | --- | --- |
+| POPU06::Norway | 2046-12-31 23:00:00+00:00 | 6.133891e+06 |
+| POPU06::Norway | 2047-12-31 23:00:00+00:00 | 6.157177e+06 |
+| POPU06::Norway | 2048-12-31 23:00:00+00:00 | 6.180462e+06 |
+| POPU06::Norway | 2049-12-31 23:00:00+00:00 | 6.203748e+06 |
+| POPU06::Norway | 2050-12-31 23:00:00+00:00 | 6.227033e+06 |
 
 See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-metadata.md).

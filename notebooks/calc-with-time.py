@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.24.0"
+__generated_with = "0.24.2"
 app = marimo.App()
 
 
@@ -44,7 +44,7 @@ def _(mo):
       - Indexing
       - Diff, shift, cumsum
 
-    Proper timeseries analysis and seasonal adjustment. (Planned integrations.)
+    Proper timeseries analysis and seasonal adjustment are covered by external libraries, demonstrated later in this guide (see Timeseries analysis).
     """)
     return
 
@@ -92,7 +92,7 @@ def _():
     from ssb_timeseries.sample_data import popu06
     from ssb_timeseries.types import SeriesType
 
-    return POPU06_MAIN_COUNTRIES, SeriesType, create_df, date, np, popu06, product
+    return POPU06_MAIN_COUNTRIES, SeriesType, date, np, popu06, product
 
 
 @app.cell(hide_code=True)
@@ -116,7 +116,7 @@ def _(Dataset, SeriesType, date, np, popu06):
         The projections themselves are static and reproducible, so a small seeded
         perturbation is applied to give each version its own values.
         Without it every version would hold identical numbers and calculating
-        between two versions would yield nothing but zeros.
+        difference between two versions would yield nothing but zeros.
         """
         base = popu06(countries=countries, start_year=2027, end_year=2046)
         generator = np.random.default_rng(seed)
@@ -154,7 +154,7 @@ def _(mo):
 @app.cell
 def _(POPU06_MAIN_COUNTRIES, create_popu06_versions, date, product):
     create_popu06_versions(
-        as_of_dates=[date(*d) for d in product({2024, 2025}, range(1, 13), {1})],
+        as_of_dates=[date(*d) for d in product({2025, 2025}, range(1, 13), {1})],
         countries=POPU06_MAIN_COUNTRIES,
     )
     return
@@ -185,7 +185,7 @@ def _(Dataset):
     feb = Dataset(name="POPU06", as_of_tz="2025-02-01")
 
     change_from_feb_to_july = jul - feb
-    return change_from_feb_to_july, jul
+    return change_from_feb_to_july, feb, jul
 
 
 @app.cell
@@ -249,10 +249,13 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Narwhals also brings conversion of `Dataset.data` to other libraries and their functionality within short reach.
+    Interval support and filtering by dates is an underdeveloped area of functionality.
+
+    For now, relying on the functionality of external libraries provides a workaround.
+    `Dataset.data` can easily be converted to the dataframe formats of other libraries:
     Shorthand properties `Dataset.pa`, `.nw`, `.pd`, and `.pl` return Arrow tables, and Narwhals, Pandas and Polars dataframes.
 
-    Interval support and filtering by dates is an underdeveloped area of functionality.
+    Here with Polars:
     """)
     return
 
@@ -320,8 +323,23 @@ def _(mo):
 
 @app.cell
 def _(jul):
+    # Check the size of our data slice:
+    print(jul.data.shape)
+    return
+
+
+@app.cell
+def _(jul):
     yearly_to_daily = jul.resample("D", "ffill")
+    print(yearly_to_daily.data.shape)
+    # for the same number of series, roughly 365 times as many values
     return (yearly_to_daily,)
+
+
+@app.cell
+def _(yearly_to_daily):
+    yearly_to_daily.data
+    return
 
 
 @app.cell(hide_code=True)
@@ -414,13 +432,124 @@ def _(weekly):
 
 @app.cell
 def _(four_week_average):
-    four_week_average.data
+    four_week_average.pl
     return
 
 
 @app.cell
 def _(four_week_average):
-    four_week_average.pd.plot()
+    # four_week_average[{'country':'Norway'}].plot()
+    four_week_average['Norway_week_mean'].pd.plot()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Note: `.pd.` above is a workaround for a missing link in sampling functionality: we got`valid_at` formatted as interval name strings rather than datetimes. Working along the time axes requires series type conversions.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Timeseries analysis
+    -------------------
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Time series analysis and seasonal adjustment are large functional areas beyond the scope of SSB Timeseries.
+    The Python ecosystem offers several libraries that cover different parts of the territory.
+    [Nixtla](https://nixtlaverse.nixtla.io/statsforecast/), [Darts](https://unit8co.github.io/darts/), [statsmodels](https://www.statsmodels.org/) and [Prophet](https://facebook.github.io/prophet/) are common choices.
+
+    A key design principle is to maintain the flexibility to choose which best of breed library does the heavy lifting.
+    While the library does indeed provide *some* calculation functionality (clearly seen above), its main purpose is to bundles the information model with sufficient core data management and manipulation features so that the inbetween stuff becomes easy.
+
+    The external libraries make different assumptions about the data.
+    Available data exchange surfaces are covered in more detail in the [interoperability](interoperability) guide.
+
+    We saw a glimpse of the `Dataset.data` level adapters above.
+    Another class of frame adapters, apply to the [`Series`](../reference/ssb_timeseries.series) objects that can be accessed through iteration over a `Dataset`.
+
+    The following demonstrates the use of one of them, `Series.nixtla()`.
+    """)
+    return
+
+
+@app.cell
+def _():
+    from statsforecast import StatsForecast
+    from statsforecast.models import AutoARIMA
+
+    return AutoARIMA, StatsForecast
+
+
+@app.cell
+def _(jul):
+    norway_series = next(s for s in jul if s.name == "Norway") # to filter or not to filter?
+    return (norway_series,)
+
+
+@app.cell
+def _(norway_series):
+    norway_series
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The `Series` object contains the data and tags for a single series.
+    """)
+    return
+
+
+@app.cell
+def _(norway_series):
+    norway_series.data.to_polars()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Nixtla specifies its own format, requiring columns `unique_id`, `ds` and `y`. The "adapter" is just a method that provides it:
+    """)
+    return
+
+
+@app.cell
+def _(norway_series):
+    norway_series.nixtla()
+    return
+
+
+@app.cell
+def _(AutoARIMA, StatsForecast, norway_series):
+    forecast = StatsForecast(
+        models=[AutoARIMA(season_length=1)],
+        freq="YE",
+    ).forecast(df=norway_series.nixtla(), h=5)
+    return (forecast,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    `nixtla()` returns the Nixtla long format (`unique_id`, `ds`, `y`), one table per series.
+    Forecasts for several series can be combined by iterating the `Dataset` and calling `nixtla()` for each `Series` in turn.
+    """)
+    return
+
+
+@app.cell
+def _(forecast):
+    forecast
     return
 
 
@@ -433,7 +562,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(change_from_feb_to_july, feb, jul):
+def _(change_from_feb_to_july, feb, forecast, jul):
     # @supress
 
     def test_popu06_has_one_series_per_country():
@@ -447,15 +576,30 @@ def _(change_from_feb_to_july, feb, jul):
         difference = change_from_feb_to_july.data["Norway"].to_pandas()
         assert difference.abs().sum() > 0
 
-    return (test_popu06_has_one_series_per_country, test_popu06_spans_the_common_projection_period, test_popu06_versions_are_not_identical)
+    def test_forecast_spans_five_years():
+        assert len(forecast) == 5
+
+    return (
+        test_forecast_spans_five_years,
+        test_popu06_has_one_series_per_country,
+        test_popu06_spans_the_common_projection_period,
+        test_popu06_versions_are_not_identical,
+    )
 
 
 @app.cell(hide_code=True)
-def _(test_popu06_has_one_series_per_country, test_popu06_spans_the_common_projection_period, test_popu06_versions_are_not_identical, testing):
+def _(
+    test_forecast_spans_five_years,
+    test_popu06_has_one_series_per_country,
+    test_popu06_spans_the_common_projection_period,
+    test_popu06_versions_are_not_identical,
+    testing,
+):
     testing.run_and_report([
         test_popu06_has_one_series_per_country,
         test_popu06_spans_the_common_projection_period,
         test_popu06_versions_are_not_identical,
+        test_forecast_spans_five_years,
     ])
     return
 

@@ -36,6 +36,22 @@ def _():
 
 
 @app.cell(hide_code=True)
+def _(CONFIG, tree):
+    data_path = CONFIG.repositories['tutorials']['directory']['options']['path']
+    def treee():
+        print(tree(data_path))
+
+    return data_path, treee
+
+
+@app.cell(hide_code=True)
+def _():
+    from ssb_timeseries.sample_data import xyz_at
+
+    return (xyz_at,)
+
+
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Archiving and sharing
@@ -84,38 +100,37 @@ def _(mo):
     -------------
 
     Since the sole purpose is to separate archiving and sharing from reading and writing, additional configuration is required.
-    Sharing and archiving have their own I/O handlers and repository entries.
-
-    With the global configuration in place, dataset level properties control how individual sets are archived or shared.
+    repository entry:
     """)
     return
 
 
-@app.cell(hide_code=True)
-def _(CONFIG, tree):
-    data_path = CONFIG.repositories['tutorials']['directory']['options']['path']
-    def treee():
-        print(tree(data_path))
-
-    return data_path, treee
+@app.cell
+def _(CONFIG):
+    CONFIG.archives
+    return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Create some sample data
-    -----------------------
-
-    Example: point-in-time data, *without* versioning
+    With `handler` matching a listing in `io_handlers`, here "archive":
     """)
     return
 
 
-@app.cell(hide_code=True)
-def _():
-    from ssb_timeseries.sample_data import xyz_at
+@app.cell
+def _(CONFIG):
+    CONFIG.io_handlers
+    return
 
-    return (xyz_at,)
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    With global configurations in place, dataset level properties control how individual sets are archived or shared by pointing to the repository entry. Ours have the orginal name "default", and the option `archive_format` is "ssb", which is what tells the built in archive handler to apply the Statistics Norway convention.
+    """)
+    return
 
 
 @app.cell
@@ -126,10 +141,25 @@ def _():
     return Dataset, SeriesType
 
 
-@app.cell
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    We start with an empty repository:
+    """)
+    return
+
+
+@app.cell(hide_code=True)
 def _(treee):
-    # what is there before we start?
     treee()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ... and begin by creating some sample data.
+    """)
     return
 
 
@@ -158,9 +188,16 @@ def _(Dataset, SeriesType, set_name, xyz_at):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    After the `.save()` we should see one dataset:
+    """)
+    return
+
+
 @app.cell
 def _(treee):
-    # what is there after the .save():
     treee()
     return
 
@@ -178,6 +215,9 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     We read the data back, just because we can, and because there is no guarantee that the archiving happens in the same process (or at the same frequency) that the data is gathered, calculated or saved.
+
+    The dataset must be saved before it is archived, though.
+    Otherwise a `FileNotFound` error will be raised.
     """)
     return
 
@@ -190,7 +230,7 @@ def _(Dataset, set_name):
 
 @app.cell
 def _(q):
-    statistics_product = 'Our Sample Statistic'
+    statistics_product = 'Our Product'
     q.process_stage = 'statistics'
     q.product = statistics_product
     return
@@ -292,10 +332,18 @@ def _(data_path, tree):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    (We also observe that the product contains spaces. That is a breach of convention, and we should expect it to stop working without notice.)
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     Sharing
     -------
 
-    We silently create some more data, and read it back before setting slightly different properties:
+    We create some more data, and read it back before setting slightly different properties:
     """)
     return
 
@@ -334,7 +382,7 @@ def _(Dataset):
     r = Dataset("XYZ")
     r.sharing = ["s123", "s234"]
     r.archive()
-    return
+    return (r,)
 
 
 @app.cell
@@ -364,6 +412,36 @@ def _(mo):
 @app.cell
 def _(data_path, tree):
     print(tree(f'{data_path}/archives'))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    We `.archive()` again, a few times.
+    """)
+    return
+
+
+@app.cell
+def _(r):
+    r.archive()
+    r.archive()
+    r.archive()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ... and see the version counter increase.
+    """)
+    return
+
+
+@app.cell
+def _(data_path, tree):
+    print(tree(f'{data_path}/archives/XYZ'))
     return
 
 
