@@ -178,6 +178,7 @@ def install_poetry_group(session: Session, group: str) -> None:
 
 NOTEBOOK_DEPENDENCIES = [
         "marimo",
+        "statsforecast",
         "tabulate",
         "jinja2",
         # Other notebook-specific dependencies
