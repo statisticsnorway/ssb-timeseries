@@ -85,13 +85,13 @@ This shifts the focus towards process and data control.
 
 Extensive [documentation](https://statisticsnorway.github.io/ssb-timeseries) is available on GitHub Pages, notably:
 
- * the [quickstart guide](https://statisticsnorway.github.io/ssb-timeseries/quickstart.html),
+ * the [quickstart guide](https://statisticsnorway.github.io/ssb-timeseries/guides/quickstart.html),
  * the detailed [API reference], and
  * (soon) tutorials.
 
 In addition, you will find articles elaborating on topics like
 
- * [the overall design](https://statisticsnorway.github.io/ssb-timeseries/structure.html),
+ * [the overall design](https://statisticsnorway.github.io/ssb-timeseries/architecture.html),
  * [the information model](https://statisticsnorway.github.io/ssb-timeseries/info-model.html), and
  * [workflow integration](https://statisticsnorway.github.io/ssb-timeseries/workflow.html).
 
@@ -122,4 +122,4 @@ This project was generated from [Statistics Norway]'s [SSB PyPI Template].
 
 [license]: https://github.com/statisticsnorway/ssb-timeseries/blob/main/LICENSE
 [contributor guide]: https://github.com/statisticsnorway/ssb-timeseries/blob/main/CONTRIBUTING.md
-[reference guide]: https://statisticsnorway.github.io/ssb-timeseries/reference.html
+[reference guide]: https://statisticsnorway.github.io/ssb-timeseries/reference/index.html

@@ -57,5 +57,6 @@ __all__ = [
     "io",
     "logger",
     "sample_data",
+    "series",
     "types",
 ]
