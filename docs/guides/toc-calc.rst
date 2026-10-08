@@ -13,8 +13,3 @@ Here we will take look at the built in matematical support.
    Calculations with time <calc-with-time>
    Calculations with metadata <calc-with-metadata>
    Interoperability <interoperability>
-
-.. .. include:: ../../notebooks/html/calc-basic-arithmetic.html
-
-.. .. raw:: html
-..   :file: ../../notebooks/html/calc-basic-arithmetic.html
