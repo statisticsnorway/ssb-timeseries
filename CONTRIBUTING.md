@@ -61,9 +61,7 @@ To export the whole inventory and check that every listed notebook still exports
 ```console
 poetry run python tools/export_all_guides.py
 ```
-
-Run it when a notebook or its configuration changes, and before opening a pull request.
-Commit the regenerated guides together with the change that produced them.
+Use this option sparingly.
 
 Add a notebook to `tests/notebooks/test_guides.py` to have it run as part of the test suite, without regenerating anything in `docs/guides/`.
 The test only checks that the notebook runs to completion, so put the real assertions in cells named `test_...`.
