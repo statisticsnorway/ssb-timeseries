@@ -73,31 +73,6 @@ jobs:
           pipx inject --pip-args "-c ${{ github.workspace }}/.github/workflows/constraints.txt" nox nox-poetry
           nox --version
 
-      - name: Compute pre-commit cache key
-        if: matrix.session == 'pre-commit'
-        id: pre-commit-cache
-        shell: python
-        run: |
-          import hashlib
-          import subprocess
-          import sys
-
-          python = "py{}.{}".format(*sys.version_info[:2])
-          payload = sys.version.encode() + sys.executable.encode()
-          digest = hashlib.sha256(payload).hexdigest()
-          result = "${{ runner.os }}-{}-{}-pre-commit".format(python, digest[:8])
-          cmd = f'echo "result={result}" >> $GITHUB_OUTPUT'
-          subprocess.run(cmd, shell=True)
-
-      - name: Restore pre-commit cache
-        uses: actions/cache@v6
-        if: matrix.session == 'pre-commit'
-        with:
-          path: ~/.cache/pre-commit
-          key: ${{ steps.pre-commit-cache.outputs.result }}-${{ hashFiles('.pre-commit-config.yaml') }}
-          restore-keys: |
-            ${{ steps.pre-commit-cache.outputs.result }}-
-
       - name: Run Nox
         run: |
           nox --python=${{ matrix.python }} -- ${{ matrix.posargs }}
@@ -155,15 +130,18 @@ jobs:
         run: |
           nox --session=coverage -- xml
 
-      # Need to fix coverage source paths for SonarCloud scanning in GitHub actions.
-      # Replace root path with /github/workspace (mounted in docker container).
-      - name: Override coverage source paths for SonarCloud
-        # run: |
-        #  sed -i "s/<source><\/source>/<source>\/github\/workspace<\/source>/g" coverage.xml
-        #  sed -i "s/<source>tests/<source>\/github\/workspace\/tests/g" coverage.xml
-        run: |
-          sed -i "s/<source><\/source>/<source>\/home\/runner\/work\/{{cookiecutter.project_name}}\/{{cookiecutter.project_name}}<\/source>/g" coverage.xml
-          sed -i "s/<source>tests/<source>\/home\/runner\/work\/{{cookiecutter.project_name}}\/{{cookiecutter.project_name}}\/tests/g" coverage.xml
+      # Commented out pending a SonarCloud setup check.
+      # The step was a silent no-op: the literal `{{cookiecutter.project_name}}`
+      # placeholder from the repository template was never expanded, so its sed
+      # patterns matched nothing in coverage.xml.
+      # SonarCloud runs in a docker container that mounts the workspace at
+      # /github/workspace; any re-enabled version must rewrite the absolute runner
+      # paths (home/runner/work/<repo>/<repo>) to that mount. Check in the
+      # SonarCloud UI that coverage actually attaches before re-enabling.
+      # - name: Override coverage source paths for SonarCloud
+      #   run: |
+      #     sed -i "s#<source>/home/runner/work/ssb-timeseries/ssb-timeseries</source>#<source>/github/workspace/ssb-timeseries</source>#g" coverage.xml
+      #     sed -i "s#<source>tests</source>#<source>/github/workspace/ssb-timeseries/tests</source>#g" coverage.xml
 
       - name: SonarCloud Scan
         env:
