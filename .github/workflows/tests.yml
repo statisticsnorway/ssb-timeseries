@@ -31,6 +31,7 @@ jobs:
           - { python: "3.14", os: "macos-latest", session: "tests" }
           - { python: "3.14", os: "ubuntu-latest", session: "typeguard" }
           - { python: "3.14", os: "ubuntu-latest", session: "xdoctest" }
+          - { python: "3.12", os: "ubuntu-latest", session: "docs-build", posargs: "-W docs docs/_build" }
 
     env:
       NOXSESSION: ${{ matrix.session }}
@@ -99,7 +100,7 @@ jobs:
 
       - name: Run Nox
         run: |
-          nox --python=${{ matrix.python }}
+          nox --python=${{ matrix.python }} -- ${{ matrix.posargs }}
 
       - name: Upload coverage data
         if: always() && matrix.session == 'tests'
