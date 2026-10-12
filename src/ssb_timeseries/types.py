@@ -21,25 +21,45 @@ except ImportError:
 # mypy: disable-error-code="type-arg, override"
 
 
+RepositoryName: TypeAlias = str
+"""Repository name can be any string that match a key in the repositories section of the configuration."""
+
+DatasetName: TypeAlias = str
+"""`Dataset` names must be unique within a `Repository`."""
+
+SeriesName: TypeAlias = str
+"""Series names are strings identifying data columns and tag keys, ie they must be unique within the `Dataset`."""
+
+TagKey: TypeAlias = str
+"""Tag keys are attribute names represented as strings."""
+
 TagValue: TypeAlias = str | list[str]
-"""A tag value can be a single string or a list of strings."""
+"""Tag values are attribute values represented as strings or lists of strings."""
 
-TagDict: TypeAlias = dict[str, TagValue]
-"""A dictionary of tags, where keys are tag names and values are TagValues."""
+Tags: TypeAlias = dict[TagKey, TagValue]
+"""A dictionary with tag key-value pairs."""
 
-# SeriesTagDict: TypeAlias = dict[str, TagDict]
-SeriesTagDict: TypeAlias = dict[str, TagValue]
-"""A dictionary mapping series names to their TagDict."""
+# Backwards compatibility alias (to be deprecated)
+TagDict: TypeAlias = Tags
+"""Deprecated alias for Tags."""
+
+# Backwards compatibility alias (to be deprecated)
+SeriesTagDict: TypeAlias = dict[SeriesName, Tags]
+"""Deprecated alias for SeriesTags (object -> tags mapping)."""
+
+SeriesTags: TypeAlias = dict[SeriesName, Tags]
+"""A dictionary mapping object names to their tags."""
 
 
-class DatasetTagDict(TypedDict):
+# class DatasetTagDict(TypedDict):
+class DatasetTags(TypedDict):
     """A dictionary representing the full dataset metadata, including 'series'."""
 
-    name: str
-    repository: str
+    name: DatasetName
+    repository: RepositoryName
     versioning: Versioning | str
     temporality: Temporality | str
-    series: dict[str, SeriesTagDict]
+    series: SeriesTags
 
 
 class SuperEnum(Enum):
@@ -249,3 +269,9 @@ def seriestype_from_str(dir_name: str) -> SeriesType:
             return SeriesType.estimate()
         case _:
             raise ValueError(f"Invalid dir_name: {dir_name}")
+
+
+# Backwards compatibility
+DatasetTagDict = DatasetTags
+SeriesTagDict: TypeAlias = SeriesTags  # ensure available
+TagDict: TypeAlias = Tags
