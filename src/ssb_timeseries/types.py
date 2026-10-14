@@ -39,19 +39,10 @@ TagValue: TypeAlias = str | list[str]
 Tags: TypeAlias = dict[TagKey, TagValue]
 """A dictionary with tag key-value pairs."""
 
-# Backwards compatibility alias (to be deprecated)
-TagDict: TypeAlias = Tags
-"""Deprecated alias for Tags."""
-
-# Backwards compatibility alias (to be deprecated)
-SeriesTagDict: TypeAlias = dict[SeriesName, Tags]
-"""Deprecated alias for SeriesTags (object -> tags mapping)."""
-
 SeriesTags: TypeAlias = dict[SeriesName, Tags]
-"""A dictionary mapping object names to their tags."""
+"""A dictionary mapping series names to their tags."""
 
 
-# class DatasetTagDict(TypedDict):
 class DatasetTags(TypedDict):
     """A dictionary representing the full dataset metadata, including 'series'."""
 
@@ -269,9 +260,3 @@ def seriestype_from_str(dir_name: str) -> SeriesType:
             return SeriesType.estimate()
         case _:
             raise ValueError(f"Invalid dir_name: {dir_name}")
-
-
-# Backwards compatibility
-DatasetTagDict = DatasetTags
-SeriesTagDict: TypeAlias = SeriesTags  # ensure available
-TagDict: TypeAlias = Tags

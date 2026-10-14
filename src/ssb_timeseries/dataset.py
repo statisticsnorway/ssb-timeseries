@@ -74,11 +74,11 @@ from .dates import utc_iso
 from .io.dataset_ref import DatasetRef
 from .logging import logger
 from .series import Series
-from .types import DatasetTagDict
+from .types import DatasetTags
 from .types import F
 from .types import PathStr
-from .types import SeriesTagDict
-from .types import TagDict
+from .types import SeriesTags
+from .types import Tags
 from .types import Temporality
 from .types import Versioning
 
@@ -556,7 +556,7 @@ class Dataset:
         return []
 
     @property
-    def series_tags(self) -> SeriesTagDict:
+    def series_tags(self) -> SeriesTags:
         """Get series tags."""
         return self.tags["series"]  # type: ignore
 
@@ -576,7 +576,7 @@ class Dataset:
             sharing=list(self.sharing),
         )
 
-    def default_tags(self) -> DatasetTagDict:
+    def default_tags(self) -> DatasetTags:
         """Return default tags for set and series."""
         return {
             "name": self.name,
@@ -588,7 +588,7 @@ class Dataset:
 
     def tag_dataset(
         self,
-        tags: TagDict = None,
+        tags: Tags = None,
         **kwargs: str | list[str] | set[str],
     ) -> None:
         """Tag the set.
@@ -648,7 +648,7 @@ class Dataset:
     def tag_series(
         self,
         names: str | list[str] = "*",
-        tags: meta.TagDict = None,
+        tags: meta.Tags = None,
         **kwargs: str | list[str],
     ) -> None:
         """Tag the series identified by ``names`` with provided tags.
@@ -878,14 +878,14 @@ class Dataset:
 
     def replace_tags(
         self,
-        *args: tuple[meta.TagDict, meta.TagDict],
+        *args: tuple[meta.Tags, meta.Tags],
     ) -> None:
         """Retag selected attributes of series in the set.
 
-        The tags to be replaced and their replacements should be specified in tuple(s) of :py:type:`tag dictionaries <ssb_timeseries.meta.TagDict>`;
+        The tags to be replaced and their replacements should be specified in tuple(s) of :py:type:`tag dictionaries <ssb_timeseries.meta.Tags>`;
         each argument in ``*args`` should be on the form ``({<old_tags>},{<new_tags>})``.
 
-        Both old and new :py:type:`TagDict` can contain multiple tags.
+        Both old and new :py:type:`Tags` can contain multiple tags.
          - Each tuple is evaluated independently for each series in the set.
          - If the tag dict to be replaced contains multiple tags, all must match for tags to be replaced.
          - If the new tag dict contains multiple tags, all are added where there is a match.
@@ -907,7 +907,7 @@ class Dataset:
         *names: str | list[str],
         pattern: str = "",
         regex: str = "",
-        tags: (meta.TagDict | list[meta.TagDict]) = None,
+        tags: (meta.Tags | list[meta.Tags]) = None,
         output: str = "dataset",
         new_name: str = "",
         **kwargs: Any,
@@ -984,7 +984,7 @@ class Dataset:
     @no_type_check
     def __getitem__(
         self,
-        names_or_tags: str | meta.TagDict | Iterable[str | meta.TagDict] = "",
+        names_or_tags: str | meta.Tags | Iterable[str | meta.Tags] = "",
     ) -> Self | None:
         """Access Dataset.data.columns via Dataset.select on list[column_names | tags ] | pattern | regex.
 

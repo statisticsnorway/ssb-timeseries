@@ -27,7 +27,7 @@ from ssb_timeseries.config import Config
 from ssb_timeseries.config import FileBasedRepository
 from ssb_timeseries.io import MetaIO
 from ssb_timeseries.logging import logger
-from ssb_timeseries.meta import TagDict
+from ssb_timeseries.meta import Tags
 from ssb_timeseries.meta import matches_criteria
 
 # mypy: disable-error-code="no-untyped-def"
@@ -134,19 +134,19 @@ class _CatalogProtocol(Protocol):
 
     Methods:
         series(
-            equals:str, contains:str, pattern:str, tags:TagDict | list[TagDict]
+            equals:str, contains:str, pattern:str, tags:Tags | list[Tags]
         ) --> list[CatalogItem]
 
         datasets(
-            equals:str, contains:str, pattern:str, tags:TagDict | list[TagDict]
+            equals:str, contains:str, pattern:str, tags:Tags | list[Tags]
         ) --> list[CatalogItem]
 
         items(
-            equals:str, contains:str, pattern:str, tags:TagDict | list[TagDict]
+            equals:str, contains:str, pattern:str, tags:Tags | list[Tags]
         ) --> list[CatalogItem]
 
         count(
-            object_type:str, equals:str, contains:str, pattern:str, tags:TagDict | list[TagDict]
+            object_type:str, equals:str, contains:str, pattern:str, tags:Tags | list[Tags]
         ) -> int
 
     :meta public:
@@ -158,7 +158,7 @@ class _CatalogProtocol(Protocol):
         equals: str = "",
         contains: str = "",
         pattern: str = "",
-        tags: TagDict | list[TagDict] | None = None,
+        tags: Tags | list[Tags] | None = None,
     ) -> list[CatalogItem]:
         """Search in all repositories for datasets that match the criteria.
 
@@ -177,7 +177,7 @@ class _CatalogProtocol(Protocol):
         equals: str = "",
         contains: str = "",
         pattern: str = "",
-        tags: TagDict | list[TagDict] | None = None,
+        tags: Tags | list[Tags] | None = None,
     ) -> list[CatalogItem]:
         """Search in all datasets in all repositories for series that match the criteria.
 
@@ -197,7 +197,7 @@ class _CatalogProtocol(Protocol):
         equals: str = "",
         contains: str = "",
         pattern: str = "",
-        tags: TagDict | list[TagDict] | None = None,
+        tags: Tags | list[Tags] | None = None,
     ) -> int:
         """Count items of specified object type that match the criteria.
 
@@ -219,7 +219,7 @@ class _CatalogProtocol(Protocol):
         equals: str = "",
         contains: str = "",
         pattern: str = "",
-        tags: TagDict | list[TagDict] | None = None,
+        tags: Tags | list[Tags] | None = None,
     ):
         """Search in all repositories for items (either sets or series) that match the criteria.
 
@@ -326,7 +326,7 @@ class Catalog(_CatalogProtocol):
         equals: str = "",
         contains: str = "",
         pattern: str = "",
-        tags: TagDict | list[TagDict] | None = None,
+        tags: Tags | list[Tags] | None = None,
     ) -> int:
         # Inherit docs from protocol.
         # Return number of datasets (default) or series (not yet implemented), or both (to be default).
@@ -406,7 +406,7 @@ class Repository(_CatalogProtocol):
         equals: str = "",
         contains: str = "",
         pattern: str = "",
-        tags: TagDict | list[TagDict] | None = None,
+        tags: Tags | list[Tags] | None = None,
     ) -> list[CatalogItem]:
         # inherit docs from protocol class.
         return self.items(
@@ -424,7 +424,7 @@ class Repository(_CatalogProtocol):
         equals: str = "",
         contains: str = "",
         pattern: str = "",
-        tags: TagDict | list[TagDict] | None = None,
+        tags: Tags | list[Tags] | None = None,
     ) -> list[CatalogItem]:
         # inherit docs from protocol class. List all series (across all sets).
         return self.items(
@@ -456,7 +456,7 @@ class Repository(_CatalogProtocol):
         equals: str = "",
         contains: str = "",
         pattern: str = "",
-        tags: TagDict | list[TagDict] | None = None,
+        tags: Tags | list[Tags] | None = None,
     ) -> list[CatalogItem]:
         """Return all catalog items (sets, series or both) matching the search criteria."""
         filtered_on_names = MetaIO(repository=self.name).search(

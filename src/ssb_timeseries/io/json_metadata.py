@@ -19,7 +19,7 @@ from ..config import FileBasedRepository
 from ..logging import logger
 from ..meta.tags import matches_criteria
 from ..types import PathStr
-from ..types import TagDict
+from ..types import Tags
 from . import fs
 from .json_helpers import sanitize_for_json
 
@@ -299,7 +299,7 @@ def find_metadata_files(
     return found
 
 
-def tags_to_json(x: TagDict) -> dict[str, str]:
+def tags_to_json(x: Tags) -> dict[str, str]:
     """Serialize a tag dictionary into a format suitable for Parquet metadata.
 
     This function encodes the entire tag dictionary as a single JSON string
@@ -330,7 +330,7 @@ def tags_from_json(
 
 def tags_from_json_file(
     file_or_files: PathStr | list[PathStr],
-) -> dict | list[dict]:  # DatasetTagDict | list[DatasetTagDict]:
+) -> dict | list[dict]:  # DatasetTags | list[DatasetTags]:
     """Read and parse one or more metadata JSON files."""
     if isinstance(file_or_files, list):
         result = []
@@ -340,4 +340,4 @@ def tags_from_json_file(
         return result
     else:
         t = fs.read_json(file_or_files)
-        return t  # cast(DatasetTagDict, t)
+        return t  # cast(DatasetTags, t)

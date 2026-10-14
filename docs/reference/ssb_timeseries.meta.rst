@@ -1,7 +1,7 @@
 :py:mod:`ssb_timeseries.meta`
 ==============================
 
-The :py:mod:`ssb_timeseries.meta` module provides tools for managing metadata associated with datasets and time series. It defines the core data structures for tags and exposes functionality for creating and manipulating taxonomies.
+The :py:mod:`ssb_timeseries.meta` module provides tools for managing metadata associated with datasets and time series. It exposes the core data structures for tags (defined in :py:mod:`ssb_timeseries.types`) and functionality for creating and manipulating taxonomies.
 
 .. automodule:: ssb_timeseries.meta
    :noindex:
@@ -24,25 +24,30 @@ The following classes and functions are exposed as the public API of the `meta` 
 **Type Aliases**
 ~~~~~~~~~~~~~~~~
 
-.. py:data:: DatasetTagDict
+.. py:data:: DatasetTags
    :annotation: = dict[str, Any]
 
-   A dictionary representing the full dataset metadata, including 'series'.
+   A TypedDict representing the full dataset metadata, including 'series'.
 
-.. py:data:: SeriesTagDict
-   :annotation: = dict[str, TagDict]
+.. py:data:: SeriesTags
+   :annotation: = dict[str, Tags]
 
-   A dictionary mapping series names to their TagDict.
+   A dictionary mapping series names to their tags.
 
-.. py:data:: TagDict
+.. py:data:: Tags
    :annotation: = dict[str, TagValue]
 
-   A dictionary of tags, where keys are tag names and values are TagValues.
+   A dictionary of tags, where keys are tag keys and values are TagValues.
 
 .. py:data:: TagValue
    :annotation: = str | list[str]
 
-   A tag value can be a single string or a list of strings.
+   A tag value is a single string or a list of strings.
+
+.. py:data:: TagKey
+   :annotation: = str
+
+   A tag key is an attribute name represented as a string.
 
 **Functions**
 ~~~~~~~~~~~~~

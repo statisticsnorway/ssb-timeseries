@@ -2,8 +2,8 @@
 
 Tags are stored in dictionaries, and this module contains the core logic
 for creating, updating, deleting, and transforming those dictionaries.
-It defines the main type aliases used for metadata, such as ``TagDict``
-and ``DatasetTagDict``.
+It uses and re-exports the tag type aliases defined in
+:py:mod:`ssb_timeseries.types`, such as ``Tags`` and ``DatasetTags``.
 """
 
 from __future__ import annotations
@@ -13,15 +13,15 @@ from typing import Any
 from typing import no_type_check
 
 import ssb_timeseries as ts
-from ssb_timeseries.types import DatasetTagDict
-from ssb_timeseries.types import SeriesTagDict
-from ssb_timeseries.types import TagDict
+from ssb_timeseries.types import DatasetTags
+from ssb_timeseries.types import SeriesTags
+from ssb_timeseries.types import Tags
 from ssb_timeseries.types import TagValue
 
 # mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-any-return"
 
 
-def matches_criteria(tag: TagDict, criteria: TagDict) -> bool:
+def matches_criteria(tag: Tags, criteria: Tags) -> bool:
     """Check if a tag matches the specified criteria.
 
     Args:
@@ -42,7 +42,7 @@ def matches_criteria(tag: TagDict, criteria: TagDict) -> bool:
     return True
 
 
-def filter_tags(tags: SeriesTagDict, criteria: TagDict) -> SeriesTagDict:
+def filter_tags(tags: SeriesTags, criteria: Tags) -> SeriesTags:
     """Filter tags based on the specified criteria.
 
     Args:
@@ -57,8 +57,8 @@ def filter_tags(tags: SeriesTagDict, criteria: TagDict) -> SeriesTagDict:
 
 
 def search_by_tags(
-    tags: SeriesTagDict,
-    criteria: TagDict | list[TagDict],
+    tags: SeriesTags,
+    criteria: Tags | list[Tags],
 ) -> list[str]:
     """Filter tags based on the specified criteria and return the keys.
 
@@ -80,9 +80,9 @@ def search_by_tags(
     return [key for key, tag in tags.items() if matches_criteria(tag, criteria)]
 
 
-def inherit_set_tags(tags: DatasetTagDict) -> TagDict:
+def inherit_set_tags(tags: DatasetTags) -> Tags:
     """Return the tags inherited from the dataset."""
-    inherited: TagDict = {}
+    inherited: Tags = {}
 
     for key in tags:
         if key not in {"name", "series"}:
@@ -93,10 +93,10 @@ def inherit_set_tags(tags: DatasetTagDict) -> TagDict:
 
 
 def series_tag_dict_edit(
-    existing: SeriesTagDict,
-    replace: TagDict,
-    new: TagDict,
-) -> SeriesTagDict:
+    existing: SeriesTags,
+    replace: Tags,
+    new: Tags,
+) -> SeriesTags:
     """Alter selected attributes in a Dataset.tag['series'] dictionary.
 
     Either 'replace' or 'new' (or both) must be specified.
@@ -131,10 +131,10 @@ def series_tag_dict_edit(
 
 @no_type_check
 def add_tag_values(
-    old: TagDict,
-    additions: TagDict,
+    old: Tags,
+    additions: Tags,
     recursive: bool = False,
-) -> TagDict:
+) -> Tags:
     """Add tag values to a tag dict.
 
     Will append new tags as a list if any values already exist. With parameters recursive=True, nested dicts are also traversed.
@@ -161,10 +161,10 @@ def add_tag_values(
 
 
 def rm_tag_values(
-    existing: TagDict,
-    tags_to_remove: TagDict,
+    existing: Tags,
+    tags_to_remove: Tags,
     recursive: bool | list[str] = False,
-) -> TagDict:
+) -> Tags:
     """Remove tag value from tag dict.
 
     Values to remove in tags can be strings or lists of strings.
@@ -206,10 +206,10 @@ def rm_tag_values(
 
 
 def rm_tags(
-    existing: TagDict,
+    existing: Tags,
     *args: str,
     recursive: bool | list[str] = False,
-) -> TagDict:
+) -> Tags:
     """Remove attribute from tag dict regardless of value."""
     new = deepcopy(existing)
     for attribute in args:
@@ -224,11 +224,11 @@ def rm_tags(
 
 @no_type_check  # "no any return
 def replace_dataset_tags(
-    existing: TagDict,
-    old: TagDict,
-    new: TagDict,
+    existing: Tags,
+    old: Tags,
+    new: Tags,
     recursive: bool = False,
-) -> DatasetTagDict:
+) -> DatasetTags:
     """Alter selected attributes value pairs in a tag dictionary."""
     if old == new:
         return existing
@@ -250,10 +250,10 @@ def replace_dataset_tags(
 
 @no_type_check  # "comparison-overlap
 def delete_dataset_tags(
-    dictionary: DatasetTagDict,
+    dictionary: DatasetTags,
     *args: str,
-    **kwargs: SeriesTagDict | bool,
-) -> DatasetTagDict:
+    **kwargs: SeriesTags | bool,
+) -> DatasetTags:
     """Remove selected attributes from dataset tag dictionary."""
     propagate = kwargs.pop("propagate", False)
 
@@ -274,10 +274,10 @@ def delete_dataset_tags(
 
 @no_type_check  # "comparison-overlap
 def delete_series_tags(
-    dictionary: SeriesTagDict | DatasetTagDict,
+    dictionary: SeriesTags | DatasetTags,
     *args: str,
     **kwargs: TagValue,  # | bool,
-) -> SeriesTagDict | DatasetTagDict:
+) -> SeriesTags | DatasetTags:
     """Remove selected series attributes from series or dataset tag dictionary."""
     remove_all: bool = kwargs.pop("all", False)
 

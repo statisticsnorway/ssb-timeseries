@@ -47,7 +47,7 @@ from ..dataframes.dates import datelike_to_utc
 from ..dataset import Dataset
 from ..dates import date_utc
 from ..logging import logger
-from ..meta import TagDict
+from ..meta import Tags
 from ..types import SeriesType
 from . import protocols
 from .dataset_ref import DatasetRef
@@ -257,7 +257,7 @@ class DataIO:
         """Read this dataset's data."""
         return self.dh.read(self.ds.ref, **kwargs)
 
-    def write(self, data: IntoFrame, tags: TagDict | None = None) -> None:
+    def write(self, data: IntoFrame, tags: Tags | None = None) -> None:
         """Write data for this dataset.
 
         Args:
@@ -315,7 +315,7 @@ class MetaIO:
             name = self.ds.name
         return self.dh.read(name)
 
-    def write(self, name: str = "", tags: TagDict | None = None) -> None:
+    def write(self, name: str = "", tags: Tags | None = None) -> None:
         """Write metadata for a given dataset."""
         if not name:
             if self.ds is None:
