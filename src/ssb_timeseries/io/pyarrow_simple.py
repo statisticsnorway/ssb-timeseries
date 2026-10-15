@@ -28,7 +28,6 @@ from typing import cast
 import narwhals as nw
 import pyarrow
 import pyarrow.compute
-from narwhals.typing import FrameT
 
 from .. import types
 from ..config import Config
@@ -40,6 +39,7 @@ from ..dataframes.dates import datelike_to_utc
 from ..dates import date_utc
 from ..dates import utc_iso_no_colon
 from ..logging import logger
+from ..types._narwhals import FrameT
 from . import fs
 from .dataset_ref import DatasetRef
 from .parquet_schema import parquet_schema

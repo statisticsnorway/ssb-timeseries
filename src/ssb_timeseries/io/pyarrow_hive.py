@@ -30,7 +30,6 @@ from urllib.parse import unquote
 import narwhals as nw
 import pyarrow as pa
 from dateutil.parser import parse
-from narwhals.typing import FrameT
 
 from .. import types
 from ..config import Config
@@ -40,6 +39,7 @@ from ..dataframes import merge_data
 from ..dataframes.date_cols import prepend_as_of
 from ..dataframes.dates import standardize_dates
 from ..logging import logger
+from ..types._narwhals import FrameT
 from . import fs
 from .dataset_ref import DatasetRef
 

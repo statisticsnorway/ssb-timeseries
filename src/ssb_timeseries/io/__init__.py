@@ -39,8 +39,6 @@ from typing import Literal
 from typing import cast
 from typing import overload
 
-from narwhals.typing import IntoFrame
-
 from ..config.types import FileBasedRepository
 from ..dataframes.date_cols import date_range
 from ..dataframes.dates import datelike_to_utc
@@ -49,6 +47,7 @@ from ..dates import date_utc
 from ..logging import logger
 from ..meta import Tags
 from ..types import SeriesType
+from ..types._narwhals import IntoFrame
 from . import protocols
 from .dataset_ref import DatasetRef
 

@@ -135,7 +135,7 @@ class SeriesType:
 
     def __init__(
         self,
-        *type_def: str,
+        *type_def: object,
         versioning: Versioning | None = None,
         temporality: Temporality | None = None,
     ) -> None:

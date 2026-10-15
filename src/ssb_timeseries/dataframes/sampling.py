@@ -4,11 +4,11 @@ from typing import Any
 
 import narwhals as nw
 import polars as pl
-from narwhals.typing import IntoFrameT
 
 from ..dates import DEFAULT_TZ
 from ..dates import TimeZone
 from ..types import F
+from ..types._narwhals import IntoFrameT
 from . import eager
 from .date_cols import temporal_column_schema
 from .dates import datelike_convert_naive

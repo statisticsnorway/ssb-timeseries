@@ -22,7 +22,8 @@ if TYPE_CHECKING:
     import pandas
     import polars
     import pyarrow
-    from narwhals.typing import Frame
+
+    from ..types._narwhals import Frame
 
 
 class Series:

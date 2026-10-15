@@ -19,8 +19,6 @@ import narwhals as nw
 import networkx as nx
 
 # TODO: Replace with nw in agg_table-method
-from narwhals.typing import IntoFrameT
-
 import ssb_timeseries as ts
 from ssb_timeseries.dataframes import are_equal
 from ssb_timeseries.io import fs
@@ -28,6 +26,7 @@ from ssb_timeseries.meta.loaders import DataLoader
 from ssb_timeseries.meta.loaders import FileLoader
 from ssb_timeseries.meta.loaders import KlassLoader
 from ssb_timeseries.types import PathStr
+from ssb_timeseries.types._narwhals import IntoFrameT
 
 if TYPE_CHECKING:
     pass

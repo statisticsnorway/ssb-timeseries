@@ -44,16 +44,16 @@ import narwhals as nw
 import narwhals.selectors as ncs
 import numpy as np
 import pyarrow as pa
-from narwhals.typing import Frame
-from narwhals.typing import FrameT
-from narwhals.typing import IntoDType
-from narwhals.typing import IntoFrame
-from narwhals.typing import IntoFrameT
-from narwhals.typing import IntoSeries
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
 from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types._narwhals import Frame
+from ssb_timeseries.types._narwhals import FrameT
+from ssb_timeseries.types._narwhals import IntoDType
+from ssb_timeseries.types._narwhals import IntoFrame
+from ssb_timeseries.types._narwhals import IntoFrameT
+from ssb_timeseries.types._narwhals import IntoSeries
 
 from . import io
 from . import meta

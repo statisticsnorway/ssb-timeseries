@@ -44,6 +44,7 @@ import logging
 import os
 import sys
 import warnings
+from collections.abc import Mapping
 from pathlib import Path
 
 try:
@@ -82,7 +83,7 @@ from .types import Repository
 _config_logger = logging.getLogger(__name__)
 
 
-def is_valid_config(configuration: ConfigDict) -> tuple[bool, object]:
+def is_valid_config(configuration: Mapping[str, Any]) -> tuple[bool, object]:
     """Check if a dictionary is a valid configuration :py:class:`ConfigDict`.
 
     Only the top level of the configuration is validated, that is the presence of the

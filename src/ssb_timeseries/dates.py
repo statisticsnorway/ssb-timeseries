@@ -16,7 +16,6 @@ from zoneinfo import ZoneInfo
 from multipledispatch import dispatch
 
 from dateutil import parser
-from narwhals.typing import IntoFrameT, FrameT, IntoSeriesT
 import narwhals as nw
 import narwhals.selectors as ncs
 import pyarrow as pa

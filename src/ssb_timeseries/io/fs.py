@@ -9,6 +9,7 @@ import os
 import shutil
 from _collections_abc import Callable
 from pathlib import Path
+from typing import TextIO
 
 import narwhals
 import pyarrow
@@ -18,11 +19,12 @@ import pyarrow.parquet as pq
 import tomli
 import tomli_w
 from gcsfs import GCSFileSystem
-from narwhals.typing import IntoFrame
 
 from ..dataframes import to_arrow
 from ..types import F
 from ..types import PathStr
+from ..types._narwhals import Frame
+from ..types._narwhals import IntoFrame
 
 # mypy: disable-error-code="arg-type, type-arg, no-any-return, no-untyped-def, import-untyped, attr-defined, type-var, index, return-value"
 
@@ -388,18 +390,18 @@ def _text_reader(file_format: str) -> Callable:
     match file_format.lower():
         case "json":
 
-            def reader(file: PathStr) -> dict:
+            def reader(file: TextIO) -> dict:
                 return json.load(file)
 
         case "toml":
 
-            def reader(file: PathStr) -> dict:
+            def reader(file: TextIO) -> dict:
                 return tomli.load(file)
 
     return reader
 
 
-def _text_writer(file_format: str) -> Callable[[PathStr, dict], None]:
+def _text_writer(file_format: str) -> Callable[[TextIO, dict], None]:
     """Return a function for writing a dict to text file in specified format.
 
     Args:
@@ -411,14 +413,14 @@ def _text_writer(file_format: str) -> Callable[[PathStr, dict], None]:
     match file_format.lower():
         case "json":
 
-            def writer(file: PathStr, content: dict | str) -> None:
+            def writer(file: TextIO, content: dict | str) -> None:
                 if isinstance(content, str):
                     content = json.loads(content)
                 return json.dump(content, file, indent=4, ensure_ascii=False)
 
         case "toml":
 
-            def writer(file: PathStr, content: dict | str) -> None:
+            def writer(file: TextIO, content: dict | str) -> None:
                 if isinstance(content, str):
                     content = tomli.loads(content)
                 return tomli_w.dump(file, content)
@@ -459,7 +461,7 @@ def read_parquet(
     lazy: bool = False,  # TODO: Later steps need lazy-proofing before we can switch defaults.
     implementation: str = "pyarrow",
     **kwargs,
-) -> narwhals.typing.Frame:
+) -> Frame:
     """Read a Parquet file into a dataframe.
 
     This function can read from both local and GCS paths.

@@ -10,16 +10,16 @@ from typing import cast
 import narwhals as nw
 import polars as pl
 import pyarrow
-from narwhals.typing import Frame
-from narwhals.typing import FrameT
-from narwhals.typing import IntoFrame
-from narwhals.typing import IntoFrameT
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
 from ..types import SeriesType
 from ..types import Temporality
 from ..types import Versioning
+from ..types._narwhals import Frame
+from ..types._narwhals import FrameT
+from ..types._narwhals import IntoFrame
+from ..types._narwhals import IntoFrameT
 from .dates import standardize_dates
 
 # mypy: disable-error-code="union-attr"
