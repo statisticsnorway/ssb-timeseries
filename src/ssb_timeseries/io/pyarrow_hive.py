@@ -42,6 +42,8 @@ from ..logging import logger
 from ..types._narwhals import FrameT
 from . import fs
 from .dataset_ref import DatasetRef
+from .parquet_schema import PA_BOOLEAN
+from .parquet_schema import series_are_all_boolean
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped"
 
@@ -168,6 +170,7 @@ class HiveFileSystem:
             dataset.data_type,
             tags,
             partition_by=["as_of"],
+            data=df,
         )
         if dataset.data_type.versioning == types.Versioning.NONE:
             old_data = self.read(dataset)
@@ -239,6 +242,7 @@ def _parquet_schema(
     data_type: types.SeriesType,
     meta: dict[str, Any],
     partition_by: list[str],
+    data: Any | None = None,
 ) -> tuple[pa.Schema, pa.dataset.Partitioning]:
     """Translate dataset tags into a PyArrow schema with embedded metadata."""
     from .json_helpers import tags_to_json
@@ -259,10 +263,15 @@ def _parquet_schema(
     ]
     date_col_fields.sort(key=lambda x: x.name)
 
+    value_type = (
+        PA_BOOLEAN
+        if data is not None and series_are_all_boolean(data, series_meta)
+        else PA_NUMERIC
+    )
     num_col_fields = [
         pa.field(
             series_key,
-            PA_NUMERIC,
+            value_type,
             nullable=True,
             metadata=tags_to_json(series_tags),
         )

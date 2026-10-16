@@ -258,7 +258,7 @@ class FileSystem:
             fs.write_parquet(
                 data=df,
                 path=self.fullpath(dataset),
-                schema=parquet_schema(dataset.data_type, tags),
+                schema=parquet_schema(dataset.data_type, tags, data=df),
             )
         except Exception as e:
             logger.exception(

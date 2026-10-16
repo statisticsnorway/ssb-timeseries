@@ -1,9 +1,11 @@
 """Unit tests for the `simple` I/O handler."""
 
+import datetime as dt
 import logging
 import time
 from pathlib import Path
 
+import narwhals as nw
 import pyarrow
 import pytest
 from pytest import LogCaptureFixture
@@ -293,3 +295,51 @@ def test_simple_write_with_none_data_raises_type_error(
 
     with pytest.raises(TypeError):
         io_handler.write(dataset.ref, data=None, tags=dataset.tags)
+
+
+def test_all_boolean_series_round_trip_as_boolean(tmp_path) -> None:
+    """A set whose series are all boolean must keep the boolean type on disk."""
+    data = pyarrow.table(
+        {
+            "valid_at": pyarrow.array(
+                [
+                    dt.datetime(2022, 1, 1, tzinfo=dt.UTC),
+                    dt.datetime(2022, 2, 1, tzinfo=dt.UTC),
+                    dt.datetime(2022, 3, 1, tzinfo=dt.UTC),
+                ],
+                type=pyarrow.timestamp("ns", tz="UTC"),
+            ),
+            "flag_a": [True, False, True],
+            "flag_b": [False, False, True],
+        }
+    )
+    tags = {
+        "name": "boolset",
+        "versioning": "NONE",
+        "temporality": "AT",
+        "series": {"flag_a": {}, "flag_b": {}},
+    }
+    repository = {
+        "bool-test": {
+            "name": "bool-test",
+            "directory": {
+                "handler": "simple-parquet",
+                "options": {"path": str(tmp_path / "series")},
+            },
+            "catalog": {
+                "handler": "json",
+                "options": {"path": str(tmp_path / "meta")},
+            },
+        }
+    }
+    handler = io.FileSystem(
+        repository=repository["bool-test"],
+        path=str(tmp_path / "series"),
+    )
+    ref = DatasetRef(name="boolset", data_type=NONE_AT)
+    handler.write(ref, data=data, tags=tags)
+
+    written = handler.read(ref)
+    schema = nw.from_native(written).schema
+    assert schema["flag_a"] == nw.Boolean
+    assert schema["flag_b"] == nw.Boolean
