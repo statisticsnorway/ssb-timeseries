@@ -112,6 +112,7 @@ class HiveFileSystem:
             *args: Accepted and ignored, for call compatibility.
             **kwargs: Accepted and ignored, for call compatibility.
         """
+        dataset.require_supported()
         if not dataset.is_identified:
             # No version chosen, so there is no particular partition to read.
             logger.debug("No 'as of' for %s - return empty frame.", dataset.name)
@@ -213,6 +214,7 @@ class HiveFileSystem:
         Args:
             dataset: The dataset to list versions for.
         """
+        dataset.require_supported()
         if (
             not self.exists(dataset)
             or dataset.data_type.versioning != types.Versioning.AS_OF

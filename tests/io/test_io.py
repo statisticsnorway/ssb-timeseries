@@ -2,15 +2,21 @@
 
 import logging
 
+import pytest
+
 # from pathlib import Path
 from pytest import LogCaptureFixture
 
 from ssb_timeseries import io
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.types import NONE_AT
+from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import Temporality
+from ssb_timeseries.types import Versioning
 
 # from ssb_timeseries.dates import datelike_to_utc
 
+NAMES_AT = SeriesType(versioning=Versioning.NAMES, temporality=Temporality.AT)
 
 # mypy: ignore-errors
 
@@ -99,6 +105,16 @@ def test_search_for_dataset_by_setname_contains_with_one_match_returns_list_with
     assert isinstance(datasets_found, list) and len(datasets_found) == 1
     assert datasets_found[0]["object_name"] == set_name
     assert datasets_found[0]["object_tags"] == x.tags
+
+
+def test_saving_a_dataset_with_unimplemented_versioning_raises(
+    conftest,
+    xyz_at,
+) -> None:
+    """`Versioning.NAMES` is reserved but not implemented; IO must say so clearly."""
+    x = Dataset(name=conftest.function_name_hex(), data_type=NAMES_AT, data=xyz_at)
+    with pytest.raises(NotImplementedError, match=r"Versioning\.NAMES"):
+        io.save(x)
 
 
 def test_metaio_write_uses_explicit_tags(conftest) -> None:

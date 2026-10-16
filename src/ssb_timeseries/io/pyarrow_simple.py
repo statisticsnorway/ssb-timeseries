@@ -173,6 +173,7 @@ class FileSystem:
             *args: Accepted and ignored, for call compatibility.
             **kwargs: Handler specific read options, such as an interval.
         """
+        dataset.require_supported()
         logger.debug(kwargs.get("interval", ""))
         if not dataset.is_identified:
             # No version chosen, so there is no particular file to read.
@@ -299,6 +300,7 @@ class FileSystem:
                 The default, None, reads it from the repository ``options`` and
                 falls back to ``"*.parquet"``, the only suffix this handler writes.
         """
+        dataset.require_supported()
         if file_pattern is None:
             file_pattern = self.options.get("file_pattern", "*.parquet")
 
