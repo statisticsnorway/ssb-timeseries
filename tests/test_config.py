@@ -576,8 +576,8 @@ def test_loading_deprecated_handler_path_issues_warning(
     }
     cfg.repositories = {
         "test_repo": {
-            "directory": {"path": str(tmp_path), "handler": "parquet"},
-            "catalog": {"path": str(tmp_path), "handler": "parquet"},
+            "directory": {"handler": "parquet", "options": {"path": str(tmp_path)}},
+            "catalog": {"handler": "parquet", "options": {"path": str(tmp_path)}},
         }
     }
     cfg.activate()

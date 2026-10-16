@@ -243,7 +243,7 @@ class Config:
     """Defines storage locations for time series data and metadata."""
     archives: dict[str, ArchiveConfig]
     """Defines the storage locations for archiving data in stable states."""
-    sharing: dict[str, Repository]
+    sharing: dict[str, ArchiveConfig]
     """Defines the storage locations for shared data."""
     io_handlers: dict[str, Any]
     """IO handlers for repositories, archives and sharing."""
