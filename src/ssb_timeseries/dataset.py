@@ -249,11 +249,6 @@ class Dataset:
             )
             if tags_for_existing is None:
                 tags_for_existing = {}
-            elif isinstance(tags_for_existing, dict):
-                type_of_existing = SeriesType(
-                    versioning=tags_for_existing.get("versioning"),
-                    temporality=tags_for_existing.get("temporality"),
-                )
             elif isinstance(tags_for_existing, list):
                 raise LookupError(
                     f"Dataset.__init__ can not get existing metadata because search returned multiple sets of same name: {name=}:\n{tags_for_existing}."
