@@ -1412,7 +1412,7 @@ class Dataset:
         self,
         other: Self | IntoFrame | IntoSeries | int | float | None,
         func,  # noqa: ANN001
-    ) -> Any:
+    ) -> Self:
         """Generic helper making math functions work on numeric, non date columns of dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar.
 
         Although the purpose was to limit "boilerplate" for core linear algebra functions, it also extend to other operations that follow the same differentiation pattern.
@@ -1426,8 +1426,7 @@ class Dataset:
             ValueError: "Incompatible shapes."
 
         Returns:
-            Any:   Depending on the inputs: A new dataset / vector / scalar with the result.
-            For datasets, the name of the new set is derived from inputs and the functions applied.
+            Self:  A new dataset with the result, derived from the inputs and the function applied.
             If 'other' is not recognized, the 'NotImplemented' Singleton is returned so that Python can invoke  '__r<method>__' of other class.
         """
         num_cols = self.numeric_columns
@@ -1507,28 +1506,28 @@ class Dataset:
         # TODO: Should also update series names and set/series tags
         return out
 
-    def __add__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __add__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Add two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.add.
         """
         return self.math(other, np.add)
 
-    def __radd__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __radd__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right add handles cases where a Dataset is added to a non-dataset object.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.add.
         """
         return self.__add__(other)
 
-    def __sub__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __sub__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Subtract two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.sub.
         """
         return self.math(other, np.subtract)
 
-    def __rsub__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __rsub__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right subtract handles cases where a Dataset is subtrd from a non-Dataset.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.sub.
@@ -1536,21 +1535,21 @@ class Dataset:
         negative_self = self.__mul__(-1)
         return negative_self.__add__(other)
 
-    def __mul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __mul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Multiply two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.muliply.
         """
         return self.math(other, np.multiply)
 
-    def __rmul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __rmul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right multiply two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.muliply.
         """
         return self.__mul__(other)
 
-    def __matmul__(self, other: Self | IntoFrame | IntoSeries) -> Any:
+    def __matmul__(self, other: Self | IntoFrame | IntoSeries) -> Self:
         """Matrix multiply two datasets or a dataset and a dataframe, numpy array.
 
         The matmul function implements the semantics of the @ operator defined in PEP 465.
@@ -1563,21 +1562,21 @@ class Dataset:
         """
         return self.math(other, np.matmul)
 
-    def __rmatmul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __rmatmul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right matrix multiply two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.matmul.
         """
         return self.__mul__(other)
 
-    def __truediv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __truediv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Divide two datasets, or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.divide.
         """
         return self.math(other, np.divide)
 
-    def __rtruediv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __rtruediv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right true divide handles cases when non-dataset objects are divided by datasets.
 
         Division is performed elementwise using Numpy broadcast rules. See np.divide.
@@ -1590,14 +1589,14 @@ class Dataset:
         # (Also, check behaviour with decimal datatype.)
         return inverse.math(None, np.reciprocal)
 
-    def __floordiv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __floordiv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Floor divide two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.floordivide.
         """
         return self.math(other, np.floor_divide)
 
-    def __rfloordiv__(self, other: IntoFrame | IntoSeries | int | float) -> Any:
+    def __rfloordiv__(self, other: IntoFrame | IntoSeries | int | float) -> Self:
         """Right floor divide handles cases when a dataframe, numpy array or scalar is divded by a dataset.
 
         Done element wise w. broadcast.
@@ -1607,14 +1606,14 @@ class Dataset:
         inverse = self.__floordiv__(other)
         return inverse.math(None, np.reciprocal)
 
-    def __pow__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __pow__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Power of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.power.
         """
         return self.math(other, np.power)
 
-    def __rpow__(self, other: IntoFrame | IntoSeries | int | float) -> Any:
+    def __rpow__(self, other: IntoFrame | IntoSeries | int | float) -> Self:
         """Right power of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.power.
@@ -1629,42 +1628,42 @@ class Dataset:
         ln_a = np.log(other)  # may handling of input type variations?
         return exp_self.__pow__(ln_a)
 
-    def __mod__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __mod__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Modulo of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.mod.
         """
         return self.math(other, np.mod)
 
-    def __rmod__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __rmod__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right modulo of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.mod.
         """
         return NotImplemented  # self.__mod__(other)
 
-    def __neg__(self) -> Any:
+    def __neg__(self) -> Self:
         """Negative values for dataset.
 
         The operation returns a new dataset object. See np.negative.
         """
         return self.math(None, np.negative)
 
-    def __pos__(self) -> Any:
+    def __pos__(self) -> Self:
         """Positive values for dataset.
 
         The operation returns a new dataset object. See np.positive.
         """
         return self.math(None, np.positive)
 
-    def __abs__(self) -> Any:
+    def __abs__(self) -> Self:
         """Absolute values for dataset.
 
         The operation returns a new dataset object. See np.absolute.
         """
         return self.math(None, np.absolute)
 
-    def __invert__(self) -> Any:
+    def __invert__(self) -> Self:
         """Invert the sign of values in the dataset.
 
         The operation is performed elementwise. See np.negative.
@@ -1674,7 +1673,7 @@ class Dataset:
     @no_type_check
     def __eq__(
         self, other: object
-    ) -> Any:  # Self | IntoFrame | IntoSeries | int | float) -> Any:
+    ) -> Self:  # Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check equality of two datasets or one dataset and a dataframe, numpy array or scalar.
 
         Note that this is a pure value comparison, and thus different from comparing dataset identity as reflected in the metadata of two dataset instances.
@@ -1683,9 +1682,9 @@ class Dataset:
         """
         return self.math(other, np.equal)
 
-    def __ne__(
+    def __ne__(  # type: ignore[override]
         self, other: Any
-    ) -> Any:  # Self | IntoFrame | IntoSeries | int | float) -> Any:
+    ) -> Self:  # Self | IntoFrame | IntoSeries | int | float) -> Any:
         # def __ne__(self, other:Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check inequality of two datasets or one dataset and a dataframe, numpy array or scalar.
 
@@ -1695,35 +1694,35 @@ class Dataset:
         """
         return self.math(other, np.not_equal)
 
-    def __gt__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __gt__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Check greater than for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.greater.
         """
         return self.math(other, np.greater)
 
-    def __lt__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __lt__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Check less than for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.less.
         """
         return self.math(other, np.less)
 
-    def __ge__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __ge__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Check greater than or equal for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.greater_equal.
         """
         return self.math(other, np.greater_equal)
 
-    def __le__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __le__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Check less than or equal for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.less_equal.
         """
         return self.math(other, np.less_equal)
 
-    def isclose(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def isclose(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Check if two datasets or a dataset and a dataframe, numpy array or scalar are nearlly equal.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.isclose.
