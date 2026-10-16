@@ -218,7 +218,7 @@ def tests(session: Session) -> None:
     session.env["PYTHONUTF8"] = "1"
     session.install(".")
     session.install(*NOTEBOOK_DEPENDENCIES)
-    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata")
+    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata", "typeguard")
 
     # If on Windows, find the installed tzdata path and set the env var to avoid:
     #  E  pyarrow.lib.ArrowInvalid: Cannot locate timezone 'Europe/Oslo':
