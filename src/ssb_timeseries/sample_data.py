@@ -27,6 +27,7 @@ from .dates import TimeZone
 from .dates import date_round
 from .dates import date_tz
 from .dates import ensure_datetime
+from .types import SeriesType
 from .types import Temporality
 
 # mypy: disable-error-code="arg-type, type-arg, import-untyped, unreachable, attr-defined"
@@ -89,7 +90,7 @@ def create_df(
     separator: str = "_",
     midpoint: int | float = 100,
     variance: int | float = 10,
-    temporality: Temporality | str = "AT",
+    temporality: Temporality | str | SeriesType = "AT",
     decimals: int = 0,
     implementation: str = "pandas",
     tz: str | TimeZone = DEFAULT_TZ,
@@ -116,7 +117,8 @@ def create_df(
         separator: The separator used to join combinations. Optional, default is '_'.
         midpoint: The midpoint value for generating random data. Optional, default is 100.
         variance: The variance value for generating random data. Optional, default is 10.
-        temporality: The temporality of the data. Default is 'AT'.
+        temporality: The temporality of the data, as a `Temporality` or its name. Default is 'AT'.
+            A `SeriesType` is also accepted, in which case only its temporality is used; its versioning is ignored, since sample data carries no 'as_of' column.
         decimals: The number of decimal places to round to. Optional, default is 0.
         implementation: Narwhals supported dataframe library or object type.
         tz: Timezone to convert data to after generation; uses DFAULT_TZ if not specified.
@@ -130,6 +132,9 @@ def create_df(
             # Generate sample data with no specified start or end date (defaults to +/- infinity)
             sample_data = generate_sample_df(List1, List2, freq='D')
     """
+    if isinstance(temporality, SeriesType):
+        temporality = temporality.temporality
+
     if not start_date:
         start_date = date_round(datetime.now()) - timedelta(days=364)
     if not end_date:
