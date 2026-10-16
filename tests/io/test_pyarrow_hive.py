@@ -17,6 +17,7 @@ from ssb_timeseries.io import pyarrow_hive as io
 from ssb_timeseries.io.dataset_ref import DatasetRef
 from ssb_timeseries.io.pyarrow_hive import _parquet_schema
 from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.types import NONE_AT
 from ssb_timeseries.types import SeriesType
 from ssb_timeseries.types import Versioning
 
@@ -218,7 +219,7 @@ def test_io_data_directory_path_as_expected(
         path=data_path(conftest.repo),
     )
     repo_base_dir = Path(data_path(conftest.repo))
-    ref = DatasetRef(name=test_name, data_type=SeriesType.simple())
+    ref = DatasetRef(name=test_name, data_type=NONE_AT)
     expected: str = repo_base_dir / "data_type=NONE_AT" / f"dataset={test_name}"
     assert str(test_io._directory(ref)) == str(expected)
 
@@ -282,7 +283,7 @@ def test_parquet_schema_includes_series_without_individual_tags() -> None:
         "series": {"a": {}, "b": {}},
     }
 
-    schema, _ = _parquet_schema(SeriesType.simple(), tags, [])
+    schema, _ = _parquet_schema(NONE_AT, tags, [])
 
     assert schema.names == ["as_of", "valid_at", "a", "b"]
 

@@ -7,7 +7,10 @@ import pytest
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.sample_data import create_df
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import AS_OF_AT
+from ssb_timeseries.types import AS_OF_FROM_TO
+from ssb_timeseries.types import NONE_AT
+from ssb_timeseries.types import NONE_FROM_TO
 
 from .dataset_factories import new_dataset_as_of_at  # noqa: F401
 from .dataset_factories import new_dataset_as_of_from_to  # noqa: F401
@@ -22,7 +25,7 @@ def existing_none_at_set(abc_at, buildup_and_teardown):
     """Create a simple dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     x = Dataset(
         name="test-existing-dataset-none-at",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=abc_at,
         attributes=["A", "B", "C"],
     )
@@ -35,7 +38,7 @@ def existing_none_from_to_set(abc_from_to, buildup_and_teardown):
     """Create a non-versioned from-to dataset and save it."""
     x = Dataset(
         name="test-existing-dataset-none-from-to",
-        data_type=SeriesType.from_to(),
+        data_type=NONE_FROM_TO,
         data=abc_from_to,
         attributes=["A", "B", "C"],
     )
@@ -48,7 +51,7 @@ def existing_as_of_at_set(abc_at, buildup_and_teardown):
     """Create an estimate (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     x = Dataset(
         name="test-existing-dataset-as-of-at",
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         data=abc_at,
         attributes=["A", "B", "C"],
@@ -62,7 +65,7 @@ def existing_as_of_from_to_set(abc_from_to, buildup_and_teardown):
     """Create a versioned from-to dataset and save it."""
     x = Dataset(
         name="test-existing-dataset-as-of-from-to",
-        data_type=SeriesType.as_of_from_to(),
+        data_type=AS_OF_FROM_TO,
         as_of_tz=date_utc("2022-01-01"),
         data=abc_from_to,
         attributes=["A", "B", "C"],
@@ -79,7 +82,7 @@ def existing_simple_set(abc_at, buildup_and_teardown):
     """Create a simple dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     x = Dataset(
         name="test-existing-simple-dataset",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=abc_at,
         attributes=["A", "B", "C"],
     )
@@ -92,7 +95,7 @@ def existing_estimate_set(abc_at, buildup_and_teardown):
     """Create an estimate (as_of_at) dataset (and save so that files are existing) before running the test. Delete files afterwards."""
     x = Dataset(
         name="test-existing-estimate-dataset",
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         data=abc_at,
         attributes=["A", "B", "C"],
@@ -108,7 +111,7 @@ def existing_small_set(buildup_and_teardown):
     tag_values = [value for value in tags.values()]
     x = Dataset(
         name="test-existing-small-dataset",
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         data=create_df(
             *tag_values,

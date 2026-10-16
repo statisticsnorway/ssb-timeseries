@@ -410,7 +410,7 @@ def read_data(
     """
     tags = read_metadata(repository, set_name)
     if tags:
-        set_type = SeriesType(tags["versioning"], tags["temporality"])
+        set_type = SeriesType.from_tag_values(tags["versioning"], tags["temporality"])
         # `date_utc` defaults to now, matching the previous behaviour where an
         # unversioned read resolved to the latest version.
         ref = DatasetRef(

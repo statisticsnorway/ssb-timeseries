@@ -5,7 +5,7 @@ import pytest
 import ssb_timeseries as ts
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.sample_data import create_df
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import NONE_AT
 
 # mypy: ignore-errors
 
@@ -13,7 +13,7 @@ from ssb_timeseries.types import SeriesType
 def test_legacy_groupby_sums_daily_series_into_one_row_per_month(caplog):
     caplog.set_level(logging.DEBUG)
 
-    x = Dataset(name="test-groupby-sum", data_type=SeriesType.simple(), load_data=False)
+    x = Dataset(name="test-groupby-sum", data_type=NONE_AT, load_data=False)
 
     tag_values = [["p", "q", "r"]]
     x.data = create_df(
@@ -28,9 +28,7 @@ def test_legacy_groupby_sums_daily_series_into_one_row_per_month(caplog):
 def test_legacy_groupby_averages_daily_series_into_one_row_per_month(caplog):
     caplog.set_level(logging.DEBUG)
 
-    x = Dataset(
-        name="test-groupby-mean", data_type=SeriesType.simple(), load_data=False
-    )
+    x = Dataset(name="test-groupby-mean", data_type=NONE_AT, load_data=False)
 
     tag_values = [["p", "q", "r"]]
     x.data = create_df(
@@ -48,9 +46,7 @@ def test_legacy_groupby_with_poc_auto_differs_from_both_mean_and_sum(
 ):
     caplog.set_level(logging.DEBUG)
 
-    x = Dataset(
-        name="test-groupby-auto", data_type=SeriesType.simple(), load_data=False
-    )
+    x = Dataset(name="test-groupby-auto", data_type=NONE_AT, load_data=False)
 
     tag_values = [["p_pris", "q_pris", "r_pris", "p_volum", "q_volum", "r_volum"]]
     x.data = monthly_data(tag_values=tag_values)
@@ -73,7 +69,7 @@ def test_legacy_groupby_with_poc_auto_differs_from_both_mean_and_sum(
 def test_groupby_with_proof_of_concept_auto_warns_that_it_is_on_hold_but_still_fails_on_polars_api():
     x = Dataset(
         name="test-groupby-auto-warns",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=create_df(
             ["p_pris", "q_pris", "p_volum", "q_volum"],
             start_date="2022-01-01",

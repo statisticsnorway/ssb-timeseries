@@ -5,14 +5,16 @@ import json
 from ssb_timeseries.io.json_helpers import sanitize_for_json
 from ssb_timeseries.io.json_helpers import tags_from_json
 from ssb_timeseries.io.json_helpers import tags_to_json
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import AS_OF_FROM_TO
+from ssb_timeseries.types import NONE_AT
+from ssb_timeseries.types import NONE_FROM_TO
 
 
 def test_sanitize_for_json():
     """Test that the sanitize_for_json function correctly converts ssb-timeseries types to JSON-serializable strings."""
     tags = {
         "name": "test-dataset",
-        "data_type": SeriesType.simple(),
+        "data_type": NONE_AT,
     }
     sanitized_tags = sanitize_for_json(tags)
     assert sanitized_tags["data_type"] == "NONE_AT"
@@ -34,10 +36,10 @@ def test_sanitize_for_json_with_nested_structures():
     nested_tags = {
         "name": "nested-dataset",
         "config": {
-            "type": SeriesType.as_of_from_to(),
+            "type": AS_OF_FROM_TO,
             "versions": [
-                {"tag": "v1", "spec": SeriesType.simple()},
-                {"tag": "v2", "spec": SeriesType.from_to()},
+                {"tag": "v1", "spec": NONE_AT},
+                {"tag": "v2", "spec": NONE_FROM_TO},
             ],
         },
     }

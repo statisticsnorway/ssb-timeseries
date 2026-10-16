@@ -16,7 +16,7 @@ from ssb_timeseries.io import pyarrow_simple as io
 from ssb_timeseries.io.dataset_ref import DatasetRef
 from ssb_timeseries.io.fs import file_count
 from ssb_timeseries.sample_data import create_df
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import NONE_AT
 from ssb_timeseries.types import Versioning
 
 # mypy: ignore-errors
@@ -171,7 +171,7 @@ def test_io_data_directory_path_as_expected(
     caplog,
 ) -> None:
     test_name = conftest.function_name()
-    data_type = SeriesType.simple()
+    data_type = NONE_AT
     test_io = io.FileSystem(
         repository=conftest.repo,
         path=data_path(conftest.repo),

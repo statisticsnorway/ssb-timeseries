@@ -19,7 +19,8 @@ from ssb_timeseries.io.protocols import ArchiveWrite
 from ssb_timeseries.io.protocols import DataReadWrite
 from ssb_timeseries.io.protocols import MetadataReadWrite
 from ssb_timeseries.sample_data import create_df
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import AS_OF_AT
+from ssb_timeseries.types import NONE_AT
 
 # mypy: disable-error-code="no-untyped-def,no-untyped-call,arg-type,attr-defined,assignment"
 
@@ -269,7 +270,7 @@ def two_datasets_of_different_types(conftest):
     """
     versioned = Dataset(
         name=f"crosstalk_versioned_{uuid.uuid4().hex}",
-        data_type=SeriesType("as_of", "at"),
+        data_type=AS_OF_AT,
         as_of_tz=now_utc(),
         data=create_df(
             ["x"],
@@ -281,7 +282,7 @@ def two_datasets_of_different_types(conftest):
     )
     unversioned = Dataset(
         name=f"crosstalk_unversioned_{uuid.uuid4().hex}",
-        data_type=SeriesType("none", "at"),
+        data_type=NONE_AT,
         data=create_df(
             ["y"],
             start_date="2021-01-01",

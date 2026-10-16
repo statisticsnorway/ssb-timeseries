@@ -7,7 +7,7 @@ from pytest import LogCaptureFixture
 
 from ssb_timeseries import io
 from ssb_timeseries.dataset import Dataset
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import NONE_AT
 
 # from ssb_timeseries.dates import datelike_to_utc
 
@@ -52,13 +52,13 @@ def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
 
     x = Dataset(
         name=f"{base_name}_1",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
     io.save(x)
     y = Dataset(
         name=f"{base_name}_2",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
     io.save(y)
@@ -84,7 +84,7 @@ def test_search_for_dataset_by_setname_contains_with_one_match_returns_list_with
     set_name = conftest.function_name_hex()
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=xyz_at,
     )
@@ -137,7 +137,7 @@ def test_search_for_dataset_by_setname_equals_in_single_repo_returns_list_with_o
     set_name = conftest.function_name_hex()
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=xyz_at,
     )
@@ -164,7 +164,7 @@ def test_search_for_dataset_by_setname_pattern_in_single_repo_returns_list_with_
     set_name = conftest.function_name_hex()
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=xyz_at,
     )
@@ -191,7 +191,7 @@ def test_search_for_dataset_in_multiple_repos_returns_list_with_multiple_items(
     set_name = conftest.function_name_hex()
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=xyz_at,
         repository="test_1",
@@ -199,7 +199,7 @@ def test_search_for_dataset_in_multiple_repos_returns_list_with_multiple_items(
     io.save(x)
     y = Dataset(
         name=set_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=xyz_at,
         repository="test_2",

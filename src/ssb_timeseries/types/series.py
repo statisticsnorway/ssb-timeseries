@@ -2,29 +2,13 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from enum import Enum
-
-try:
-    from typing import Self
-except ImportError:
-    from typing_extensions import Self  # noqa: UP035 #backport to 3.10
 
 # mypy: disable-error-code="type-arg, override"
 
 
-class SuperEnum(Enum):
-    """Generic enumeration helper."""
-
-    def __repr__(self) -> str:
-        """Machine readable string representation, ideally sufficient to recreate object."""
-        return f"{self.__class__.__name__}.{self.name}"
-
-    def __str__(self) -> str:
-        """Human readable string representation of object."""
-        return self.name
-
-
-class Versioning(SuperEnum):
+class Versioning(Enum):
     """Versioning refers to how revisions of data are identified (named)."""
 
     NONE = 0
@@ -42,7 +26,7 @@ class Versioning(SuperEnum):
         return ["as_of"] if self == Versioning.AS_OF else []
 
 
-class Temporality(SuperEnum):
+class Temporality(Enum):
     """Temporality describes the time dimensionality of each data point; notably duration or lack thereof."""
 
     NONE = 0
@@ -54,7 +38,7 @@ class Temporality(SuperEnum):
 
     @property
     def date_columns(self) -> list[str]:
-        """Returns the data columns of the temporality."""
+        """Returns the date columns of the temporality."""
         if self == Temporality.AT:
             return ["valid_at"]
         if self == Temporality.FROM_TO:
@@ -62,110 +46,53 @@ class Temporality(SuperEnum):
         return []
 
 
+@dataclass(frozen=True)
 class SeriesType:
     """SeriesTypes are defined by combinations of attributes that have technical implications for time series datasets.
 
     Notable examples are Versioning and Temporality, but a few more may be added later.
     """
 
-    def __init__(
-        self,
-        *type_def: object,
-        versioning: Versioning | None = None,
-        temporality: Temporality | None = None,
-    ) -> None:
-        """SeriesType constructor.
+    versioning: Versioning
+    temporality: Temporality
 
-        Args:
-            *type_def: Keyword strings identifying versioning and/or temporality.
-            versioning: The versioning of the series.
-            temporality: The temporality of the series.
+    @classmethod
+    def from_name(cls, name: str) -> SeriesType:
+        """Return the SeriesType with the given canonical name, ignoring case.
 
+        The canonical names are the persisted spellings, for example 'NONE_AT'.
         """
-        # is_sparse (bool): Whether the series is sparse. Defaults to False.
-        # dtype: numeric
-        #   (without further specification for float/int/decimal)
-        # partial support: bool
-        # consider later: text
-        words = {str(t).lower() for t in type_def}
-
-        # Initialize with defaults
-        _versioning = Versioning.NONE
-        _temporality = Temporality.FROM_TO
-
-        # Handle high-level keywords first
-        if "simple" in words:
-            _versioning = Versioning.NONE
-            _temporality = Temporality.AT
-        elif "estimate" in words:
-            _versioning = Versioning.AS_OF
-            _temporality = Temporality.AT
-        else:
-            # Fallback for other versioning keywords if no high-level keyword was found
-            if {"asof", "as_of"} & words:
-                _versioning = Versioning.AS_OF
-            elif {"names"} & words:
-                _versioning = Versioning.NAMES
-
-            # Fallback for other temporality keywords if no high-level keyword was found
-            if {"at"} & words:
-                _temporality = Temporality.AT
-
-        # Explicit arguments always override
-        self.versioning = versioning if versioning is not None else _versioning
-        self.temporality = temporality if temporality is not None else _temporality
+        try:
+            return _CANONICAL_NAMES[name.strip().lower()]
+        except KeyError:
+            raise ValueError(f"Invalid SeriesType name: {name!r}") from None
 
     @classmethod
-    def none_at(cls) -> Self:
-        """Same as SeriesType.simple(): Shorthand for SeriesType(versioning=Versioning.NONE, temporality=Temporality.AT)."""
-        return cls(versioning=Versioning.NONE, temporality=Temporality.AT)
-
-    @classmethod
-    def simple(cls) -> Self:
-        """Same as SeriesType.none_at(): Shorthand for SeriesType(versioning=Versioning.NONE, temporality=Temporality.AT)."""
-        return cls.none_at()
-
-    @classmethod
-    def from_to(cls) -> Self:
-        """Shorthand for SeriesType(versioning=Versioning.NONE, temporality=Temporality.FROM_TO)."""
-        return cls(versioning=Versioning.NONE, temporality=Temporality.FROM_TO)
-
-    @classmethod
-    def as_of_at(cls) -> Self:
-        """Same as SeriesType.estimate(): Shorthand for SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.AT)."""
-        return cls(versioning=Versioning.AS_OF, temporality=Temporality.AT)
-
-    @classmethod
-    def as_of_from_to(cls) -> Self:
-        """Shorthand for SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.FROM_TO)."""
-        return cls(versioning=Versioning.AS_OF, temporality=Temporality.FROM_TO)
-
-    @classmethod
-    def estimate(cls) -> Self:
-        """Same as SeriesType.as_of_at(): Shorthand for SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.AT)."""
-        return cls.as_of_at()
+    def from_tag_values(
+        cls, versioning: Versioning | str, temporality: Temporality | str
+    ) -> SeriesType:
+        """Return the SeriesType stored as the 'versioning' and 'temporality' tag values."""
+        return cls(
+            versioning=versioning
+            if isinstance(versioning, Versioning)
+            else Versioning[versioning],
+            temporality=temporality
+            if isinstance(temporality, Temporality)
+            else Temporality[temporality],
+        )
 
     @property
     def date_columns(self) -> list[str]:
-        """Returns the data columns corresponding to the series type temporality."""
+        """Returns the date columns for the series type."""
         return list(
-            set(self.versioning.date_columns) | set(self.temporality.date_columns)
+            dict.fromkeys(
+                [*self.versioning.date_columns, *self.temporality.date_columns]
+            )
         )
 
     def __str__(self) -> str:
-        """Helper; returns '<versioning>_<temporality>'."""
-        return f"{self.versioning!s}_{self.temporality!s}"
-
-    def __repr__(self) -> str:
-        """Helper, returns code with required parameters to initialise given SeriesType."""
-        return f"SeriesType({self.versioning!r},{self.temporality!r})"
-
-    def __eq__(self, other: Self | None) -> bool:
-        """Equality test."""
-        if other is None:
-            return False
-        else:
-            return repr(self) == repr(other)
+        """Canonical spelling, also used as the persisted directory name."""
+        return f"{self.versioning.name}_{self.temporality.name}"
 
 
 NONE_AT = SeriesType(versioning=Versioning.NONE, temporality=Temporality.AT)
@@ -179,3 +106,8 @@ AS_OF_AT = SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.AT)
 
 AS_OF_FROM_TO = SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.FROM_TO)
 """Instance of `SeriesType` for estimates over validity periods, versioned by 'as of' dates."""
+
+_CANONICAL_NAMES: dict[str, SeriesType] = {
+    str(series_type).lower(): series_type
+    for series_type in (NONE_AT, NONE_FROM_TO, AS_OF_AT, AS_OF_FROM_TO)
+}

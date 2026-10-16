@@ -14,7 +14,7 @@ from ssb_timeseries.dataset import is_df_like
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.meta.taxonomy import Taxonomy
 from ssb_timeseries.sample_data import create_df
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import AS_OF_AT
 
 # ---mypy: disable-error-code="attr-defined,no-untyped-def,union-attr,index,call-overload"
 
@@ -35,7 +35,7 @@ def test_find_data_using_single_metadata_attribute(
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         tags=set_tags,
         data=create_df(
@@ -79,7 +79,7 @@ def test_find_data_using_multiple_metadata_attributes(
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         tags=set_tags,
         data=create_df(
@@ -126,7 +126,7 @@ def test_find_data_using_metadata_criteria_with_single_attribute_and_multiple_va
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         tags=set_tags,
         data=create_df(
@@ -178,7 +178,7 @@ def test_aggregate_sum_for_flat_list_taxonomy(
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         tags=set_tags,
         data=create_df(
@@ -218,7 +218,7 @@ def test_aggregate_multiple_functions_for_flat_list_taxonomy(
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         tags=set_tags,
         data=create_df(
@@ -265,7 +265,7 @@ def test_aggregate_sums_for_hierarchical_taxonomy(
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         tags=set_tags,
         data=create_df(
@@ -303,7 +303,7 @@ def test_aggregate_mean_for_hierarchical_taxonomy(
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         data=create_df(
             *tag_values, start_date="2020-01-01", end_date="2024-01-03", freq="YS"
@@ -341,7 +341,7 @@ def test_aggregate_multiple_methods_for_hierarchical_taxonomy(
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         tags=set_tags,
         data=create_df(
@@ -400,7 +400,7 @@ def test_aggregate_multiple_methods_for_multiple_hierarchical_taxonomies(
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         data=create_df(
             *tag_values, start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -470,7 +470,7 @@ def test_aggregate_percentiles_by_strings_for_hierarchical_taxonomy(
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         data=create_df(
             *tag_values, start_date="2020-01-01", end_date="2024-01-03", freq="YS"
@@ -513,7 +513,7 @@ def test_aggregate_callable_for_hierarchical_taxonomy(
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         data=create_df(
             *tag_values, start_date="2020-01-01", end_date="2024-01-03", freq="YS"

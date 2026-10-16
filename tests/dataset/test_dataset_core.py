@@ -16,7 +16,9 @@ from ssb_timeseries.io import DataIO
 from ssb_timeseries.io import MetaIO
 from ssb_timeseries.io.fs import file_count
 from ssb_timeseries.sample_data import create_df
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import AS_OF_AT
+from ssb_timeseries.types import AS_OF_FROM_TO
+from ssb_timeseries.types import NONE_AT
 from ssb_timeseries.types import Versioning
 
 # mypy: ignore-errors
@@ -103,7 +105,7 @@ def test_dataset_instance_created_equals_repr(
 
     a = Dataset(
         name="test-no-dir-created",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         as_of_tz="2022-01-01",
         data=create_df(
             ["p", "q", "r"],
@@ -128,17 +130,17 @@ def test_dataset_instance_identity(
 
     a = Dataset(
         name="test-no-dir-need-to-be-created",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         as_of_tz="2022-01-01",
     )
     b = Dataset(
         name="test-no-dir-need-to-be-created",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         as_of_tz="2022-01-01",
     )
     c = Dataset(
         name="test-no-dir-created-different",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         as_of_tz="2022-12-01",
     )
 
@@ -152,7 +154,7 @@ def test_dataset_instance_identity(
 def test_dataset_copy_creates_new_instance(caplog) -> None:
     caplog.set_level(logging.DEBUG)
 
-    original = Dataset(name="test-copying-original-set", data_type=SeriesType.simple())
+    original = Dataset(name="test-copying-original-set", data_type=NONE_AT)
     new_name = "test-copying-copied-set"
     copy = original.copy(new_name)
 
@@ -168,9 +170,7 @@ def test_dataset_copy_creates_set_with_new_name_and__otherwise_identical_attribu
 ) -> None:
     caplog.set_level(logging.DEBUG)
 
-    original = Dataset(
-        name="test-copying-original-set", data_type=SeriesType.simple(), data=xyz_at
-    )
+    original = Dataset(name="test-copying-original-set", data_type=NONE_AT, data=xyz_at)
     assert isinstance(original, Dataset)
     copy = original.copy(new_name="test-copying-copied-set")
     assert isinstance(copy, Dataset)
@@ -203,7 +203,7 @@ def test_datafile_exists_after_create_dataset_and_save(
     set_name = f"{conftest.function_name()}_{uuid.uuid4().hex}"
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
 
@@ -220,7 +220,7 @@ def test_dataset_rename_changes_name_of_original_set(
 
     original = Dataset(
         name="test-renaming-original-set-name",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
     new_set_name = "test-renaming-new-set-name"
@@ -240,7 +240,7 @@ def test_dataset_rename_changes_name_of_original_set_and_series_matching_substit
 
     original = Dataset(
         name="test-renaming-original-set-name",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
     new_set_name = "test-renaming-new-set-name"
@@ -261,7 +261,7 @@ def test_dataset_rename_changes_name_of_original_set_and_part_of_series_name_mat
 
     original = Dataset(
         name="test-renaming-original-set-name",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
     new_set_name = "test-renaming-new-set-name"
@@ -291,7 +291,7 @@ def test_dataset_rename_with_emty_set_name_only_applies_series_name_substitution
     caplog.set_level(logging.DEBUG)
 
     old_set_name = "test-renaming-original-set-name"
-    original = Dataset(name=old_set_name, data_type=SeriesType.simple(), data=xyz_at)
+    original = Dataset(name=old_set_name, data_type=NONE_AT, data=xyz_at)
     new_set_name = ""
     original.rename(new_set_name, ("x", "xx"), ("y", "yy"))
 
@@ -313,7 +313,7 @@ def test_same_simple_data_written_multiple_times_does_not_create_duplicates(
     expected_data_size = xyz_at.shape
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=now_utc(rounding="Min"),
         data=xyz_at,
     )
@@ -323,7 +323,7 @@ def test_same_simple_data_written_multiple_times_does_not_create_duplicates(
     x.save()
     y = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=now_utc(rounding="Min"),
     )
     test_logger.debug(f"{y.data=}\n==\n{xyz_at=}")
@@ -338,10 +338,10 @@ def test_read_existing_simple_metadata(
     caplog.set_level(logging.DEBUG)
 
     set_name = existing_simple_set.name
-    x = Dataset(name=set_name, data_type=SeriesType.simple())
+    x = Dataset(name=set_name, data_type=NONE_AT)
     assert MetaIO(x).read(name=x.name) == existing_simple_set.tags
     # assert MetaIO(x.repository).read(x.name)
-    assert x.tags["name"] == set_name and x.tags["versioning"] == str(Versioning.NONE)
+    assert x.tags["name"] == set_name and x.tags["versioning"] == Versioning.NONE.name
 
 
 def test_read_existing_simple_data(
@@ -351,7 +351,7 @@ def test_read_existing_simple_data(
     caplog.set_level(logging.DEBUG)
 
     set_name = existing_simple_set.name
-    x = Dataset(name=set_name, data_type=SeriesType.simple())
+    x = Dataset(name=set_name, data_type=NONE_AT)
     test_logger.debug(f"DATASET {x.name}: \n{x.data}")
     if DataIO(x).dh.exists:
         test_logger.debug(f"{x.data=}")
@@ -374,13 +374,13 @@ def test_read_existing_estimate_metadata(
     as_of = existing_estimate_set.as_of_utc
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=as_of,
     )
 
     assert MetaIO(x).read(name=x.name) == existing_estimate_set.tags
     assert x.tags["name"] == set_name
-    assert x.tags["versioning"] == str(Versioning.AS_OF)
+    assert x.tags["versioning"] == Versioning.AS_OF.name
     for _, v in x.series_tags.items():
         assert v["A"] in ["a", "b", "c"]
 
@@ -395,7 +395,7 @@ def test_read_existing_estimate_data(
     as_of = existing_estimate_set.as_of_utc
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=as_of,
     )
 
@@ -414,7 +414,7 @@ def test_load_existing_set_without_loading_data(
     tags = {"A": ["a", "b", "c"], "B": ["p", "q", "r"], "C": ["x1", "y1", "z1"]}
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         load_data=False,
         as_of_tz=date_utc("2022-01-01"),
     )
@@ -436,7 +436,7 @@ def test_search_for_dataset_by_setname_equals_in_single_repo_returns_the_set(
     set_name = conftest.function_name_hex()
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=xyz_at,
     )
@@ -452,7 +452,7 @@ def test_search_for_dataset_by_setname_equals_in_single_repo_returns_the_set(
 
     assert isinstance(datasets_found, Dataset)
     assert datasets_found.name == set_name
-    assert datasets_found.data_type == SeriesType.simple()
+    assert datasets_found.data_type == NONE_AT
 
 
 def test_search_for_dataset_by_setname_contains_with_one_match_returns_the_set(
@@ -464,7 +464,7 @@ def test_search_for_dataset_by_setname_contains_with_one_match_returns_the_set(
     set_name = conftest.function_name_hex()
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=xyz_at,
     )
@@ -479,7 +479,7 @@ def test_search_for_dataset_by_setname_contains_with_one_match_returns_the_set(
     test_logger.warning(f"SEARCH  for {search_pattern} returned: {datasets_found!s}")
     assert isinstance(datasets_found, Dataset)
     assert datasets_found.name == set_name
-    assert datasets_found.data_type == SeriesType.simple()
+    assert datasets_found.data_type == NONE_AT
 
 
 def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
@@ -492,13 +492,13 @@ def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
 
     x = Dataset(
         name=f"{base_name}_1",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
     x.save()
     y = Dataset(
         name=f"{base_name}_2",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
     y.save()
@@ -650,7 +650,7 @@ def test_dataset_getitem_by_tags(
 def test_select_dataset_by_regex_return_dataframe(caplog):
     caplog.set_level(logging.DEBUG)
 
-    x = Dataset(name="test-select", data_type=SeriesType.simple(), load_data=False)
+    x = Dataset(name="test-select", data_type=NONE_AT, load_data=False)
     tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
     x.data = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
@@ -665,7 +665,7 @@ def test_select_dataset_by_regex_return_dataframe(caplog):
 def test_select_dataset_by_regex_return_dataset(caplog):
     caplog.set_level(logging.DEBUG)
 
-    x = Dataset(name="test-select", data_type=SeriesType.simple(), load_data=False)
+    x = Dataset(name="test-select", data_type=NONE_AT, load_data=False)
     tag_values = [["a_x", "b_x", "c", "xd", "xe"]]
     x.data = create_df(
         *tag_values, start_date="2022-01-01", end_date="2022-12-31", freq="YS"
@@ -685,7 +685,7 @@ def test_correct_datetime_columns_valid_at(
 
     a = Dataset(
         name=f"test-datetimecols-{uuid.uuid4().hex}",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=create_df(
             ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),
@@ -702,8 +702,8 @@ def test_correct_datetime_columns_valid_from_to(
 
     a = Dataset(
         name=f"test-datetimecols-{uuid.uuid4().hex}",
-        # data_type=SeriesType.as_of_from_to(),
-        data_type=SeriesType("as_of", "from", "to"),
+        # data_type=AS_OF_FROM_TO,
+        data_type=AS_OF_FROM_TO,
         as_of_tz=now_utc(),
         data=create_df(
             ["x", "y", "z"],
@@ -728,7 +728,7 @@ def test_a_ref_does_not_share_its_sharing_list_with_the_dataset() -> None:
     """
     dataset = Dataset(
         name=f"sharing-isolation-{uuid.uuid4().hex}",
-        data_type=SeriesType("as_of", "from", "to"),
+        data_type=AS_OF_FROM_TO,
         as_of_tz=now_utc(),
         data=create_df(
             ["x"],
@@ -794,7 +794,7 @@ def test_versioning_none_appends_to_existing_file(
     caplog.set_level(logging.DEBUG)
 
     dataset_name = f"test-merge-{uuid.uuid4().hex}"
-    dataset_type = SeriesType.simple()
+    dataset_type = NONE_AT
     a = Dataset(
         name=dataset_name,
         data_type=dataset_type,

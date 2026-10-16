@@ -25,7 +25,6 @@ from .series import AS_OF_FROM_TO
 from .series import NONE_AT
 from .series import NONE_FROM_TO
 from .series import SeriesType
-from .series import SuperEnum
 from .series import Temporality
 from .series import Versioning
 
@@ -47,7 +46,6 @@ __all__ = [
     "SeriesName",
     "SeriesTags",
     "SeriesType",
-    "SuperEnum",
     "TagKey",
     "TagValue",
     "Tags",

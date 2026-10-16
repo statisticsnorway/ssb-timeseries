@@ -247,9 +247,10 @@ def date_ranges(
         until=dt_end,
     )
     d_list = list(d)
-    if str(temporality) == "AT":
+    name = temporality.name if isinstance(temporality, Temporality) else temporality
+    if name == "AT":
         return {"valid_at": d_list}
-    elif str(temporality) == "FROM_TO":
+    elif name == "FROM_TO":
         delta = relativedelta(d_list[1], d_list[0])
         d_to = r(dtstart=dt_start + delta, until=dt_end + delta)
         return {"valid_from": d_list, "valid_to": list(d_to)}

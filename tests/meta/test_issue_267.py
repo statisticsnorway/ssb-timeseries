@@ -19,10 +19,10 @@ from ssb_timeseries import meta
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.sample_data import create_df
+from ssb_timeseries.types import AS_OF_AT
 from ssb_timeseries.types import DatasetTags
 from ssb_timeseries.types import SeriesName
 from ssb_timeseries.types import SeriesTags
-from ssb_timeseries.types import SeriesType
 from ssb_timeseries.types import TagKey
 from ssb_timeseries.types import Tags
 from ssb_timeseries.types import TagValue
@@ -68,7 +68,7 @@ def test_dataset_series_tags_values_are_tag_dicts() -> None:
     name = f"test-issue-267-{uuid.uuid4().hex}"
     ds = Dataset(
         name=name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         series_tags={"unit": "kWh"},
         data=create_df(

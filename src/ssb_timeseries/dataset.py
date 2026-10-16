@@ -25,7 +25,6 @@ import re
 import warnings
 from collections.abc import Iterable
 from collections.abc import Iterator
-from collections.abc import Sequence
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -47,6 +46,7 @@ import pyarrow as pa
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
+from ssb_timeseries.types import NONE_AT  # noqa: F401 # used in doctest examples
 from ssb_timeseries.types import SeriesType
 from ssb_timeseries.types._narwhals import Frame
 from ssb_timeseries.types._narwhals import FrameT
@@ -118,7 +118,7 @@ def _identify_data_type(**kwargs: Any) -> SeriesType | None:
     existing_tags = kwargs.pop("existing", {})
 
     if existing_tags:
-        existing = SeriesType(
+        existing = SeriesType.from_tag_values(
             existing_tags.get("versioning"), existing_tags.get("temporality")
         )
     else:
@@ -127,7 +127,7 @@ def _identify_data_type(**kwargs: Any) -> SeriesType | None:
     if data_type and isinstance(data_type, SeriesType):
         provided = data_type
     elif data_type:
-        provided = SeriesType(data_type)
+        provided = SeriesType.from_name(data_type)
     elif data is not None:
         provided = infer_datatype(data, **kwargs)
     else:
@@ -186,7 +186,7 @@ class Dataset:
         name: str,
         as_of_tz: datetime | str | None = None,
         *,
-        data_type: SeriesType | Sequence[str] | None = None,
+        data_type: SeriesType | str | None = None,
         repository: str = "",
         find_existing: bool = True,
         **kwargs: Any,
@@ -232,7 +232,7 @@ class Dataset:
 
             x = ts.dataset.Dataset(
                 name='mydataset',
-                data_type=SeriesType.simple(),
+                data_type=NONE_AT,
                 data=df
             )
 
@@ -574,8 +574,8 @@ class Dataset:
         """Return default tags for set and series."""
         return {
             "name": self.name,
-            "versioning": str(self.data_type.versioning),
-            "temporality": str(self.data_type.temporality),
+            "versioning": self.data_type.versioning.name,
+            "temporality": self.data_type.temporality.name,
             "series": {s: {"dataset": self.name, "name": s} for s in self.series},
             "repository": self.repository,
         }
@@ -612,7 +612,7 @@ class Dataset:
             >>> from ssb_timeseries.sample_data import create_df
             >>>
             >>> x = Dataset(name='sample_dataset',
-            >>>         data_type=SeriesType.simple(),
+            >>>         data_type=NONE_AT,
             >>>         data=create_df(['x','y','z'],
             >>>             start_date='2024-01-01',
             >>>             end_date='2024-12-31',
@@ -674,12 +674,12 @@ class Dataset:
 
             Tag by kwargs
 
-            >>> x = Dataset(name='sample_set',data_type=SeriesType.simple(),data=some_data)
+            >>> x = Dataset(name='sample_set',data_type=NONE_AT,data=some_data)
             >>> x.tag_series(example_1='string_1', example_2=['a', 'b', 'c'])
 
             Tag by dict
 
-            >>> x = Dataset(name='sample_set',data_type=SeriesType.simple(),data=some_data)
+            >>> x = Dataset(name='sample_set',data_type=NONE_AT,data=some_data)
             >>> x.tag_series(tags={'example_1': 'string_1', 'example_2': ['a', 'b', 'c']})
 
         """
@@ -787,7 +787,7 @@ class Dataset:
 
             >>> p = Dataset(
             >>>     name="sample_set",
-            >>>     data_type=SeriesType.simple(),
+            >>>     data_type=NONE_AT,
             >>>     data=some_data,
             >>> )
             >>> p.series_names_to_tags(attributes=['XYZ', 'ABC'])
@@ -798,7 +798,7 @@ class Dataset:
 
             >>> z = Dataset(
             >>>     name="copy_of_sample_set",
-            >>>     data_type=SeriesType.simple(),
+            >>>     data_type=NONE_AT,
             >>>     data=some_data,
             >>>     attributes=['XYZ', 'ABC'],
             >>> )
@@ -819,7 +819,7 @@ class Dataset:
             >>> )
             >>> x = Dataset(
             >>>     name="bigger_sample_set",
-            >>>     data_type=SeriesType.simple(),
+            >>>     data_type=NONE_AT,
             >>>     data=more_data,
             >>> )
             >>> x.series_names_to_tags(attributes=['XYZ', 'ABC'], regex=r'([a-z])*([a-z])')
@@ -1827,7 +1827,7 @@ class Dataset:
             >>> series_names: list[list[str]] = [value for value in tag_permutation_space.values()]
             >>> sample_df = create_df(*series_names, start_date="2024-01-01", end_date="2024-12-31", freq="MS",)
             >>> sample_set = Dataset(name="sample_set",
-            >>>     data_type=SeriesType.simple(),
+            >>>     data_type=NONE_AT,
             >>>     data=sample_df,
             >>>     attributes=["A", "B", "C"],
             >>> )
@@ -2047,7 +2047,7 @@ def search(
 
     if number_of_results == 1:
         tags = found[0].object_tags
-        stype = SeriesType(tags["versioning"], tags["temporality"])
+        stype = SeriesType.from_tag_values(tags["versioning"], tags["temporality"])
         return Dataset(
             name=tags["name"],
             data_type=stype,

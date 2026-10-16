@@ -587,13 +587,13 @@ def test_loading_deprecated_handler_path_issues_warning(
         match="The I/O handler 'ssb_timeseries.io.simple.FileSystem' is deprecated",
     ):
         from ssb_timeseries.io import _io_handler
-        from ssb_timeseries.types import SeriesType
+        from ssb_timeseries.types import NONE_AT
 
         _io_handler(
             handler_type="data",
             repository="test_repo",
             set_name="test",
-            set_type=SeriesType.simple(),
+            set_type=NONE_AT,
         )
 
 

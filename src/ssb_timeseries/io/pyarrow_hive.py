@@ -98,7 +98,7 @@ class HiveFileSystem:
         """Return the data directory for a dataset."""
         return str(
             Path(self.root)
-            / f"data_type={dataset.data_type.versioning!s}_{dataset.data_type.temporality!s}"
+            / f"data_type={dataset.data_type.versioning.name}_{dataset.data_type.temporality.name}"
             / f"dataset={dataset.name}"
         )
 

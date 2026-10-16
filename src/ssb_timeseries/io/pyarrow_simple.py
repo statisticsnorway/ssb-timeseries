@@ -65,7 +65,7 @@ def _version_from_file_name(
     writes `_v<N>.parquet` files, and which keep their own version patterns.
     """
     if isinstance(pattern, types.Versioning):
-        pattern = str(pattern)
+        pattern = pattern.name
 
     match pattern.lower():
         case "as_of":
@@ -134,7 +134,7 @@ class FileSystem:
 
     def _filename(self, dataset: DatasetRef) -> str:
         """Construct the standard filename for a dataset's data file."""
-        match str(dataset.data_type.versioning):
+        match dataset.data_type.versioning.name:
             case "AS_OF":
                 safe_timestamp = utc_iso_no_colon(dataset.as_of_utc)
                 file_name = f"{dataset.name}-as_of_{safe_timestamp}-data.parquet"
@@ -150,7 +150,7 @@ class FileSystem:
         """Return the data directory for a dataset."""
         return os.path.join(
             self.root,
-            f"{dataset.data_type.versioning!s}_{dataset.data_type.temporality!s}",
+            f"{dataset.data_type.versioning.name}_{dataset.data_type.temporality.name}",
             dataset.name,
         )
 
@@ -237,7 +237,7 @@ class FileSystem:
                 df = new
             else:
                 logger.debug(
-                    f"Merging data with temporality: {dataset.data_type.temporality}"
+                    f"Merging data with temporality: {dataset.data_type.temporality.name}"
                 )
                 logger.debug(f"Old data length: {len(old)}")
                 logger.debug(f"New data length: {len(new)}")
@@ -318,6 +318,6 @@ class FileSystem:
                     versions = vs_strings
                 case _:
                     raise ValueError(
-                        f"versioning '{dataset.data_type.versioning}' not recognized."
+                        f"versioning '{dataset.data_type.versioning.name}' not recognized."
                     )
         return versions
