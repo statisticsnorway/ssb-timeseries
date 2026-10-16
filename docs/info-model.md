@@ -90,6 +90,8 @@ Versioning
     : Maintains new "logical" versions identified by date. Writing twice *for the same as_of date* will overwrite any changed data.
 Temporality
 : Defines the time axis for the data points (ie. the "real world" *point in time* the data applies *at* or the *period* it applies *from and to*). It will translate into one or more columns with datetime or period indexes of Data.data.
+    There is no `NONE` member, although the use cases are clear: constants without versioning, and model parameters with versioning.
+    It is left out only because deviating from the time-dimension logic would require a substantial refactoring.
 Value type
 : Only scalar numbers in a strict interpretation of *time series*. However, numbers may be differentiated by technical types (float, integer, decimal, ...). To be decided later; for now the level of detail stops at "numeric".
 Some calculations lead naturally into booleans, although they are not supported for all operations without casting to integers.

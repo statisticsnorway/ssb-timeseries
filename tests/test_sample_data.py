@@ -14,9 +14,7 @@ from ssb_timeseries.types import AS_OF_AT
 from ssb_timeseries.types import AS_OF_FROM_TO
 from ssb_timeseries.types import NONE_AT
 from ssb_timeseries.types import NONE_FROM_TO
-from ssb_timeseries.types import SeriesType
 from ssb_timeseries.types import Temporality
-from ssb_timeseries.types import Versioning
 
 # mypy: ignore-errors
 
@@ -303,14 +301,13 @@ def test_create_df_series_type_equals_matching_temporality(data_type, temporalit
             assert by_type[column].to_list() == by_temporality[column].to_list()
 
 
-def test_create_df_with_temporality_none_series_type_raises_value_error():
-    """Verify that a SeriesType without date columns is rejected."""
-    no_dates = SeriesType(versioning=Versioning.NONE, temporality=Temporality.NONE)
+def test_create_df_rejects_unknown_temporality():
+    """Verify that an unrecognised temporality name is rejected."""
     with pytest.raises(ValueError, match="Unhandled temporality"):
         create_df(
             "a",
             start_date="2023-01-01",
             end_date="2023-03-01",
             freq="MS",
-            temporality=no_dates,
+            temporality="NONE",
         )

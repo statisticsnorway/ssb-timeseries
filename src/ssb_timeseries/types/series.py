@@ -27,10 +27,12 @@ class Versioning(Enum):
 
 
 class Temporality(Enum):
-    """Temporality describes the time dimensionality of each data point; notably duration or lack thereof."""
+    """Temporality describes the time dimensionality of each data point: a single point in time or a period."""
 
-    NONE = 0
-    """No temporal dimension."""
+    # A NONE member (a dataset with no temporal dimension) has clear use cases:
+    # constants without versioning, and model parameters with versioning.
+    # It is left out only because deviating from the time-dimension logic
+    # requires a substantial refactoring.
     AT = 1
     """Single points in time, expressed with (exact) 'valid_at' dates."""
     FROM_TO = 2

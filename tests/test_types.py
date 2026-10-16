@@ -100,7 +100,6 @@ def test_temporality_date_columns_returns_correct_columns():
     """Test the date_columns property of the Temporality enum returns correct columns."""
     assert Temporality.AT.date_columns == ["valid_at"]
     assert Temporality.FROM_TO.date_columns == ["valid_from", "valid_to"]
-    assert Temporality.NONE.date_columns == []
 
 
 def test_seriestype_date_columns_returns_combined_sorted_columns():
