@@ -47,9 +47,12 @@ def _(data_path, tree):
 @app.cell
 def _():
     from ssb_timeseries.dataset import Dataset
-    from ssb_timeseries.types import SeriesType, Versioning, Temporality
+    from ssb_timeseries.types import AS_OF_AT
+    from ssb_timeseries.types import AS_OF_FROM_TO
+    from ssb_timeseries.types import NONE_AT
+    from ssb_timeseries.types import NONE_FROM_TO
 
-    return Dataset, SeriesType, Temporality, Versioning
+    return AS_OF_AT, AS_OF_FROM_TO, Dataset, NONE_AT, NONE_FROM_TO
 
 
 @app.cell
@@ -87,8 +90,8 @@ def _(mo):
 
 
 @app.cell
-def _(SeriesType):
-    point_in_time_data = SeriesType('NONE', 'AT')
+def _(NONE_AT):
+    point_in_time_data = NONE_AT
     return (point_in_time_data,)
 
 
@@ -266,8 +269,8 @@ def _(mo):
 
 
 @app.cell
-def _(SeriesType, Temporality, Versioning):
-    interval_data = SeriesType(Versioning.NONE, Temporality.FROM_TO)
+def _(NONE_FROM_TO):
+    interval_data = NONE_FROM_TO
     return (interval_data,)
 
 
@@ -350,8 +353,8 @@ def _(mo):
 
 
 @app.cell
-def _(SeriesType, Temporality, Versioning):
-    estimated_point_in_time = SeriesType(Versioning.AS_OF, Temporality.AT)
+def _(AS_OF_AT):
+    estimated_point_in_time = AS_OF_AT
     return (estimated_point_in_time,)
 
 
@@ -466,8 +469,8 @@ def _(mo):
 
 
 @app.cell
-def _(SeriesType, Temporality, Versioning):
-    estimated_interval_data = SeriesType(Versioning.AS_OF, Temporality.FROM_TO)
+def _(AS_OF_FROM_TO):
+    estimated_interval_data = AS_OF_FROM_TO
     return (estimated_interval_data,)
 
 
@@ -573,10 +576,10 @@ def _(mo):
 
     | series type | date columns in `.data` | stored as |
     |---|---|---|
-    | `SeriesType(NONE, AT)` | `valid_at` | one file, `NONE_AT/<name>/<name>-latest-data.parquet` |
-    | `SeriesType(NONE, FROM_TO)` | `valid_from`, `valid_to` | one file, `NONE_FROM_TO/<name>/<name>-latest-data.parquet` |
-    | `SeriesType(AS_OF, AT)` | `valid_at` | one file per version, `AS_OF_AT/<name>/<name>-as_of_<timestamp>-data.parquet` |
-    | `SeriesType(AS_OF, FROM_TO)` | `valid_from`, `valid_to` | one file per version, `AS_OF_FROM_TO/<name>/<name>-as_of_<timestamp>-data.parquet` |
+    | `NONE_AT` | `valid_at` | one file, `NONE_AT/<name>/<name>-latest-data.parquet` |
+    | `NONE_FROM_TO` | `valid_from`, `valid_to` | one file, `NONE_FROM_TO/<name>/<name>-latest-data.parquet` |
+    | `AS_OF_AT` | `valid_at` | one file per version, `AS_OF_AT/<name>/<name>-as_of_<timestamp>-data.parquet` |
+    | `AS_OF_FROM_TO` | `valid_from`, `valid_to` | one file per version, `AS_OF_FROM_TO/<name>/<name>-as_of_<timestamp>-data.parquet` |
 
     Without versioning, a save merges the new data into the single existing file, as seen above with PQR.
     With `AS_OF`, a save never overwrites: it adds a file, and the `as_of` column it writes there is a storage detail that `.data` does not expose.

@@ -59,12 +59,12 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    from ssb_timeseries.types import SeriesType
+    from ssb_timeseries.types import AS_OF_FROM_TO
     from ssb_timeseries.sample_data import create_df
     from itertools import product
     from datetime import date
 
-    return SeriesType, create_df, date, product
+    return AS_OF_FROM_TO, create_df, date, product
 
 
 @app.cell(hide_code=True)
@@ -76,7 +76,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(Dataset, SeriesType, create_df, date):
+def _(AS_OF_FROM_TO, Dataset, create_df, date):
     def create_some_example_data(
         set_name: str,
         as_of_dates: list[date],
@@ -84,7 +84,7 @@ def _(Dataset, SeriesType, create_df, date):
     ):
         """Generate and save some sample data."""
         set_tags = { "Country": "Norway" }
-        PERIOD_ESTIMATE = SeriesType('AS_OF', 'FROM_TO')
+        PERIOD_ESTIMATE = AS_OF_FROM_TO
         for d in as_of_dates:
             df = create_df(
                 *[value for value in series_tags.values()],

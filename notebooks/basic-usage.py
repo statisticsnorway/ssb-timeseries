@@ -10,9 +10,9 @@ def _():
     import testing
     from mdtools import prompt, tbl
 
-    from ssb_timeseries.types import Versioning, Temporality
+    from ssb_timeseries.types import NONE_AT
 
-    return Temporality, Versioning, mo, prompt, testing
+    return NONE_AT, mo, prompt, testing
 
 
 @app.cell(hide_code=True)
@@ -113,16 +113,15 @@ def _(mo):
 
 
 @app.cell
-def _():
-    from ssb_timeseries.types import SeriesType
-    POINT_IN_TIME = SeriesType('NONE', 'AT')
-    return POINT_IN_TIME, SeriesType
+def _(NONE_AT):
+    POINT_IN_TIME = NONE_AT
+    return (POINT_IN_TIME,)
 
 
 @app.cell(hide_code=True)
-def _(SeriesType, Temporality, Versioning, mo):
+def _(NONE_AT, mo):
     mo.md(f"""
-    `SeriesType('NONE', 'AT')` is a shorthand that resolves to `{repr(SeriesType(Versioning.NONE, Temporality.AT))}`.
+    `NONE_AT` is the `SeriesType` constant for `Versioning.NONE` with `Temporality.AT`, resolving to `{repr(NONE_AT)}`.
 
     See the [core concepts](../info-model.md) and [the datatypes tutorial](data-types-and-storage.md) for more about data types.
     """)

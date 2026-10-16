@@ -84,7 +84,7 @@ Versioning
 : How updated versions of the truth are represented:
     NONE
     : Maintains a single version and overwrites on changed data,
-    NAMED
+    NAMES
     : (Planned) Maintains new "logical" versions identified by name.
     AS_OF
     : Maintains new "logical" versions identified by date. Writing twice *for the same as_of date* will overwrite any changed data.
@@ -95,6 +95,29 @@ Value type
 Some calculations lead naturally into booleans, although they are not supported for all operations without casting to integers.
 Extensions into non-numeric and non-scalar types are conceivable, and have some compelling use cases.
 Like numeric sub-typing this is defined out of scope for now.
+
+### Constructing a series type
+
+Versioning and temporality combine into a `SeriesType`.
+The four common combinations are available as constants in `ssb_timeseries.types`:
+
+| constant | versioning | temporality | date columns |
+|---|---|---|---|
+| `NONE_AT` | `Versioning.NONE` | `Temporality.AT` | `valid_at` |
+| `NONE_FROM_TO` | `Versioning.NONE` | `Temporality.FROM_TO` | `valid_from`, `valid_to` |
+| `AS_OF_AT` | `Versioning.AS_OF` | `Temporality.AT` | `as_of`, `valid_at` |
+| `AS_OF_FROM_TO` | `Versioning.AS_OF` | `Temporality.FROM_TO` | `as_of`, `valid_from`, `valid_to` |
+
+Prefer the constants, or an explicit `SeriesType` built from the enums, over the string keywords:
+
+```python
+from ssb_timeseries.types import AS_OF_FROM_TO, SeriesType, Temporality, Versioning
+
+data_type = AS_OF_FROM_TO
+# or, equivalently:
+data_type = SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.FROM_TO)
+```
+
 
 Note that *versioning* is closely related to *immutability*, but not quite the same.
 Versioning is semi-immutable in the sense that it allows writing new versions without ever changing anything, but for any version multiple writes may overwrite date.

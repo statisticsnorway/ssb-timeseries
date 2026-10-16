@@ -95,9 +95,9 @@ def _(SeriesType, Temporality, Versioning, mo):
 @app.cell
 def _():
     from ssb_timeseries.dataset import Dataset
-    from ssb_timeseries.types import SeriesType, Versioning, Temporality
+    from ssb_timeseries.types import AS_OF_AT, NONE_AT, NONE_FROM_TO, SeriesType, Versioning, Temporality
 
-    return Dataset, SeriesType, Temporality, Versioning
+    return AS_OF_AT, Dataset, NONE_AT, NONE_FROM_TO, SeriesType, Temporality, Versioning
 
 
 @app.cell(hide_code=True)
@@ -151,10 +151,10 @@ def _(mo):
 
 
 @app.cell
-def _(Dataset, SeriesType, Temporality, Versioning, some_data):
+def _(Dataset, NONE_AT, some_data):
     sample_set = Dataset(
         name = 'PQR',
-        data_type = SeriesType(Versioning.NONE, Temporality.AT),
+        data_type = NONE_AT,
         data = some_data,
     )
     sample_set.save()
@@ -304,10 +304,10 @@ def _(mock_interval_data_from_file_or_query):
 
 
 @app.cell
-def _(Dataset, SeriesType, bigger_data):
+def _(Dataset, NONE_FROM_TO, bigger_data):
     az = Dataset(
         name = 'AZ_drinks',
-        data_type = SeriesType('NONE', 'FROM_TO'),
+        data_type = NONE_FROM_TO,
         data = bigger_data,
         attributes=['store','variable','product', 'region'],
     )
@@ -419,8 +419,8 @@ def _(mo):
 
 
 @app.cell
-def _(SeriesType):
-    estimated_point_in_time = SeriesType('AS_OF', 'AT')
+def _(AS_OF_AT):
+    estimated_point_in_time = AS_OF_AT
     return (estimated_point_in_time,)
 
 
@@ -673,7 +673,7 @@ def _(klass157):
 
 
 @app.cell
-def _(Dataset, SeriesType, create_df, klass157_leaves):
+def _(AS_OF_AT, Dataset, create_df, klass157_leaves):
     #series_tags = {"klass157": klass157_leaves, "B": ["q"], "C": ["z"]}
     series_tags = {"klass157": klass157_leaves, 'variabel': 'verdi'}
     tag_based_names: list[list[str]] = [value for value in series_tags.values()]
@@ -681,7 +681,7 @@ def _(Dataset, SeriesType, create_df, klass157_leaves):
 
     leaves_157 = Dataset(
         name="set_using_klass_157",
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz="2022-01-01",
         data=df,
         attributes=["k157","var"],
