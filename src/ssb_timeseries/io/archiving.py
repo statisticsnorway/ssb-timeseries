@@ -177,6 +177,7 @@ class Archive:
         period_from: datetime | date | None = None,
         period_to: datetime | date | None = None,
         destinations: list[PathStr] | None = None,
+        **kwargs: Any,
     ) -> PathStr:
         """Write one version of a dataset's data, and keep every earlier one.
 
@@ -191,6 +192,7 @@ class Archive:
             period_to: The end of the data's time period, if it has one.
             destinations: Further folders to copy the archive into. Only used
                 when the convention requires shared data to be archived.
+            **kwargs: Accepted and ignored, for call compatibility.
 
         Returns:
             The path of the archive that was written.

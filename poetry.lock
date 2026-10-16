@@ -6359,7 +6359,7 @@ version = "2.5.0"
 description = "Module for decorators, wrappers and monkey patching."
 optional = false
 python-versions = ">=3.9"
-groups = ["demo", "dev"]
+groups = ["demo"]
 files = [
     {file = "wrapt-2.5.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:e0345d4c1f7aa5a27075d28a7f0e9ed386729198045f1f08b47f8320d6bbda23"},
     {file = "wrapt-2.5.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:aae2f5f4c77335a39ebe5a1c77d5519f6cefefc7dbff50bd551e3771d927e3fc"},
@@ -6655,4 +6655,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11, <4.0, !=3.14.1"
-content-hash = "362743b10d5d0f57c3a3b08b441b08bdf80d443d39fc08e7d478acc340531a6e"
+content-hash = "6a3c616b1b5fb4497e43d73e4c0804f1eedd0ccf58fb802ea3dc65486d160242"

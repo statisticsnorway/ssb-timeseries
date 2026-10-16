@@ -87,7 +87,6 @@ if TYPE_CHECKING:
     import polars as pl
 
 # mypy: disable-error-code="assignment,attr-defined,union-attr,arg-type,call-overload,no-untyped-call,dict-item,no-untyped-def,no-any-return"
-# ruff: noqa: RUF013
 
 
 def default_repository() -> str:
@@ -478,7 +477,7 @@ class Dataset:
                 {subst[0]: subst[1]},
             )
 
-    def save(self, as_of_tz: datetime = None) -> None:
+    def save(self, as_of_tz: datetime | None = None) -> None:
         """Persist the Dataset.
 
         Args:
@@ -848,7 +847,7 @@ class Dataset:
 
         apply_all = self.auto_tag_config.get("apply_to_all", {})
         inherited = meta.inherit_set_tags(self.tags)
-        self.tag_series({**inherited, **apply_all})
+        self.tag_series(tags={**inherited, **apply_all})
 
         # always apply tags inherited from dataset and tags specificly applied to all series first
         for series_key in self.series:
@@ -2029,7 +2028,7 @@ def search(
     equals: str = "",
     contains: str = "",
     pattern: str = "*",
-    as_of_tz: datetime = None,
+    as_of_tz: datetime | None = None,
     repository: str = "",
     require_unique: bool = False,
 ) -> list | Dataset | None:

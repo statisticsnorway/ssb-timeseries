@@ -308,16 +308,16 @@ def test_archive_of_a_dataset_that_is_not_stored_as_a_file(
             self.repository = repository
             self.options = options
 
-        def exists(self, ref):
+        def exists(self, dataset):
             return True
 
-        def read(self, ref, interval=""):
+        def read(self, dataset, *args, **kwargs):
             return data
 
-        def write(self, ref, data, tags=None):
+        def write(self, dataset, data, tags=None):
             raise AssertionError("archiving must not write through the data handler")
 
-        def versions(self, ref):
+        def versions(self, dataset):
             raise AssertionError("archiving must not ask the data handler for versions")
 
     assert not hasattr(InMemoryDataHandler, "fullpath")

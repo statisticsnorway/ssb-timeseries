@@ -9,7 +9,7 @@ requires-python = ">=3.11, <4.0, !=3.14.1"
 dynamic = ["classifiers"]
 dependencies = [
     "click>=8.1.7",
-    "typing-extensions>=4.11.0",   # "python-version"="<3.11",
+    "typing-extensions>=4.14.0",   # "python-version"="<3.11"; extra_items= needs 4.13, typeguard needs 4.14
     "python-dateutil>=2.9.0.post0",
     "tomli>=2.1.0",
     "tomli-w>=1.1.0",

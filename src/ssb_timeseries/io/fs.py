@@ -118,7 +118,7 @@ def touch(path: PathStr) -> PathStr:
 def path(*args: PathStr) -> str:
     """Join args to form path. Make sure that gcs paths are begins with double slash: gs://..."""
     p = Path(args[0]).joinpath(*args[1:])
-    return p
+    return path_to_str(p)
 
 
 def mkdir(path: PathStr) -> None:
@@ -146,7 +146,7 @@ def file_count(path: PathStr, create: bool = False) -> int:
     return len(ls(path, create=create))
 
 
-def ls(path: str, pattern: str = "*", create: bool = False) -> list[str]:
+def ls(path: PathStr, pattern: str = "*", create: bool = False) -> list[str]:
     """List files. Should work regardless of wether the filesystem is local or GCS."""
     search = os.path.join(path, pattern)
     if is_gcs(path):

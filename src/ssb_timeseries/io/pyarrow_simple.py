@@ -161,7 +161,8 @@ class FileSystem:
     def read(
         self,
         dataset: DatasetRef,
-        interval: str = "",  # TODO: Implement use av interval = Interval.all,
+        *args: Any,
+        **kwargs: Any,
     ) -> pyarrow.Table:
         """Read a dataset's data from the filesystem.
 
@@ -169,9 +170,10 @@ class FileSystem:
 
         Args:
             dataset: The dataset to read.
-            interval: The part of the dataset to read. Not yet implemented.
+            *args: Accepted and ignored, for call compatibility.
+            **kwargs: Handler specific read options, such as an interval.
         """
-        logger.debug(interval)
+        logger.debug(kwargs.get("interval", ""))
         if not dataset.is_identified:
             # No version chosen, so there is no particular file to read.
             logger.debug(

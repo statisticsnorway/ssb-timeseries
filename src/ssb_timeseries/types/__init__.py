@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from os import PathLike
 from typing import TypeAlias
-from typing import TypedDict
+
+from typing_extensions import TypedDict
 
 PathStr: TypeAlias = str | PathLike[str]
 F: TypeAlias = Callable
@@ -43,8 +44,12 @@ SeriesTags: TypeAlias = dict[SeriesName, Tags]
 """A dictionary mapping series names to their tags."""
 
 
-class DatasetTags(TypedDict):
-    """A dictionary representing the full dataset metadata, including 'series'."""
+class DatasetTags(TypedDict, extra_items=TagValue):  # type: ignore[call-arg]  # PEP 728, not yet known to mypy
+    """A dictionary representing the full dataset metadata, including 'series'.
+
+    The five declared keys are mandatory; additional tags are allowed, but their
+    values must be tag values.
+    """
 
     name: DatasetName
     repository: RepositoryName
