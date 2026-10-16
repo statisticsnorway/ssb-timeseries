@@ -253,7 +253,7 @@ class Catalog(_CatalogProtocol):
 
     def __init__(
         self,
-        config: Sequence[RepositoryProtocol | FileBasedRepository | dict[str, str]],
+        config: Sequence[RepositoryProtocol | FileBasedRepository | dict[str, Any]],
     ) -> None:
         """Multiple repositories may be collected in a catalog object.
 
@@ -277,7 +277,7 @@ class Catalog(_CatalogProtocol):
                 self.repositories.append(
                     Repository(
                         name=filerepo["name"],
-                        catalog=str(filerepo["catalog"]),
+                        catalog=filerepo["catalog"]["options"]["path"],
                     )
                 )
             else:
@@ -481,7 +481,7 @@ def get_catalog() -> Catalog:
     """Return the catalog corresponding to the active configuration."""
     config_repos = Config.active().repositories
     repo_list = [
-        Repository(name=k, catalog=v["catalog"])  # type: ignore[arg-type]
+        Repository(name=k, catalog=v["catalog"]["options"]["path"])
         for k, v in config_repos.items()
         if "catalog" in v
     ]
