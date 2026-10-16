@@ -18,7 +18,7 @@ See [the quickstart guide](quickstart) for instructions to that.
 ```
 
 The presented functionality relies on `dataset.Dataset` and `meta.taxonomy.Taxonomy`.
-Other imports like`types.SeriesType` and external libraries are used only for generating the sample data.
+Other imports like `types.NONE_FROM_TO` and external libraries are used only for generating the sample data.
 
 ```python {.marimo}
 from ssb_timeseries.dataset import Dataset
@@ -29,7 +29,7 @@ Generate sample data
 --------------------
 
 ```python {.marimo}
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import NONE_FROM_TO
 from ssb_timeseries.sample_data import create_df
 from itertools import product
 from datetime import date
@@ -53,7 +53,7 @@ def create_some_example_data(
     )
     Dataset(
         name=set_name,
-        data_type=SeriesType('NONE', 'FROM_TO'),
+        data_type=NONE_FROM_TO,
         data=df,
         tags = set_tags,
         attributes = series_tags.keys(),

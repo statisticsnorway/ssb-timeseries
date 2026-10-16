@@ -118,6 +118,15 @@ def test_seriestype_str_representation_is_correct():
     assert str(AS_OF_AT) == "AS_OF_AT"
 
 
+def test_seriestype_repr_is_reconstructable():
+    """Test the repr names the Versioning/Temporality members, so it evaluates back."""
+    assert (
+        repr(NONE_FROM_TO)
+        == "SeriesType(versioning=Versioning.NONE, temporality=Temporality.FROM_TO)"
+    )
+    assert eval(repr(AS_OF_AT)) == AS_OF_AT
+
+
 def test_seriestype_equality_comparison_is_correct():
     """Test the equality comparison of SeriesType is value based."""
     assert AS_OF_AT == SeriesType(

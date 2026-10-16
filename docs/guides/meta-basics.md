@@ -97,7 +97,7 @@ Notable examples are Versioning and Temporality, but a few more may be added lat
 
 ```python {.marimo}
 from ssb_timeseries.dataset import Dataset
-from ssb_timeseries.types import SeriesType, Versioning, Temporality
+from ssb_timeseries.types import NONE_AT, NONE_FROM_TO, SeriesType, Versioning, Temporality
 ```
 
 Creating a Dataset
@@ -115,7 +115,7 @@ If not specified, the configuration will determine which one is used, if there i
 ```python {.marimo}
 sample_set = Dataset(
     name = 'PQR',
-    data_type = SeriesType(Versioning.NONE, Temporality.AT),
+    data_type = NONE_AT,
     data = some_data,
 )
 sample_set.save()
@@ -127,7 +127,7 @@ print(repr(sample_set))
 
 <!-- @output:ZHCJ -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;PQR&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(Versioning.NONE,Temporality.AT), as_of_tz=None)
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">Dataset(name=&quot;PQR&quot;, repository=&quot;tutorials&quot;, data_type=SeriesType(versioning=Versioning.NONE, temporality=Temporality.AT), as_of_tz=None)
 </pre>
 
 These attributes are technically significant.
@@ -142,44 +142,33 @@ sample_set.tags
 <!-- @output:qnkX -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">{&#x27;name&#x27;: &#x27;PQR&#x27;,
- &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
+ &#x27;product group&#x27;: &#x27;essentials&#x27;,
  &#x27;repository&#x27;: &#x27;tutorials&#x27;,
  &#x27;series&#x27;: {&#x27;p&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;p&#x27;,
                   &#x27;product&#x27;: &#x27;coffee&#x27;,
-                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
+                  &#x27;product group&#x27;: &#x27;essentials&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;},
             &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;q&#x27;,
                   &#x27;product&#x27;: &#x27;crispbread&#x27;,
-                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
+                  &#x27;product group&#x27;: &#x27;essentials&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;},
             &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
                   &#x27;name&#x27;: &#x27;r&#x27;,
                   &#x27;product&#x27;: &#x27;brown cheese&#x27;,
-                  &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
+                  &#x27;product group&#x27;: &#x27;essentials&#x27;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
- &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
- &#x27;variabel&#x27;: &#x27;pris&#x27;,
  &#x27;variable&#x27;: &#x27;price&#x27;,
  &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
@@ -194,17 +183,17 @@ sample_set.data
 
 | valid_at | p | q | r |
 | --- | --- | --- | --- |
-| 2019-12-31 23:00:00+00:00 | 110.0 | 110.0 | 90.0 |
-| 2020-01-01 23:00:00+00:00 | 90.0 | 100.0 | 80.0 |
-| 2020-01-02 23:00:00+00:00 | 110.0 | 110.0 | 90.0 |
-| 2020-01-03 23:00:00+00:00 | 100.0 | 100.0 | 100.0 |
-| 2020-01-04 23:00:00+00:00 | 100.0 | 80.0 | 120.0 |
+| 2019-12-31 23:00:00+00:00 | 120.0 | 100.0 | 100.0 |
+| 2020-01-01 23:00:00+00:00 | 100.0 | 100.0 | 90.0 |
+| 2020-01-02 23:00:00+00:00 | 110.0 | 80.0 | 90.0 |
+| 2020-01-03 23:00:00+00:00 | 110.0 | 80.0 | 110.0 |
+| 2020-01-04 23:00:00+00:00 | 90.0 | 90.0 | 100.0 |
 | ... | ... | ... | ... |
-| 2025-05-27 22:00:00+00:00 | 110.0 | 110.0 | 100.0 |
-| 2025-05-28 22:00:00+00:00 | 100.0 | 110.0 | 80.0 |
-| 2025-05-29 22:00:00+00:00 | 110.0 | 90.0 | 100.0 |
-| 2025-05-30 22:00:00+00:00 | 90.0 | 110.0 | 100.0 |
-| 2025-05-31 22:00:00+00:00 | 100.0 | 90.0 | 100.0 |
+| 2025-05-27 22:00:00+00:00 | 110.0 | 90.0 | 100.0 |
+| 2025-05-28 22:00:00+00:00 | 80.0 | 90.0 | 100.0 |
+| 2025-05-29 22:00:00+00:00 | 90.0 | 110.0 | 110.0 |
+| 2025-05-30 22:00:00+00:00 | 100.0 | 90.0 | 110.0 |
+| 2025-05-31 22:00:00+00:00 | 110.0 | 80.0 | 120.0 |
 
 To apply more than the minimal set of technical tags, we need to "tag" the dataset and series.
 
@@ -230,9 +219,6 @@ sample_set.tags
                   &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;},
             &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
@@ -241,9 +227,6 @@ sample_set.tags
                   &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;},
             &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
@@ -252,14 +235,9 @@ sample_set.tags
                   &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
- &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
- &#x27;variabel&#x27;: &#x27;pris&#x27;,
  &#x27;variable&#x27;: &#x27;price&#x27;,
  &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
@@ -284,9 +262,6 @@ pqr.tags
                   &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;kaffe&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;},
             &#x27;q&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
@@ -295,9 +270,6 @@ pqr.tags
                   &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;knekkebrød&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;},
             &#x27;r&#x27;: {&#x27;dataset&#x27;: &#x27;PQR&#x27;,
@@ -306,14 +278,9 @@ pqr.tags
                   &#x27;product group&#x27;: &#91;&#x27;essential&#x27;, &#x27;essentials&#x27;&#93;,
                   &#x27;repository&#x27;: &#x27;tutorials&#x27;,
                   &#x27;temporality&#x27;: &#x27;AT&#x27;,
-                  &#x27;vare&#x27;: &#x27;brunost&#x27;,
-                  &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
-                  &#x27;variabel&#x27;: &#x27;pris&#x27;,
                   &#x27;variable&#x27;: &#x27;price&#x27;,
                   &#x27;versioning&#x27;: &#x27;NONE&#x27;}},
  &#x27;temporality&#x27;: &#x27;AT&#x27;,
- &#x27;varegruppe&#x27;: &#x27;nødvendigheter&#x27;,
- &#x27;variabel&#x27;: &#x27;pris&#x27;,
  &#x27;variable&#x27;: &#x27;price&#x27;,
  &#x27;versioning&#x27;: &#x27;NONE&#x27;}</pre>
 
@@ -349,7 +316,7 @@ bigger_data = mock_interval_data_from_file_or_query(start='2025-01-01', end='202
 ```python {.marimo}
 az = Dataset(
     name = 'AZ_drinks',
-    data_type = SeriesType('NONE', 'FROM_TO'),
+    data_type = NONE_FROM_TO,
     data = bigger_data,
     attributes=['store','variable','product', 'region'],
 )
@@ -558,13 +525,13 @@ type(all_the_datasets[0])
 <!-- @output:xvXZ -->
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">&#91;&#x27;AZ_beverages&#x27;,
- &#x27;AZ_drinks&#x27;,
  &#x27;BNO&#x27;,
  &#x27;More Prices and Volumes&#x27;,
  &#x27;POPU06&#x27;,
  &#x27;PQR&#x27;,
  &#x27;Prices and Volumes&#x27;,
- &#x27;SampleDataset&#x27;,
+ &#x27;Sample Dataset to be Archived&#x27;,
+ &#x27;SampleDatasetForArchiving&#x27;,
  &#x27;XYZ&#x27;&#93;</pre>
 
 ```python {.marimo disabled="true"}
@@ -578,22 +545,22 @@ The list above should correspond to what we find in our file based repository:
 
 <pre style="white-space: pre-wrap; overflow-wrap: break-word;">timeseries/
 ├── archives/
+│   ├── Our Product/
+│   │   └── statistics/
+│   │       └── SampleDatasetForArchiving/
+│   │           └── SampleDatasetForArchiving_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
 │   ├── statistics/
 │   │   └── PQR/
-│   │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
-│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
-│   ├── The Sample Statistic/
-│   │   └── statistics/
-│   │       └── SampleDataset/
-│   │           ├── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
-│   │           └── SampleDataset_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
+│   │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v1.parquet
 │   └── XYZ/
+│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
 │       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
-│       └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
+│       ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v3.parquet
+│       └── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v4.parquet
 ├── AS_OF_AT/
 │   ├── POPU06/
-│   │   ├── POPU06-as_of_2023-12-31T230000+0000-data.parquet
-│   │   ├── POPU06-as_of_2024-01-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2024-12-31T230000+0000-data.parquet
+│   │   ├── POPU06-as_of_2025-01-31T230000+0000-data.parquet
 │   │   ├── POPU06-as_of_2025-10-31T230000+0000-data.parquet
 │   │   ├── POPU06-as_of_2025-11-30T230000+0000-data.parquet
 │   │   └── ...
@@ -615,33 +582,34 @@ The list above should correspond to what we find in our file based repository:
 │       └── ...
 ├── metadata/
 │   ├── AZ_beverages-metadata.json
-│   ├── AZ_drinks-metadata.json
-│   ├── SampleDataset-metadata.json
+│   ├── BNO-metadata.json
+│   ├── SampleDatasetForArchiving-metadata.json
 │   ├── XYZ-metadata.json
 │   └── ...
 ├── NONE_AT/
 │   ├── PQR/
 │   │   └── PQR-latest-data.parquet
-│   ├── SampleDataset/
-│   │   └── SampleDataset-latest-data.parquet
+│   ├── Sample Dataset to be Archived/
+│   │   └── Sample Dataset to be Archived-latest-data.parquet
+│   ├── SampleDatasetForArchiving/
+│   │   └── SampleDatasetForArchiving-latest-data.parquet
 │   └── XYZ/
 │       └── XYZ-latest-data.parquet
 ├── NONE_FROM_TO/
 │   ├── AZ_beverages/
 │   │   └── AZ_beverages-latest-data.parquet
-│   ├── AZ_drinks/
-│   │   └── AZ_drinks-latest-data.parquet
 │   └── More Prices and Volumes/
 │       └── More Prices and Volumes-latest-data.parquet
 └── shared/
     └── default/
         ├── statistics/
         │   └── PQR/
-        │       ├── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v1.parquet
-        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-08-14T22-00-00.000+00-00_v2.parquet
+        │       └── PQR_p2019-12-31T23-00-00.000+00-00_p2025-05-31T22-00-00.000+00-00_v1.parquet
         └── XYZ/
+            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v1.parquet
             ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v2.parquet
-            └── XYZ_p2025-07-30T22-00-00.000+00-00_p2025-08-05T22-00-00.000+00-00_v2025-08-06T22-00-00.000+00-00_v_v1.parquet
+            ├── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v3.parquet
+            └── XYZ_p2021-12-31T23-00-00.000+00-00_p2022-11-30T23-00-00.000+00-00_v4.parquet
 
 </pre>
 

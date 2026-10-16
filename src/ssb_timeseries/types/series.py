@@ -94,6 +94,13 @@ class SeriesType:
         """Canonical spelling, also used as the persisted directory name."""
         return f"{self.versioning.name}_{self.temporality.name}"
 
+    def __repr__(self) -> str:
+        """Reconstructable representation, sufficient to recreate the value."""
+        return (
+            f"SeriesType(versioning=Versioning.{self.versioning.name}, "
+            f"temporality=Temporality.{self.temporality.name})"
+        )
+
 
 NONE_AT = SeriesType(versioning=Versioning.NONE, temporality=Temporality.AT)
 """Instance of `SeriesType` for non-versioned data with a single point in time per observation."""
