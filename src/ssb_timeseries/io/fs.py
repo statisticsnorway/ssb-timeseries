@@ -9,6 +9,7 @@ import os
 import shutil
 from _collections_abc import Callable
 from pathlib import Path
+from typing import Any
 from typing import TextIO
 
 import narwhals
@@ -431,7 +432,7 @@ def _text_writer(file_format: str) -> Callable[[TextIO, dict], None]:
     return writer
 
 
-def read_json(path: PathStr) -> dict:
+def read_json(path: PathStr) -> Any:
     """Read json file from path on either local fs or GCS."""
     if is_gcs(path):
         fs = GCSFileSystem()  # pragma: no cover
@@ -442,7 +443,7 @@ def read_json(path: PathStr) -> dict:
             return json.load(file)
 
 
-def write_json(path: PathStr, content: str | dict) -> None:
+def write_json(path: PathStr, content: str | dict | list) -> None:
     """Write json file to path on either local fs or GCS."""
     if is_gcs(path):
         fs = GCSFileSystem()  # pragma: no cover

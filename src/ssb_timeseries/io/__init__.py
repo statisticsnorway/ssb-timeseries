@@ -149,7 +149,7 @@ def _io_handler(
 
 def _io_handler(
     *,
-    handler_type: HandlerType,
+    handler_type: str,
     repository: str | FileBasedRepository | dict,
     **options: Any,
 ) -> protocols.DataReadWrite | protocols.MetadataReadWrite | protocols.ArchiveWrite:

@@ -161,7 +161,7 @@ class Dataset:
 
     :var str name: The name of the set.
     :var SeriesType data_type: The type of the contents of the set.
-    :var datetime as_of_tz: The version datetime, if applicable to the ``data_type``.
+    :var datetime | str as_of_tz: The version datetime (or date string), if applicable to the ``data_type``.
     :var Dataframe data: A dataframe or table structure with one or more datetime columns defined by ``datatype`` and a column per series in the set.
     :var dict tags: A dictionary with metadata describing both the dataset itself and the series in the set.
 
@@ -184,7 +184,7 @@ class Dataset:
     def __init__(
         self,
         name: str,
-        as_of_tz: datetime | None = None,
+        as_of_tz: datetime | str | None = None,
         *,
         data_type: SeriesType | Sequence[str] | None = None,
         repository: str = "",
@@ -477,11 +477,11 @@ class Dataset:
                 {subst[0]: subst[1]},
             )
 
-    def save(self, as_of_tz: datetime | None = None) -> None:
+    def save(self, as_of_tz: datetime | str | None = None) -> None:
         """Persist the Dataset.
 
         Args:
-            as_of_tz (datetime): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of._utc (utc dates under the hood).
+            as_of_tz (datetime | str): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of._utc (utc dates under the hood).
         """
         if as_of_tz is not None:
             self.as_of_utc = date_utc(as_of_tz)
@@ -587,7 +587,7 @@ class Dataset:
 
     def tag_dataset(
         self,
-        tags: Tags = None,
+        tags: Tags | None = None,
         **kwargs: str | list[str] | set[str],
     ) -> None:
         """Tag the set.
@@ -1798,7 +1798,7 @@ class Dataset:
         self,
         attributes: list[str],
         taxonomies: list[int | meta.Taxonomy | dict[str, str] | PathStr],
-        functions: list[str | F] | set[str | F],
+        functions: list[str | F | list[str | int | float]] | set[str | F],
         sep: str = "_",
     ) -> Self:
         """Aggregate dataset by taxonomy hierarchies.
@@ -1974,7 +1974,7 @@ class Dataset:
         return out
 
 
-def column_aggregate(df: FrameT, method: str | F) -> Any:
+def column_aggregate(df: FrameT, method: str | F | list[str | int | float]) -> Any:
     """Helper function to calculate aggregate over dataframe columns."""
     logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
     nw_df = nw.from_native(df)
@@ -2028,7 +2028,7 @@ def search(
     equals: str = "",
     contains: str = "",
     pattern: str = "*",
-    as_of_tz: datetime | None = None,
+    as_of_tz: datetime | str | None = None,
     repository: str = "",
     require_unique: bool = False,
 ) -> list | Dataset | None:
