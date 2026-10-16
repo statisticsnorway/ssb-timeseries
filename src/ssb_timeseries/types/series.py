@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from itertools import product
 
 try:
     from typing import Self
@@ -15,30 +14,6 @@ except ImportError:
 
 class SuperEnum(Enum):
     """Generic enumeration helper."""
-
-    @classmethod
-    def to_dict(cls) -> dict:
-        """Returns a dictionary representation of the enum."""
-        return {e.name: e.value for e in cls}
-
-    @classmethod
-    def keys(cls) -> list:
-        """Returns a list of all the enum keys."""
-        return [item.name for item in cls]
-
-    @classmethod
-    def values(cls) -> list:
-        """Returns a list of all the enum values."""
-        return [item.value[0] for item in cls]
-
-    @classmethod
-    def descriptions(cls) -> list:
-        """Returns a list of descriptions for all enum values."""
-        return [item.value[1] for item in cls]
-
-    def __eq__(self, other: Self) -> bool:
-        """Equality test."""
-        return repr(self) == repr(other)
 
     def __repr__(self) -> str:
         """Machine readable string representation, ideally sufficient to recreate object."""
@@ -170,11 +145,6 @@ class SeriesType:
         """Same as SeriesType.as_of_at(): Shorthand for SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.AT)."""
         return cls.as_of_at()
 
-    @classmethod
-    def permutations(cls) -> list[str]:
-        """Helper; returns ['<versioning>_<temporality>', ...] ."""
-        return ["_".join(c) for c in product(Versioning.keys(), Temporality.keys())]
-
     @property
     def date_columns(self) -> list[str]:
         """Returns the data columns corresponding to the series type temporality."""
@@ -209,27 +179,3 @@ AS_OF_AT = SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.AT)
 
 AS_OF_FROM_TO = SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.FROM_TO)
 """Instance of `SeriesType` for estimates over validity periods, versioned by 'as of' dates."""
-
-
-def estimate_types() -> list[str]:
-    """Helper; returns list of SeriesTypes for which Versioning is not NONE."""
-    return ["_".join(c) for c in product(["AS_OF"], Temporality.keys())]
-
-
-def seriestype_from_str(dir_name: str) -> SeriesType:
-    """Helper; returns SeriesType from directory name."""
-    match dir_name.lower():
-        case "none_at":
-            return SeriesType.none_at()
-        case "simple":
-            return SeriesType.simple()
-        case "none_from_to":
-            return SeriesType.from_to()
-        case "as_of_at":
-            return SeriesType.as_of_at()
-        case "as_of_from_to":
-            return SeriesType.as_of_from_to()
-        case "estimate":
-            return SeriesType.estimate()
-        case _:
-            raise ValueError(f"Invalid dir_name: {dir_name}")

@@ -28,8 +28,6 @@ from .series import SeriesType
 from .series import SuperEnum
 from .series import Temporality
 from .series import Versioning
-from .series import estimate_types
-from .series import seriestype_from_str
 
 # mypy: disable-error-code="type-arg"
 
@@ -55,6 +53,4 @@ __all__ = [
     "Tags",
     "Temporality",
     "Versioning",
-    "estimate_types",
-    "seriestype_from_str",
 ]

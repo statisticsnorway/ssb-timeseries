@@ -9,8 +9,6 @@ from ssb_timeseries.types import NONE_FROM_TO
 from ssb_timeseries.types import SeriesType
 from ssb_timeseries.types import Temporality
 from ssb_timeseries.types import Versioning
-from ssb_timeseries.types import estimate_types
-from ssb_timeseries.types import seriestype_from_str
 
 
 @pytest.mark.parametrize(
@@ -142,22 +140,6 @@ def test_seriestype_classmethod_constructors_return_correct_types(
     )
 
 
-def test_seriestype_permutations_returns_all_combinations():
-    """Test the permutations method of SeriesType returns all expected combinations."""
-    expected = [
-        "NONE_NONE",
-        "NONE_AT",
-        "NONE_FROM_TO",
-        "AS_OF_NONE",
-        "AS_OF_AT",
-        "AS_OF_FROM_TO",
-        "NAMES_NONE",
-        "NAMES_AT",
-        "NAMES_FROM_TO",
-    ]
-    assert sorted(SeriesType.permutations()) == sorted(expected)
-
-
 def test_seriestype_date_columns_returns_combined_sorted_columns():
     """Test the date_columns property of SeriesType returns combined and sorted columns."""
     assert sorted(SeriesType.as_of_from_to().date_columns) == sorted(
@@ -187,33 +169,3 @@ def test_seriestype_equality_comparison_is_correct():
     assert SeriesType.as_of_at() == SeriesType.estimate()
     assert SeriesType.as_of_at() != SeriesType.as_of_from_to()
     assert SeriesType.as_of_at() is not None
-
-
-def test_estimate_types_helper_returns_as_of_combinations():
-    """Test the estimate_types helper function returns expected AS_OF combinations."""
-    expected = ["AS_OF_NONE", "AS_OF_AT", "AS_OF_FROM_TO"]
-    assert sorted(estimate_types()) == sorted(expected)
-
-
-@pytest.mark.parametrize(
-    "dir_name, expected_type",
-    [
-        ("none_at", SeriesType.none_at()),
-        ("simple", SeriesType.simple()),
-        ("NONE_FROM_TO", SeriesType.from_to()),
-        ("as_of_at", SeriesType.as_of_at()),
-        ("AS_OF_FROM_TO", SeriesType.as_of_from_to()),
-        ("estimate", SeriesType.estimate()),
-    ],
-)
-def test_seriestype_from_str_valid_inputs_return_correct_seriestype(
-    dir_name, expected_type
-):
-    """Test the seriestype_from_str function with valid inputs returns the correct SeriesType."""
-    assert seriestype_from_str(dir_name) == expected_type
-
-
-def test_seriestype_from_str_invalid_input_raises_value_error():
-    """Test the seriestype_from_str function with invalid input raises a ValueError."""
-    with pytest.raises(ValueError, match="Invalid dir_name: invalid_name"):
-        seriestype_from_str("invalid_name")
