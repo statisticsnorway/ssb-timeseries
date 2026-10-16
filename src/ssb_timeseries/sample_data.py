@@ -27,6 +27,7 @@ from .dates import TimeZone
 from .dates import date_round
 from .dates import date_tz
 from .dates import ensure_datetime
+from .types import Temporality
 
 # mypy: disable-error-code="arg-type, type-arg, import-untyped, unreachable, attr-defined"
 
@@ -88,7 +89,7 @@ def create_df(
     separator: str = "_",
     midpoint: int | float = 100,
     variance: int | float = 10,
-    temporality: str = "AT",
+    temporality: Temporality | str = "AT",
     decimals: int = 0,
     implementation: str = "pandas",
     tz: str | TimeZone = DEFAULT_TZ,
@@ -191,7 +192,7 @@ def date_ranges(
     end_date: datetime | str,
     freq: str,
     interval: int = 1,
-    temporality: str = "AT",
+    temporality: Temporality | str = "AT",
     tz: TimeZone = DEFAULT_TZ,
 ) -> dict[str, list[datetime]]:
     """Generate a list of dates with a specified frequency."""
