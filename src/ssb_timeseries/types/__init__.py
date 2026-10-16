@@ -243,6 +243,19 @@ class SeriesType:
             return repr(self) == repr(other)
 
 
+NONE_AT = SeriesType(versioning=Versioning.NONE, temporality=Temporality.AT)
+"""Instance of `SeriesType` for non-versioned data with a single point in time per observation."""
+
+NONE_FROM_TO = SeriesType(versioning=Versioning.NONE, temporality=Temporality.FROM_TO)
+"""Instance of `SeriesType` for non-versioned data with a validity period per observation."""
+
+AS_OF_AT = SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.AT)
+"""Instance of `SeriesType` for estimates at points in time, versioned by 'as of' dates."""
+
+AS_OF_FROM_TO = SeriesType(versioning=Versioning.AS_OF, temporality=Temporality.FROM_TO)
+"""Instance of `SeriesType` for estimates over validity periods, versioned by 'as of' dates."""
+
+
 def estimate_types() -> list[str]:
     """Helper; returns list of SeriesTypes for which Versioning is not NONE."""
     return ["_".join(c) for c in product(["AS_OF"], Temporality.keys())]

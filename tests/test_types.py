@@ -2,11 +2,54 @@
 
 import pytest
 
+from ssb_timeseries.types import AS_OF_AT
+from ssb_timeseries.types import AS_OF_FROM_TO
+from ssb_timeseries.types import NONE_AT
+from ssb_timeseries.types import NONE_FROM_TO
 from ssb_timeseries.types import SeriesType
 from ssb_timeseries.types import Temporality
 from ssb_timeseries.types import Versioning
 from ssb_timeseries.types import estimate_types
 from ssb_timeseries.types import seriestype_from_str
+
+
+@pytest.mark.parametrize(
+    "constant, expected_versioning, expected_temporality",
+    [
+        (NONE_AT, Versioning.NONE, Temporality.AT),
+        (NONE_FROM_TO, Versioning.NONE, Temporality.FROM_TO),
+        (AS_OF_AT, Versioning.AS_OF, Temporality.AT),
+        (AS_OF_FROM_TO, Versioning.AS_OF, Temporality.FROM_TO),
+    ],
+)
+def test_seriestype_constants_have_correct_versioning_and_temporality(
+    constant, expected_versioning, expected_temporality
+):
+    """Test the module-level SeriesType constants carry the expected versioning and temporality."""
+    assert constant.versioning == expected_versioning
+    assert constant.temporality == expected_temporality
+
+
+def test_seriestype_constants_equal_the_matching_factory_methods():
+    """Test each constant equals the factory method(s) that produce the same SeriesType."""
+    assert NONE_AT == SeriesType.none_at() == SeriesType.simple()
+    assert NONE_FROM_TO == SeriesType.from_to()
+    assert AS_OF_AT == SeriesType.as_of_at() == SeriesType.estimate()
+    assert AS_OF_FROM_TO == SeriesType.as_of_from_to()
+
+
+@pytest.mark.parametrize(
+    "constant, expected_str",
+    [
+        (NONE_AT, "NONE_AT"),
+        (NONE_FROM_TO, "NONE_FROM_TO"),
+        (AS_OF_AT, "AS_OF_AT"),
+        (AS_OF_FROM_TO, "AS_OF_FROM_TO"),
+    ],
+)
+def test_seriestype_constants_have_stable_string_spelling(constant, expected_str):
+    """Test the constants keep the persisted directory-name spelling."""
+    assert str(constant) == expected_str
 
 
 def test_versioning_date_columns_returns_correct_columns():
