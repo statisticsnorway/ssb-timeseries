@@ -88,7 +88,6 @@ filterwarnings = [
     "error",
     "error", "ignore::pytest.PytestUnraisableExceptionWarning",
     "ignore:.*return.*finally.*:SyntaxWarning",
-    "ignore:Skipping type check against 'DataFrame\\[Any\\]'.*:typeguard.TypeHintWarning", # typeguard crash with Narwhals
     "ignore:Module already imported so cannot be rewritten:pytest.PytestAssertRewriteWarning", #anyio when running marimo
     "ignore:The 'generic' unit for NumPy timedelta is deprecated:DeprecationWarning",
 

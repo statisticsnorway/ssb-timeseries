@@ -26,7 +26,6 @@ from typing import runtime_checkable
 from ssb_timeseries.config import Config
 from ssb_timeseries.config import FileBasedRepository
 from ssb_timeseries.io import MetaIO
-from ssb_timeseries.logging import logger
 from ssb_timeseries.meta import Tags
 from ssb_timeseries.meta import matches_criteria
 
@@ -469,7 +468,6 @@ class Repository(_CatalogProtocol):
             datasets=datasets,
             series=series,
         )
-        logger.debug("wtf: %s", filtered_on_names)
         return [CatalogItem(**d) for d in filtered_on_names]
 
     def __repr__(self) -> str:
