@@ -130,18 +130,19 @@ jobs:
         run: |
           nox --session=coverage -- xml
 
-      # Commented out pending a SonarCloud setup check.
-      # The step was a silent no-op: the literal `{{cookiecutter.project_name}}`
-      # placeholder from the repository template was never expanded, so its sed
-      # patterns matched nothing in coverage.xml.
-      # SonarCloud runs in a docker container that mounts the workspace at
-      # /github/workspace; any re-enabled version must rewrite the absolute runner
-      # paths (home/runner/work/<repo>/<repo>) to that mount. Check in the
-      # SonarCloud UI that coverage actually attaches before re-enabling.
-      # - name: Override coverage source paths for SonarCloud
-      #   run: |
-      #     sed -i "s#<source>/home/runner/work/ssb-timeseries/ssb-timeseries</source>#<source>/github/workspace/ssb-timeseries</source>#g" coverage.xml
-      #     sed -i "s#<source>tests</source>#<source>/github/workspace/ssb-timeseries/tests</source>#g" coverage.xml
+      # `coverage xml` runs with relative_files=true (pyproject.toml), so the
+      # XML lists repo-relative filenames and emits an empty <source></source>
+      # for the library files, because the [tool.coverage.run] source entries
+      # ("ssb_timeseries", "tests") only contribute to the source list when they
+      # exist on disk and "ssb_timeseries" lives under src/. Sonar then resolves
+      # library filenames only under the remaining <source>tests</source>, finds
+      # nothing, and drops all coverage — hence 0% Coverage on New Code despite
+      # a green coverage session. Rewrite the empty source to the project root
+      # so src/ssb_timeseries/... resolves. sonarqube-scan-action@v8 runs the
+      # scanner on the host, so the runner path is valid inside the scan.
+      - name: Point coverage.xml sources at the project root for SonarCloud
+        run: |
+          sed -i "s#<source></source>#<source>$(pwd)</source>#" coverage.xml
 
       - name: SonarCloud Scan
         env:

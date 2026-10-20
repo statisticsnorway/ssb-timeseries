@@ -51,7 +51,7 @@ See `README.md` for the domain model and `CONTRIBUTING.md` for environment setup
 
 - Workflows live in `.github/workflows/`: `tests.yml` (tests and typeguard), `docs.yml` (documentation), `release.yml`, and `labeler.yml`.
 - SonarCloud reads `coverage.xml`, configured in `sonar-project.properties`.
-- The coverage source-path rewrite in `tests.yml` is currently disabled because it used an unexpanded cookiecutter placeholder; the Coverage on New Code metric is therefore unreliable.
+- `coverage xml` emits an empty `<source></source>` for library files (a consequence of `relative_files = true` with src-layout); the SonarCloud scan step in `tests.yml` rewrites it to the project root so coverage attaches. Without that rewrite, Coverage on New Code reads 0%.
 
 ## Notes
 
