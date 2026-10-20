@@ -30,6 +30,7 @@ See `README.md` for the domain model and `CONTRIBUTING.md` for environment setup
 - Nox sessions: `lint` (ruff check and format check), `mypy`, `tests`, `coverage`, `typeguard`, `xdoctest`, `docs-build`, `docs`, and `deptry`.
 - Format every edited Python file with `ruff format`, via the pre-commit hook or `poetry run ruff format <file>`.
 - Pre-commit hooks must pass; re-add any file that a hook rewrites.
+- Write text files LF-only, without trailing whitespace, and ending with exactly one newline; the `trailing-whitespace`, `end-of-file-fixer`, and `mixed-line-ending` pre-commit hooks enforce all three.
 
 ## Commit convention
 
