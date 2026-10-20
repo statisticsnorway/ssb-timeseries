@@ -130,16 +130,10 @@ jobs:
         run: |
           nox --session=coverage -- xml
 
-      # `coverage xml` runs with relative_files=true (pyproject.toml), so the
-      # XML lists repo-relative filenames and emits an empty <source></source>
-      # for the library files, because the [tool.coverage.run] source entries
-      # ("ssb_timeseries", "tests") only contribute to the source list when they
-      # exist on disk and "ssb_timeseries" lives under src/. Sonar then resolves
-      # library filenames only under the remaining <source>tests</source>, finds
-      # nothing, and drops all coverage — hence 0% Coverage on New Code despite
-      # a green coverage session. Rewrite the empty source to the project root
-      # so src/ssb_timeseries/... resolves. sonarqube-scan-action@v8 runs the
-      # scanner on the host, so the runner path is valid inside the scan.
+      # With relative_files=true, coverage.xml emits an empty <source></source>
+      # for library files, so Sonar resolves them only under <source>tests</source>
+      # and drops all coverage. Point the empty source at the project root;
+      # sonarqube-scan-action runs the scanner on the host, so $(pwd) matches.
       - name: Point coverage.xml sources at the project root for SonarCloud
         run: |
           sed -i "s#<source></source>#<source>$(pwd)</source>#" coverage.xml
@@ -150,5 +144,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         # No need to run SonarCloud analysis if dependabot update or token not defined
         if: env.SONAR_TOKEN != '' && (github.actor != 'dependabot[bot]')
-        # uses: SonarSource/sonarcloud-github-action@v5.0.0
         uses: SonarSource/sonarqube-scan-action@v8.2.2

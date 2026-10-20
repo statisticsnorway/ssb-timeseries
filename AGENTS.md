@@ -33,9 +33,7 @@ See `README.md` for the domain model and `CONTRIBUTING.md` for environment setup
 
 ## Commit convention
 
-- Use an imperative-mood summary, optionally suffixed with the PR reference, for example `Fix the typeguard warning filter so the tests session needs no typeguard (#267)`.
-- A `(#N)` suffix references an issue or PR; add a closing keyword only when the commit should close it.
-- The conventional-commit format described in `GEMINI.md` is aspirational and not the current practice.
+- Use an imperative-mood summary.
 
 ## Testing
 
@@ -49,9 +47,9 @@ See `README.md` for the domain model and `CONTRIBUTING.md` for environment setup
 
 ## CI and quality
 
-- Workflows live in `.github/workflows/`: `tests.yml` (tests and typeguard), `docs.yml` (documentation), `release.yml`, and `labeler.yml`.
+- Workflows live in `.github/workflows/`: `tests.yml` (tests, typeguard, SonarCloud), `docs.yml`, `release.yml`, and `labeler.yml`.
 - SonarCloud reads `coverage.xml`, configured in `sonar-project.properties`.
-- `coverage xml` emits an empty `<source></source>` for library files (a consequence of `relative_files = true` with src-layout); the SonarCloud scan step in `tests.yml` rewrites it to the project root so coverage attaches. Without that rewrite, Coverage on New Code reads 0%.
+- `tests.yml` rewrites the empty `<source></source>` that `coverage xml` emits for library files (a `relative_files = true` + src-layout artifact); without it, Coverage on New Code reads 0%.
 
 ## Notes
 
