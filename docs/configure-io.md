@@ -104,6 +104,11 @@ The `archive` function writes an immutable, versioned copy of a dataset's data, 
 This is controlled by the `archives` and `sharing` sections.
 Each is a mapping of location names to a destination, and `archive()` writes to the one named `default`.
 
+:::{note}
+The `snapshots` section was renamed to `archives` in 0.9.0.
+A configuration that still uses `snapshots` loads with a `DeprecationWarning` and archives nothing until the key is renamed.
+:::
+
 Given the `archive` handler defined in the `io_handlers` section, an archive configuration can be set up as follows:
 
 ```json
