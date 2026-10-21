@@ -28,7 +28,6 @@ from typing import cast
 import narwhals as nw
 import pyarrow
 import pyarrow.compute
-from narwhals.typing import FrameT
 
 from .. import types
 from ..config import Config
@@ -40,6 +39,7 @@ from ..dataframes.dates import datelike_to_utc
 from ..dates import date_utc
 from ..dates import utc_iso_no_colon
 from ..logging import logger
+from ..types._narwhals import FrameT
 from . import fs
 from .dataset_ref import DatasetRef
 from .parquet_schema import parquet_schema
@@ -65,7 +65,7 @@ def _version_from_file_name(
     writes `_v<N>.parquet` files, and which keep their own version patterns.
     """
     if isinstance(pattern, types.Versioning):
-        pattern = str(pattern)
+        pattern = pattern.name
 
     match pattern.lower():
         case "as_of":
@@ -134,7 +134,7 @@ class FileSystem:
 
     def _filename(self, dataset: DatasetRef) -> str:
         """Construct the standard filename for a dataset's data file."""
-        match str(dataset.data_type.versioning):
+        match dataset.data_type.versioning.name:
             case "AS_OF":
                 safe_timestamp = utc_iso_no_colon(dataset.as_of_utc)
                 file_name = f"{dataset.name}-as_of_{safe_timestamp}-data.parquet"
@@ -150,7 +150,7 @@ class FileSystem:
         """Return the data directory for a dataset."""
         return os.path.join(
             self.root,
-            f"{dataset.data_type.versioning!s}_{dataset.data_type.temporality!s}",
+            f"{dataset.data_type.versioning.name}_{dataset.data_type.temporality.name}",
             dataset.name,
         )
 
@@ -161,7 +161,8 @@ class FileSystem:
     def read(
         self,
         dataset: DatasetRef,
-        interval: str = "",  # TODO: Implement use av interval = Interval.all,
+        *args: Any,
+        **kwargs: Any,
     ) -> pyarrow.Table:
         """Read a dataset's data from the filesystem.
 
@@ -169,9 +170,11 @@ class FileSystem:
 
         Args:
             dataset: The dataset to read.
-            interval: The part of the dataset to read. Not yet implemented.
+            *args: Accepted and ignored, for call compatibility.
+            **kwargs: Handler specific read options, such as an interval.
         """
-        logger.debug(interval)
+        dataset.require_supported()
+        logger.debug(kwargs.get("interval", ""))
         if not dataset.is_identified:
             # No version chosen, so there is no particular file to read.
             logger.debug(
@@ -235,7 +238,7 @@ class FileSystem:
                 df = new
             else:
                 logger.debug(
-                    f"Merging data with temporality: {dataset.data_type.temporality}"
+                    f"Merging data with temporality: {dataset.data_type.temporality.name}"
                 )
                 logger.debug(f"Old data length: {len(old)}")
                 logger.debug(f"New data length: {len(new)}")
@@ -256,7 +259,7 @@ class FileSystem:
             fs.write_parquet(
                 data=df,
                 path=self.fullpath(dataset),
-                schema=parquet_schema(dataset.data_type, tags),
+                schema=parquet_schema(dataset.data_type, tags, data=df),
             )
         except Exception as e:
             logger.exception(
@@ -297,6 +300,7 @@ class FileSystem:
                 The default, None, reads it from the repository ``options`` and
                 falls back to ``"*.parquet"``, the only suffix this handler writes.
         """
+        dataset.require_supported()
         if file_pattern is None:
             file_pattern = self.options.get("file_pattern", "*.parquet")
 
@@ -316,6 +320,6 @@ class FileSystem:
                     versions = vs_strings
                 case _:
                     raise ValueError(
-                        f"versioning '{dataset.data_type.versioning}' not recognized."
+                        f"versioning '{dataset.data_type.versioning.name}' not recognized."
                     )
         return versions

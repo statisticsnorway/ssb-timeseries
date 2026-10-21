@@ -10,6 +10,8 @@ from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import is_df_like
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import AS_OF_AT
+from ssb_timeseries.types import NONE_AT
 from ssb_timeseries.sample_data import create_df
 
 # mypy: disable-error-code="arg-type,attr-defined,no-untyped-def,index,no-untyped-def"
@@ -28,7 +30,7 @@ def xyz_w_ones_seq_quad(
 
     ds = Dataset(
         name="test-xyz-ones-sequence-squares",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
     rows, cols = ds.data[ds.numeric_columns].shape
@@ -40,7 +42,7 @@ def xyz_w_ones_seq_quad(
 
 # ================================ HELPERS ====================================
 
-T = SeriesType.simple()
+T = NONE_AT
 
 df_a = create_df(
     ["x", "y", "z"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
@@ -374,7 +376,7 @@ def test_dataset_vectors(caplog):
 
     xyz = Dataset(
         name="test-vectors",
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         load_data=False,
         as_of_tz=date_utc("2022-01-01"),
         # series_tags={},
@@ -402,7 +404,7 @@ def test_dataset_vectors_with_filter(caplog):
 
     xyz = Dataset(
         name="test-vectors",
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         load_data=False,
         as_of_tz=date_utc("2022-01-01"),
         series_tags={},

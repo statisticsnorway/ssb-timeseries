@@ -68,7 +68,7 @@ def _(mo):
     ```
 
     The presented functionality relies on `dataset.Dataset`.
-    Other imports like`types.SeriesType` and external libraries are used only for generating the sample data.
+    Other imports like `types.AS_OF_AT` and external libraries are used only for generating the sample data.
     """)
     return
 
@@ -90,9 +90,9 @@ def _():
     from ssb_timeseries.sample_data import POPU06_MAIN_COUNTRIES
     from ssb_timeseries.sample_data import create_df
     from ssb_timeseries.sample_data import popu06
-    from ssb_timeseries.types import SeriesType
+    from ssb_timeseries.types import AS_OF_AT
 
-    return POPU06_MAIN_COUNTRIES, SeriesType, date, np, popu06, product
+    return AS_OF_AT, POPU06_MAIN_COUNTRIES, date, np, popu06, product
 
 
 @app.cell(hide_code=True)
@@ -104,7 +104,7 @@ def _(mo):
 
 
 @app.cell
-def _(Dataset, SeriesType, date, np, popu06):
+def _(AS_OF_AT, Dataset, date, np, popu06):
     def create_popu06_versions(
         as_of_dates: list[date],
         countries: tuple[str, ...],
@@ -129,7 +129,7 @@ def _(Dataset, SeriesType, date, np, popu06):
                 ).round().astype("int64")
             Dataset(
                 name="POPU06",
-                data_type=SeriesType("AS_OF", "AT"),
+                data_type=AS_OF_AT,
                 as_of_tz=str(as_of),
                 data=version,
                 tags={

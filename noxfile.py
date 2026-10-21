@@ -218,7 +218,7 @@ def tests(session: Session) -> None:
     session.env["PYTHONUTF8"] = "1"
     session.install(".")
     session.install(*NOTEBOOK_DEPENDENCIES)
-    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata", "typeguard")
+    session.install("coverage[toml]", "pytest", "pygments", "click", "tzdata")
 
     # If on Windows, find the installed tzdata path and set the env var to avoid:
     #  E  pyarrow.lib.ArrowInvalid: Cannot locate timezone 'Europe/Oslo':
@@ -266,11 +266,20 @@ def coverage(session: Session) -> None:
 @session(python=python_versions[-1])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
+    session.env["SSB_TYPEGUARD"] = "1"
     session.install("pytest", "typeguard", "pygments",) #"click","marimo", "tabulate")
     session.install(*NOTEBOOK_DEPENDENCIES)
     session.install(".")
     #session.run("pip", "install", "-e", ".") # RYE: editable is better practice? --> apply everywhere?
-    session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
+    session.run(
+        "pytest",
+        # typeguard cannot resolve the Narwhals forward reference 'DataFrame[Any]'
+        # and would otherwise turn TypeHintWarning into an error via the
+        # project-wide `filterwarnings = ["error", ...]` setting.
+        "-W",
+        "ignore::typeguard.TypeHintWarning",
+        *session.posargs,
+    )
 
 
 @session(python=python_versions[-1])

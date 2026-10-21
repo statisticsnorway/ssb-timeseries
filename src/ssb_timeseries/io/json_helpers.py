@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 from typing import cast
 
-from ..meta import TagDict
+from ..meta import Tags
 from ..types import SeriesType
 from ..types import Temporality
 from ..types import Versioning
@@ -37,7 +37,7 @@ def sanitize_for_json(d: dict) -> dict[str, Any]:
     return sanitized_dict
 
 
-def tags_to_json(x: TagDict) -> dict[str, bytes]:
+def tags_to_json(x: Tags) -> dict[str, bytes]:
     """Serialize a tag dictionary into a format suitable for Parquet metadata.
 
     See Also:
@@ -51,7 +51,7 @@ def tags_to_json(x: TagDict) -> dict[str, bytes]:
 def tags_from_json(
     dict_with_json_string: dict[str | bytes, str | bytes],
     byte_encoded: bool = True,
-) -> TagDict:  # dict[str, Any]:
+) -> Tags:  # dict[str, Any]:
     """Deserialize a tag dictionary from the Parquet metadata format.
 
     This is the reverse of `tags_to_json`.
@@ -60,4 +60,4 @@ def tags_from_json(
         d = json.loads(dict_with_json_string[b"json"].decode())
     else:
         d = json.loads(dict_with_json_string["json"])
-    return cast(TagDict, d)
+    return cast(Tags, d)

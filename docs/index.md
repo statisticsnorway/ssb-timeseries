@@ -35,6 +35,7 @@ end-before: <!-- github-only -->
    info-model
    architecture
    workflow
+   adr/README
 
 .. toctree::
    :includehidden:

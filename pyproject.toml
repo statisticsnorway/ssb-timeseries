@@ -9,7 +9,7 @@ requires-python = ">=3.11, <4.0, !=3.14.1"
 dynamic = ["classifiers"]
 dependencies = [
     "click>=8.1.7",
-    "typing-extensions>=4.11.0",   # "python-version"="<3.11",
+    "typing-extensions>=4.14.0",   # "python-version"="<3.11"; extra_items= needs 4.13, typeguard needs 4.14
     "python-dateutil>=2.9.0.post0",
     "tomli>=2.1.0",
     "tomli-w>=1.1.0",
@@ -21,7 +21,7 @@ dependencies = [
     "pyarrow>=14.0.0",
     "ssb-klass-python>=0.0.7",
     "multipledispatch>=1.0.0",
-    "gcsfs (>=2025.12.0,<2026.0.0)",
+    "gcsfs>=2025.12.0",
     "networkx (>=3.6.1,<4.0.0)",
 ]
 
@@ -88,7 +88,6 @@ filterwarnings = [
     "error",
     "error", "ignore::pytest.PytestUnraisableExceptionWarning",
     "ignore:.*return.*finally.*:SyntaxWarning",
-    "ignore:Skipping type check against 'DataFrame\\[Any\\]'.*:typeguard.TypeHintWarning", # typeguard crash with Narwhals
     "ignore:Module already imported so cannot be rewritten:pytest.PytestAssertRewriteWarning", #anyio when running marimo
     "ignore:The 'generic' unit for NumPy timedelta is deprecated:DeprecationWarning",
 
@@ -220,6 +219,12 @@ classmethod-decorators = ["classmethod", "validator", "root_validator", "pydanti
     "S101",    # asserts are encouraged in pytest
 ]
 "docs/conf.py" = ["A001"]
+
+[tool.deptry]
+extend_exclude = [
+    "notebooks",
+    "tools",
+]
 
 [tool.deptry.per_rule_ignores]
 DEP001 = ["ssb_timeseries", "nox", "nox_poetry"]  # packages available by default

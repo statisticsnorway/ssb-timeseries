@@ -25,7 +25,6 @@ import re
 import warnings
 from collections.abc import Iterable
 from collections.abc import Iterator
-from collections.abc import Sequence
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -44,16 +43,17 @@ import narwhals as nw
 import narwhals.selectors as ncs
 import numpy as np
 import pyarrow as pa
-from narwhals.typing import Frame
-from narwhals.typing import FrameT
-from narwhals.typing import IntoDType
-from narwhals.typing import IntoFrame
-from narwhals.typing import IntoFrameT
-from narwhals.typing import IntoSeries
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
+from ssb_timeseries.types import NONE_AT  # noqa: F401 # used in doctest examples
 from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types._narwhals import Frame
+from ssb_timeseries.types._narwhals import FrameT
+from ssb_timeseries.types._narwhals import IntoDType
+from ssb_timeseries.types._narwhals import IntoFrame
+from ssb_timeseries.types._narwhals import IntoFrameT
+from ssb_timeseries.types._narwhals import IntoSeries
 
 from . import io
 from . import meta
@@ -74,11 +74,11 @@ from .dates import utc_iso
 from .io.dataset_ref import DatasetRef
 from .logging import logger
 from .series import Series
-from .types import DatasetTagDict
+from .types import DatasetTags
 from .types import F
 from .types import PathStr
-from .types import SeriesTagDict
-from .types import TagDict
+from .types import SeriesTags
+from .types import Tags
 from .types import Temporality
 from .types import Versioning
 
@@ -87,7 +87,6 @@ if TYPE_CHECKING:
     import polars as pl
 
 # mypy: disable-error-code="assignment,attr-defined,union-attr,arg-type,call-overload,no-untyped-call,dict-item,no-untyped-def,no-any-return"
-# ruff: noqa: RUF013
 
 
 def default_repository() -> str:
@@ -119,7 +118,7 @@ def _identify_data_type(**kwargs: Any) -> SeriesType | None:
     existing_tags = kwargs.pop("existing", {})
 
     if existing_tags:
-        existing = SeriesType(
+        existing = SeriesType.from_tag_values(
             existing_tags.get("versioning"), existing_tags.get("temporality")
         )
     else:
@@ -128,7 +127,7 @@ def _identify_data_type(**kwargs: Any) -> SeriesType | None:
     if data_type and isinstance(data_type, SeriesType):
         provided = data_type
     elif data_type:
-        provided = SeriesType(data_type)
+        provided = SeriesType.from_name(data_type)
     elif data is not None:
         provided = infer_datatype(data, **kwargs)
     else:
@@ -162,7 +161,7 @@ class Dataset:
 
     :var str name: The name of the set.
     :var SeriesType data_type: The type of the contents of the set.
-    :var datetime as_of_tz: The version datetime, if applicable to the ``data_type``.
+    :var datetime | str as_of_tz: The version datetime (or date string), if applicable to the ``data_type``.
     :var Dataframe data: A dataframe or table structure with one or more datetime columns defined by ``datatype`` and a column per series in the set.
     :var dict tags: A dictionary with metadata describing both the dataset itself and the series in the set.
 
@@ -185,9 +184,9 @@ class Dataset:
     def __init__(
         self,
         name: str,
-        as_of_tz: datetime | None = None,
+        as_of_tz: datetime | str | None = None,
         *,
-        data_type: SeriesType | Sequence[str] | None = None,
+        data_type: SeriesType | str | None = None,
         repository: str = "",
         find_existing: bool = True,
         **kwargs: Any,
@@ -233,7 +232,7 @@ class Dataset:
 
             x = ts.dataset.Dataset(
                 name='mydataset',
-                data_type=SeriesType.simple(),
+                data_type=NONE_AT,
                 data=df
             )
 
@@ -250,11 +249,6 @@ class Dataset:
             )
             if tags_for_existing is None:
                 tags_for_existing = {}
-            elif isinstance(tags_for_existing, dict):
-                type_of_existing = SeriesType(
-                    versioning=tags_for_existing.get("versioning"),
-                    temporality=tags_for_existing.get("temporality"),
-                )
             elif isinstance(tags_for_existing, list):
                 raise LookupError(
                     f"Dataset.__init__ can not get existing metadata because search returned multiple sets of same name: {name=}:\n{tags_for_existing}."
@@ -478,11 +472,11 @@ class Dataset:
                 {subst[0]: subst[1]},
             )
 
-    def save(self, as_of_tz: datetime = None) -> None:
+    def save(self, as_of_tz: datetime | str | None = None) -> None:
         """Persist the Dataset.
 
         Args:
-            as_of_tz (datetime): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of._utc (utc dates under the hood).
+            as_of_tz (datetime | str): Provide a timezone sensitive as_of date in order to create another version. The default is None, which will save with Dataset.as_of._utc (utc dates under the hood).
         """
         if as_of_tz is not None:
             self.as_of_utc = date_utc(as_of_tz)
@@ -556,7 +550,7 @@ class Dataset:
         return []
 
     @property
-    def series_tags(self) -> SeriesTagDict:
+    def series_tags(self) -> SeriesTags:
         """Get series tags."""
         return self.tags["series"]  # type: ignore
 
@@ -576,19 +570,19 @@ class Dataset:
             sharing=list(self.sharing),
         )
 
-    def default_tags(self) -> DatasetTagDict:
+    def default_tags(self) -> DatasetTags:
         """Return default tags for set and series."""
         return {
             "name": self.name,
-            "versioning": str(self.data_type.versioning),
-            "temporality": str(self.data_type.temporality),
+            "versioning": self.data_type.versioning.name,
+            "temporality": self.data_type.temporality.name,
             "series": {s: {"dataset": self.name, "name": s} for s in self.series},
             "repository": self.repository,
         }
 
     def tag_dataset(
         self,
-        tags: TagDict = None,
+        tags: Tags | None = None,
         **kwargs: str | list[str] | set[str],
     ) -> None:
         """Tag the set.
@@ -618,7 +612,7 @@ class Dataset:
             >>> from ssb_timeseries.sample_data import create_df
             >>>
             >>> x = Dataset(name='sample_dataset',
-            >>>         data_type=SeriesType.simple(),
+            >>>         data_type=NONE_AT,
             >>>         data=create_df(['x','y','z'],
             >>>             start_date='2024-01-01',
             >>>             end_date='2024-12-31',
@@ -648,7 +642,7 @@ class Dataset:
     def tag_series(
         self,
         names: str | list[str] = "*",
-        tags: meta.TagDict = None,
+        tags: meta.Tags = None,
         **kwargs: str | list[str],
     ) -> None:
         """Tag the series identified by ``names`` with provided tags.
@@ -680,12 +674,12 @@ class Dataset:
 
             Tag by kwargs
 
-            >>> x = Dataset(name='sample_set',data_type=SeriesType.simple(),data=some_data)
+            >>> x = Dataset(name='sample_set',data_type=NONE_AT,data=some_data)
             >>> x.tag_series(example_1='string_1', example_2=['a', 'b', 'c'])
 
             Tag by dict
 
-            >>> x = Dataset(name='sample_set',data_type=SeriesType.simple(),data=some_data)
+            >>> x = Dataset(name='sample_set',data_type=NONE_AT,data=some_data)
             >>> x.tag_series(tags={'example_1': 'string_1', 'example_2': ['a', 'b', 'c']})
 
         """
@@ -793,7 +787,7 @@ class Dataset:
 
             >>> p = Dataset(
             >>>     name="sample_set",
-            >>>     data_type=SeriesType.simple(),
+            >>>     data_type=NONE_AT,
             >>>     data=some_data,
             >>> )
             >>> p.series_names_to_tags(attributes=['XYZ', 'ABC'])
@@ -804,7 +798,7 @@ class Dataset:
 
             >>> z = Dataset(
             >>>     name="copy_of_sample_set",
-            >>>     data_type=SeriesType.simple(),
+            >>>     data_type=NONE_AT,
             >>>     data=some_data,
             >>>     attributes=['XYZ', 'ABC'],
             >>> )
@@ -825,7 +819,7 @@ class Dataset:
             >>> )
             >>> x = Dataset(
             >>>     name="bigger_sample_set",
-            >>>     data_type=SeriesType.simple(),
+            >>>     data_type=NONE_AT,
             >>>     data=more_data,
             >>> )
             >>> x.series_names_to_tags(attributes=['XYZ', 'ABC'], regex=r'([a-z])*([a-z])')
@@ -848,7 +842,7 @@ class Dataset:
 
         apply_all = self.auto_tag_config.get("apply_to_all", {})
         inherited = meta.inherit_set_tags(self.tags)
-        self.tag_series({**inherited, **apply_all})
+        self.tag_series(tags={**inherited, **apply_all})
 
         # always apply tags inherited from dataset and tags specificly applied to all series first
         for series_key in self.series:
@@ -878,14 +872,14 @@ class Dataset:
 
     def replace_tags(
         self,
-        *args: tuple[meta.TagDict, meta.TagDict],
+        *args: tuple[meta.Tags, meta.Tags],
     ) -> None:
         """Retag selected attributes of series in the set.
 
-        The tags to be replaced and their replacements should be specified in tuple(s) of :py:type:`tag dictionaries <ssb_timeseries.meta.TagDict>`;
+        The tags to be replaced and their replacements should be specified in tuple(s) of :py:type:`tag dictionaries <ssb_timeseries.meta.Tags>`;
         each argument in ``*args`` should be on the form ``({<old_tags>},{<new_tags>})``.
 
-        Both old and new :py:type:`TagDict` can contain multiple tags.
+        Both old and new :py:type:`Tags` can contain multiple tags.
          - Each tuple is evaluated independently for each series in the set.
          - If the tag dict to be replaced contains multiple tags, all must match for tags to be replaced.
          - If the new tag dict contains multiple tags, all are added where there is a match.
@@ -907,7 +901,7 @@ class Dataset:
         *names: str | list[str],
         pattern: str = "",
         regex: str = "",
-        tags: (meta.TagDict | list[meta.TagDict]) = None,
+        tags: (meta.Tags | list[meta.Tags]) = None,
         output: str = "dataset",
         new_name: str = "",
         **kwargs: Any,
@@ -984,7 +978,7 @@ class Dataset:
     @no_type_check
     def __getitem__(
         self,
-        names_or_tags: str | meta.TagDict | Iterable[str | meta.TagDict] = "",
+        names_or_tags: str | meta.Tags | Iterable[str | meta.Tags] = "",
     ) -> Self | None:
         """Access Dataset.data.columns via Dataset.select on list[column_names | tags ] | pattern | regex.
 
@@ -1418,7 +1412,7 @@ class Dataset:
         self,
         other: Self | IntoFrame | IntoSeries | int | float | None,
         func,  # noqa: ANN001
-    ) -> Any:
+    ) -> Self:
         """Generic helper making math functions work on numeric, non date columns of dataframe to dataframe, matrix to matrix, matrix to vector and matrix to scalar.
 
         Although the purpose was to limit "boilerplate" for core linear algebra functions, it also extend to other operations that follow the same differentiation pattern.
@@ -1432,8 +1426,7 @@ class Dataset:
             ValueError: "Incompatible shapes."
 
         Returns:
-            Any:   Depending on the inputs: A new dataset / vector / scalar with the result.
-            For datasets, the name of the new set is derived from inputs and the functions applied.
+            Self:  A new dataset with the result, derived from the inputs and the function applied.
             If 'other' is not recognized, the 'NotImplemented' Singleton is returned so that Python can invoke  '__r<method>__' of other class.
         """
         num_cols = self.numeric_columns
@@ -1513,28 +1506,28 @@ class Dataset:
         # TODO: Should also update series names and set/series tags
         return out
 
-    def __add__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __add__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Add two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.add.
         """
         return self.math(other, np.add)
 
-    def __radd__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __radd__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right add handles cases where a Dataset is added to a non-dataset object.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.add.
         """
         return self.__add__(other)
 
-    def __sub__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __sub__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Subtract two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.sub.
         """
         return self.math(other, np.subtract)
 
-    def __rsub__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __rsub__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right subtract handles cases where a Dataset is subtrd from a non-Dataset.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.sub.
@@ -1542,21 +1535,21 @@ class Dataset:
         negative_self = self.__mul__(-1)
         return negative_self.__add__(other)
 
-    def __mul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __mul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Multiply two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.muliply.
         """
         return self.math(other, np.multiply)
 
-    def __rmul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __rmul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right multiply two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.muliply.
         """
         return self.__mul__(other)
 
-    def __matmul__(self, other: Self | IntoFrame | IntoSeries) -> Any:
+    def __matmul__(self, other: Self | IntoFrame | IntoSeries) -> Self:
         """Matrix multiply two datasets or a dataset and a dataframe, numpy array.
 
         The matmul function implements the semantics of the @ operator defined in PEP 465.
@@ -1569,21 +1562,21 @@ class Dataset:
         """
         return self.math(other, np.matmul)
 
-    def __rmatmul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __rmatmul__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right matrix multiply two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.matmul.
         """
         return self.__mul__(other)
 
-    def __truediv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __truediv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Divide two datasets, or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.divide.
         """
         return self.math(other, np.divide)
 
-    def __rtruediv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __rtruediv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right true divide handles cases when non-dataset objects are divided by datasets.
 
         Division is performed elementwise using Numpy broadcast rules. See np.divide.
@@ -1596,14 +1589,14 @@ class Dataset:
         # (Also, check behaviour with decimal datatype.)
         return inverse.math(None, np.reciprocal)
 
-    def __floordiv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __floordiv__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Floor divide two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.floordivide.
         """
         return self.math(other, np.floor_divide)
 
-    def __rfloordiv__(self, other: IntoFrame | IntoSeries | int | float) -> Any:
+    def __rfloordiv__(self, other: IntoFrame | IntoSeries | int | float) -> Self:
         """Right floor divide handles cases when a dataframe, numpy array or scalar is divded by a dataset.
 
         Done element wise w. broadcast.
@@ -1613,14 +1606,14 @@ class Dataset:
         inverse = self.__floordiv__(other)
         return inverse.math(None, np.reciprocal)
 
-    def __pow__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __pow__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Power of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.power.
         """
         return self.math(other, np.power)
 
-    def __rpow__(self, other: IntoFrame | IntoSeries | int | float) -> Any:
+    def __rpow__(self, other: IntoFrame | IntoSeries | int | float) -> Self:
         """Right power of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.power.
@@ -1635,42 +1628,42 @@ class Dataset:
         ln_a = np.log(other)  # may handling of input type variations?
         return exp_self.__pow__(ln_a)
 
-    def __mod__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __mod__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Modulo of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.mod.
         """
         return self.math(other, np.mod)
 
-    def __rmod__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __rmod__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Right modulo of two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.mod.
         """
         return NotImplemented  # self.__mod__(other)
 
-    def __neg__(self) -> Any:
+    def __neg__(self) -> Self:
         """Negative values for dataset.
 
         The operation returns a new dataset object. See np.negative.
         """
         return self.math(None, np.negative)
 
-    def __pos__(self) -> Any:
+    def __pos__(self) -> Self:
         """Positive values for dataset.
 
         The operation returns a new dataset object. See np.positive.
         """
         return self.math(None, np.positive)
 
-    def __abs__(self) -> Any:
+    def __abs__(self) -> Self:
         """Absolute values for dataset.
 
         The operation returns a new dataset object. See np.absolute.
         """
         return self.math(None, np.absolute)
 
-    def __invert__(self) -> Any:
+    def __invert__(self) -> Self:
         """Invert the sign of values in the dataset.
 
         The operation is performed elementwise. See np.negative.
@@ -1680,7 +1673,7 @@ class Dataset:
     @no_type_check
     def __eq__(
         self, other: object
-    ) -> Any:  # Self | IntoFrame | IntoSeries | int | float) -> Any:
+    ) -> Self:  # Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check equality of two datasets or one dataset and a dataframe, numpy array or scalar.
 
         Note that this is a pure value comparison, and thus different from comparing dataset identity as reflected in the metadata of two dataset instances.
@@ -1689,9 +1682,9 @@ class Dataset:
         """
         return self.math(other, np.equal)
 
-    def __ne__(
+    def __ne__(  # type: ignore[override]
         self, other: Any
-    ) -> Any:  # Self | IntoFrame | IntoSeries | int | float) -> Any:
+    ) -> Self:  # Self | IntoFrame | IntoSeries | int | float) -> Any:
         # def __ne__(self, other:Self | IntoFrame | IntoSeries | int | float) -> Any:
         """Check inequality of two datasets or one dataset and a dataframe, numpy array or scalar.
 
@@ -1701,35 +1694,35 @@ class Dataset:
         """
         return self.math(other, np.not_equal)
 
-    def __gt__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __gt__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Check greater than for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.greater.
         """
         return self.math(other, np.greater)
 
-    def __lt__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __lt__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Check less than for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.less.
         """
         return self.math(other, np.less)
 
-    def __ge__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __ge__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Check greater than or equal for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.greater_equal.
         """
         return self.math(other, np.greater_equal)
 
-    def __le__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def __le__(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Check less than or equal for two datasets or a dataset and a dataframe, numpy array or scalar.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.less_equal.
         """
         return self.math(other, np.less_equal)
 
-    def isclose(self, other: Self | IntoFrame | IntoSeries | int | float) -> Any:
+    def isclose(self, other: Self | IntoFrame | IntoSeries | int | float) -> Self:
         """Check if two datasets or a dataset and a dataframe, numpy array or scalar are nearlly equal.
 
         The operation is performed elementwise using Numpy broadcast rules if dimensions does not match. See np.isclose.
@@ -1799,7 +1792,7 @@ class Dataset:
         self,
         attributes: list[str],
         taxonomies: list[int | meta.Taxonomy | dict[str, str] | PathStr],
-        functions: list[str | F] | set[str | F],
+        functions: list[str | F | list[str | int | float]] | set[str | F],
         sep: str = "_",
     ) -> Self:
         """Aggregate dataset by taxonomy hierarchies.
@@ -1834,7 +1827,7 @@ class Dataset:
             >>> series_names: list[list[str]] = [value for value in tag_permutation_space.values()]
             >>> sample_df = create_df(*series_names, start_date="2024-01-01", end_date="2024-12-31", freq="MS",)
             >>> sample_set = Dataset(name="sample_set",
-            >>>     data_type=SeriesType.simple(),
+            >>>     data_type=NONE_AT,
             >>>     data=sample_df,
             >>>     attributes=["A", "B", "C"],
             >>> )
@@ -1975,7 +1968,7 @@ class Dataset:
         return out
 
 
-def column_aggregate(df: FrameT, method: str | F) -> Any:
+def column_aggregate(df: FrameT, method: str | F | list[str | int | float]) -> Any:
     """Helper function to calculate aggregate over dataframe columns."""
     logger.debug("DATASET.column_aggregate '%s' over columns:\n%s", method, df.columns)
     nw_df = nw.from_native(df)
@@ -2029,7 +2022,7 @@ def search(
     equals: str = "",
     contains: str = "",
     pattern: str = "*",
-    as_of_tz: datetime = None,
+    as_of_tz: datetime | str | None = None,
     repository: str = "",
     require_unique: bool = False,
 ) -> list | Dataset | None:
@@ -2054,7 +2047,7 @@ def search(
 
     if number_of_results == 1:
         tags = found[0].object_tags
-        stype = SeriesType(tags["versioning"], tags["temporality"])
+        stype = SeriesType.from_tag_values(tags["versioning"], tags["temporality"])
         return Dataset(
             name=tags["name"],
             data_type=stype,

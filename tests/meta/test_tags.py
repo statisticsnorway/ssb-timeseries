@@ -8,7 +8,8 @@ import pytest
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.sample_data import create_df
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import AS_OF_AT
+from ssb_timeseries.types import NONE_AT
 
 # --- mypy: ignore-errors = True
 # ---mypy: disable-error-code="attr-defined,no-untyped-def,union-attr,index,call-overload"
@@ -36,7 +37,7 @@ def test_init_dataset_returns_expected_set_level_tags(caplog) -> None:
     extra_tags_for_all_series = {"unit": "kWh"}
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         dataset_tags=set_tags,
         series_tags=extra_tags_for_all_series,
@@ -61,8 +62,8 @@ def test_init_dataset_returns_expected_set_level_tags(caplog) -> None:
     """
     test_logger.debug(f"tags: {x.tags}")
     assert x.tags["name"] == set_name
-    assert x.tags["versioning"] == str(x.data_type.versioning)
-    assert x.tags["temporality"] == str(x.data_type.temporality)
+    assert x.tags["versioning"] == x.data_type.versioning.name
+    assert x.tags["temporality"] == x.data_type.temporality.name
     assert x.tags["About"] == "ImportantThings"
     assert x.tags["SeriesDifferentiatingAttributes"] == ["A", "B", "C"]
 
@@ -94,7 +95,7 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
 
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         dataset_tags=set_tags,
         series_tags=extra_tags_for_all_series,
@@ -126,8 +127,8 @@ def test_init_dataset_returns_mandatory_series_tags_plus_tags_inherited_from_dat
         test_logger.debug(f" ... {d[key]}")
         assert d[key]["dataset"] == set_name
         assert d[key]["name"] == key
-        assert d[key]["versioning"] == str(x.data_type.versioning)
-        assert d[key]["temporality"] == str(x.data_type.temporality)
+        assert d[key]["versioning"] == x.data_type.versioning.name
+        assert d[key]["temporality"] == x.data_type.temporality.name
         assert d[key]["About"] == "ImportantThings"
         assert d[key]["SeriesDifferentiatingAttributes"] == ["A", "B", "C"]
         for x_key, x_value in extra_tags_for_all_series.items():
@@ -392,13 +393,13 @@ def test_series_names_to_tags_works_the_same_in_init_and_explicit_call() -> None
     )
     p = Dataset(
         name="sample_set",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=some_data,
         attributes=["xyz", "abc"],
     )
     q = Dataset(
         name="sample_set",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=some_data,
     )
     q.series_names_to_tags(attributes=["xyz", "abc"])
@@ -421,7 +422,7 @@ def test_series_names_to_tags_failed_xdoctest() -> None:
     )
     x = Dataset(
         name="bigger_sample_set",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=more_data,
     )
     x.series_names_to_tags(attributes=["xyz", "abc"], regex=r"([a-z])*([a-z])")

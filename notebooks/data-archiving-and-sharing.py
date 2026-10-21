@@ -136,9 +136,9 @@ def _(mo):
 @app.cell
 def _():
     from ssb_timeseries.dataset import Dataset
-    from ssb_timeseries.types import SeriesType
+    from ssb_timeseries.types import NONE_AT
 
-    return Dataset, SeriesType
+    return Dataset, NONE_AT
 
 
 @app.cell(hide_code=True)
@@ -179,10 +179,10 @@ def _():
 
 
 @app.cell
-def _(Dataset, SeriesType, set_name, xyz_at):
+def _(Dataset, NONE_AT, set_name, xyz_at):
     p = Dataset(
         name = set_name,
-        data_type = SeriesType('NONE','AT'),
+        data_type = NONE_AT,
         data = xyz_at(),
     ).save()
     return
@@ -349,7 +349,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(Dataset, SeriesType, xyz_at):
+def _(Dataset, NONE_AT, xyz_at):
     from ssb_timeseries.sample_data import create_df
 
     # Archiving and sharing apply to any dataset, not only the one created above.
@@ -370,7 +370,7 @@ def _(Dataset, SeriesType, xyz_at):
     ):
         Dataset(
             name = name,
-            data_type = SeriesType('NONE','AT'),
+            data_type = NONE_AT,
             data = data,
         ).save()
     return

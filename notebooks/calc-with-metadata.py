@@ -42,7 +42,7 @@ def _(mo):
     ```
 
     The presented functionality relies on `dataset.Dataset` and `meta.taxonomy.Taxonomy`.
-    Other imports like`types.SeriesType` and external libraries are used only for generating the sample data.
+    Other imports like `types.NONE_FROM_TO` and external libraries are used only for generating the sample data.
     """)
     return
 
@@ -66,12 +66,12 @@ def _(mo):
 
 @app.cell
 def _():
-    from ssb_timeseries.types import SeriesType
+    from ssb_timeseries.types import NONE_FROM_TO
     from ssb_timeseries.sample_data import create_df
     from itertools import product
     from datetime import date
 
-    return SeriesType, create_df
+    return NONE_FROM_TO, create_df
 
 
 @app.cell(hide_code=True)
@@ -83,7 +83,7 @@ def _(mo):
 
 
 @app.cell
-def _(Dataset, SeriesType, create_df):
+def _(Dataset, NONE_FROM_TO, create_df):
     def create_some_example_data(
         set_name: str,
         series_tags: dict[str,list[str]],
@@ -99,7 +99,7 @@ def _(Dataset, SeriesType, create_df):
         )
         Dataset(
             name=set_name,
-            data_type=SeriesType('NONE', 'FROM_TO'),
+            data_type=NONE_FROM_TO,
             data=df,
             tags = set_tags,
             attributes = series_tags.keys(),

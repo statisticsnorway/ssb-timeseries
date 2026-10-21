@@ -68,9 +68,9 @@ def _():
 
 @app.cell
 def _():
-    from ssb_timeseries.types import SeriesType, Versioning, Temporality
+    from ssb_timeseries.types import NONE_AT, NONE_FROM_TO
 
-    return (SeriesType,)
+    return NONE_AT, NONE_FROM_TO
 
 
 @app.cell
@@ -113,10 +113,10 @@ def _(create_df):
 
 
 @app.cell
-def _(Dataset, SeriesType, pqr_df):
+def _(Dataset, NONE_AT, pqr_df):
     pqr = Dataset(
         name = 'PQR',
-        data_type = SeriesType('NONE', 'AT'),
+        data_type = NONE_AT,
         data = pqr_df,
     )
     return (pqr,)
@@ -178,8 +178,8 @@ def _(mo):
 
 
 @app.cell
-def _(SeriesType):
-    interval_data = SeriesType('NONE', 'FROM_TO')
+def _(NONE_FROM_TO):
+    interval_data = NONE_FROM_TO
     return (interval_data,)
 
 

@@ -72,14 +72,14 @@ def _(mo):
 
 @app.cell
 def _(Dataset):
-    # Aliased to avoid clashing with the SeriesType and create_df definitions
-    # further down, which marimo rejects as multiple definitions.
+    # Aliased to avoid clashing with the create_df definition further down,
+    # which marimo rejects as multiple definitions.
     import ssb_timeseries.sample_data as _sample_data
     import ssb_timeseries.types as _types
 
     searchable_data = Dataset(
         name = 'PQR',
-        data_type = _types.SeriesType(_types.Versioning.NONE, _types.Temporality.AT),
+        data_type = _types.NONE_AT,
         data = _sample_data.create_df(['p','q','r'], start_date='2020-01-01', end_date='2025-06-01', freq='D'),
     )
     searchable_data.tag_series('p', tags={'product': 'coffee'})
@@ -89,7 +89,7 @@ def _(Dataset):
 
     xyz_data = Dataset(
         name = 'XYZ',
-        data_type = _types.SeriesType(_types.Versioning.NONE, _types.Temporality.AT),
+        data_type = _types.NONE_AT,
         data = _sample_data.xyz_at(),
     )
     xyz_data.save()
@@ -349,16 +349,16 @@ def _(mock_interval_data_from_file_or_query):
 
 @app.cell
 def _():
-    from ssb_timeseries.types import SeriesType
+    from ssb_timeseries.types import NONE_FROM_TO
 
-    return (SeriesType,)
+    return (NONE_FROM_TO,)
 
 
 @app.cell
-def _(Dataset, SeriesType, bigger_data):
+def _(Dataset, NONE_FROM_TO, bigger_data):
     az = Dataset(
         name = 'AZ_drinks',
-        data_type = SeriesType('NONE', 'FROM_TO'),
+        data_type = NONE_FROM_TO,
         data = bigger_data,
         attributes=['store','variable','product', 'region'],
     )

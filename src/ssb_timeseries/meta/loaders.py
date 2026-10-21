@@ -17,11 +17,11 @@ from typing import TypeAlias
 import narwhals as nw
 import pyarrow as pa
 from klass import get_classification
-from narwhals.typing import IntoFrameT
 
 from ssb_timeseries.dataframes import is_df_like
 from ssb_timeseries.io import fs
 from ssb_timeseries.types import PathStr
+from ssb_timeseries.types._narwhals import IntoFrameT
 
 # Re-define shared constants and types
 KLASS_ITEM_SCHEMA = pa.schema(

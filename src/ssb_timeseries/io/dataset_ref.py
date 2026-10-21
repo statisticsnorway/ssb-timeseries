@@ -72,7 +72,22 @@ class DatasetRef:
         This is a property of the dataset rather than of any particular handler,
         so it is checked once here rather than in every handler.
         """
+        self.require_supported()
         if not self.is_identified:
             raise ValueError(
                 "An 'as of' datetime must be specified when the type has versioning of type Versioning.AS_OF."
+            )
+
+    def require_supported(self) -> None:
+        """Check that this reference uses a versioning the I/O layer implements.
+
+        `Versioning.NAMES` is reserved in the type system for future support of
+        free-text named versions, but no handler stores or reads them yet.
+        Failing here keeps the refusal explicit instead of leaking a
+        low-level error from whichever handler happened to be reached first.
+        """
+        if self.data_type.versioning == Versioning.NAMES:
+            raise NotImplementedError(
+                "Versioning.NAMES is reserved but not implemented: free-text "
+                "named versions are not yet supported by the I/O layer."
             )

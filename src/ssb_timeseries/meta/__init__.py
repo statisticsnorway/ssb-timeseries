@@ -5,9 +5,9 @@ Functionality is imported from submodules to create a single, convenient point o
 """
 
 from ssb_timeseries.meta.loaders import KlassTaxonomy
-from ssb_timeseries.meta.tags import DatasetTagDict
-from ssb_timeseries.meta.tags import SeriesTagDict
-from ssb_timeseries.meta.tags import TagDict
+from ssb_timeseries.meta.tags import DatasetTags
+from ssb_timeseries.meta.tags import SeriesTags
+from ssb_timeseries.meta.tags import Tags
 from ssb_timeseries.meta.tags import TagValue
 from ssb_timeseries.meta.tags import add_tag_values
 from ssb_timeseries.meta.tags import delete_dataset_tags

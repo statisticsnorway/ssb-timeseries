@@ -16,7 +16,6 @@ from zoneinfo import ZoneInfo
 from multipledispatch import dispatch
 
 from dateutil import parser
-from narwhals.typing import IntoFrameT, FrameT, IntoSeriesT
 import narwhals as nw
 import narwhals.selectors as ncs
 import pyarrow as pa
@@ -36,6 +35,8 @@ from ..dates import (
     TimeZone,
     validate_timezone,
 )
+from ..types._narwhals import IntoFrameT
+from ..types._narwhals import IntoSeriesT
 from .date_cols import temporal_column_schema
 
 
@@ -288,9 +289,9 @@ def validate_dates(
 
 
 def standardize_dates(
-    df: nw.typing.IntoFrameT,
+    df: IntoFrameT,
     time_unit: Literal["ns", "us", "ms"] = NW_DEFAULT_TIME_UNIT,
-) -> nw.typing.IntoFrameT:
+) -> IntoFrameT:
     """Ensure that all date columns conform to the same standards.
 
     * Same datatype --> nw.dt.Timestamp?

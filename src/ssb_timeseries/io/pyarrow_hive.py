@@ -30,7 +30,6 @@ from urllib.parse import unquote
 import narwhals as nw
 import pyarrow as pa
 from dateutil.parser import parse
-from narwhals.typing import FrameT
 
 from .. import types
 from ..config import Config
@@ -40,8 +39,11 @@ from ..dataframes import merge_data
 from ..dataframes.date_cols import prepend_as_of
 from ..dataframes.dates import standardize_dates
 from ..logging import logger
+from ..types._narwhals import FrameT
 from . import fs
 from .dataset_ref import DatasetRef
+from .parquet_schema import PA_BOOLEAN
+from .parquet_schema import series_are_all_boolean
 
 # mypy: disable-error-code="type-var, arg-type, type-arg, return-value, attr-defined, union-attr, operator, assignment,import-untyped"
 
@@ -98,7 +100,7 @@ class HiveFileSystem:
         """Return the data directory for a dataset."""
         return str(
             Path(self.root)
-            / f"data_type={dataset.data_type.versioning!s}_{dataset.data_type.temporality!s}"
+            / f"data_type={dataset.data_type.versioning.name}_{dataset.data_type.temporality.name}"
             / f"dataset={dataset.name}"
         )
 
@@ -110,6 +112,7 @@ class HiveFileSystem:
             *args: Accepted and ignored, for call compatibility.
             **kwargs: Accepted and ignored, for call compatibility.
         """
+        dataset.require_supported()
         if not dataset.is_identified:
             # No version chosen, so there is no particular partition to read.
             logger.debug("No 'as of' for %s - return empty frame.", dataset.name)
@@ -168,6 +171,7 @@ class HiveFileSystem:
             dataset.data_type,
             tags,
             partition_by=["as_of"],
+            data=df,
         )
         if dataset.data_type.versioning == types.Versioning.NONE:
             old_data = self.read(dataset)
@@ -210,6 +214,7 @@ class HiveFileSystem:
         Args:
             dataset: The dataset to list versions for.
         """
+        dataset.require_supported()
         if (
             not self.exists(dataset)
             or dataset.data_type.versioning != types.Versioning.AS_OF
@@ -239,6 +244,7 @@ def _parquet_schema(
     data_type: types.SeriesType,
     meta: dict[str, Any],
     partition_by: list[str],
+    data: Any | None = None,
 ) -> tuple[pa.Schema, pa.dataset.Partitioning]:
     """Translate dataset tags into a PyArrow schema with embedded metadata."""
     from .json_helpers import tags_to_json
@@ -259,10 +265,15 @@ def _parquet_schema(
     ]
     date_col_fields.sort(key=lambda x: x.name)
 
+    value_type = (
+        PA_BOOLEAN
+        if data is not None and series_are_all_boolean(data, series_meta)
+        else PA_NUMERIC
+    )
     num_col_fields = [
         pa.field(
             series_key,
-            PA_NUMERIC,
+            value_type,
             nullable=True,
             metadata=tags_to_json(series_tags),
         )

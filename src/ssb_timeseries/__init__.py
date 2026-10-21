@@ -36,6 +36,10 @@ from __future__ import annotations
 from ssb_timeseries import config
 from ssb_timeseries.catalog import get_catalog
 from ssb_timeseries.logging import set_up_logging_according_to_config
+from ssb_timeseries.types import AS_OF_AT
+from ssb_timeseries.types import AS_OF_FROM_TO
+from ssb_timeseries.types import NONE_AT
+from ssb_timeseries.types import NONE_FROM_TO
 
 
 def get_configuration() -> config.Config:
@@ -49,6 +53,10 @@ logger = set_up_logging_according_to_config(
 
 
 __all__ = [
+    "AS_OF_AT",
+    "AS_OF_FROM_TO",
+    "NONE_AT",
+    "NONE_FROM_TO",
     "dataframes",
     "dataset",
     "dates",

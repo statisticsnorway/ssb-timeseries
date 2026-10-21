@@ -38,7 +38,7 @@ See [the quickstart guide](quickstart) for instructions to that.
 ```
 
 The presented functionality relies on `dataset.Dataset`.
-Other imports like`types.SeriesType` and external libraries are used only for generating the sample data.
+Other imports like `types.AS_OF_AT` and external libraries are used only for generating the sample data.
 
 ```python {.marimo}
 from ssb_timeseries.dataset import Dataset
@@ -53,7 +53,7 @@ import numpy as np
 from ssb_timeseries.sample_data import POPU06_MAIN_COUNTRIES
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.sample_data import popu06
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import AS_OF_AT
 ```
 
 Generate some test data
@@ -70,7 +70,7 @@ def create_popu06_versions(
     The projections themselves are static and reproducible, so a small seeded
     perturbation is applied to give each version its own values.
     Without it every version would hold identical numbers and calculating
-    between two versions would yield nothing but zeros.
+    difference between two versions would yield nothing but zeros.
     """
     base = popu06(countries=countries, start_year=2027, end_year=2046)
     generator = np.random.default_rng(seed)
@@ -83,7 +83,7 @@ def create_popu06_versions(
             ).round().astype("int64")
         Dataset(
             name="POPU06",
-            data_type=SeriesType("AS_OF", "AT"),
+            data_type=AS_OF_AT,
             as_of_tz=str(as_of),
             data=version,
             tags={
@@ -99,7 +99,7 @@ The same projections are stored once per `as_of`-date, so that versions can be c
 
 ```python {.marimo}
 create_popu06_versions(
-    as_of_dates=[date(*d) for d in product({2024, 2025}, range(1, 13), {1})],
+    as_of_dates=[date(*d) for d in product({2025, 2025}, range(1, 13), {1})],
     countries=POPU06_MAIN_COUNTRIES,
 )
 ```
@@ -136,10 +136,13 @@ Note that the "dataframe like" objects are all conflated to 'df' in the lineage 
 Filter by dates
 ---------------------------------------
 <!---->
-Narwhals also brings conversion of `Dataset.data` to other libraries and their functionality within short reach.
+Interval support and filtering by dates is an underdeveloped area of functionality.
+
+For now, relying on the functionality of external libraries provides a workaround.
+`Dataset.data` can easily be converted to the dataframe formats of other libraries:
 Shorthand properties `Dataset.pa`, `.nw`, `.pd`, and `.pl` return Arrow tables, and Narwhals, Pandas and Polars dataframes.
 
-Interval support and filtering by dates is an underdeveloped area of functionality.
+Here with Polars:
 
 ```python {.marimo}
 import polars as pl
@@ -161,10 +164,10 @@ x_row
 | valid_at | Denmark | Finland | Iceland | Norway | Sweden |
 | --- | --- | --- | --- | --- | --- |
 | datetime[ns, UTC] | f64 | f64 | f64 | f64 | f64 |
-| 2035-12-31 23:00:00 UTC | 6.134939e6 | 5.899144e6 | 468533.0 | 5.908382e6 | 1.0749026e7 |
-| 2036-12-31 23:00:00 UTC | 6.140989e6 | 5.921987e6 | 476381.0 | 5.95139e6 | 1.0811669e7 |
-| 2037-12-31 23:00:00 UTC | 6.130022e6 | 5.944316e6 | 479762.0 | 5.937953e6 | 1.0844831e7 |
-| 2038-12-31 23:00:00 UTC | 6.157238e6 | 5.978206e6 | 487794.0 | 5.956446e6 | 1.0855639e7 |
+| 2035-12-31 23:00:00 UTC | 6.131594e6 | 5.900607e6 | 468211.0 | 5.900501e6 | 1.074285e7 |
+| 2036-12-31 23:00:00 UTC | 6.14462e6 | 5.9323e6 | 476797.0 | 5.938974e6 | 1.0800753e7 |
+| 2037-12-31 23:00:00 UTC | 6.143058e6 | 5.930998e6 | 481246.0 | 5.94589e6 | 1.083013e7 |
+| 2038-12-31 23:00:00 UTC | 6.157564e6 | 5.957122e6 | 487276.0 | 5.981659e6 | 1.0857581e7 |
 
 \# bigger example - not needed?
 tags = {"Var": ["price", "volume"], \
@@ -189,8 +192,45 @@ Downsampling to a lower frequency aggregates the periods with one of the simple 
 (`min`, `max`, `sum`, `mean`, `median`, `std`, `var`, `count`, `first`, `last`).
 
 ```python {.marimo}
-yearly_to_daily = jul.resample("D", "ffill")
+# Check the size of our data slice:
+print(jul.data.shape)
 ```
+
+<!-- @output:AjVT -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">(20, 6)
+</pre>
+
+```python {.marimo}
+yearly_to_daily = jul.resample("D", "ffill")
+print(yearly_to_daily.data.shape)
+# for the same number of series, roughly 365 times as many values
+```
+
+<!-- @output:pHFh -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">(6941, 6)
+</pre>
+
+```python {.marimo}
+yearly_to_daily.data
+```
+
+<!-- @output:NCOB -->
+
+| valid_at | Denmark | Finland | Iceland | Norway | Sweden |
+| --- | --- | --- | --- | --- | --- |
+| 2026-12-31 23:00:00+00:00 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-01-01 23:00:00+00:00 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-01-02 23:00:00+00:00 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-01-03 23:00:00+00:00 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-01-04 23:00:00+00:00 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| ... | ... | ... | ... | ... | ... |
+| 2045-12-27 23:00:00+00:00 | 6194127.0 | 6058331.0 | 516093.0 | 6078766.0 | 11079612.0 |
+| 2045-12-28 23:00:00+00:00 | 6194127.0 | 6058331.0 | 516093.0 | 6078766.0 | 11079612.0 |
+| 2045-12-29 23:00:00+00:00 | 6194127.0 | 6058331.0 | 516093.0 | 6078766.0 | 11079612.0 |
+| 2045-12-30 23:00:00+00:00 | 6194127.0 | 6058331.0 | 516093.0 | 6078766.0 | 11079612.0 |
+| 2045-12-31 23:00:00+00:00 | 6229368.0 | 6101410.0 | 524242.0 | 6104776.0 | 11105489.0 |
 
 Forward fill carries each annual projection forward day by day until the next annual value arrives.
 Backward fill (`bfill`) instead lets the next annual value populate the days before it; it suits calendars where the time point marks the end of a period.
@@ -205,21 +245,21 @@ daily_to_yearly = yearly_to_daily.resample("YE", "mean")
 daily_to_yearly.data
 ```
 
-<!-- @output:aqbW -->
+<!-- @output:TXez -->
 
 | valid_at | Denmark | Finland | Iceland | Norway | Sweden |
 | --- | --- | --- | --- | --- | --- |
-| 2027-12-30 23:00:00+00:00 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 2028-12-30 23:00:00+00:00 | 5996705.0 | 5721457.0 | 412917.0 | 5684376.0 | 10625613.0 |
-| 2029-12-30 23:00:00+00:00 | 6027401.0 | 5716670.0 | 420793.0 | 5716418.0 | 10611853.0 |
-| 2030-12-30 23:00:00+00:00 | 6080182.0 | 5771599.0 | 427802.0 | 5722952.0 | 10591888.0 |
-| 2031-12-30 23:00:00+00:00 | 6050448.0 | 5766510.0 | 434670.0 | 5758831.0 | 10596849.0 |
+| 2027-12-30 23:00:00+00:00 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2028-12-30 23:00:00+00:00 | 6012748.0 | 5720839.0 | 413849.0 | 5683318.0 | 10579189.0 |
+| 2029-12-30 23:00:00+00:00 | 6026108.0 | 5737104.0 | 421331.0 | 5708787.0 | 10579011.0 |
+| 2030-12-30 23:00:00+00:00 | 6036643.0 | 5783166.0 | 426574.0 | 5752039.0 | 10661943.0 |
+| 2031-12-30 23:00:00+00:00 | 6063536.0 | 5780553.0 | 435417.0 | 5793260.0 | 10617828.0 |
 | ... | ... | ... | ... | ... | ... |
-| 2042-12-30 23:00:00+00:00 | 6183954.0 | 5987105.0 | 503685.0 | 6036619.0 | 10964012.0 |
-| 2043-12-30 23:00:00+00:00 | 6182232.0 | 6049960.0 | 506589.0 | 6043889.0 | 11004110.0 |
-| 2044-12-30 23:00:00+00:00 | 6208393.0 | 6045014.0 | 512525.0 | 6072128.0 | 11013343.0 |
-| 2045-12-30 23:00:00+00:00 | 6170663.0 | 6063181.0 | 519735.0 | 6085844.0 | 11114163.0 |
-| 2046-12-30 23:00:00+00:00 | 6195530.0 | 6089520.0 | 521892.0 | 6106436.0 | 11117373.0 |
+| 2042-12-30 23:00:00+00:00 | 6167750.0 | 6013029.0 | 504929.0 | 6034104.0 | 10979681.0 |
+| 2043-12-30 23:00:00+00:00 | 6188418.0 | 6044526.0 | 507247.0 | 6074699.0 | 10972024.0 |
+| 2044-12-30 23:00:00+00:00 | 6205124.0 | 6038939.0 | 513241.0 | 6066140.0 | 11047302.0 |
+| 2045-12-30 23:00:00+00:00 | 6194127.0 | 6058331.0 | 516093.0 | 6078766.0 | 11079612.0 |
+| 2046-12-30 23:00:00+00:00 | 6229368.0 | 6101410.0 | 524242.0 | 6104776.0 | 11105489.0 |
 
 Group by
 --------
@@ -233,7 +273,7 @@ Group by
 jul.pl.describe().select(pl.col(["statistic", "valid_at"]))
 ```
 
-<!-- @output:dNNg -->
+<!-- @output:wlCL -->
 
 | statistic | valid_at |
 | --- | --- |
@@ -256,16 +296,16 @@ weekly = yearly_to_daily.group_by("week", "mean")
 weekly.data.head(6)
 ```
 
-<!-- @output:wlCL -->
+<!-- @output:wAgl -->
 
 | valid_at | Denmark_week_mean | Finland_week_mean | Iceland_week_mean | Norway_week_mean | Sweden_week_mean |
 | --- | --- | --- | --- | --- | --- |
-| 2026-53 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 2027-01 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 2027-02 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 2027-03 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 2027-04 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 2027-05 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
+| 2026-53 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-01 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-02 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-03 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-04 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-05 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
 
 ```python {.marimo}
 quarterly = yearly_to_daily.group_by("quarter", "mean", tz="Europe/Oslo")
@@ -275,16 +315,16 @@ quarterly = yearly_to_daily.group_by("quarter", "mean", tz="Europe/Oslo")
 quarterly.data.head(6)
 ```
 
-<!-- @output:wAgl -->
+<!-- @output:dGlV -->
 
 | valid_at | Denmark_quarter_mean | Finland_quarter_mean | Iceland_quarter_mean | Norway_quarter_mean | Sweden_quarter_mean |
 | --- | --- | --- | --- | --- | --- |
-| 2027-Q1 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 2027-Q2 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 2027-Q3 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 2027-Q4 | 5999359.0 | 5672363.0 | 406313.0 | 5669951.0 | 10615636.0 |
-| 2028-Q1 | 5996705.0 | 5721457.0 | 412917.0 | 5684376.0 | 10625613.0 |
-| 2028-Q2 | 5996705.0 | 5721457.0 | 412917.0 | 5684376.0 | 10625613.0 |
+| 2027-Q1 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-Q2 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-Q3 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2027-Q4 | 5999124.0 | 5712097.0 | 405190.0 | 5655535.0 | 10614964.0 |
+| 2028-Q1 | 6012748.0 | 5720839.0 | 413849.0 | 5683318.0 | 10579189.0 |
+| 2028-Q2 | 6012748.0 | 5720839.0 | 413849.0 | 5683318.0 | 10579189.0 |
 
 Moving average
 --------------
@@ -294,42 +334,54 @@ four_week_average = weekly.moving_average(-3, 0)
 ```
 
 ```python {.marimo}
-four_week_average.data
+four_week_average.pl
 ```
 
-<!-- @output:SdmI -->
+<!-- @output:yOPj -->
 
-<pre style="white-space: pre-wrap; overflow-wrap: break-word;">pyarrow.Table
-valid_at: string
-Denmark_week_mean: double
-Finland_week_mean: double
-Iceland_week_mean: double
-Norway_week_mean: double
-Sweden_week_mean: double
-----
-valid_at: &#91;&#91;&quot;2026-53&quot;,&quot;2027-01&quot;,&quot;2027-02&quot;,&quot;2027-03&quot;,&quot;2027-04&quot;,...,&quot;2045-49&quot;,&quot;2045-50&quot;,&quot;2045-51&quot;,&quot;2045-52&quot;,&quot;2046-01&quot;&#93;&#93;
-Denmark_week_mean: &#91;&#91;nan,nan,nan,5999359,5999359,...,6170663,6170663,6170663,6170663,6176879.75&#93;&#93;
-Finland_week_mean: &#91;&#91;nan,nan,nan,5672363,5672363,...,6063181,6063181,6063181,6063181,6069765.75&#93;&#93;
-Iceland_week_mean: &#91;&#91;nan,nan,nan,406313,406313,...,519735,519735,519735,519735,520274.25&#93;&#93;
-Norway_week_mean: &#91;&#91;nan,nan,nan,5669951,5669951,...,6085844,6085844,6085844,6085844,6090992&#93;&#93;
-Sweden_week_mean: &#91;&#91;nan,nan,nan,10615636,10615636,...,11114163,11114163,11114163,11114163,11114965.5&#93;&#93;</pre>
+| valid_at | Denmark_week_mean | Finland_week_mean | Iceland_week_mean | Norway_week_mean | Sweden_week_mean |
+| --- | --- | --- | --- | --- | --- |
+| str | f64 | f64 | f64 | f64 | f64 |
+| "2026-53" | NaN | NaN | NaN | NaN | NaN |
+| "2027-01" | NaN | NaN | NaN | NaN | NaN |
+| "2027-02" | NaN | NaN | NaN | NaN | NaN |
+| "2027-03" | 5.999124e6 | 5.712097e6 | 405190.0 | 5.655535e6 | 1.0614964e7 |
+| "2027-04" | 5.999124e6 | 5.712097e6 | 405190.0 | 5.655535e6 | 1.0614964e7 |
+| … | … | … | … | … | … |
+| "2045-49" | 6.194127e6 | 6.058331e6 | 516093.0 | 6.078766e6 | 1.1079612e7 |
+| "2045-50" | 6.194127e6 | 6.058331e6 | 516093.0 | 6.078766e6 | 1.1079612e7 |
+| "2045-51" | 6.194127e6 | 6.058331e6 | 516093.0 | 6.078766e6 | 1.1079612e7 |
+| "2045-52" | 6.194127e6 | 6.058331e6 | 516093.0 | 6.078766e6 | 1.1079612e7 |
+| "2046-01" | 6.2029e6 | 6.0691e6 | 518130.25 | 6085268.5 | 1.1086e7 |
 
 ```python {.marimo}
-four_week_average.pd.plot()
+# four_week_average[{'country':'Norway'}].plot()
+four_week_average['Norway_week_mean'].pd.plot()
 ```
 
-<!-- @output:lgWD -->
+<!-- @output:fwwy -->
 
 ![png](calc-with-time_assets/figure-2.png)
 
+Note: `.pd.` above is a workaround for a missing link in sampling functionality: we got`valid_at` formatted as interval name strings rather than datetimes. Working along the time axes requires series type conversions.
+<!---->
 Timeseries analysis
 -------------------
 <!---->
-Proper time series analysis and seasonal adjustment are beyond the scope of the library itself.
-SSB Timeseries manages storage, versioning and retrieval of the series, and defers the analysis to specialised libraries from the Python ecosystem:
+Time series analysis and seasonal adjustment are large functional areas beyond the scope of SSB Timeseries.
+The Python ecosystem offers several libraries that cover different parts of the territory.
 [Nixtla](https://nixtlaverse.nixtla.io/statsforecast/), [Darts](https://unit8co.github.io/darts/), [statsmodels](https://www.statsmodels.org/) and [Prophet](https://facebook.github.io/prophet/) are common choices.
-The [interoperability](interoperability) guide collects the available data exchange surfaces.
-The frame adapters, including `nixtla()`, live on the [`Series`](../reference/ssb_timeseries.series) objects that iteration over a `Dataset` yields.
+
+A key design principle is to maintain the flexibility to choose which best of breed library does the heavy lifting.
+While the library does indeed provide *some* calculation functionality (clearly seen above), its main purpose is to bundles the information model with sufficient core data management and manipulation features so that the inbetween stuff becomes easy.
+
+The external libraries make different assumptions about the data.
+Available data exchange surfaces are covered in more detail in the [interoperability](interoperability) guide.
+
+We saw a glimpse of the `Dataset.data` level adapters above.
+Another class of frame adapters, apply to the [`Series`](../reference/ssb_timeseries.series) objects that can be accessed through iteration over a `Dataset`.
+
+The following demonstrates the use of one of them, `Series.nixtla()`.
 
 ```python {.marimo}
 from statsforecast import StatsForecast
@@ -337,8 +389,61 @@ from statsforecast.models import AutoARIMA
 ```
 
 ```python {.marimo}
-norway_series = next(s for s in jul if s.name == "Norway")
+norway_series = next(s for s in jul if s.name == "Norway") # to filter or not to filter?
 ```
+
+```python {.marimo}
+norway_series
+```
+
+<!-- @output:YWSi -->
+
+<pre style="white-space: pre-wrap; overflow-wrap: break-word;">&lt;ssb_timeseries.series.series.Series object at 0x7fca165cf490&gt;</pre>
+
+The `Series` object contains the data and tags for a single series.
+
+```python {.marimo}
+norway_series.data.to_polars()
+```
+
+<!-- @output:tZnO -->
+
+| valid_at | Norway |
+| --- | --- |
+| datetime[ns, UTC] | f64 |
+| 2026-12-31 23:00:00 UTC | 5.655535e6 |
+| 2027-12-31 23:00:00 UTC | 5.683318e6 |
+| 2028-12-31 23:00:00 UTC | 5.708787e6 |
+| 2029-12-31 23:00:00 UTC | 5.752039e6 |
+| 2030-12-31 23:00:00 UTC | 5.79326e6 |
+| … | … |
+| 2041-12-31 23:00:00 UTC | 6.034104e6 |
+| 2042-12-31 23:00:00 UTC | 6.074699e6 |
+| 2043-12-31 23:00:00 UTC | 6.06614e6 |
+| 2044-12-31 23:00:00 UTC | 6.078766e6 |
+| 2045-12-31 23:00:00 UTC | 6.104776e6 |
+
+Nixtla specifies its own format, requiring columns `unique_id`, `ds` and `y`. The "adapter" is just a method that provides it:
+
+```python {.marimo}
+norway_series.nixtla()
+```
+
+<!-- @output:CLip -->
+
+| ds | y | unique_id |
+| --- | --- | --- |
+| 2026-12-31 23:00:00+00:00 | 5655535.0 | POPU06::Norway |
+| 2027-12-31 23:00:00+00:00 | 5683318.0 | POPU06::Norway |
+| 2028-12-31 23:00:00+00:00 | 5708787.0 | POPU06::Norway |
+| 2029-12-31 23:00:00+00:00 | 5752039.0 | POPU06::Norway |
+| 2030-12-31 23:00:00+00:00 | 5793260.0 | POPU06::Norway |
+| ... | ... | ... |
+| 2041-12-31 23:00:00+00:00 | 6034104.0 | POPU06::Norway |
+| 2042-12-31 23:00:00+00:00 | 6074699.0 | POPU06::Norway |
+| 2043-12-31 23:00:00+00:00 | 6066140.0 | POPU06::Norway |
+| 2044-12-31 23:00:00+00:00 | 6078766.0 | POPU06::Norway |
+| 2045-12-31 23:00:00+00:00 | 6104776.0 | POPU06::Norway |
 
 ```python {.marimo}
 forecast = StatsForecast(
@@ -354,14 +459,14 @@ Forecasts for several series can be combined by iterating the `Dataset` and call
 forecast
 ```
 
-<!-- @output:CcZR -->
+<!-- @output:iXej -->
 
 | unique_id | ds | AutoARIMA |
 | --- | --- | --- |
-| POPU06::Norway | 2046-12-31 23:00:00+00:00 | 6.133891e+06 |
-| POPU06::Norway | 2047-12-31 23:00:00+00:00 | 6.157177e+06 |
-| POPU06::Norway | 2048-12-31 23:00:00+00:00 | 6.180462e+06 |
-| POPU06::Norway | 2049-12-31 23:00:00+00:00 | 6.203748e+06 |
-| POPU06::Norway | 2050-12-31 23:00:00+00:00 | 6.227033e+06 |
+| POPU06::Norway | 2046-12-31 23:00:00+00:00 | 6.128420e+06 |
+| POPU06::Norway | 2047-12-31 23:00:00+00:00 | 6.152065e+06 |
+| POPU06::Norway | 2048-12-31 23:00:00+00:00 | 6.175709e+06 |
+| POPU06::Norway | 2049-12-31 23:00:00+00:00 | 6.199353e+06 |
+| POPU06::Norway | 2050-12-31 23:00:00+00:00 | 6.222997e+06 |
 
 See also [Calculating with time](calc-with-time) or [Calculating with metadata](calc-with-metadata.md).

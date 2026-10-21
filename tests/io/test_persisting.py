@@ -47,7 +47,7 @@ def test_archiving_is_a_no_op_when_no_archive_is_configured(
         lambda: configuration,
     )
 
-    ds = Dataset(name=function_name_hex(), data=xyz_at, data_type="simple")
+    ds = Dataset(name=function_name_hex(), data=xyz_at, data_type="NONE_AT")
     ds.save()
 
     # Returns without raising, and without writing an archive anywhere.
@@ -64,7 +64,7 @@ def test_archive_after_save_does_not_raise_error(
 
     caplog.set_level(logging.DEBUG)
 
-    ds = Dataset(name=function_name_hex(), data=xyz_at, data_type="simple")
+    ds = Dataset(name=function_name_hex(), data=xyz_at, data_type="NONE_AT")
 
     ds.save()
     ds.archive()
@@ -78,7 +78,7 @@ def test_archive_without_save_raises_error(
 
     caplog.set_level(logging.DEBUG)
 
-    ds = Dataset(name=function_name_hex(), data=xyz_at, data_type="simple")
+    ds = Dataset(name=function_name_hex(), data=xyz_at, data_type="NONE_AT")
 
     with pytest.raises(FileNotFoundError):
         # no ds.save() to see here!
@@ -308,16 +308,16 @@ def test_archive_of_a_dataset_that_is_not_stored_as_a_file(
             self.repository = repository
             self.options = options
 
-        def exists(self, ref):
+        def exists(self, dataset):
             return True
 
-        def read(self, ref, interval=""):
+        def read(self, dataset, *args, **kwargs):
             return data
 
-        def write(self, ref, data, tags=None):
+        def write(self, dataset, data, tags=None):
             raise AssertionError("archiving must not write through the data handler")
 
-        def versions(self, ref):
+        def versions(self, dataset):
             raise AssertionError("archiving must not ask the data handler for versions")
 
     assert not hasattr(InMemoryDataHandler, "fullpath")

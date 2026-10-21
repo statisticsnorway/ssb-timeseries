@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import os
 import uuid
 import warnings
 from copy import deepcopy
@@ -9,10 +10,22 @@ from pathlib import Path
 
 import pytest
 
+# Install typeguard's import hook BEFORE ssb_timeseries is imported.
+# tests/ is loaded as an initial conftest (pytest's `test*` rule), i.e. before
+# pytest_configure, so the plugin's own hook (installed in pytest_configure)
+# would see the package already imported and skip it. Gated so normal runs are
+# unaffected.
+if os.environ.get("SSB_TYPEGUARD"):
+    from typeguard import install_import_hook
+
+    install_import_hook("ssb_timeseries")
+
 from ssb_timeseries import config
 from ssb_timeseries.io import fs
 from ssb_timeseries.logging import set_up_logging_according_to_config
 from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import Temporality
+from ssb_timeseries.types import Versioning
 
 from .fixtures.dataset_factories import abc_at  # noqa: F401
 from .fixtures.dataset_factories import abc_from_to  # noqa: F401
@@ -325,7 +338,9 @@ def temporality(request):
 @pytest.fixture
 def series_type(versioning, temporality):
     """SeriesType for every combination of versioning and temporality."""
-    return SeriesType(versioning, temporality)
+    return SeriesType(
+        versioning=Versioning[versioning], temporality=Temporality[temporality]
+    )
 
 
 @pytest.fixture(

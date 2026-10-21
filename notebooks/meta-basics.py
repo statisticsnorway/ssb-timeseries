@@ -148,9 +148,9 @@ def _(SeriesType, Temporality, Versioning, mo):
 @app.cell
 def _():
     from ssb_timeseries.dataset import Dataset
-    from ssb_timeseries.types import SeriesType, Versioning, Temporality
+    from ssb_timeseries.types import NONE_AT, NONE_FROM_TO, SeriesType, Versioning, Temporality
 
-    return Dataset, SeriesType, Temporality, Versioning
+    return Dataset, NONE_AT, NONE_FROM_TO, SeriesType, Temporality, Versioning
 
 
 @app.cell(hide_code=True)
@@ -210,10 +210,10 @@ def _(mo):
 
 
 @app.cell
-def _(Dataset, SeriesType, Temporality, Versioning, some_data):
+def _(Dataset, NONE_AT, some_data):
     sample_set = Dataset(
         name = 'PQR',
-        data_type = SeriesType(Versioning.NONE, Temporality.AT),
+        data_type = NONE_AT,
         data = some_data,
     )
     sample_set.save()
@@ -365,10 +365,10 @@ def _(mock_interval_data_from_file_or_query):
 
 
 @app.cell
-def _(Dataset, SeriesType, bigger_data):
+def _(Dataset, NONE_FROM_TO, bigger_data):
     az = Dataset(
         name = 'AZ_drinks',
-        data_type = SeriesType('NONE', 'FROM_TO'),
+        data_type = NONE_FROM_TO,
         data = bigger_data,
         attributes=['store','variable','product', 'region'],
     )

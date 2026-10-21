@@ -1,5 +1,7 @@
 import logging
 
+import pytest
+
 import ssb_timeseries as ts
 from ssb_timeseries.dates import EUROPE
 from ssb_timeseries.dates import date_eur_no
@@ -8,6 +10,11 @@ from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.sample_data import series_names
 from ssb_timeseries.sample_data import xyz_at
 from ssb_timeseries.sample_data import xyz_from_to
+from ssb_timeseries.types import AS_OF_AT
+from ssb_timeseries.types import AS_OF_FROM_TO
+from ssb_timeseries.types import NONE_AT
+from ssb_timeseries.types import NONE_FROM_TO
+from ssb_timeseries.types import Temporality
 
 # mypy: ignore-errors
 
@@ -226,3 +233,81 @@ def test_create_df_from_to_temporality_creates_correct_periods():
     for _index, row in df.iterrows():
         actual_delta = relativedelta(row["valid_to"], row["valid_from"])
         assert actual_delta == expected_delta
+
+
+def test_create_df_accepts_temporality_enum():
+    """Verify that create_df accepts a Temporality enum as well as its name."""
+    df = create_df(
+        "a",
+        start_date="2023-01-01",
+        end_date="2023-03-01",
+        freq="MS",
+        temporality=Temporality.FROM_TO,
+    )
+    assert list(df.columns) == ["valid_from", "valid_to", "a"]
+
+
+@pytest.mark.parametrize(
+    "data_type, expected_date_columns",
+    [
+        (NONE_AT, ["valid_at"]),
+        (AS_OF_AT, ["valid_at"]),
+        (NONE_FROM_TO, ["valid_from", "valid_to"]),
+        (AS_OF_FROM_TO, ["valid_from", "valid_to"]),
+    ],
+)
+def test_create_df_accepts_series_type_and_uses_only_its_temporality(
+    data_type, expected_date_columns
+):
+    """Verify that create_df accepts a SeriesType and emits the date columns of its temporality."""
+    df = create_df(
+        "a",
+        start_date="2023-01-01",
+        end_date="2023-03-01",
+        freq="MS",
+        temporality=data_type,
+    )
+    assert list(df.columns) == [*expected_date_columns, "a"]
+
+
+@pytest.mark.parametrize(
+    "data_type, temporality",
+    [
+        (NONE_AT, "AT"),
+        (AS_OF_AT, Temporality.AT),
+        (NONE_FROM_TO, "FROM_TO"),
+        (AS_OF_FROM_TO, Temporality.FROM_TO),
+    ],
+)
+def test_create_df_series_type_equals_matching_temporality(data_type, temporality):
+    """Verify that a SeriesType gives the same date columns as its bare temporality."""
+    by_type = create_df(
+        "a",
+        start_date="2023-01-01",
+        end_date="2023-03-01",
+        freq="MS",
+        temporality=data_type,
+    )
+    by_temporality = create_df(
+        "a",
+        start_date="2023-01-01",
+        end_date="2023-03-01",
+        freq="MS",
+        temporality=temporality,
+    )
+    assert list(by_type.columns) == list(by_temporality.columns)
+    for column in by_type.columns:
+        if column != "a":
+            assert by_type[column].to_list() == by_temporality[column].to_list()
+
+
+def test_create_df_rejects_unknown_temporality():
+    """Verify that an unrecognised temporality name is rejected."""
+    with pytest.raises(ValueError, match="Unhandled temporality"):
+        create_df(
+            "a",
+            start_date="2023-01-01",
+            end_date="2023-03-01",
+            freq="MS",
+            temporality="NONE",
+        )

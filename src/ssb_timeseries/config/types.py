@@ -55,7 +55,7 @@ class ConfigDict(TypedDict):
     io_handlers: Required[dict[str, Any]]
     repositories: Required[dict[str, Repository]]
     archives: NotRequired[dict[str, ArchiveConfig]]
-    sharing: NotRequired[dict[str, Repository]]
+    sharing: NotRequired[dict[str, ArchiveConfig]]
     log_file: NotRequired[str]
     logging: Required[dict[str, Any]]
 

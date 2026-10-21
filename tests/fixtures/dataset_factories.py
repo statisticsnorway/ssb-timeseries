@@ -10,7 +10,10 @@ import pytest
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dates import date_utc
 from ssb_timeseries.sample_data import create_df
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import AS_OF_AT
+from ssb_timeseries.types import AS_OF_FROM_TO
+from ssb_timeseries.types import NONE_AT
+from ssb_timeseries.types import NONE_FROM_TO
 
 
 # ----- helpers for tag_values + generating dataframes with data -----
@@ -91,7 +94,7 @@ def new_dataset_none_at(abc_at, buildup_and_teardown):
     """A fixture to create a new simple (non-versioned point in time) dataset before running the test."""
     x = Dataset(
         name=function_name_hex(8),
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=abc_at,
         attributes=["A", "B", "C"],
     )
@@ -103,7 +106,7 @@ def new_dataset_as_of_at(abc_at, buildup_and_teardown):
     """A fixture to create a new versioned point in time dataset before running the test."""
     x = Dataset(
         name=function_name_hex(8),
-        data_type=SeriesType.estimate(),
+        data_type=AS_OF_AT,
         as_of_tz=date_utc("2022-01-01"),
         data=abc_at,
         attributes=["A", "B", "C"],
@@ -116,7 +119,7 @@ def new_dataset_none_from_to(abc_from_to, buildup_and_teardown):
     """A fixture to create a new non-versioned period dataset before running the test."""
     x = Dataset(
         name=function_name_hex(8),
-        data_type=SeriesType.from_to(),
+        data_type=NONE_FROM_TO,
         data=abc_from_to,
         attributes=["A", "B", "C"],
     )
@@ -128,7 +131,7 @@ def new_dataset_as_of_from_to(abc_from_to, buildup_and_teardown):
     """A fixture to create a new versioned period dataset before running the test."""
     x = Dataset(
         name=function_name_hex(8),
-        data_type=SeriesType.as_of_from_to(),
+        data_type=AS_OF_FROM_TO,
         as_of_tz=date_utc("2022-01-01"),
         data=abc_from_to,
         attributes=["A", "B", "C"],

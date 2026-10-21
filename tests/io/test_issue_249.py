@@ -77,8 +77,8 @@ def test_reproduce_bug_in_issue_249_without_save_before_archive(
     df_a = pd.DataFrame({"valid_at": dates, "a": [1.1, 1.3, 1.4]})
     df_b = pd.DataFrame({"valid_at": dates, "a": [2.5, 2.6, 2.7]})
 
-    ds_a = Dataset(name="ds_a", data=df_a, data_type="simple")
-    ds_b = Dataset(name="ds_b", data=df_b, data_type="simple")
+    ds_a = Dataset(name="ds_a", data=df_a, data_type="NONE_AT")
+    ds_b = Dataset(name="ds_b", data=df_b, data_type="NONE_AT")
 
     ds_c = ds_a + ds_b
     ds_c.rename(
@@ -106,8 +106,8 @@ def test_reproduce_bug_in_issue_249_with_save_before_archive(
     df_a = pd.DataFrame({"valid_at": dates, "a": [1.1, 1.3, 1.4]})
     df_b = pd.DataFrame({"valid_at": dates, "a": [2.5, 2.6, 2.7]})
 
-    ds_a = Dataset(name="ds_a", data=df_a, data_type="simple")
-    ds_b = Dataset(name="ds_b", data=df_b, data_type="simple")
+    ds_a = Dataset(name="ds_a", data=df_a, data_type="NONE_AT")
+    ds_b = Dataset(name="ds_b", data=df_b, data_type="NONE_AT")
 
     ds_c = ds_a + ds_b
     ds_c.rename(
@@ -131,7 +131,7 @@ def test_reproduce_bug_in_issue_249_does_calculation_really_make_a_difference(
     caplog.set_level(logging.DEBUG)
 
     df_a = pd.DataFrame({"valid_at": dates, "a": [1.1, 1.3, 1.4]})
-    ds_a = Dataset(name="ds_a", data=df_a, data_type="simple")
+    ds_a = Dataset(name="ds_a", data=df_a, data_type="NONE_AT")
 
     ds_a.save()
     ds_a.archive()

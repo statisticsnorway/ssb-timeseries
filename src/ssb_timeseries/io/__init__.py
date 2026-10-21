@@ -39,16 +39,15 @@ from typing import Literal
 from typing import cast
 from typing import overload
 
-from narwhals.typing import IntoFrame
-
 from ..config.types import FileBasedRepository
 from ..dataframes.date_cols import date_range
 from ..dataframes.dates import datelike_to_utc
 from ..dataset import Dataset
 from ..dates import date_utc
 from ..logging import logger
-from ..meta import TagDict
+from ..meta import Tags
 from ..types import SeriesType
+from ..types._narwhals import IntoFrame
 from . import protocols
 from .dataset_ref import DatasetRef
 
@@ -150,7 +149,7 @@ def _io_handler(
 
 def _io_handler(
     *,
-    handler_type: HandlerType,
+    handler_type: str,
     repository: str | FileBasedRepository | dict,
     **options: Any,
 ) -> protocols.DataReadWrite | protocols.MetadataReadWrite | protocols.ArchiveWrite:
@@ -257,7 +256,7 @@ class DataIO:
         """Read this dataset's data."""
         return self.dh.read(self.ds.ref, **kwargs)
 
-    def write(self, data: IntoFrame, tags: TagDict | None = None) -> None:
+    def write(self, data: IntoFrame, tags: Tags | None = None) -> None:
         """Write data for this dataset.
 
         Args:
@@ -315,7 +314,7 @@ class MetaIO:
             name = self.ds.name
         return self.dh.read(name)
 
-    def write(self, name: str = "", tags: TagDict | None = None) -> None:
+    def write(self, name: str = "", tags: Tags | None = None) -> None:
         """Write metadata for a given dataset."""
         if not name:
             if self.ds is None:
@@ -411,7 +410,7 @@ def read_data(
     """
     tags = read_metadata(repository, set_name)
     if tags:
-        set_type = SeriesType(tags["versioning"], tags["temporality"])
+        set_type = SeriesType.from_tag_values(tags["versioning"], tags["temporality"])
         # `date_utc` defaults to now, matching the previous behaviour where an
         # unversioned read resolved to the latest version.
         ref = DatasetRef(

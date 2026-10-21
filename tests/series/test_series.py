@@ -2,7 +2,7 @@
 
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.sample_data import create_df
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import NONE_AT
 
 
 def test_iterating_a_dataset_yields_one_series_per_series_name() -> None:
@@ -10,7 +10,7 @@ def test_iterating_a_dataset_yields_one_series_per_series_name() -> None:
     dataset_name = "test-series-iteration"
     dataset = Dataset(
         name=dataset_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=create_df(
             ["x", "y"], start_date="2022-01-01", end_date="2022-04-03", freq="MS"
         ),

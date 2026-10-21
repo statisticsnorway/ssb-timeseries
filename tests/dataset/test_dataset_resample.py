@@ -6,7 +6,7 @@ import ssb_timeseries as ts
 from ssb_timeseries.dataframes.sampling import FILL_METHODS
 from ssb_timeseries.dataframes.sampling import SIMPLE_AGGS
 from ssb_timeseries.dataset import Dataset
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import NONE_AT
 
 # mypy: ignore-errors
 
@@ -31,7 +31,7 @@ def test_resample_with_fill_method_fills_a_year_of_monthly_data_up_to_every_day(
     caplog.set_level(logging.DEBUG)
     x = Dataset(
         name="test-resample",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=monthly_data,
     )
@@ -75,7 +75,7 @@ def test_resample_with_aggregation_method_reduces_monthly_data_to_the_expected_n
 
     x = Dataset(
         name="test-resample",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=monthly_data,
     )

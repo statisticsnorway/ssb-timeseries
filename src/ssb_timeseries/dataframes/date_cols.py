@@ -6,13 +6,13 @@ from typing import cast
 
 import narwhals as nw
 import narwhals.selectors as ncs
-from narwhals.typing import IntoFrame
-from narwhals.typing import IntoFrameT
 
 from ..dates import PA_TIMESTAMP_TZ
 from ..dates import PA_TIMESTAMP_UNIT
 from ..dates import date_utc
 from ..dates import ensure_datetime
+from ..types._narwhals import IntoFrame
+from ..types._narwhals import IntoFrameT
 
 
 def temporal_columns(df: IntoFrame) -> list[str]:
@@ -49,9 +49,7 @@ def date_range(df: IntoFrame) -> list[datetime] | list[date]:
     return [ensure_datetime(min(row)), ensure_datetime(max(row))]
 
 
-def prepend_as_of(
-    df: nw.typing.IntoFrameT, as_of: datetime | None
-) -> nw.typing.IntoFrameT:
+def prepend_as_of(df: IntoFrameT, as_of: datetime | None) -> IntoFrameT:
     """Prepend column 'as_of' to dataframe."""
     nw_df = cast(nw.DataFrame, nw.from_native(df))
 

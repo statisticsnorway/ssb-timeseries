@@ -9,7 +9,7 @@ from ssb_timeseries.config import Config
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.io import fs
 from ssb_timeseries.io import json_metadata
-from ssb_timeseries.types import SeriesType
+from ssb_timeseries.types import NONE_AT
 
 # mypy: ignore-errors
 # disable-error-code="arg-type,attr-defined,no-untyped-def,union-attr,comparison-overlap"
@@ -68,7 +68,7 @@ def test_search_for_dataset_by_exact_name_in_single_repo_returns_the_set(
     set_name = conftest.function_name_hex()
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=xyz_at,
     )
@@ -94,7 +94,7 @@ def test_search_for_dataset_by_part_of_name_with_one_match_returns_the_set(
     set_name = conftest.function_name_hex()
     x = Dataset(
         name=set_name,
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         load_data=False,
         data=xyz_at,
     )
@@ -123,13 +123,13 @@ def test_search_for_dataset_by_part_of_name_with_multiple_matches_returns_list(
 
     x = Dataset(
         name=f"{base_name}_1",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
     json_handler.write(name=x.name, tags=x.tags)
     y = Dataset(
         name=f"{base_name}_2",
-        data_type=SeriesType.simple(),
+        data_type=NONE_AT,
         data=xyz_at,
     )
     json_handler.write(name=y.name, tags=y.tags)
