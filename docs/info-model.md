@@ -86,6 +86,7 @@ Versioning
     : Maintains a single version and overwrites on changed data,
     NAMES
     : (Planned) Maintains new "logical" versions identified by name.
+        The versioning is reserved in the type system, but not implemented in the I/O layer, which refuses it with an explicit `NotImplementedError`.
     AS_OF
     : Maintains new "logical" versions identified by date. Writing twice *for the same as_of date* will overwrite any changed data.
 Temporality
