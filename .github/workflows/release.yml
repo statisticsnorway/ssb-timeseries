@@ -14,6 +14,8 @@ jobs:
       id-token: write
       contents: write
       pull-requests: read
+    outputs:
+      tag: ${{ steps.check-version.outputs.tag }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -77,3 +79,15 @@ jobs:
           tag: ${{ steps.check-version.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docs:
+    name: Documentation
+    needs: release
+    if: always() && needs.release.outputs.tag != ''
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    # Deploys from the release commit on main, not from the tag, because the
+    # github-pages environment only allows deployments from the main branch.
+    uses: ./.github/workflows/docs.yml
