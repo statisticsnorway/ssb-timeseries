@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.9.0
 
 - **Breaking:** The unused `Temporality.NONE` member is removed; only `AT` and `FROM_TO` remain.
   Its use cases are clear (constants without versioning, model parameters with versioning), but it is left out only because deviating from the time-dimension logic would require a substantial refactoring.
