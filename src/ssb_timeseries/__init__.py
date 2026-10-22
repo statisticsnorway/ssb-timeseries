@@ -28,7 +28,7 @@ The other modules of the package are helpers used by these core modules, and not
 
 Some notable exceptions are taxonomy and hierarchy features of :py:mod:`ssb_timeseries.meta` and type definitions in :py:mod:`ssb_timeseries.types`.
 :py:mod:`ssb_timeseries.config` may be used for initial set up and later switching between repositories, if needed.
-The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether data and metada are stored in files or databases and :py:mod:`ssb_timeseries.fs` is an abstraction for local vs GCS file systems.
+The :py:mod:`ssb_timeseries.io` seeks to make the storage agnostic of whether data and metadata are stored in files or databases and :py:mod:`ssb_timeseries.io.fs` is an abstraction for local vs GCS file systems.
 """
 
 from __future__ import annotations

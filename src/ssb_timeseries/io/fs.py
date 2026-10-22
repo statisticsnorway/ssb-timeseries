@@ -1,4 +1,4 @@
-"""The main purpose of the :py:mod:`ssb_timeseries.fs` module is to allow file based IO that works on both a local file system and Google Cloud Storage."""
+"""The main purpose of the :py:mod:`ssb_timeseries.io.fs` module is to allow file based IO that works on both a local file system and Google Cloud Storage."""
 
 from __future__ import annotations
 
