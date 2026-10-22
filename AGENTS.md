@@ -34,7 +34,9 @@ See `README.md` for the domain model and `CONTRIBUTING.md` for environment setup
 
 ## Commit convention
 
-- Use an imperative-mood summary.
+- Never commit, amend, rewrite history, push, or open PRs. Leave changes in the working tree.
+- Do not stage with `git add` unless explicitly requested in the same message.
+- Suggest a commit message, or a complete git command with explicit paths when staging is non-obvious (untracked files, hook rewrites). Use an imperative-mood summary.
 
 ## Testing
 
