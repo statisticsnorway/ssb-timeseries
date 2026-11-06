@@ -1081,7 +1081,7 @@ class Dataset:
         """Yield one Series projection per series name.
 
         Each projection carries the temporal columns and the series' own value column, copied out of the Dataset's frame.
-        `as_of_utc` is set only when the Dataset is `AS_OF` versioned, and tags are the series' own tags.
+        `as_of_utc` is set only when the Dataset is `AS_OF` versioned, and the tags are a copy of the series' own tags.
         Projections are detached in both directions: mutating a Series does not change the Dataset, and changes to the Dataset after iteration do not reach Series already produced.
         """
         date_cols = self.datetime_columns
@@ -1092,7 +1092,7 @@ class Dataset:
                 as_of_utc=self.as_of_utc
                 if self.data_type.versioning == Versioning.AS_OF
                 else None,
-                tags=self.tags["series"][series_name],
+                tags=deepcopy(self.tags["series"][series_name]),
                 data=nw.from_native(self.data).select([*date_cols, series_name]),
             )
 
