@@ -37,10 +37,10 @@ The dataframe and storage boundaries, and the layout that proves the storage one
 
 ## The subsystems and the API
 
-The metadata subsystem, the per-series view, and how operations address a dataset.
+The metadata subsystem, the per-series view, and the conventions an archive follows.
 
 | ID | Title | Released in | Status |
 |---|------|-------------|--------|
 | [0010](0010-taxonomy-as-graph.md) | A taxonomy may be a graph, not only a tree | v0.7.4 | Accepted |
 | [0011](0011-detached-series-projections.md) | Iterating a Dataset yields detached Series projections | v0.8.1 | Accepted |
-| [0012](0012-dataset-ref-and-archive-conventions.md) | I/O operations are addressed by a DatasetRef; archive conventions are data | v0.9.0 | Accepted |
+| [0012](0012-archive-convention-separate-from-destination.md) | An archive's convention is separate from its destination | v0.9.0 | Accepted |
