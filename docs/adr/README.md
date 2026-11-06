@@ -27,12 +27,13 @@ How the library reaches storage, how it is configured, and how a dataset is desc
 
 ## The environment and the stack
 
-The dataframe abstraction and the handler plugin model.
+The dataframe and storage boundaries, and the layout that proves the storage one.
 
 | ID | Title | Released in | Status |
 |---|------|-------------|--------|
 | [0007](0007-interoperability-strategy-and-boundary-abstraction.md) | Interoperability strategy and boundary abstraction | v0.6.0 | Accepted |
-| [0008](0008-pluggable-io-handlers.md) | I/O handlers are plugins that encapsulate a storage layout | v0.7.1 | Accepted |
+| [0008](0008-storage-implementation-behind-api.md) | The storage implementation is a technical detail behind the API | v0.7.1 | Accepted |
+| [0009](0009-hive-partitioning-target-layout.md) | Hive partitioning is the target layout for file-based storage | v0.7.1 | Accepted |
 
 ## The subsystems and the API
 
@@ -40,6 +41,6 @@ The metadata subsystem, the per-series view, and how operations address a datase
 
 | ID | Title | Released in | Status |
 |---|------|-------------|--------|
-| [0009](0009-taxonomy-as-graph.md) | A taxonomy may be structured as a graph, not only a tree. loaded through decoupled loaders | v0.7.4 | Accepted |
-| [0010](0010-detached-series-projections.md) | Iterating a Dataset yields detached Series projections | v0.8.1 | Accepted |
-| [0011](0011-dataset-ref-and-archive-conventions.md) | I/O operations are addressed by a DatasetRef; archive conventions are data | v0.9.0 | Accepted |
+| [0010](0010-taxonomy-as-graph.md) | A taxonomy may be structured as a graph, not only a tree. loaded through decoupled loaders | v0.7.4 | Accepted |
+| [0011](0011-detached-series-projections.md) | Iterating a Dataset yields detached Series projections | v0.8.1 | Accepted |
+| [0012](0012-dataset-ref-and-archive-conventions.md) | I/O operations are addressed by a DatasetRef; archive conventions are data | v0.9.0 | Accepted |
