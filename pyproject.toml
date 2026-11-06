@@ -90,7 +90,9 @@ filterwarnings = [
     "ignore:.*return.*finally.*:SyntaxWarning",
     "ignore:Module already imported so cannot be rewritten:pytest.PytestAssertRewriteWarning", #anyio when running marimo
     "ignore:The 'generic' unit for NumPy timedelta is deprecated:DeprecationWarning",
-
+    # google-api-core warns at import on Python 3.11, whose vendor support ends
+    # 2027-10-24. The project still supports 3.11; drop this filter when it does not.
+    "ignore:You are using a Python version .* which Google will stop supporting:FutureWarning:google.api_core.*",
 ]
 # log_cli = true # does NOT fix issues with configuring loggers for testing
 
