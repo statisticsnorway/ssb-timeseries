@@ -31,7 +31,7 @@ The dataframe abstraction and the handler plugin model.
 
 | ID | Title | Released in | Status |
 |---|------|-------------|--------|
-| [0007](0007-narwhals-internal-dataframe-abstraction.md) | Narwhals is the internal dataframe abstraction | v0.6.0 | Accepted |
+| [0007](0007-interoperability-strategy-and-boundary-abstraction.md) | Interoperability strategy and boundary abstraction | v0.6.0 | Accepted |
 | [0008](0008-pluggable-io-handlers.md) | I/O handlers are plugins that encapsulate a storage layout | v0.7.1 | Accepted |
 
 ## The subsystems and the API
