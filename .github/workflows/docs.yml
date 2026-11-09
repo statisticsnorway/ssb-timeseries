@@ -1,6 +1,9 @@
 name: Documentation
 
 on:
+  workflow_call:
+  # Only fires for tags pushed with a credential other than GITHUB_TOKEN.
+  # The release workflow tags with GITHUB_TOKEN, which does not start a run.
   push:
     tags:
       - "v*"

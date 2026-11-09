@@ -4,15 +4,21 @@ Status: Accepted
 
 ## Context
 
-The work on a shared solution for handling time series at Statistics Norway led to [ADR 0031: Fellesløsning for håndtering av tidsserier](https://adr.ssb.no/0031-fellesloesning-for-haandtering-av-tidsserier/).
+As Statistics Norway is moving from an on-prem platform to the cloud.
+In this process closed source legacy solutions based on SAS, Oracle and the time series database FAME are being replaced by modern open source solutions.
+The platform is designed to protect sensitive data and ensure reproducibility, traceability (lineage/versioning) by adhering strictly to a formal process model.
 
-The full text and background material for that decision are preserved in project notes, including `notes/2025-03-14_0000_adr-0031_fellsløsning-tidsserier.md`. These materials capture the motivations, considered alternatives, and decision drivers that preceded the implementation of the library itself.
+The analysis of user requirements for time series handling let to a PoC with a Python package to standardize storage and information models and integrate with metadata systems and production platform designs.
+The evaluation concluded that 1) a common solution is required, but 2) an approach with a code library rather than a system with its own infrastructure is likely sufficient: [ADR 0031: Fellesløsning for håndtering av tidsserier](https://adr.ssb.no/0031-fellesloesning-for-haandtering-av-tidsserier/).
 
 ## Decision
 
-This ADR records the intent behind the creation of `ssb-timeseries`: to provide a shared, flexible, open-source Python library for time series handling that fits SSB's process and information models, with an emphasis on reproducibility, traceability (lineage/versioning), and integration with SSB's metadata and production platform.
+Statistics Norway's ADR 0031 points to `ssb-timeseries` as the chosen approach to provide a shared, flexible, open-source Python library for time series handling.
+The library is designed as a code library rather than a system with its own infrastructure, and aims to link key concepts and features of the platform and process model with state of the art libraries in the Python ecosystem.
 
 ## Consequences
 
-- The library exists as an implementation of the direction set by ADR 0031.
-- Architectural decisions within the library (e.g. dataset-centric design, type system, pluggable I/O) build on this intent and are recorded in subsequent library-level ADRs.
+- The code library `ssb-timeseries` implements the direction set by ADR 0031.
+- Architectural decisions within the library (e.g. dataset-centric design, type system, pluggable I/O) are recorded in subsequent library-level ADRs.
+- The package does not need to manage access to data and system resources. That is dealt with at a project level.
+- Decisions on whether a larger system complete with storage and service layers are deferred until later.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.1
+
+- The documentation is now published by the release workflow itself, so each released version gets documentation that matches it.
+- Minor documentation enhancements. Architecture decisions added.
+
 ## 0.9.0
 
 - **Breaking:** The unused `Temporality.NONE` member is removed; only `AT` and `FROM_TO` remain.
