@@ -1,5 +1,5 @@
-nox==2026.8.17
+nox==2026.10.20
 # pipx's shared environment requires pip >= 26.2.2.
-pip==26.2.2
+pip==26.3
 nox-poetry==1.2.0
 poetry==2.5.1
