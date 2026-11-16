@@ -13,6 +13,7 @@ from functools import cache
 from typing import Any
 from typing import Protocol
 from typing import TypeAlias
+from typing import cast
 
 import narwhals as nw
 import pyarrow as pa
@@ -124,7 +125,8 @@ class DataLoader:
             return records_to_arrow(self.data)
         elif is_df_like(self.data):
             # Convert DataFrame to list of dicts to ensure schema consistency
-            df_as_list = nw.from_native(self.data).to_arrow().to_pylist()  # type: ignore[type-var]
+            nw_df = cast(nw.DataFrame, nw.from_native(self.data))
+            df_as_list = nw_df.to_arrow().to_pylist()
             return records_to_arrow(df_as_list)
         else:
             # This path should ideally not be reached if types are checked
