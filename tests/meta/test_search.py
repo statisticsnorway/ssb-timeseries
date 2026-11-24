@@ -204,26 +204,7 @@ def test_aggregate_sum_for_flat_list_taxonomy(
     assert (y.numeric_array() > 0).all()
 
 
-@pytest.mark.parametrize(
-    "implementation",
-    [
-        pytest.param(
-            "pandas",
-            marks=pytest.mark.xfail(
-                strict=True,
-                reason="#285: aggregate lineage stores backend-specific column objects",
-            ),
-        ),
-        "polars",
-        pytest.param(
-            "pyarrow",
-            marks=pytest.mark.xfail(
-                strict=True,
-                reason="#285: aggregate lineage stores backend-specific column objects",
-            ),
-        ),
-    ],
-)
+@pytest.mark.parametrize("implementation", ["pandas", "polars", "pyarrow"])
 def test_aggregate_lineage_input_is_json_serializable(implementation: str) -> None:
     """Aggregate lineage metadata must be JSON serializable for every backend."""
     taxonomy = Taxonomy(

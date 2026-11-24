@@ -1879,7 +1879,7 @@ class Dataset:
                 df[new_col_name] = column_aggregate(leaf_node_subset, func)
                 lineage_info = {
                     "criteria": criteria,
-                    "input": leaf_node_subset.columns,
+                    "input": list(nw.from_native(leaf_node_subset).columns),
                     "output": new_col_name,
                     "function": func_name,
                 }
