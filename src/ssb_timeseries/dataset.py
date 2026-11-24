@@ -1350,11 +1350,14 @@ class Dataset:
 
         This will omit datetime columns, hence is convenient for linear algebra operations.
         Optionally, series names can be provided to get a subset of columns.
+        Requested columns are returned in the order supplied; otherwise the frame's current order is used.
         """
-        expr = [ncs.numeric() | ncs.boolean()]
+        frame = nw.from_native(self.data)
         if series:
-            expr.append(nw.col(series))
-        np_array = nw.from_native(self.data).select(expr).to_numpy()
+            columns = [series] if isinstance(series, str) else list(series)
+        else:
+            columns = frame.select(ncs.numeric() | ncs.boolean()).columns
+        np_array = frame.select(columns).to_numpy()
         return cast("NDArray", np_array)
 
     @property

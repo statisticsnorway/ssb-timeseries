@@ -39,6 +39,19 @@ def test_dataset_numeric_array_returns_numpy_nd_array(existing_simple_set) -> No
     assert isinstance(test_set.numeric_array(), np.ndarray)
 
 
+def test_dataset_numeric_array_series_argument_returns_selected_subset(
+    existing_simple_set,
+) -> None:
+    """The series argument selects exactly the named columns, in caller order."""
+    test_set = existing_simple_set
+    selected = list(reversed(test_set.numeric_columns[:2]))
+
+    subset = test_set.numeric_array(selected)
+
+    assert subset.shape == (test_set.pd.shape[0], 2)
+    np.testing.assert_array_equal(subset, test_set.pd[selected].to_numpy())
+
+
 def test_dataset_np_returns_numeric_array_plus_datetime_columns(
     existing_estimate_set,
 ) -> None:
