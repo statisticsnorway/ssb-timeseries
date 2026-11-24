@@ -1,8 +1,10 @@
 import logging
+import operator
 from collections.abc import Generator
 
 import narwhals as nw
 import numpy as np
+import pandas as pd
 import pytest
 
 from ssb_timeseries.dataframes import is_empty
@@ -69,6 +71,56 @@ def to_polars(df: nw.typing.IntoDataFrame):
 
 def to_arrow(df: nw.typing.IntoDataFrame):
     return nw.from_native(df).to_arrow()
+
+
+def _dataset_with_non_alphabetical_columns(
+    name: str, z: float, a: float, implementation: str
+) -> Dataset:
+    """Create a dataset with physical column order z, a (alphabetically: a, z)."""
+    data = pd.DataFrame(
+        {
+            "valid_at": pd.to_datetime(["2025-01-31"], utc=True),
+            "z": [z],
+            "a": [a],
+        }
+    )
+    match implementation:
+        case "polars":
+            data = to_polars(data)
+        case "pyarrow":
+            data = to_arrow(data)
+    return Dataset(
+        name=name,
+        data_type=NONE_AT,
+        data=data,
+        find_existing=False,
+    )
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="#284: arithmetic extracts physical columns but assigns them to sorted labels",
+)
+@pytest.mark.parametrize(
+    "operation, expected",
+    [
+        pytest.param(operator.add, {"z": 22.0, "a": 9.0}, id="add"),
+        pytest.param(operator.sub, {"z": 18.0, "a": 3.0}, id="subtract"),
+        pytest.param(operator.mul, {"z": 40.0, "a": 18.0}, id="multiply"),
+        pytest.param(operator.truediv, {"z": 10.0, "a": 2.0}, id="divide"),
+    ],
+)
+@pytest.mark.parametrize("implementation", ["pandas", "polars", "pyarrow"])
+def test_dataset_math_assigns_results_to_correct_series_names(
+    operation, expected, implementation
+) -> None:
+    """Results must follow series names, not physical column order."""
+    left = _dataset_with_non_alphabetical_columns("left", 20.0, 6.0, implementation)
+    right = _dataset_with_non_alphabetical_columns("right", 2.0, 3.0, implementation)
+
+    actual = operation(left, right).pd.set_index("valid_at").iloc[0].to_dict()
+
+    assert actual == expected
 
 
 # ================================ THE TESTS =================================
