@@ -1,9 +1,11 @@
 # mypy: ignore-errors = True
 
 import itertools
+import json
 import logging
 import uuid
 
+import narwhals as nw
 import numpy as np
 import pytest
 
@@ -12,9 +14,11 @@ from ssb_timeseries import sample_metadata
 from ssb_timeseries.dataset import Dataset
 from ssb_timeseries.dataset import is_df_like
 from ssb_timeseries.dates import date_utc
+from ssb_timeseries.io.json_helpers import sanitize_for_json
 from ssb_timeseries.meta.taxonomy import Taxonomy
 from ssb_timeseries.sample_data import create_df
 from ssb_timeseries.types import AS_OF_AT
+from ssb_timeseries.types import NONE_AT
 
 # ---mypy: disable-error-code="attr-defined,no-untyped-def,union-attr,index,call-overload"
 
@@ -198,6 +202,39 @@ def test_aggregate_sum_for_flat_list_taxonomy(
     )
     assert not np.isnan(y.numeric_array()).any()
     assert (y.numeric_array() > 0).all()
+
+
+@pytest.mark.parametrize("implementation", ["pandas", "polars", "pyarrow"])
+def test_aggregate_lineage_input_is_json_serializable(implementation: str) -> None:
+    """Aggregate lineage metadata must be JSON serializable for every backend."""
+    taxonomy = Taxonomy(
+        data=[
+            {"code": "a", "parentCode": "0"},
+            {"code": "b", "parentCode": "0"},
+        ]
+    )
+    frame = create_df(
+        ["a", "b"], start_date="2024-01-01", end_date="2024-02-01", freq="MS"
+    )
+    match implementation:
+        case "polars":
+            frame = nw.from_native(frame).to_polars()
+        case "pyarrow":
+            frame = nw.from_native(frame).to_arrow()
+
+    dataset = Dataset(
+        name=f"aggregate-lineage-{implementation}",
+        data_type=NONE_AT,
+        data=frame,
+        attributes=["A"],
+        find_existing=False,
+    )
+    aggregated = dataset.aggregate(["A"], [taxonomy], ["sum"])
+
+    inputs = aggregated.tags["calculations"]["sum(0)"]["input"]
+    assert isinstance(inputs, list)
+    assert all(isinstance(name, str) for name in inputs)
+    json.dumps(sanitize_for_json(aggregated.tags))
 
 
 def test_aggregate_multiple_functions_for_flat_list_taxonomy(
