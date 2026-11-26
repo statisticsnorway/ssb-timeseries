@@ -97,10 +97,12 @@ def _dataset_with_non_alphabetical_columns(
     )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="#284: arithmetic extracts physical columns but assigns them to sorted labels",
-)
+def _reorder_dataset_columns(ds: Dataset, columns: list[str]) -> Dataset:
+    """Reorder a dataset's current columns to exercise post-init mutation."""
+    ds.data = nw.from_native(ds.data).select(columns).to_native()
+    return ds
+
+
 @pytest.mark.parametrize(
     "operation, expected",
     [
@@ -121,6 +123,56 @@ def test_dataset_math_assigns_results_to_correct_series_names(
     actual = operation(left, right).pd.set_index("valid_at").iloc[0].to_dict()
 
     assert actual == expected
+
+
+@pytest.mark.parametrize("implementation", ["pandas", "polars", "pyarrow"])
+def test_dataset_math_with_scalar_uses_current_column_order(implementation) -> None:
+    """Scalar arithmetic assigns results by current series names."""
+    left = _dataset_with_non_alphabetical_columns("left", 20.0, 6.0, implementation)
+    left = _reorder_dataset_columns(left, ["valid_at", "z", "a"])
+
+    actual = (left * 2).pd.set_index("valid_at").iloc[0].to_dict()
+
+    assert actual == {"z": 40.0, "a": 12.0}
+
+
+@pytest.mark.parametrize("implementation", ["pandas", "polars", "pyarrow"])
+def test_dataset_math_aligns_operands_by_series_name(implementation) -> None:
+    """Dataset and DataFrame operands are aligned by name, not physical position."""
+    left = _dataset_with_non_alphabetical_columns("left", 20.0, 6.0, implementation)
+    right = _dataset_with_non_alphabetical_columns("right", 2.0, 3.0, implementation)
+    left = _reorder_dataset_columns(left, ["valid_at", "z", "a"])
+    right = _reorder_dataset_columns(right, ["valid_at", "a", "z"])
+
+    dataset_result = (left / right).pd.set_index("valid_at").iloc[0].to_dict()
+    frame_result = (left + right.pd).pd.set_index("valid_at").iloc[0].to_dict()
+
+    assert dataset_result == {"z": 10.0, "a": 2.0}
+    assert frame_result == {"z": 22.0, "a": 9.0}
+
+
+@pytest.mark.parametrize("implementation", ["pandas", "polars", "pyarrow"])
+def test_dataset_math_treats_booleans_as_numeric_values(implementation) -> None:
+    """Boolean series participate in NumPy math as 0/1 values."""
+    data = pd.DataFrame(
+        {
+            "valid_at": pd.to_datetime(["2025-01-31"], utc=True),
+            "flag": [True],
+            "amount": [10.0],
+        }
+    )
+    match implementation:
+        case "polars":
+            data = to_polars(data)
+        case "pyarrow":
+            data = to_arrow(data)
+    ds = Dataset(name="mixed", data_type=NONE_AT, data=data, find_existing=False)
+
+    added = (ds + 2).pd.set_index("valid_at").iloc[0].to_dict()
+    negated = (-ds).pd.set_index("valid_at").iloc[0].to_dict()
+
+    assert added == {"amount": 12.0, "flag": 3.0}
+    assert negated == {"amount": -10.0, "flag": -1.0}
 
 
 # ================================ THE TESTS =================================
@@ -493,6 +545,25 @@ def test_dataset_calc_mov_avg_centered_window_length_of_one_equals_input(
     check = raw == calc
     logging.debug("Check:\n%s", check)
     assert check.all()
+
+
+def test_dataset_moving_average_uses_current_column_order() -> None:
+    """Moving averages are assigned by current series names."""
+    data = pd.DataFrame(
+        {
+            "valid_at": pd.to_datetime(
+                ["2025-01-31", "2025-02-28", "2025-03-31"], utc=True
+            ),
+            "z": [1.0, 2.0, 3.0],
+            "a": [10.0, 20.0, 30.0],
+        }
+    )
+    raw = Dataset(name="mov-avg", data_type=NONE_AT, data=data, find_existing=False)
+    raw = _reorder_dataset_columns(raw, ["valid_at", "z", "a"])
+
+    calc = raw.moving_average(0, 0)
+
+    assert calc.pd[["z", "a"]].equals(raw.pd[["z", "a"]])
 
 
 def test_dataset_calc_xyz_mov_avg_lag_3_to_lag_1_returns_expected_result(

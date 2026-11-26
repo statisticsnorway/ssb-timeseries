@@ -111,6 +111,19 @@ def default_repository() -> str:
     return candidates[0]
 
 
+def _numeric_array(frame: IntoFrame | Frame, columns: list[str]) -> NDArray:
+    """Return selected series as a NumPy array with booleans represented as floats."""
+    nw_frame = nw.from_native(frame)
+    # Cast booleans to 0/1 floats: native bool-to-NumPy conversion varies by backend.
+    # Decimal dtype promotion is deliberately left to a separate policy.
+    boolean_columns = set(nw_frame.select(ncs.boolean()).columns)
+    expressions = [
+        nw.col(name).cast(nw.Float64) if name in boolean_columns else nw.col(name)
+        for name in columns
+    ]
+    return cast("NDArray", nw_frame.select(expressions).to_numpy())
+
+
 def _identify_data_type(**kwargs: Any) -> SeriesType | None:
     """Analyse kwargs to determine if data type is supplied or can be inferred."""
     data_type = kwargs.get("data_type", "")
@@ -377,7 +390,11 @@ class Dataset:
             data = empty_frame(columns=self.data_type.date_columns)
         else:
             raise ValueError("Unhandled data provided.")
-        return standardize_dates(data)
+        standardized = standardize_dates(data)
+        frame = nw.from_native(standardized)
+        date_columns = frame.select(ncs.by_dtype(nw.Datetime, nw.Date)).columns
+        series_columns = sorted(set(frame.columns) - set(date_columns))
+        return frame.select([*date_columns, *series_columns]).to_native()
 
     def copy(
         self,
@@ -529,6 +546,11 @@ class Dataset:
             case _:
                 return versions
 
+    def _columns(self, selector: ncs.Selector, *, sort: bool = True) -> list[str]:
+        """Get column names matching a Narwhals selector."""
+        columns = list(self.nw.select(selector).columns)
+        return sorted(columns) if sort else columns
+
     @property
     def series(self) -> list[str]:
         """Get (sorted) series names, ie. all columns that are not time related.
@@ -542,9 +564,7 @@ class Dataset:
         Ie that `series` yields the same result as one of the specialized functions `numeric_columns` or `boolean_columns`.
         """
         if not is_empty(self.data):
-            dt_expr = ~ncs.by_dtype(nw.Datetime, nw.Date)
-            non_datetime_cols = self.nw.select(dt_expr).columns
-            return sorted(non_datetime_cols)
+            return self._columns(~ncs.by_dtype(nw.Datetime, nw.Date))
         elif self.tags and "series" in self.tags:
             return sorted(self.tags["series"].keys())
         return []
@@ -1329,36 +1349,39 @@ class Dataset:
 
     @property
     def boolean_columns(self) -> list[str]:
-        """Get names of all numeric series columns (ie columns that are not datetime)."""
-        return list(nw.from_native(self.data).select(ncs.boolean()).columns)
+        """Get names of all boolean series columns."""
+        return self._columns(ncs.boolean())
 
     @property
     def datetime_columns(self) -> list[str]:
         """Get names of applicable datetime columns (as_of, valid_at, valid_from, valid_to)."""
-        return list(nw.from_native(self.data).select(ncs.datetime()).columns)
-        # no need to check against column names (for current data type)?
-        # intersect = set(nw.from_native(self.data).columns) & {"valid_at", "valid_from", "valid_to"}
-        # return sorted(list(intersect))
+        return self._columns(ncs.datetime())
 
     @property
     def numeric_columns(self) -> list[str]:
         """Get names of all numeric series columns (ie columns that are not datetime)."""
-        return sorted(nw.from_native(self.data).select(ncs.numeric()).columns)
+        return self._columns(ncs.numeric())
 
     def numeric_array(self, series: str | list[str] = "") -> NDArray:
         """Get the data of numeric series columns in matrix format as a Numpy NDArray.
 
         This will omit datetime columns, hence is convenient for linear algebra operations.
+        Booleans are included and represented as floats for stable NumPy math.
         Optionally, series names can be provided to get a subset of columns.
         Requested columns are returned in the order supplied; otherwise the frame's current order is used.
         """
-        frame = nw.from_native(self.data)
+        # Include booleans as numeric values; other dtype promotions are not decided here.
+        value_columns = self._columns(ncs.numeric() | ncs.boolean(), sort=False)
         if series:
             columns = [series] if isinstance(series, str) else list(series)
+            invalid = [name for name in columns if name not in value_columns]
+            if invalid:
+                raise ValueError(
+                    f"numeric_array() accepts numeric or boolean series only; invalid columns: {invalid}."
+                )
         else:
-            columns = frame.select(ncs.numeric() | ncs.boolean()).columns
-        np_array = frame.select(columns).to_numpy()
-        return cast("NDArray", np_array)
+            columns = value_columns
+        return _numeric_array(self.data, columns)
 
     @property
     def np(self) -> NDArray:
@@ -1432,7 +1455,7 @@ class Dataset:
             Self:  A new dataset with the result, derived from the inputs and the function applied.
             If 'other' is not recognized, the 'NotImplemented' Singleton is returned so that Python can invoke  '__r<method>__' of other class.
         """
-        num_cols = self.numeric_columns
+        num_cols = self._columns(ncs.numeric() | ncs.boolean(), sort=False)
         out = self.copy()
 
         if isinstance(other, Dataset):
@@ -1443,7 +1466,10 @@ class Dataset:
             # ValueError: operands could not be broadcast together with shapes (0,0) (4,3)
             # observed here for 'test_algebra_expression_with_multiple_dataset' -->
             # print(f"DATASET.math({func.__name__})\n=======\n{str(self)=} \n---\n{str(other)=}\n=======")
-            result = func(self.numeric_array(), other.numeric_array())
+            other_cols = other._columns(ncs.numeric() | ncs.boolean(), sort=False)
+            if set(other_cols) == set(num_cols):
+                other_cols = num_cols
+            result = func(self.numeric_array(num_cols), other.numeric_array(other_cols))
             out[num_cols] = result
             if isinstance(self.as_of_utc, datetime) and isinstance(
                 other.as_of_utc, datetime
@@ -1458,13 +1484,13 @@ class Dataset:
 
         elif other is None:
             logger.debug(f"DATASET {self.name}: .math({self.name}.{func.__name__}).")
-            result = func(self.numeric_array())
+            result = func(self.numeric_array(num_cols))
             out[num_cols] = result
             other_name = ""
 
         elif is_df_like(other):
-            other = nw.from_native(other).select(num_cols).to_numpy()
-            out[num_cols] = func(self.numeric_array(), other)
+            other_array = _numeric_array(other, num_cols)
+            out[num_cols] = func(self.numeric_array(num_cols), other_array)
             other_name = "df"
 
         # TODO: Add coverage elif isinstance(other, pd.Series):
@@ -1474,7 +1500,7 @@ class Dataset:
             )
 
         elif isinstance(other, int | float):
-            result = func(self.numeric_array(), other)
+            result = func(self.numeric_array(num_cols), other)
             out[num_cols] = result
             other_name = str(other)
 
@@ -1489,7 +1515,7 @@ class Dataset:
                 other.shape[0] == len(self.data)
                 or other.shape[0] == len(self.data.columns)
             ):
-                out[num_cols] = func(self.numeric_array(), other)
+                out[num_cols] = func(self.numeric_array(num_cols), other)
             else:
                 raise ValueError(
                     f"Incompatible shapes for element-wise {func.__name__}"
@@ -1921,7 +1947,8 @@ class Dataset:
         TO DO: Add parameter to ensure/alter sampling frequency before calculating.
         """
         n = stop - start + 1
-        numbers = self.numeric_array()
+        num_cols = self._columns(ncs.numeric() | ncs.boolean(), sort=False)
+        numbers = self.numeric_array(num_cols)
         rows, columns = numbers.shape
 
         r = np.array(range(rows))
@@ -1938,7 +1965,7 @@ class Dataset:
 
         averages = diffs / n
         out = self.copy(f"{self.name}.mov_avg({start},{stop})")
-        out[self.numeric_columns] = averages[0:rows, :]
+        out[num_cols] = averages[0:rows, :]
 
         # how to handle nans? choice between multiple strategies;
         # ... + choice whether to distinguish between beginning/end/middle?
