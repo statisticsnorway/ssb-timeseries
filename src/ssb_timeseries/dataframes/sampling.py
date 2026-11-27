@@ -152,7 +152,7 @@ def group_by(
     if not agg_mapping:
         raise ValueError("Either agg_mapping or func_name must be specified.")
 
-    temporal = temporal_column_schema(df)
+    temporal = temporal_column_schema(df_raw)
     time_col = _grouping_time_column(temporal, time_col)
 
     # Define a temporary name for our grouping key
