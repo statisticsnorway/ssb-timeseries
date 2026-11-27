@@ -8,17 +8,31 @@ It uses and re-exports the tag type aliases defined in
 
 from __future__ import annotations
 
+from collections import Counter
+from collections.abc import Iterable
+from collections.abc import Iterator
+from collections.abc import Sequence
 from copy import deepcopy
+from dataclasses import dataclass
+from itertools import combinations
 from typing import Any
+from typing import cast
 from typing import no_type_check
 
 import ssb_timeseries as ts
 from ssb_timeseries.types import DatasetTags
+from ssb_timeseries.types import SeriesName
 from ssb_timeseries.types import SeriesTags
+from ssb_timeseries.types import TagKey
 from ssb_timeseries.types import Tags
 from ssb_timeseries.types import TagValue
 
-# mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-any-return"
+# mypy: disable-error-code="assignment,override,type-arg,attr-defined,no-untyped-def,import-untyped,union-attr,call-overload,arg-type,index,no-any-return,comparison-overlap,return-value,var-annotated"
+
+DEFAULT_SERIES_IDENTITY_KEYS = frozenset(
+    {"name", "dataset", "repository", "versioning", "temporality"}
+)
+"""Series identity/location/type keys excluded from comparisons by default."""
 
 
 def matches_criteria(tag: Tags, criteria: Tags) -> bool:
@@ -329,3 +343,288 @@ def unique_tag_values(arg: Any) -> list[str]:
         raise ValueError(f"Unsupported type: {type(arg)}")
 
     return lst
+
+
+@dataclass(frozen=True)
+class TagDiff:
+    """Result of comparing two series tag dictionaries."""
+
+    equal: bool
+    missing_in_a: list[TagKey]
+    missing_in_b: list[TagKey]
+    different: dict[TagKey, tuple[TagValue, TagValue]]
+
+
+def _is_tag_value(value: object) -> bool:
+    """Check whether a value has the TagValue shape."""
+    return isinstance(value, str) or (
+        isinstance(value, list) and all(isinstance(item, str) for item in value)
+    )
+
+
+def _iter_tag_dicts(tags: Tags | SeriesTags) -> Iterator[Tags]:
+    """Iterate over the individual tag dictionaries in Tags or SeriesTags."""
+    if not tags:
+        return iter(())
+    if all(isinstance(value, dict) for value in tags.values()):
+        return iter(cast("SeriesTags", tags).values())
+    return iter([cast("Tags", tags)])
+
+
+def _available_keys(*collections: Tags | SeriesTags) -> set[TagKey]:
+    """Return all TagValue keys present in the supplied tag collections."""
+    available: set[TagKey] = set()
+    for tags in collections:
+        for tag in _iter_tag_dicts(tags):
+            available.update(key for key, value in tag.items() if _is_tag_value(value))
+    return available
+
+
+def _resolve_keys(
+    available: set[TagKey],
+    include: Iterable[TagKey],
+    exclude: Iterable[TagKey],
+    *,
+    apply_default_exclusions: bool = True,
+) -> list[TagKey]:
+    """Resolve comparison keys with include/exclude modifications."""
+    included = set(include)
+    excluded = set(exclude)
+    conflicts = included & excluded
+    if conflicts:
+        raise ValueError(
+            f"Tag keys can not be both included and excluded: {sorted(conflicts)}."
+        )
+    unknown = included - available
+    if unknown:
+        raise ValueError(f"Unknown tag keys can not be included: {sorted(unknown)}.")
+    base = (
+        available
+        if not apply_default_exclusions
+        else available - DEFAULT_SERIES_IDENTITY_KEYS
+    )
+    keys = (base - excluded) | included
+    return sorted(keys)
+
+
+def _comparable_value(value: object) -> tuple[str, ...] | None:
+    """Return a comparable tuple for a TagValue, or None for non-tag values."""
+    if not _is_tag_value(value):
+        return None
+    normalized = to_tag_value(cast("TagValue", value))
+    return (normalized,) if isinstance(normalized, str) else tuple(normalized)
+
+
+def _series_signature(tag: Tags, keys: Sequence[TagKey]) -> tuple[object, ...]:
+    """Return the comparable signature of a series for the selected keys."""
+    return tuple(_comparable_value(tag.get(key)) for key in keys)
+
+
+def comparison_keys(
+    tags: Tags | SeriesTags,
+    *,
+    include: Iterable[TagKey] = (),
+    exclude: Iterable[TagKey] = (),
+) -> list[TagKey]:
+    """Return sorted tag keys used for comparisons.
+
+    By default all ordinary tag values are included, except series identity and
+    location tags. ``include`` can reintroduce excluded keys, while ``exclude``
+    can omit normally included keys.
+    """
+    return _resolve_keys(_available_keys(tags), include, exclude)
+
+
+def find_dimensions(
+    tags: SeriesTags,
+    *,
+    include: Iterable[TagKey] = (),
+    exclude: Iterable[TagKey] = (),
+    max_combination_size: int = 2,
+) -> list[tuple[TagKey, ...]]:
+    """Find minimal attribute combinations that distinguish all series.
+
+    Constant and non-tag fields are ignored through ``comparison_keys``.
+    Combinations are tested shortest first, and supersets of shorter matches are
+    omitted.
+    """
+    if max_combination_size < 1:
+        raise ValueError("max_combination_size must be at least 1.")
+    keys = comparison_keys(tags, include=include, exclude=exclude)
+    dimensions: list[tuple[TagKey, ...]] = []
+    for size in range(1, min(max_combination_size, len(keys)) + 1):
+        for candidate in combinations(keys, size):
+            if any(set(found).issubset(candidate) for found in dimensions):
+                continue
+            signatures = [_series_signature(tag, candidate) for tag in tags.values()]
+            if len(set(signatures)) == len(signatures):
+                dimensions.append(candidate)
+    return dimensions
+
+
+def candidate_key_groups(
+    tags: SeriesTags,
+    keys: Sequence[TagKey] | None = None,
+    *,
+    include: Iterable[TagKey] = (),
+    exclude: Iterable[TagKey] = (),
+) -> dict[tuple[object, ...], list[SeriesName]]:
+    """Group series by the values of a candidate key.
+
+    If ``keys`` is omitted, the candidate key is the current comparison keys.
+    Explicit keys override that default, and ``include``/``exclude`` still modify
+    the selected keys.
+    """
+    if keys is None:
+        selected = comparison_keys(tags, include=include, exclude=exclude)
+    else:
+        available = _available_keys(tags)
+        unknown = set(include) - available
+        if unknown:
+            raise ValueError(
+                f"Unknown tag keys can not be included: {sorted(unknown)}."
+            )
+        selected = _resolve_keys(
+            set(keys) | set(include),
+            include,
+            exclude,
+            apply_default_exclusions=False,
+        )
+    grouped: dict[tuple[object, ...], list[SeriesName]] = {}
+    for series_name, tag in tags.items():
+        grouped.setdefault(_series_signature(tag, selected), []).append(series_name)
+    return grouped
+
+
+def tag_diff(
+    a: Tags,
+    b: Tags,
+    *,
+    include: Iterable[TagKey] = (),
+    exclude: Iterable[TagKey] = (),
+) -> TagDiff:
+    """Compare two series tag dictionaries over the assessed tag keys."""
+    keys = _resolve_keys(_available_keys(a, b), include, exclude)
+    missing_in_a = [key for key in keys if key not in a]
+    missing_in_b = [key for key in keys if key not in b]
+    different = {
+        key: (a[key], b[key])
+        for key in keys
+        if key in a
+        and key in b
+        and _comparable_value(a[key]) != _comparable_value(b[key])
+    }
+    return TagDiff(
+        equal=not (missing_in_a or missing_in_b or different),
+        missing_in_a=missing_in_a,
+        missing_in_b=missing_in_b,
+        different=different,
+    )
+
+
+def tags_equal(
+    a: Tags,
+    b: Tags,
+    *,
+    include: Iterable[TagKey] = (),
+    exclude: Iterable[TagKey] = (),
+) -> bool:
+    """Check whether two series tag dictionaries are equal."""
+    return tag_diff(a, b, include=include, exclude=exclude).equal
+
+
+def tag_overlap_ratio(
+    a: Tags,
+    b: Tags,
+    *,
+    include: Iterable[TagKey] = (),
+    exclude: Iterable[TagKey] = (),
+) -> float:
+    """Return the fraction of assessed tag keys that match between two tags."""
+    keys = _resolve_keys(_available_keys(a, b), include, exclude)
+    if not keys:
+        return 0.0
+    matches = 0
+    for key in keys:
+        a_value = _comparable_value(a.get(key))
+        b_value = _comparable_value(b.get(key))
+        if a_value is not None and a_value == b_value:
+            matches += 1
+    return matches / len(keys)
+
+
+def match_series_by_tags(
+    source: SeriesTags,
+    target: SeriesTags,
+    *,
+    include: Iterable[TagKey] = (),
+    exclude: Iterable[TagKey] = (),
+) -> dict[SeriesName, SeriesName]:
+    """Map target series names to uniquely matching source series names."""
+    keys = _resolve_keys(_available_keys(source, target), include, exclude)
+    if not keys:
+        raise ValueError("No tag attributes are available for matching.")
+    source_signatures: dict[tuple[object, ...], list[SeriesName]] = {}
+    for source_name, tag in source.items():
+        source_signatures.setdefault(_series_signature(tag, keys), []).append(
+            source_name
+        )
+    mapping: dict[SeriesName, SeriesName] = {}
+    used: set[SeriesName] = set()
+    for target_name, tag in target.items():
+        candidates = source_signatures.get(_series_signature(tag, keys), [])
+        if len(candidates) != 1:
+            raise ValueError(
+                f"Expected exactly one source series matching {target_name!r}; "
+                f"found {candidates}."
+            )
+        source_name = candidates[0]
+        if source_name in used:
+            raise ValueError(
+                f"Source series {source_name!r} matches multiple target series."
+            )
+        mapping[target_name] = source_name
+        used.add(source_name)
+    return mapping
+
+
+def reorder_series_tags(
+    tags: SeriesTags,
+    order: Sequence[SeriesName],
+    *,
+    strict: bool = True,
+) -> SeriesTags:
+    """Return series tags reordered by series name."""
+    current = list(tags)
+    if strict:
+        if len(set(order)) != len(order):
+            raise ValueError("Series order contains duplicates.")
+        if set(order) != set(current):
+            raise ValueError("Series order must contain every series exactly once.")
+        return {name: deepcopy(tags[name]) for name in order}
+    reordered = {name: deepcopy(tags[name]) for name in order if name in tags}
+    reordered.update(
+        {name: deepcopy(tags[name]) for name in current if name not in reordered}
+    )
+    return reordered
+
+
+def series_overlap_ratio(
+    source: SeriesTags,
+    target: SeriesTags,
+    *,
+    include: Iterable[TagKey] = (),
+    exclude: Iterable[TagKey] = (),
+) -> float:
+    """Return the fraction of target series with a unique tag match in source."""
+    keys = _resolve_keys(_available_keys(source, target), include, exclude)
+    if not keys or not target:
+        return 0.0
+    source_counts = Counter(_series_signature(tag, keys) for tag in source.values())
+    target_counts = Counter(_series_signature(tag, keys) for tag in target.values())
+    matched = sum(
+        count
+        for signature, count in target_counts.items()
+        if source_counts[signature] == 1 and count == 1
+    )
+    return matched / len(target)
