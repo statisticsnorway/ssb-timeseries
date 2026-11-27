@@ -170,6 +170,26 @@ def test_match_series_by_tags_ignores_identity_location_and_type_tags() -> None:
         match_series_by_tags(source, target, include={"repository"})
 
 
+def test_match_series_by_tags_accepts_keyword_only_explicit_keys() -> None:
+    source = {
+        "s1": {"geo": "NO", "kind": "x"},
+        "s2": {"geo": "NO", "kind": "y"},
+    }
+    target = {
+        "t1": {"geo": "SE", "kind": "x"},
+        "t2": {"geo": "SE", "kind": "y"},
+    }
+
+    assert match_series_by_tags(source, target, keys=["kind"]) == {
+        "t1": "s1",
+        "t2": "s2",
+    }
+    with pytest.raises(ValueError, match="exactly one source series"):
+        match_series_by_tags(source, target)
+    with pytest.raises(TypeError):
+        match_series_by_tags(source, target, ["kind"])  # type: ignore[misc]
+
+
 def test_reorder_series_tags_is_ordered_and_detached() -> None:
     tags = {"z": {"geo": "NO"}, "a": {"geo": "SE"}}
 

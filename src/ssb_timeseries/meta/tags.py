@@ -420,6 +420,27 @@ def _series_signature(tag: Tags, keys: Sequence[TagKey]) -> tuple[object, ...]:
     return tuple(_comparable_value(tag.get(key)) for key in keys)
 
 
+def _selected_keys(
+    collections: Sequence[Tags | SeriesTags],
+    keys: Sequence[TagKey] | None,
+    include: Iterable[TagKey],
+    exclude: Iterable[TagKey],
+) -> list[TagKey]:
+    """Resolve comparison keys, optionally restricted to explicit keys."""
+    available = _available_keys(*collections)
+    if keys is None:
+        return _resolve_keys(available, include, exclude)
+    unknown = set(include) - available
+    if unknown:
+        raise ValueError(f"Unknown tag keys can not be included: {sorted(unknown)}.")
+    return _resolve_keys(
+        set(keys) | set(include),
+        include,
+        exclude,
+        apply_default_exclusions=False,
+    )
+
+
 def comparison_keys(
     tags: Tags | SeriesTags,
     *,
@@ -475,21 +496,7 @@ def candidate_key_groups(
     Explicit keys override that default, and ``include``/``exclude`` still modify
     the selected keys.
     """
-    if keys is None:
-        selected = comparison_keys(tags, include=include, exclude=exclude)
-    else:
-        available = _available_keys(tags)
-        unknown = set(include) - available
-        if unknown:
-            raise ValueError(
-                f"Unknown tag keys can not be included: {sorted(unknown)}."
-            )
-        selected = _resolve_keys(
-            set(keys) | set(include),
-            include,
-            exclude,
-            apply_default_exclusions=False,
-        )
+    selected = _selected_keys((tags,), keys, include, exclude)
     grouped: dict[tuple[object, ...], list[SeriesName]] = {}
     for series_name, tag in tags.items():
         grouped.setdefault(_series_signature(tag, selected), []).append(series_name)
@@ -557,6 +564,7 @@ def match_series_by_tags(
     source: SeriesTags,
     target: SeriesTags,
     *,
+    keys: Sequence[TagKey] | None = None,
     include: Iterable[TagKey] = (),
     exclude: Iterable[TagKey] = (),
 ) -> dict[SeriesName, SeriesName]:
@@ -564,19 +572,21 @@ def match_series_by_tags(
 
     The returned mapping is ``{target_series_name: source_series_name}``, which
     can be used to reorder source series to match the target series.
+    If ``keys`` is omitted, comparison keys are used; explicit keys override
+    that default, and ``include``/``exclude`` still modify the selected keys.
     """
-    keys = _resolve_keys(_available_keys(source, target), include, exclude)
-    if not keys:
+    selected = _selected_keys((source, target), keys, include, exclude)
+    if not selected:
         raise ValueError("No tag attributes are available for matching.")
     source_signatures: dict[tuple[object, ...], list[SeriesName]] = {}
     for source_name, tag in source.items():
-        source_signatures.setdefault(_series_signature(tag, keys), []).append(
+        source_signatures.setdefault(_series_signature(tag, selected), []).append(
             source_name
         )
     mapping: dict[SeriesName, SeriesName] = {}
     used: set[SeriesName] = set()
     for target_name, tag in target.items():
-        candidates = source_signatures.get(_series_signature(tag, keys), [])
+        candidates = source_signatures.get(_series_signature(tag, selected), [])
         if len(candidates) != 1:
             raise ValueError(
                 f"Expected exactly one source series matching {target_name!r}; "

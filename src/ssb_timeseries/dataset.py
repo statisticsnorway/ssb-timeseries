@@ -25,6 +25,7 @@ import re
 import warnings
 from collections.abc import Iterable
 from collections.abc import Iterator
+from collections.abc import Sequence
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -87,6 +88,18 @@ if TYPE_CHECKING:
     import polars as pl
 
 # mypy: disable-error-code="assignment,attr-defined,union-attr,arg-type,call-overload,no-untyped-call,dict-item,no-untyped-def,no-any-return"
+
+
+class AlignmentWarning(UserWarning):
+    """Base warning for potentially ambiguous Dataset alignment."""
+
+
+class SeriesAlignmentWarning(AlignmentWarning):
+    """Warning for potentially ambiguous series alignment."""
+
+
+class TemporalAlignmentWarning(AlignmentWarning):
+    """Warning for potentially ambiguous temporal alignment."""
 
 
 def default_repository() -> str:
@@ -1433,6 +1446,168 @@ class Dataset:
         """
         return self.nw.to_polars()
 
+    def _warn_if_series_misaligned(
+        self,
+        other: Dataset,
+        left_columns: list[str],
+        right_columns: list[str],
+    ) -> None:
+        """Warn when positional dataset math contradicts a unique tag match."""
+        if set(left_columns) == set(right_columns):
+            if left_columns != right_columns:
+                logger.debug(
+                    "Dataset %s: reordering %s series by name before math.",
+                    self.name,
+                    other.name,
+                )
+            return
+
+        left_tags = {
+            name: deepcopy(self.series_tags[name])
+            for name in left_columns
+            if name in self.series_tags
+        }
+        right_tags = {
+            name: deepcopy(other.series_tags[name])
+            for name in right_columns
+            if name in other.series_tags
+        }
+        if not left_tags or not right_tags:
+            return
+        try:
+            mapping = meta.match_series_by_tags(right_tags, left_tags)
+        except ValueError:
+            return
+        expected = [mapping[name] for name in left_columns if name in mapping]
+        actual = [name for name in right_columns if name in mapping.values()]
+        if expected != actual:
+            warnings.warn(
+                "Dataset operands have different series names and matching tags "
+                "occur in a different order; values are combined positionally. "
+                "Call align_series() on one operand before arithmetic to make "
+                "the mapping explicit.",
+                SeriesAlignmentWarning,
+                stacklevel=2,
+            )
+
+    def align_series(
+        self,
+        other: Self,
+        *,
+        names: bool | Sequence[str] = False,
+        tags: bool | Sequence[str] = False,
+        new_name: str = "",
+    ) -> Self:
+        """Return a copy of self with series aligned to other.
+
+        ``other`` is the target, so the returned Dataset has target series
+        names in target physical order. Exactly one of ``names`` or ``tags``
+        must be provided. ``names=True`` matches every target name; a sequence
+        restricts the result to those names. ``tags=True`` uses comparison
+        keys; a sequence uses only those keys.
+
+        This aligns series only. Dates, row order and temporal keys are left
+        unchanged.
+
+        Args:
+            other: Target Dataset.
+            names: Match by identical series names.
+            tags: Match by series tags.
+            new_name: Optional name for the returned Dataset.
+
+        Returns:
+            Self: A new Dataset aligned to ``other``.
+
+        Raises:
+            TypeError: If ``other`` is not a Dataset.
+            ValueError: If criteria are missing, ambiguous or incomplete.
+        """
+        if bool(names) == bool(tags):
+            raise ValueError("align_series() requires exactly one of names or tags.")
+        if not isinstance(other, Dataset):
+            raise TypeError("align_series() requires a Dataset operand.")
+
+        value_selector = ncs.numeric() | ncs.boolean()
+        source_columns = self._columns(value_selector, sort=False)
+        target_columns = other._columns(value_selector, sort=False)
+
+        if names:
+            if isinstance(names, bool):
+                requested = list(target_columns)
+            else:
+                if isinstance(names, str):
+                    raise TypeError("names must be a bool or a sequence of names.")
+                requested = list(names)
+                if len(set(requested)) != len(requested):
+                    raise ValueError("names must not contain duplicates.")
+                unknown_target = [
+                    name for name in requested if name not in target_columns
+                ]
+                if unknown_target:
+                    raise ValueError(
+                        f"Names not found in target dataset: {unknown_target}."
+                    )
+            unknown_source = [name for name in requested if name not in source_columns]
+            if unknown_source:
+                raise ValueError(
+                    f"Names not found in source dataset: {unknown_source}."
+                )
+            target_order = [name for name in target_columns if name in requested]
+            mapping: dict[str, str] = {name: name for name in target_order}
+        else:
+            source_tags = {
+                name: deepcopy(self.series_tags[name])
+                for name in source_columns
+                if name in self.series_tags
+            }
+            target_tags = {
+                name: deepcopy(other.series_tags[name])
+                for name in target_columns
+                if name in other.series_tags
+            }
+            explicit_keys = None if isinstance(tags, bool) else list(tags)
+            mapping = meta.match_series_by_tags(
+                source_tags,
+                target_tags,
+                keys=explicit_keys,
+            )
+            target_order = [name for name in target_columns if name in mapping]
+            unused = set(source_columns) - set(mapping.values())
+            if unused:
+                raise ValueError(
+                    f"Source series have no target match: {sorted(unused)}."
+                )
+
+        source_order = [mapping[name] for name in target_order]
+        if not new_name:
+            new_name = f"{self.name}.aligned_to({other.name})"
+        out = self.copy(new_name)
+
+        missing_tags = [name for name in source_order if name not in out.tags["series"]]
+        if missing_tags:
+            raise ValueError(f"Tags missing for source series: {missing_tags}.")
+
+        date_columns = self._columns(ncs.datetime(), sort=False)
+        expressions = [nw.col(name) for name in date_columns]
+        expressions.extend(
+            nw.col(mapping[target_name]).alias(target_name)
+            for target_name in target_order
+        )
+        out.data = nw.from_native(out.data).select(expressions).to_native()
+
+        reordered = meta.reorder_series_tags(
+            out.tags["series"],
+            source_order,
+            strict=False,
+        )
+        new_series_tags = {}
+        for target_name in target_order:
+            tag = deepcopy(reordered[mapping[target_name]])
+            tag["name"] = target_name
+            new_series_tags[target_name] = tag
+        out.tags["series"] = new_series_tags
+        return out
+
     @no_type_check
     def math(
         self,
@@ -1467,6 +1642,7 @@ class Dataset:
             # observed here for 'test_algebra_expression_with_multiple_dataset' -->
             # print(f"DATASET.math({func.__name__})\n=======\n{str(self)=} \n---\n{str(other)=}\n=======")
             other_cols = other._columns(ncs.numeric() | ncs.boolean(), sort=False)
+            self._warn_if_series_misaligned(other, num_cols, other_cols)
             if set(other_cols) == set(num_cols):
                 other_cols = num_cols
             result = func(self.numeric_array(num_cols), other.numeric_array(other_cols))
