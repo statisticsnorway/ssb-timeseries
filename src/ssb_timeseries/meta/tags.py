@@ -464,8 +464,8 @@ def find_dimensions(
 
 def candidate_key_groups(
     tags: SeriesTags,
-    keys: Sequence[TagKey] | None = None,
     *,
+    keys: Sequence[TagKey] | None = None,
     include: Iterable[TagKey] = (),
     exclude: Iterable[TagKey] = (),
 ) -> dict[tuple[object, ...], list[SeriesName]]:
@@ -560,7 +560,11 @@ def match_series_by_tags(
     include: Iterable[TagKey] = (),
     exclude: Iterable[TagKey] = (),
 ) -> dict[SeriesName, SeriesName]:
-    """Map target series names to uniquely matching source series names."""
+    """Map target series names to uniquely matching source series names.
+
+    The returned mapping is ``{target_series_name: source_series_name}``, which
+    can be used to reorder source series to match the target series.
+    """
     keys = _resolve_keys(_available_keys(source, target), include, exclude)
     if not keys:
         raise ValueError("No tag attributes are available for matching.")

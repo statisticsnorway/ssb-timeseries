@@ -89,6 +89,13 @@ def test_candidate_key_groups_returns_all_signature_groups() -> None:
     }
 
 
+def test_candidate_key_groups_keys_is_keyword_only() -> None:
+    tags = {"a": {"geo": "NO"}}
+
+    with pytest.raises(TypeError):
+        candidate_key_groups(tags, ["geo"])  # type: ignore[misc]
+
+
 def test_tag_diff_and_tags_equal_normalize_list_values() -> None:
     a = {"geo": "NO", "items": ["b", "a"]}
     b = {"geo": "NO", "items": ["a", "b"]}
